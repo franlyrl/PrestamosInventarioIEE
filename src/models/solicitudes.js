@@ -11,7 +11,7 @@ const solicitudSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Usuarios',
         required: [true, 'El ID del usuario es obligatorio']
-    },
+    }, // Modficar a vector de ObjectId si se permite varios insumos
     id_insumo: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Insumos',
@@ -36,6 +36,7 @@ const solicitudSchema = new mongoose.Schema({
     comentario_admin: { 
         type: String,
         trim: true 
+        
     },
 }, { 
     timestamps: true 

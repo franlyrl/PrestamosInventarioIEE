@@ -44,7 +44,8 @@ const usuarioSchema = new mongoose.Schema({
         type: String,
         required: [true, 'El teléfono es obligatorio'],
         trim: true
-    },
+    }, 
+    //roles tipo enum   enum: ['activo', 'inactivo', 'sancionado'],
     tipo_rol: {
         type: mongoose.Schema.Types.ObjectId, // Guarda el ID del documento de Roles
         ref: 'Roles', // Referencia al modelo que ya hiciste
@@ -55,7 +56,7 @@ const usuarioSchema = new mongoose.Schema({
         enum: ['activo', 'inactivo', 'sancionado'],
         default: 'activo'
     },
-    //No estoy segura de los ultimos dos
+    //efectos de auditoria
     fecha_creacion: {
         type: Date,
         default: Date.now
