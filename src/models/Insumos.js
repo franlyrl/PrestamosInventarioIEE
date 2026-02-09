@@ -5,49 +5,41 @@ const insumoSchema = new mongoose.Schema({
         type: Number,
         unique: true,
         index: true,
-        required: true
+        required: [true, 'El ID es obligatorio'], // Agregué mensaje aquí también
+        min: [1, 'El ID del insumo debe ser un número positivo']    
     },
-    nombre_insumo: {
+    NombProducto: {
         type: String,
-        required: [true, 'El nombre del insumo es obligatorio'],
+        required: [true, 'El nombre del producto es obligatorio'],
         trim: true
-    },
-    descripcion: {
-        type: String,
-        trim: true
-    },
-    categoria: { 
-        type: String,
-        required: [true, 'Especifique tipo de insumo'],
-        enum: {
-            values: ['Componentes', 'Herramientas', 'Maquinaria', 'Consumibles'],
-            message: '{VALUE} no es una categoría válida'
-        }
-    },  
-    estado_insumo: {
-        type: String,
-        enum: ['disponible', 'agotado', 'en pedido', 'dañado'],
-        default: 'disponible' // Es bueno tener un valor inicial
     },
     cantidad: {
         type: Number,
-        required: [true, 'La cantidad del insumo es obligatoria'],
-        min: [0, 'La cantidad no puede ser negativa']
+        required: [true, 'La cantidad es obligatoria'],
+        min: [0, 'La cantidad no puede ser menor a 0'] // Cambié a 0 por si se agotan
     },
-    cantidad_disponible: {
-        type: Number,
-        required: [true, 'La cantidad disponible del insumo es obligatoria'],
-        min: [0, 'La cantidad disponible no puede ser negativa']
-    },
-    numero_serie: {
+    caracteristicas: {
         type: String,
-        unique: true,
-        sparse: true, // Esto permite que varios insumos NO tengan serie sin dar error
+        required: [true, 'Las características son obligatorias'],
         trim: true
-    }               
+    },
+    categoria: {
+        type: String,
+        required: [true, 'La categoría del insumo es obligatoria'],
+        enum: [
+            'Componentes Pasivos', 
+            'Optoelectrónica', 
+            'Actuadores', 
+            'Sensores', 
+            'Conectividad', 
+            'Prototipado',
+            'Otros'
+        ],
+        trim: true
+    }
 }, { 
-    timestamps: true 
+    timestamps: true // Esto creará createdAt y updatedAt automáticamente
 });
 
-// Exportamos como 'Insumos' para que no choque con el de Usuarios
-module.exports = mongoose.model('Insumos', insumoSchema);
+const Insumo = mongoose.model('Insumo', insumoSchema);
+module.exports = Insumo; // ¡No olvides exportarlo para usarlo en tus rutas!

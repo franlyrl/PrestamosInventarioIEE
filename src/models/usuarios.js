@@ -41,15 +41,18 @@ const usuarioSchema = new mongoose.Schema({
         minlength: [8, 'La contraseña debe tener al menos 8 caracteres']   
     },
     telefono: {
-        type: String,
-        required: [true, 'El teléfono es obligatorio'],
-        trim: true
-    }, 
+    type: String,
+    required: [true, 'El teléfono es obligatorio'],
+    trim: true,
+    match: [/^\+506\s\d{8}$/, 'El formato debe ser +506 seguido de 8 dígitos']
+},
     //roles tipo enum   enum: ['activo', 'inactivo', 'sancionado'],
     tipo_rol: {
-        type: mongoose.Schema.Types.ObjectId, // Guarda el ID del documento de Roles
-        ref: 'Roles', // Referencia al modelo que ya hiciste
-        required: [true, 'El rol es obligatorio']
+        type: String,
+        required: true, // Te recomiendo agregar esto para que no sea opcional
+        enum: ['estudiante', 'docente', 'administrativo', 'admin'],
+        lowercase: true, // Opcional: convierte todo a minúsculas automáticamente
+        trim: true      // Opcional: quita espacios en blanco accidentales
     },
     estado: {
         type: String,

@@ -1,45 +1,60 @@
 const mongoose = require('mongoose');
 
 const solicitudSchema = new mongoose.Schema({
-    id_solicitud: {
-        type: Number,
-        unique: true,
-        index: true,
+    usuario: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Usuario',
         required: true
     },
-    id_usuario: {
+
+    activos: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Usuarios',
-        required: [true, 'El ID del usuario es obligatorio']
-    }, // Modficar a vector de ObjectId si se permite varios insumos
-    id_insumo: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Insumos',
-        required: [true, 'El ID del insumo es obligatorio']
-    },
-    fecha_prestamo: { 
-        type: Date, 
-        default: Date.now 
-    },
-    estado_admin: {
-        type: String,
-        // Agregamos 'pendiente' a la lista para que coincida con el default
-        enum: ['pendiente', 'aprobada', 'rechazada', 'finalizada'], 
-        default: 'pendiente'
-    },
-    fecha_entrega_esperada: { // Cuando el estudiante dice que lo va a devolver
-        type: Date 
-    },
-    fecha_devolucion_real: { // Cuando realmente lo devolvió (para calcular sanciones)
-        type: Date 
-    },
-    comentario_admin: { 
-        type: String,
-        trim: true 
-        
-    },
+        ref: 'Activo'
+    }],
+
+    insumos: [{
+        id_insumo: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Insumo',
+            required: true
+        },
+        cantidad: { type: Number, required: true },
+        caracteristicas: String,
+        descripcion: String
+    }],
+
+    historico_estados: [{
+        estado: {
+            type: String,
+            enum: ['pendiente', 'aprobada', 'rechazada', 'entregado', 'penalizado', 'devuelto'],
+            default: 'pendiente'
+        },
+        fecha: { 
+            type: Date, 
+            default: Date.now 
+        },
+        observaciones: { 
+            type: String, 
+            validate: {
+                validator: function(v) {
+                    // Validación de seguridad: obligatorios en casos críticos
+                    if (['penalizado', 'devuelto', 'rechazada'].includes(this.estado)) {
+                        return v && v.trim().length > 0; 
+                    }
+                    return true;
+                },
+                message: 'Las observaciones son obligatorias para penalizaciones, devoluciones o rechazos.'
+            },
+            default: 'Sin observaciones'
+        }
+    }],
+    fecha_prestamo: { type: Date, default: Date.now },
+    fecha_entrega_esperada: { type: Date }, 
+    fecha_devolucion_real: { type: Date }, 
+    comentario_admin: { type: String, trim: true }
+    
 }, { 
-    timestamps: true 
+    timestamps: true // Esto te crea automáticamente 'createdAt' y 'updatedAt'
 });
 
 module.exports = mongoose.model('Solicitudes', solicitudSchema);
