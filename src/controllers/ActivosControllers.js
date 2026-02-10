@@ -71,3 +71,73 @@ exports.deleteActivo = async (req, res) => {
         res.status(500).json({ message: 'Error al eliminar el activo', error });
     }                                   
 };
+
+/**
+ * @desc 1. Obtiene los detalles de un equipo específico por su ID.
+ * @route GET /api/activos/:id
+ */
+exports.getActivoById = async (req, res) => {
+    try {
+        const activo = await Activos.findById(req.params.id);
+        if (!activo) return res.status(404).json({ message: 'Activo no encontrado' });
+        res.json(activo);
+    } catch (error) {
+        res.status(500).json({ message: 'ID no válido o error de servidor', error });
+    }
+};
+
+/**
+ * @desc 2. Filtra los equipos por su estado (Validado con el Enum del Schema).
+ * @route GET /api/activos/estado/:estado
+ */
+exports.getActivosByEstado = async (req, res) => {
+    try {
+        const { estado } = req.params;
+        // Validamos contra el enum de 'estadoActivo' si lo tienes definido así
+        const activos = await Activos.find({ estadoActivo: estado });
+        res.json({
+            estadoFiltrado: estado,
+            total: activos.length,
+            data: activos
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al filtrar por estado', error });
+    }
+};
+
+/**
+ * @desc 3. Filtra los equipos por su categoría (CON VALIDACIÓN).
+ * @route GET /api/activos/categoria/:categoria
+ */
+exports.getActivosByCategoria = async (req, res) => {
+    try {
+        const { categoria } = req.params;
+        const categoriasValidas = Activos.schema.path('categoria').enumValues;
+
+        if (!categoriasValidas.includes(categoria)) {
+            return res.status(400).json({ 
+                message: `La categoría '${categoria}' no existe`,
+                opciones: categoriasValidas 
+            });
+        }
+
+        const activos = await Activos.find({ categoria });
+        res.json({
+            categoria,
+            total: activos.length,
+            data: activos
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al filtrar por categoría', error });
+    }
+};
+
+/**
+ * @desc 4. EXTRA: Retorna las categorías para el Frontend.
+ * @route GET /api/activos/categorias/lista
+ */
+exports.getEnumCategoriasActivos = (req, res) => {
+    const categorias = Activos.schema.path('categoria').enumValues;
+    res.json(categorias);
+};
+
