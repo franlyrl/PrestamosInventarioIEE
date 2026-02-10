@@ -18,17 +18,53 @@ exports.getInsumos = async (req, res) => {
 };
 
 /**
- * @route POST /api/insumos
- * @desc Registra un nuevo tipo de insumo en la base de datos.
- * @param {Object} req.body - Datos del insumo (nombre, stock, categoría, etc.)
+ * @desc Registra un nuevo insumo.
+ * Valida: Rol administrativo, Campos obligatorios (Nombre, Características, Categoría).
  */
 exports.createInsumo = async (req, res) => {
     try {
+        // 1. FILTRO DE SEGURIDAD (Solo administrativos)
+        const rolesAutorizados = ['admin', 'administrador'];
+        
+        if (!req.user || !rolesAutorizados.includes(req.user.role)) {
+            return res.status(403).json({ 
+                message: 'Acceso denegado: No tienes permisos para añadir insumos.' 
+            });
+        }
+
+        // 2. EXTRACCIÓN DE DATOS 
+        const { NombProducto, caracteristicas, categoria, stock } = req.body;
+
+        // 3. VALIDACIÓN DE PRESENCIA (Campos técnicos obligatorios)
+        if (!NombProducto || !caracteristicas || !categoria) {
+            return res.status(400).json({ 
+                message: 'Error: El nombre, las características y la categoría son campos técnicos obligatorios.' 
+            });
+        }
+
+        // 4. VALIDACIÓN DE CATEGORÍA (Enum Check)
+        const categoriasValidas = Insumos.schema.path('categoria').enumValues;
+        if (!categoriasValidas.includes(categoria)) {
+            return res.status(400).json({ 
+                message: 'Categoría no válida.', 
+                categoriasPermitidas: categoriasValidas 
+            });
+        }
+
+        // 5. GUARDADO
         const nuevoInsumo = new Insumos(req.body);
         const insumoGuardado = await nuevoInsumo.save();
-        res.status(201).json(insumoGuardado);
+
+        res.status(201).json({
+            message: "Insumo registrado con éxito",
+            data: insumoGuardado
+        });
+
     } catch (error) {
-        res.status(400).json({ message: 'Error al crear el insumo', error });
+        res.status(500).json({ 
+            message: 'Error interno al registrar el insumo', 
+            error: error.message 
+        });
     }
 };
 

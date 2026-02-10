@@ -16,19 +16,61 @@ exports.getActivos = async (req, res) => {
         res.status(500).json({ message: 'Error al obtener los activos', error });
     }
 };
-
 /**
- * @route POST /api/activos
- * @desc Registra un nuevo equipo (activo) en la base de datos.
- * @param {Object} req.body - Datos del equipo (nombre, modelo, id_placa, etc.)
+ * @desc Registra un nuevo activo. 
+ * Valida: Rol de usuario, Campos técnicos y Duplicidad de IDs.
  */
 exports.createActivo = async (req, res) => {
     try {
+        // 1. ESCUDO DE SEGURIDAD (Autorización)
+        // Solo permitimos el paso a roles 'admin' o 'administrador'
+        const rolesAutorizados = ['admin', 'administrador'];
+        
+        if (!req.user || !rolesAutorizados.includes(req.user.role)) {
+            return res.status(403).json({ 
+                message: 'Acceso denegado: Solo el personal administrativo puede registrar activos.' 
+            });
+        }
+
+        // 2. EXTRACCIÓN Y VALIDACIÓN DE CAMPOS TÉCNICOS
+        const { numActivo, numSerie, marca, modelo, categoria } = req.body;
+
+        if (!numActivo || !numSerie || !marca || !modelo || !categoria) {
+            return res.status(400).json({ 
+                message: 'Error: Faltan campos obligatorios (Números de identificación, marca, modelo o categoría).' 
+            });
+        }
+
+        // 3. VALIDACIÓN DEL ENUM (Integridad de Categoría)
+        const categoriasValidas = Activos.schema.path('categoria').enumValues;
+        if (!categoriasValidas.includes(categoria)) {
+            return res.status(400).json({ 
+                message: 'La categoría seleccionada no es válida.', 
+                opciones: categoriasValidas 
+            });
+        }
+
+        // 4. PROCESO DE GUARDADO
         const nuevoActivo = new Activos(req.body);
         const activoGuardado = await nuevoActivo.save();
-        res.status(201).json(activoGuardado);
+
+        res.status(201).json({
+            message: "Equipo registrado con éxito en el sistema de activos",
+            data: activoGuardado
+        });
+
     } catch (error) {
-        res.status(400).json({ message: 'Error al crear el activo', error });
+        // 5. MANEJO DE DUPLICADOS (Seguridad de Identidad Única)
+        if (error.code === 11000) {
+            return res.status(400).json({ 
+                message: 'Error: El Número de Activo o de Serie ya está asignado a otro equipo.' 
+            });
+        }
+        
+        res.status(500).json({ 
+            message: 'Error interno al procesar el registro', 
+            error: error.message 
+        });
     }
 };
 

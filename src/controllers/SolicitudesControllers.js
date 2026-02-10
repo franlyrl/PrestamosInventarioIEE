@@ -10,50 +10,87 @@ const Solicitudes = require('../models/solicitudes');
  * @route GET /api/solicitudes
  * @desc Obtiene todas las solicitudes con los datos de usuario, activos e insumos expandidos.
  */
-exports.getSolicitudes = async (req, res) => { 
-        try {
-    const solicitudes = await Solicitudes.find()
-        // Usuario: nombres reales del schema
-        .populate('usuario', 'nombre_completo correo_electronico tipo_rol') 
-        
-        // Activos: marca y modelo (como están en activos.js)
-        .populate('activos', 'marca modelo numActivo')
-        
-        // Insumos: NombProducto y características
-        .populate('insumos.id_insumo', 'NombProducto caracteristicas');
-        
-    res.json(solicitudes);
-} catch (error) {
-    res.status(500).json({ message: 'Error al obtener las solicitudes', error });
-}
-    };
+exports.getSolicitudes = async (req, res) => {
+    try {
+        let filtro = {};
+
+        // 1. EL ESCUDO DE PRIVACIDAD (Criterio: Solo veo lo mío si no soy admin)
+        // Nota: Asegúrate de si en tu Schema el campo es 'usuario' o 'estudiante'
+        if (!['admin', 'administrador'].includes(req.user.role)) {
+            filtro = { usuario: req.user.id }; 
+        }
+
+        // 2. LA RIQUEZA DE DATOS (El populate detallado del GET viejo)
+        const solicitudes = await Solicitudes.find(filtro)
+            .populate('usuario', 'nombre_completo correo_electronico tipo_rol') 
+            .populate('activos', 'marca modelo numActivo')
+            .populate('insumos.id_insumo', 'NombProducto caracteristicas')
+            .sort({ fecha_prestamo: -1 }); // Picky tip: las más recientes primero
+
+        res.status(200).json(solicitudes);
+    } catch (error) {
+        res.status(500).json({ 
+            message: 'Error al obtener solicitudes', 
+            detalles: error.message 
+        });
+    }
+};
 
 /**
- * @route POST /api/solicitudes
- * @desc Crea una nueva solicitud de préstamo.
- * @param {Object} req.body - Datos de la solicitud (usuario, activos, insumos, etc.)
+ * @desc Registra una nueva solicitud de préstamo/consumo.
+ * @rules 
+ * 1. El estudiante/docente no puede modificar solicitudes de otros.
+ * 2. El solicitante se extrae automáticamente del token (seguridad).
+ * 3. Se puede pedir una lista de activos y una lista de insumos.
  */
 exports.createSolicitud = async (req, res) => {
     try {
-        const datosSolicitud = req.body;
+        // 1. IDENTIFICACIÓN AUTOMÁTICA
+        // No dejamos que el usuario mande su ID por el body, lo tomamos del token.
+        const idUsuarioSolicitante = req.user.id;
 
-        // Opcional: Nos aseguramos de que el historial tenga el registro inicial
-        if (!datosSolicitud.historico_estados || datosSolicitud.historico_estados.length === 0) {
-            datosSolicitud.historico_estados = [{
-                estado: 'pendiente',
-                observaciones: 'Solicitud creada por el usuario'
-            }];
+        const { 
+            activos, 
+            insumos, 
+            fecha_entrega_esperada, 
+            comentario_admin 
+        } = req.body;
+
+        // 2. VALIDACIÓN DE CONTENIDO (Criterio: No puede ser una solicitud vacía)
+        if ((!activos || activos.length === 0) && (!insumos || insumos.length === 0)) {
+            return res.status(400).json({ 
+                message: 'Error: La solicitud debe contener al menos un activo o un insumo.' 
+            });
         }
 
-        const nuevaSolicitud = new Solicitudes(datosSolicitud);
+        // 3. VALIDACIÓN DE FECHAS
+        if (fecha_entrega_esperada && new Date(fecha_entrega_esperada) <= new Date()) {
+            return res.status(400).json({ 
+                message: 'Error: La fecha de entrega esperada debe ser posterior a la fecha actual.' 
+            });
+        }
+
+        // 4. CREACIÓN DE LA INSTANCIA
+        const nuevaSolicitud = new Solicitudes({
+            estudiante: idUsuarioSolicitante, // Referencia al Schema Usuario
+            activos, // Array de IDs
+            insumos, // Array de Objetos {id_insumo, cantidad...}
+            fecha_entrega_esperada,
+            estado: 'Pendiente' // Siempre inicia en espera de revisión administrativa
+        });
+
+        // 5. GUARDADO
         const solicitudGuardada = await nuevaSolicitud.save();
-        
-        res.status(201).json(solicitudGuardada);
+
+        res.status(201).json({
+            message: "Solicitud registrada con éxito. Pendiente de aprobación.",
+            data: solicitudGuardada
+        });
+
     } catch (error) {
-        // Si el validador de 'observaciones' del Schema falla, saltará aquí
-        res.status(400).json({ 
-            message: 'Error de validación en la solicitud', 
-            detalles: error.message 
+        res.status(500).json({ 
+            message: 'Error interno al procesar la solicitud', 
+            error: error.message 
         });
     }
 };

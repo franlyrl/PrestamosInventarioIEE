@@ -77,7 +77,15 @@ const usuarioSchema = new mongoose.Schema({
         lowercase: true, 
         trim: true      
     },
-    /** * @property {String} estado 
+     /** * @property {String} estado 
+     * Pdf del comprobante de rol (subido por el usuario, revisado por admin). Guardamos la ruta del archivo.
+     */
+    comprobante_pdf: {
+        type: String,
+        required: [true, 'El comprobante PDF es obligatorio']
+    },
+
+        /** * @property {String} estado 
      * Estado de la cuenta de usuario para control de acceso.
      */
     estado: {
