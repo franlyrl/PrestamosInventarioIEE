@@ -97,21 +97,100 @@ exports.updateActivo = async (req, res) => {
         res.status(400).json({ message: 'Error al actualizar el activo', error });
     }
 };
-
 /**
  * @route DELETE /api/activos/:id
- * @desc Elimina un equipo del inventario de activos.
+ * @desc Da de baja un equipo del inventario (Borrado lógico con justificación).
+ * @access Privado (Solo Administrador/Admin)
+ * @param {String} req.params.id - ID del activo a eliminar.
+ * @param {String} req.body.observaciones - Justificación para la baja (mínimo 10 caracteres).
+ * @return {Object} Mensaje de confirmación o error.
+ * @access Privado (Solo Administrador/Admin)
+ * NOTA: En lugar de eliminar físicamente el registro, se actualiza su estado a 'eliminado' y 
+ * se guarda la justificación en el campo de observaciones para mantener un historial de bajas. 
+ * Esto permite auditorías futuras y evita la pérdida de datos críticos.
+ * 
+ * Ejemplo de uso:
+ * DELETE /api/activos/60f5a3c2b4d1c81234567890
+ * Body: {
+ *   "observaciones": "Equipo obsoleto y sin repuestos disponibles."
+ * }    
+ * Respuesta exitosa:
+ * {
+ *   "message": "El activo ha sido dado de baja correctamente.",
+ *   "detalles": {
+ *     "id": "60f5a3c2b4d1c81234567890",
+ *     "nombre": "Osciloscopio XYZ",
+ *     "razon": "BAJA: Equipo obsoleto y sin repuestos disponibles."
+ *   }
+ * }
+ * Respuesta por falta de permisos:
+ * {
+ *   "message": "No tiene permisos suficientes para eliminar activos del sistema."
+ * }
+ * Respuesta por falta de justificación:
+ * {
+ *   "message": "Debe proporcionar una justificación en el campo de observaciones (mín. 10 caracteres) para la baja."
+ * }
+ * Respuesta por activo no encontrado:
+ * {
+ *   "message": "El activo solicitado no existe."
+ * }
+ * Respuesta por error interno:
+ * {
+ *   "message": "Error interno al procesar la baja del activo.",
+ *   "error": "Descripción detallada del error"
+ * }
  */
 exports.deleteActivo = async (req, res) => {
     try {
-        const activoEliminado = await Activos.findByIdAndDelete(req.params.id);
-        if (!activoEliminado) {
-            return res.status(404).json({ message: 'Activo no encontrado' });
+        // Extraemos 'observaciones' del body, que será nuestro motivo de baja
+        const { observaciones } = req.body;
+
+        // 1. Verificación de Rol
+        if (req.usuario.tipo_rol !== 'admin' && req.usuario.tipo_rol !== 'Administrador') {
+            return res.status(403).json({ 
+                message: 'No tiene permisos suficientes para eliminar activos del sistema.' 
+            });
         }
-        res.json({ message: 'Activo eliminado correctamente' });
+
+        // 2. Verificación de Justificación (Reutilizando el campo observaciones)
+        if (!observaciones || observaciones.trim().length < 10) {
+            return res.status(400).json({ 
+                message: 'Debe proporcionar una justificación en el campo de observaciones (mín. 10 caracteres) para la baja.' 
+            });
+        }
+
+        // 3. Borrado Lógico: Actualizamos estado y observaciones
+        const activoActualizado = await Activos.findByIdAndUpdate(
+            req.params.id,
+            { 
+                estado: 'eliminado',
+                observaciones: `BAJA: ${observaciones}`, // Marcamos que esto fue por una baja
+                fecha_baja: new Date(),
+                eliminado_por: req.usuario.id 
+            },
+            { new: true }
+        );
+
+        if (!activoActualizado) {
+            return res.status(404).json({ message: 'El activo solicitado no existe.' });
+        }
+
+        res.json({ 
+            message: 'El activo ha sido dado de baja correctamente.',
+            detalles: {
+                id: activoActualizado._id,
+                nombre: activoActualizado.nombre,
+                razon: activoActualizado.observaciones
+            }
+        });
+
     } catch (error) {
-        res.status(500).json({ message: 'Error al eliminar el activo', error });
-    }                                   
+        res.status(500).json({ 
+            message: 'Error interno al procesar la baja del activo.', 
+            error: error.message 
+        });
+    }
 };
 
 /**

@@ -94,18 +94,96 @@ exports.updateInsumo = async (req, res) => {
 
 /**
  * @route DELETE /api/insumos/:id
- * @desc Elimina permanentemente un insumo del inventario.
+ * @desc Da de baja un insumo (Borrado lógico con justificación).
+ * @access Privado (Solo Administrador/Admin)
+ * @body {String} motivo_eliminacion - Justificación obligatoria para la baja del insumo (mínimo 10 caracteres).
+ *
+ * Proceso:
+ * 1. Verificar que el usuario tenga rol administrativo.
+ * 2. Validar que se haya proporcionado una justificación válida.
+ * 3. Realizar un borrado lógico actualizando el campo 'estado' a 'eliminado' y guardando la justificación.
+ * 4. Retornar un mensaje de éxito o error según corresponda.
+ * Requisitos:
+ * Nota: Asegúrate de que el Schema de Insumos tenga los campos necesarios para el borrado lógico
+ *  (estado, justificacion_baja, fecha_baja, eliminado_por).
+ *
+ * Ejemplo de respuesta exitosa:
+ * {
+ *   "message": "Insumo dado de baja correctamente.",
+ *   "detalles": {
+ *     "id": "60f5a3c2b4d1c72f9c8e4b5a",
+ *     "nombre": "Resistencia 10kΩ",
+ *     "motivo": "Obsoleto y sin demanda."
+ *   }
+ * }
+ *
+ * Ejemplo de respuesta por falta de autorización:
+ * {
+ *   "message": "No autorizado. Solo administradores pueden dar de baja insumos."
+ * }
+ *
+ * Ejemplo de respuesta por falta de justificación:
+ * {
+ *   "message": "Se requiere una justificación (mín. 10 caracteres) para la baja del insumo."
+ * }
+ * Ejemplo de respuesta por insumo no encontrado:
+ * {
+ *   "message": "El insumo no existe."
+ * }
+ * Ejemplo de respuesta por error interno:
+ * {
+ *   "message": "Error al procesar la baja del insumo.",
+ *   "error": "Detalles del error..."
+ * }
  */
 exports.deleteInsumo = async (req, res) => {
     try {
-        const insumoEliminado = await Insumos.findByIdAndDelete(req.params.id);
-        if (!insumoEliminado) {
-            return res.status(404).json({ message: 'Insumo no encontrado' });
+        const { motivo_eliminacion } = req.body;
+
+        // 1. Verificación de Rol
+        if (req.usuario.tipo_rol !== 'admin' && req.usuario.tipo_rol !== 'Administrador') {
+            return res.status(403).json({ 
+                message: 'No autorizado. Solo administradores pueden dar de baja insumos.' 
+            });
         }
-        
-        res.json({ message: 'Insumo eliminado correctamente' });
+
+        // 2. Verificación de Justificación (Obligatoria)
+        if (!justificacion_dbaja || justificacion_dbaja.trim().length < 10) {
+            return res.status(400).json({ 
+                message: 'Se requiere una justificación (mín. 10 caracteres) para la baja del insumo.'
+            });
+        }
+
+        // 3. Borrado Lógico
+        const insumoActualizado = await Insumos.findByIdAndUpdate(
+            req.params.id,
+            { 
+                estado: 'eliminado', // Asegúrate de tener el campo 'estado' en el Schema también
+                justificacion_baja: justificacion_dbaja,
+                fecha_baja: new Date(),
+                eliminado_por: req.usuario.id 
+            },
+            { new: true }
+        );
+
+        if (!insumoActualizado) {
+            return res.status(404).json({ message: 'El insumo no existe.' });
+        }
+
+        res.json({ 
+            message: 'Insumo dado de baja correctamente.',
+            detalles: {
+                id: insumoActualizado._id,
+                nombre: insumoActualizado.nombre,
+                motivo: insumoActualizado.justificacion_sbaja
+            }
+        });
+
     } catch (error) {
-        res.status(500).json({ message: 'Error al eliminar el insumo', error });
+        res.status(500).json({
+            message: 'Error al procesar la baja del insumo.',
+            error: error.message
+        });
     }
 };
 

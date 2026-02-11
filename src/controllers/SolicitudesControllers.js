@@ -145,17 +145,44 @@ exports.updateSolicitud = async (req, res) => {
 
 /**
  * @route DELETE /api/solicitudes/:id
- * @desc Elimina una solicitud del sistema.
+ * @desc Elimina una solicitud del sistema, Pero solo el Usaurio Dueño de la solicitud puede hacerlo, 
+ * antes que el admin haya rechazado o aceptado la solicitud. Si ya fue procesada por el admin, 
+ * no se puede eliminar, solo cancelar (cambiar estado a cancelada).
+ * REGLA DE ORO: No se puede eliminar una solicitud que ya fue aceptada o rechazada por el admin,
+ *  para mantener la integridad de los registros
+ *.
  */
 exports.deleteSolicitud = async (req, res) => {
     try {
-        const solicitudEliminada = await Solicitudes.findByIdAndDelete(req.params.id);
+        // 1. Primero BUSCAMOS, no borramos de un solo.
+        const solicitud = await Solicitudes.findById(req.params.id);
         
-        if (!solicitudEliminada) {
+        if (!solicitud) {
             return res.status(404).json({ message: 'Solicitud no encontrada' });
         }
-        res.json({ message: 'Solicitud eliminada correctamente' });
+
+        // 2. REGLA DE ORO 1: ¿Es el dueño? 
+        // Comparamos el ID del usuario de la solicitud con el ID del usuario en el token (req.usuario.id)
+        if (solicitud.usuario.toString() !== req.usuario.id) {
+            return res.status(403).json({ 
+                message: 'No tienes permiso. Solo el dueño puede cancelar esta solicitud.' 
+            });
+        }
+
+        // 3. REGLA DE ORO 2: ¿Sigue pendiente?
+        // Si ya fue aceptada o rechazada, el Admin ya trabajó en ella. No se toca.
+        if (solicitud.estado !== 'pendiente') {
+            return res.status(400).json({ 
+                message: `No se puede eliminar. La solicitud ya se encuentra en estado: ${solicitud.estado}.` 
+            });
+        }
+
+        // 4. Si pasó los filtros, procedemos a la eliminación física.
+        await Solicitudes.findByIdAndDelete(req.params.id);
+
+        res.json({ message: 'Solicitud cancelada y eliminada correctamente.' });
+
     } catch (error) {
-        res.status(500).json({ message: 'Error al eliminar la solicitud', error });
+        res.status(500).json({ message: 'Error al eliminar la solicitud', error: error.message });
     }
 };

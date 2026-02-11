@@ -95,15 +95,69 @@ exports.updateUsuario = async (req, res) => {
 };
 
 /**
- * @desc Elimina un usuario por ID.
+ * @route DELETE /api/usuarios/:id
+ * @desc Elimina un usuario del sistema si cumple las condiciones de baja.
+ * @access Privado (Solo Administrador/Admin)
+ * 
+ * REGLA DE ORO: Solo se pueden eliminar usuarios que estén en estado 'inactivo' o 'penalizado'.
+ * Esto garantiza que no se borren usuarios activos por error, y que el historial de préstamos se mantenga intacto.
+ * Si un usuario está 'activo', el sistema bloqueará la eliminación y sugerirá primero inactivarlo o penalizarlo.   
+ * 
+ * Nota: La eliminación física también podría incluir la eliminación del archivo PDF del comprobante, dependiendo de tu estrategia de almacenamiento.
+ * 
+ * Ejemplo de respuesta exitosa:
+ * {
+ *   "message": "Usuario Juan Pérez eliminado permanentemente.",
+ *   "razon": "Estado previo: inactivo"
+ * }
+ *  
+ * Ejemplo de respuesta por intentar eliminar un usuario activo:
+ * {
+ *   "message": "No se puede eliminar un usuario activo. Primero debe ser inactivado o penalizado."
+ * }
+ *  
+ * Ejemplo de respuesta por falta de permisos:
+ * {
+ *   "message": "Acceso denegado. No tiene permisos para eliminar usuarios."
+ * }
+ *  
+ * Ejemplo de respuesta por usuario no encontrado:
+ * {
+ *   "message": "Usuario no encontrado."
+ * }
+ *  
+ * 
+ * Importante: Asegúrate de que el middleware de autenticación esté configurado para agregar el objeto `usuario` al `req`, 
+ * con al menos el campo `tipo_rol` para esta verificación.
  */
 exports.deleteUsuario = async (req, res) => {
     try {
-        const usuarioEliminado = await Usuarios.findByIdAndDelete(req.params.id);
-        if (!usuarioEliminado) return res.status(404).json({ message: 'Usuario no encontrado' });
-        res.json({ message: 'Usuario eliminado exitosamente' });
+        // 1. Verificación de Rol (Solo la jerarquía alta)
+        if (req.usuario.tipo_rol !== 'admin' && req.usuario.tipo_rol !== 'Administrador') {
+            return res.status(403).json({ message: 'Acceso denegado. No tiene permisos para eliminar usuarios.' });
+        }
+
+        const usuario = await Usuarios.findById(req.params.id);
+        if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+        // 2. REGLA DE ORO: Solo si está Inactivo o Penalizado
+        // Si el usuario está 'activo', el sistema bloquea el borrado para evitar errores.
+        if (usuario.estado === 'activo') {
+            return res.status(400).json({ 
+                message: 'No se puede eliminar un usuario activo. Primero debe ser inactivado o penalizado.' 
+            });
+        }
+
+        // 3. Eliminación física (Aquí podrías también borrar el archivo PDF del storage)
+        await Usuarios.findByIdAndDelete(req.params.id);
+
+        res.json({ 
+            message: `Usuario ${usuario.nombre} eliminado permanentemente.`,
+            razon: `Estado previo: ${usuario.estado}`
+        });
+
     } catch (error) {
-        res.status(400).json({ message: 'Error al eliminar el usuario', error });
+        res.status(500).json({ message: 'Error al eliminar usuario.', error: error.message });
     }
 };
 
