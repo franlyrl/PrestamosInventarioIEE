@@ -95,3 +95,43 @@ const Activo = mongoose.model('Activo', activoSchema);
 /** * Exportación del modelo Activo.
  */
 module.exports = Activo;
+
+/**
+ * @route GET /api/reportes/alertas-activos
+ * @desc Reporte de activos que requieren atención o están fuera de servicio.
+ */
+exports.getAlertasActivos = async (req, res) => {
+    try {
+        // 1. Buscamos activos que no están en condiciones óptimas
+        const activosCriticos = await Activo.find({
+            estadoActivo: { $in: ['deteriorado', 'dañado'] }
+        }).select('numActivo numSerie estadoActivo modelo marca');
+
+        // 2. Calculamos estadísticas de disponibilidad
+        const totalActivos = await Activo.countDocuments();
+        const prestados = await Activo.countDocuments({ estadoActivo: 'prestado' });
+        const disponibles = await Activo.countDocuments({ estadoActivo: 'disponible' });
+
+        res.json({
+            resumen_inventario: {
+                total: totalActivos,
+                disponibles: disponibles,
+                en_prestamo: prestados,
+                fuera_de_servicio: activosCriticos.length
+            },
+            alerta_mantenimiento: {
+                count: activosCriticos.length,
+                items: activosCriticos
+            },
+            mensaje: activosCriticos.length > 0 
+                ? "Atención: Hay equipos que requieren reparación o reposición." 
+                : "Todos los equipos no prestados están en buen estado."
+        });
+
+    } catch (error) {
+        res.status(500).json({ 
+            message: 'Error al generar reporte de activos', 
+            error: error.message 
+        });
+    }
+};

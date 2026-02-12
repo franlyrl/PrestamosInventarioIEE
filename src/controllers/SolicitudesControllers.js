@@ -122,27 +122,37 @@ eexports.getSolicitudById = async (req, res) => {
 };
 /**
  * @route PUT /api/solicitudes/:id
- * @desc Actualiza el estado o datos de una solicitud existente.
+  * @desc Actualiza el estado de una solicitud y registra el movimiento en el histórico.
+    * REGLA DE ORO: Solo el Admin puede cambiar el estado de una solicitud, no el estudiante.
+    * Criterio: El Admin debe proporcionar una observación para cambios críticos (rechazo, penalización).
+    * Criterio: El histórico de estados es un registro inmutable que muestra la evolución de la solicitud.
+    *
  * Útil para cambiar estados (Pendiente -> Entregado).
  */
-exports.updateSolicitud = async (req, res) => {
-    try {
-        // { new: true } devuelve el objeto modificado, no el viejo
-        const solicitudActualizada = await Solicitudes.findByIdAndUpdate(
-            req.params.id, 
-            req.body, 
-            { new: true, runValidators: true } 
-        );
 
-        if (!solicitudActualizada) {
-            return res.status(404).json({ message: 'Solicitud no encontrada' });
-        }
-        res.json(solicitudActualizada);
+exports.actualizarEstadoSolicitud = async (req, res) => {
+    try {
+        const { nuevoEstado, observaciones } = req.body;
+        const solicitud = await Solicitudes.findById(req.params.id);
+        
+        if (!solicitud) return res.status(404).json({ message: 'No encontrada' });
+
+        // Actualizamos el array histórico
+        solicitud.historico_estados.push({
+            estado: nuevoEstado,
+            fecha: new Date(),
+            observaciones: observaciones || 'Cambio procesado'
+        });
+
+        // CORREGIDO: Usamos 'estado' para que coincida con el Schema
+        solicitud.estado = nuevoEstado; 
+
+        await solicitud.save();
+        res.json({ message: 'Actualizado', historico: solicitud.historico_estados });
     } catch (error) {
-        res.status(400).json({ message: 'Error al actualizar la solicitud', error });
+        res.status(400).json({ message: 'Error', error: error.message });
     }
 };
-
 /**
  * @route DELETE /api/solicitudes/:id
  * @desc Elimina una solicitud del sistema, Pero solo el Usaurio Dueño de la solicitud puede hacerlo, 

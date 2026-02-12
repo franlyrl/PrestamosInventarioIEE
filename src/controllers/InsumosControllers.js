@@ -300,3 +300,35 @@ exports.getInsumosByEstado = async (req, res) => {
         res.status(500).json({ message: 'Error al filtrar insumos por estado', error });
     }
 };
+
+/**
+ * @route GET /api/reportes/alertas-stock
+ * @desc Genera un reporte de insumos con stock crítico (menos de 5 unidades).
+ * @access Privado (Admin/Administrador)
+ */
+exports.getAlertasStock = async (req, res) => {
+    try {
+        // Definimos un umbral por defecto
+        const UMBRAL_CRITICO = 5;
+
+        // Buscamos insumos cuya cantidad sea menor o igual al umbral
+        const insumosBajos = await Insumo.find({
+            cantidad: { $lte: UMBRAL_CRITICO }
+        })
+        .select('id_insumo NombProducto cantidad categoria')
+        .sort({ cantidad: 1 }); // De menor a mayor para ver lo más urgente primero
+
+        res.json({
+            total_alertas: insumosBajos.length,
+            fecha_reporte: new Date(),
+            criterio: `Insumos con ${UMBRAL_CRITICO} unidades o menos.`,
+            data: insumosBajos
+        });
+
+    } catch (error) {
+        res.status(500).json({ 
+            message: 'Error al generar el reporte de stock.', 
+            error: error.message 
+        });
+    }
+};

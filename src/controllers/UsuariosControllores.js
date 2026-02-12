@@ -219,3 +219,96 @@ exports.searchUsuarios = async (req, res) => {
         res.status(500).json({ message: 'Error al buscar usuarios', error });
     }
 };
+
+/**
+ * @route PATCH /api/usuarios/cierre-cuatrimestre
+ * @desc Inactiva usuarios y fuerza reseteo de contraseña para el nuevo ciclo.
+ * @access Privado (Solo Administrador)
+ * Este endpoint es una herramienta administrativa que se ejecuta al final de 
+ * cada cuatrimestre para preparar el sistema para el nuevo ciclo académico.
+ * Al ejecutarlo, el sistema realizará las siguientes acciones:
+ * 1. Buscará a todos los usuarios con el rol de "estudiante" que estén actualmente activos.
+ * 2. Cambiará su estado a "inactivo", lo que significa que no podrán iniciar sesión ni realizar acciones hasta que se reactiven.
+ * 3. Forzará un reseteo de contraseña estableciendo un valor temporal (por ejemplo, "PENDIENTE_RESETEO") o un hash temporal, para garantizar que el estudiante tenga que crear una nueva contraseña al reactivarse.
+ * 4. Marcará el comprobante como no validado, lo que requerirá que el estudiante suba un nuevo PDF de matrícula para validar su cuenta en el nuevo ciclo.
+ * 5. Agregará una observación en el perfil del usuario indicando que su cuenta ha sido inactivada por el cierre de cuatrimestre y que necesita reactivarse para el nuevo ciclo.
+ * 
+ * Importante: Este proceso es irreversible desde este endpoint, por lo que se recomienda realizarlo solo después de haber confirmado que el cuatrimestre ha finalizado y que los estudiantes han sido informados sobre este procedimiento.
+ * 
+ * Ejemplo de respuesta exitosa:
+ * {
+ *   "message": "Ciclo cerrado exitosamente.",
+ *   "usuarios_afectados": 150,
+ *   "instrucciones": "Los usuarios deberán usar la opción 'Olvidé mi contraseña' y subir su nuevo PDF para reactivarse."
+ * }
+ * 
+ * Ejemplo de respuesta por falta de permisos:
+ * {
+ *  "message": "Acceso denegado. No tiene permisos para cerrar el ciclo."
+ * }
+ *
+ * Ejemplo de respuesta por error en el proceso:
+ * {
+ *  "message": "Error en el proceso de cierre de ciclo",
+ * "error": "Descripción detallada del error"
+ * }
+ *
+ * Nota: Asegúrate de que el middleware de autenticación esté configurado para agregar el objeto `usuario` al `req`,
+ * con al menos el campo `tipo_rol` para esta verificación.
+ *
+ * Recomendación adicional: Antes de ejecutar este endpoint, es aconsejable realizar una copia de seguridad de la base de 
+ * datos, ya que este proceso afectará a un gran número de usuarios y no se puede revertir desde esta función.
+ */
+exports.cierreCuatrimestre = async (req, res) => {
+    try {
+        // 1. Buscamos a todos los estudiantes activos
+        const resultado = await Usuarios.updateMany(
+            { tipo_rol: 'estudiante' },
+            { 
+                estado: 'inactivo', 
+                password: 'PENDIENTE_RESETEO', // O un hash temporal
+                comprobante_validado: false,
+                observaciones: 'Cuenta expirada por fin de cuatrimestre. Requiere nueva matrícula y contraseña.'
+            }
+        );
+
+        res.json({ 
+            message: 'Ciclo cerrado exitosamente.',
+            usuarios_afectados: resultado.modifiedCount,
+            instrucciones: 'Los usuarios deberán usar la opción "Olvidé mi contraseña" y subir su nuevo PDF para reactivarse.'
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error en el proceso de cierre de ciclo', error: error.message });
+    }
+};
+
+/**
+ * @route DELETE /api/usuarios/limpieza-antiguos
+ * @desc Borra permanentemente usuarios que no se han reactivado en mucho tiempo.
+ * @access Privado (Solo Administrador)
+ */
+exports.limpiarUsuariosViejos = async (req, res) => {
+    try {
+        // Definimos qué es "viejo": por ejemplo, alguien que no se loguea hace 1 año
+        const unAnioAtras = new Date();
+        unAnioAtras.setFullYear(unAnioAtras.getFullYear() - 1);
+
+        // 1. Buscamos y borramos a los que:
+        // - Son estudiantes
+        // - Están inactivos
+        // - Su última actualización fue hace más de un año
+        const resultado = await Usuarios.deleteMany({
+            tipo_rol: 'estudiante',
+            estado: 'inactivo',
+            updatedAt: { $lt: unAnioAtras }
+        });
+
+        res.json({ 
+            message: 'Limpieza de base de datos completada.',
+            usuarios_eliminados: resultado.deletedCount,
+            nota: 'Se eliminaron registros sin actividad por más de un año.'
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error en la purga de datos.', error: error.message });
+    }
+};
