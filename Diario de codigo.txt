@@ -1,0 +1,1171 @@
+//Inicializo node
+npm init -y
+
+//instalar dependencias
+npm i express mongoose cors dotenv bcrypt jsonwebtoken helmet express-rate-limit
+
+
+//desarrollo auto-reload
+npm i nodemon -D
+
+//creacion de esctructura basica//
+mkdir src
+cd src
+mkdir config models routes controllers middlewares services utils
+
+npm install express dotenv cors
+
+
+--src/server.js--
+const app = require('./app');
+
+const PORT = process.env.PORT || 4000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+
+--src/app.js--
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+
+require('dotenv').config();
+
+const app = express();
+
+// middlewares básicos
+app.use(cors());
+app.use(helmet());
+app.use(express.json());
+
+// prueba
+app.get('/', (req, res) => {
+  res.json({ message: 'API funcionando ✅' });
+});
+
+module.exports = app;
+
+
+--agregar en package.json--
+"scripts": {
+  "dev": "nodemon src/server.js",
+  "start": "node src/server.js"
+
+
+//ejecutar//
+npm run dev
+// en la web digito http://localhost:4000
+// donde ya estaria 
+
+type nul > .env
+
+PORT=4000
+MONGO_URI=mongodb+srv://<usuario>:<password>@cluster0.mongodb.net/diario_db?retryWrites=true&w=majority
+JWT_SECRET=una_palabra_secreta_muy_larga_y_segura
+
+
+require('dotenv').config();
+
+//para que me genere un JWT_SECRET
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+
+
+5.2.2026
+npm install bcryptjs
+
+9.2.2026 14:15 pm - 18:40 pm
+  -Schemas
+		- Empecé borrando los schemas penalizaciones y roles
+		- Cree Schemas Activos, rehice insumos, modifique Usarios atraves de un enum especificara cada
+		rol
+		- Documente todos los Schemas con JSDoc
+
+	-Cruds
+		- Cree todos los cruds basicos de cada schemas
+			Insumos, Activos, Solicitudes, Lista de Espera y usuarios
+		- Lo documente con JSDoc
+		
+	- Kaban
+		- Use Kaban donde puse cada una de las activadades que hice en la tarde, y las que
+		  correspondian con arreglos hablados en la reunion con el profe las puse como
+		  completadas, el resto las deje en "on review"
+	- Github  
+		- En total hice como 3 put 
+		
+Scripts 
+
+	[Schemas]
+		--PrestamosInventarioIEE\src\models\activos.js-- //Cree los Schemas desde el inicio
+						const mongoose = require('mongoose');
+
+			/**
+			 * Esquema de Mongoose para la gestión de activos (equipos) del inventario.
+			 */
+			const activoSchema = new mongoose.Schema({
+				/** * @property {Number} numActivo 
+				 * Número identificador único del activo; debe ser positivo.
+				 */
+				numActivo: {
+					type: Number,
+					unique: true,
+					index: true,
+					required: [true, 'El número de activo es obligatorio'], 
+					min: [1, 'El número de activo debe ser un número positivo']    
+				},
+				/** * @property {String} numSerie 
+				 * Número de serie único del fabricante para identificación precisa.
+				 */
+				numSerie: {
+					type: String,
+					required: [true, 'El número de serie es obligatorio'],
+					unique: true,
+					trim: true
+				},
+				/** * @property {String} estadoActivo 
+				 * Estado actual del equipo (prestado, disponible, deteriorado, dañado).
+				 */
+				estadoActivo: {
+					type: String,
+					required: [true, 'El estado del activo es obligatorio'],
+					enum: ['prestado', 'disponible', 'deteriorado', 'dañado'],
+					lowercase: true,
+					trim: true
+				},
+				/** * @property {String} marca 
+				 * Fabricante o marca del activo.
+				 */
+				marca: {
+					type: String,
+					required: [true, 'La marca es obligatoria'],
+					trim: true
+				},
+				/** * @property {String} modelo 
+				 * Referencia o modelo específico del equipo.
+				 */
+				modelo: {
+					type: String,
+					required: [true, 'El modelo es obligatorio'],
+					trim: true
+				},
+				/** * @property {String} categoria 
+				 * Clasificación técnica del activo según su área de aplicación.
+				 */
+				categoria: {
+					type: String,
+					required: [true, 'La categoría es obligatoria'],
+					enum: [
+						'Sistemas de Control', 
+						'Instrumental', 
+						'Comunicaciones', 
+						'Sensores', 
+						'Herramientas', 
+						'Robótica', 
+						'IoT',
+						'Otro'
+					],
+					trim: true
+				},
+				/** * @property {String} observaciones 
+				 * Notas adicionales. Por defecto: 'Sin observaciones particulares'.
+				 */
+				observaciones: {
+					type: String,
+					trim: true,
+					default: 'Sin observaciones particulares' 
+				},
+				/** * @property {String} caracteristicas 
+				 * Especificaciones técnicas detalladas del equipo.
+				 */
+				caracteristicas: {
+					type: String,
+					required: [true, 'Las características son obligatorias, datos a especificar del equipo'],
+					trim: true
+				}
+			}, { 
+				/** Genera automáticamente campos de auditoría: createdAt y updatedAt. */
+				timestamps: true 
+			});
+
+			/** * Modelo 'Activo' para interactuar con la colección de activos en la base de datos.
+			 */
+			const Activo = mongoose.model('Activo', activoSchema);
+
+			/** * Exportación del modelo Activo.
+			 */
+			module.exports = Activo;
+			
+		--PrestamosInventarioIEE\src\models\Insumos.js-- //Rehice el Schema
+							const mongoose = require('mongoose');
+
+			/**
+			 * Esquema de Mongoose para la colección de Insumos.
+			 */
+			const insumoSchema = new mongoose.Schema({
+				/** * @property {Number} id_insumo - Identificador único numérico del insumo.
+				 */
+				id_insumo: {
+					type: Number,
+					unique: true,
+					index: true,
+					required: [true, 'El ID es obligatorio'],
+					min: [1, 'El ID del insumo debe ser un número positivo']    
+				},
+
+				/** * @property {String} NombProducto - Nombre comercial o técnico del producto.
+				 */
+				NombProducto: {
+					type: String,
+					required: [true, 'El nombre del producto es obligatorio'],
+					trim: true
+				},
+
+				/** * @property {Number} cantidad - Cantidad disponible en inventario.
+				 */
+				cantidad: {
+					type: Number,
+					required: [true, 'La cantidad es obligatoria'],
+					min: [0, 'La cantidad no puede ser menor a 0']
+				},
+
+				/** * @property {String} caracteristicas - Descripción detallada y especificaciones.
+				 */
+				caracteristicas: {
+					type: String,
+					required: [true, 'Las características son obligatorias'],
+					trim: true
+				},
+
+				/** * @property {String} categoria - Categoría a la que pertenece el insumo (según lista definida).
+				 */
+				categoria: {
+					type: String,
+					required: [true, 'La categoría del insumo es obligatoria'],
+					enum: [
+						'Componentes Pasivos', 
+						'Optoelectrónica', 
+						'Actuadores', 
+						'Sensores', 
+						'Conectividad', 
+						'Prototipado',
+						'Otros'
+					],
+					trim: true
+				}
+			}, { 
+				/** @type {Boolean} - Habilita la creación automática de campos createdAt y updatedAt. */
+				timestamps: true 
+			});
+
+			/**
+			 * Modelo de Mongoose para realizar operaciones CRUD sobre Insumos.
+			 */
+			const Insumo = mongoose.model('Insumo', insumoSchema);
+
+			/**
+			 * Exportación del modelo Insumo para su uso en controladores y rutas.
+			 */
+			module.exports = Insumo;
+			
+			--PrestamosInventarioIEE\src\models\solicitudes.js-- //Actualizacion 
+							const mongoose = require('mongoose');
+
+				/**
+				 * Esquema de Mongoose para la gestión de préstamos y solicitudes.
+				 * Vincula usuarios con activos e insumos, rastreando el historial de estados.
+				 */
+				const solicitudSchema = new mongoose.Schema({
+					/** * @property {mongoose.Types.ObjectId} usuario 
+					 * Referencia al usuario que realiza la solicitud.
+					 */
+					usuario: {
+						type: mongoose.Schema.Types.ObjectId,
+						ref: 'Usuario',
+						required: true
+					},
+
+					/** * @property {Array<mongoose.Types.ObjectId>} activos 
+					 * Lista de activos (equipos) solicitados en préstamo.
+					 */
+					activos: [{
+						type: mongoose.Schema.Types.ObjectId,
+						ref: 'Activo'
+					}],
+
+					/** * @property {Array<Object>} insumos 
+					 * Lista de insumos consumibles solicitados.
+					 */
+					insumos: [{
+						/** @property {mongoose.Types.ObjectId} id_insumo Referencia al insumo. */
+						id_insumo: {
+							type: mongoose.Schema.Types.ObjectId,
+							ref: 'Insumo',
+							required: true
+						},
+						/** @property {Number} cantidad Cantidad solicitada. */
+						cantidad: { type: Number, required: true },
+						/** @property {String} caracteristicas Especificaciones para el insumo. */
+						caracteristicas: String,
+						/** @property {String} descripcion Detalles adicionales. */
+						descripcion: String
+					}],
+
+					/** * @property {Array<Object>} historico_estados 
+					 * Registro cronológico de los cambios de estado de la solicitud.
+					 */
+					historico_estados: [{
+						/** @property {String} estado Estado actual (pendiente, aprobada, etc.). */
+						estado: {
+							type: String,
+							enum: ['pendiente', 'aprobada', 'rechazada', 'entregado', 'penalizado', 'devuelto'],
+							default: 'pendiente'
+						},
+						/** @property {Date} fecha Fecha en la que ocurrió el cambio de estado. */
+						fecha: { 
+							type: Date, 
+							default: Date.now 
+						},
+						/** @property {String} observaciones Notas del cambio; obligatorio en casos críticos. */
+						observaciones: { 
+							type: String, 
+							validate: {
+								validator: function(v) {
+									// Validación de seguridad: obligatorios en casos críticos
+									if (['penalizado', 'devuelto', 'rechazada'].includes(this.estado)) {
+										return v && v.trim().length > 0; 
+									}
+									return true;
+								},
+								message: 'Las observaciones son obligatorias para penalizaciones, devoluciones o rechazos.'
+							},
+							default: 'Sin observaciones'
+						}
+					}],
+
+					/** * @property {Date} fecha_prestamo 
+					 * Fecha en la que se formaliza el préstamo.
+					 */
+					fecha_prestamo: { type: Date, default: Date.now },
+
+					/** * @property {Date} fecha_entrega_esperada 
+					 * Fecha límite para devolver los activos.
+					 */
+					fecha_entrega_esperada: { type: Date }, 
+
+					/** * @property {Date} fecha_devolucion_real 
+					 * Fecha efectiva en la que se retornaron los equipos.
+					 */
+					fecha_devolucion_real: { type: Date }, 
+
+					/** * @property {String} comentario_admin 
+					 * Notas internas exclusivas del administrador.
+					 */
+					comentario_admin: { type: String, trim: true }
+					
+				}, { 
+					/** Genera automáticamente campos de auditoría: createdAt y updatedAt. */
+					timestamps: true 
+				});
+
+				/** * Modelo 'Solicitudes' para el control de flujo de préstamos.
+				 */
+				module.exports = mongoose.model('Solicitudes', solicitudSchema);
+				
+			--PrestamosInventarioIEE\src\models\usuarios.js-- Actualizacion de Roles
+			
+								const mongoose = require('mongoose');
+					const bcrypt = require('bcryptjs'); // ¡No olvides instalarlo con npm install bcryptjs!
+					const { text } = require('express');
+
+					/**
+					 * Esquema de Mongoose para la gestión de usuarios y autenticación.
+					 */
+					const usuarioSchema = new mongoose.Schema({
+						/** * @property {Number} id_usuario 
+						 * Identificador único interno para el usuario.
+						 */
+						id_usuario: {
+							type: Number,
+							unique: true,
+							index: true,
+							required: true
+						},
+						/** * @property {String} cedula 
+						 * Documento de identidad. Debe tener entre 9 y 12 dígitos.
+						 */
+						cedula: {
+							type: String,
+							required: [true, 'La cédula es obligatoria'],
+							unique: true,
+							trim: true,
+							match: [
+							   /^\d{9,12}$/, 
+								'La cédula debe tener entre 9 y 12 dígitos numéricos'
+							]
+						},
+						/** * @property {String} nombre_completo 
+						 * Nombre y apellidos del usuario.
+						 */
+						nombre_completo: {
+							type: String,
+							required: [true, 'El nombre completo es obligatorio'],
+							trim: true
+						},
+						/** * @property {String} correo_electronico 
+						 * Correo institucional restringido a dominios @est.utn.ac.cr o @utn.ac.cr.
+						 */
+						correo_electronico: {
+							type: String,
+							required: [true, 'El correo electrónico es obligatorio'],
+							unique: true,
+							trim: true,
+							lowercase: true,
+							match: [
+								/^[\w-\.]+@(est\.utn\.ac\.cr|utn\.ac\.cr)$/, 
+								'Solo se permiten correos de la UTN (@est.utn.ac.cr o @utn.ac.cr)'
+							]
+						},
+						/** * @property {String} hash_contraseña 
+						 * Contraseña del usuario (se guarda como hash). Mínimo 8 caracteres.
+						 */
+						hash_contraseña: {
+							type: String,
+							required: [true, 'La contraseña es obligatoria'],
+							minlength: [8, 'La contraseña debe tener al menos 8 caracteres']   
+						},
+						/** * @property {String} telefono 
+						 * Número telefónico en formato costarricense (+506 ########).
+						 */
+						telefono: {
+							type: String,
+							required: [true, 'El teléfono es obligatorio'],
+							trim: true,
+							match: [/^\+506\s\d{8}$/, 'El formato debe ser +506 seguido de 8 dígitos']
+						},
+						/** * @property {String} tipo_rol 
+						 * Rol asignado: estudiante, docente, administrativo o admin.
+						 */
+						tipo_rol: {
+							type: String,
+							required: true, 
+							enum: ['estudiante', 'docente', 'administrativo', 'admin'],
+							lowercase: true, 
+							trim: true      
+						},
+						/** * @property {String} estado 
+						 * Estado de la cuenta de usuario para control de acceso.
+						 */
+						estado: {
+							type: String,
+							enum: ['activo', 'inactivo', 'sancionado'],
+							default: 'activo'
+						},
+						/** * @property {Date} fecha_creacion 
+						 * Fecha de registro inicial en el sistema.
+						 */
+						fecha_creacion: {
+							type: Date,
+							default: Date.now
+						},
+						/** * @property {Date} ultimo_acceso 
+						 * Registro de la última vez que el usuario inició sesión.
+						 */
+						ultimo_acceso: {
+							type: Date
+						}       
+					}, { 
+						/** Incluye automáticamente campos de auditoría: createdAt y updatedAt. */
+						timestamps: true 
+					});
+
+					/**
+					 * Middleware 'pre-save' para encriptar la contraseña antes de guardarla en la BD.
+					 * Solo actúa si el campo 'hash_contraseña' ha sido modificado.
+					 */
+					usuarioSchema.pre('save', async function(next) {
+						if (!this.isModified('hash_contraseña')) return next();
+
+						try {
+							const salt = await bcrypt.genSalt(10);
+							this.hash_contraseña = await bcrypt
+							
+				--PrestamosInventarioIEE\src\models\lista_espera.js-- Actualice
+					
+											const mongoose = require('mongoose');
+
+						/**
+						 * Esquema de Mongoose para gestionar la cola de usuarios esperando stock de insumos.
+						 */
+						const listaEsperaSchema = new mongoose.Schema({
+							/** * @property {mongoose.Types.ObjectId} usuario 
+							 * Referencia al usuario que está en espera.
+							 */
+							usuario: {
+								type: mongoose.Schema.Types.ObjectId,
+								ref: 'Usuarios',
+								required: [true, 'El ID del usuario es obligatorio']
+							},
+							/** * @property {mongoose.Types.ObjectId} insumo 
+							 * Referencia al insumo específico que se está solicitando.
+							 */
+							insumo: {
+								type: mongoose.Schema.Types.ObjectId,
+								ref: 'Insumos',
+								required: [true, 'El ID del insumo es obligatorio']
+							},
+							/** * @property {Number} cantidad_solicitada 
+							 * Cantidad de unidades que el usuario necesita (por defecto 1).
+							 */
+							cantidad_solicitada: { 
+								type: Number, 
+								default: 1 
+							},
+							/** * @property {String} estado 
+							 * Estado del turno en la lista (esperando, notificado, entregado, cancelado).
+							 */
+							estado: {
+								type: String,
+								enum: ['esperando', 'notificado', 'entregado', 'cancelado'],
+								default: 'esperando'
+							},
+							/** * @property {Number} prioridad 
+							 * Nivel de importancia en la cola. Valores más altos se atienden primero.
+							 */
+							prioridad: { // Por si algún profe tiene prioridad sobre alumnos jaja
+								type: Number,
+								default: 0
+							}
+						}, {
+							/** Genera automáticamente createdAt (fecha de entrada a la lista) y updatedAt. */
+							timestamps: true 
+						});
+
+						/** * Índice compuesto único: Evita que un usuario tenga múltiples registros 
+						 * activos en 'esperando' para el mismo insumo.
+						 */
+						listaEsperaSchema.index({ usuario: 1, insumo: 1, estado: 1 }, { unique: true });
+
+						/** * Modelo 'ListaEspera' para gestionar la fila virtual de inventario.
+						 */
+						module.exports = mongoose.model('ListaEspera', listaEsperaSchema);
+									
+	[Cruds]
+	
+		  --PrestamosInventarioIEE\src\controllers\InsumosControllers.js--
+
+				/**
+				 * @file insumoController.js
+				 * @description Gestión de materiales consumibles (resistencias, estaño, componentes, etc.)
+				 */
+				const Insumos = require('../models/insumos');
+
+				/**
+				 * @route GET /api/insumos
+				 * @desc Obtiene la lista completa de insumos disponibles en el inventario.
+				 */
+				exports.getInsumos = async (req, res) => {
+					try {
+						const insumos = await Insumos.find();
+						res.json(insumos);
+					} catch (error) {
+						res.status(500).json({ message: 'Error al obtener los insumos', error });
+					}
+				};
+
+				/**
+				 * @route POST /api/insumos
+				 * @desc Registra un nuevo tipo de insumo en la base de datos.
+				 * @param {Object} req.body - Datos del insumo (nombre, stock, categoría, etc.)
+				 */
+				exports.createInsumo = async (req, res) => {
+					try {
+						const nuevoInsumo = new Insumos(req.body);
+						const insumoGuardado = await nuevoInsumo.save();
+						res.status(201).json(insumoGuardado);
+					} catch (error) {
+						res.status(400).json({ message: 'Error al crear el insumo', error });
+					}
+				};
+
+				/**
+				 * @route PUT /api/insumos/:id
+				 * @desc Actualiza los detalles o el stock de un insumo existente.
+				 * @param {String} req.params.id - ID único del insumo.
+				 */
+				exports.updateInsumo = async (req, res) => {
+					try {
+						const insumoActualizado = await Insumos.findByIdAndUpdate(
+							req.params.id, 
+							req.body, 
+							// { new: true } devuelve el registro post-cambio.
+							// { runValidators: true } aplica las reglas del Schema al editar.
+							{ new: true, runValidators: true } 
+						);
+
+						if (!insumoActualizado) {
+							return res.status(404).json({ message: 'Insumo no encontrado' });
+						}
+						res.json(insumoActualizado);
+					} catch (error) {
+						res.status(400).json({ message: 'Error al actualizar el insumo', error });
+					}
+				};
+
+				/**
+				 * @route DELETE /api/insumos/:id
+				 * @desc Elimina permanentemente un insumo del inventario.
+				 */
+				exports.deleteInsumo = async (req, res) => {
+					try {
+						const insumoEliminado = await Insumos.findByIdAndDelete(req.params.id);
+						if (!insumoEliminado) {
+							return res.status(404).json({ message: 'Insumo no encontrado' });
+						}
+						res.json({ message: 'Insumo eliminado correctamente' });
+					} catch (error) {
+						res.status(500).json({ message: 'Error al eliminar el insumo', error });
+					}                                   
+				};
+				
+			--PrestamosInventarioIEE\src\controllers\ActivosControllers.js--
+			
+								/**
+				 * @file activoController.js
+				 * @description Gestión de activos fijos del laboratorio (multímetros, osciloscopios, etc.)
+				 */
+				const Activos = require('../models/activos');
+
+				/**
+				 * @route GET /api/activos
+				 * @desc Obtiene la lista completa de equipos registrados en el laboratorio.
+				 */
+				exports.getActivos = async (req, res) => {
+					try {
+						const activos = await Activos.find();
+						res.json(activos);
+					} catch (error) {
+						res.status(500).json({ message: 'Error al obtener los activos', error });
+					}
+				};
+
+				/**
+				 * @route POST /api/activos
+				 * @desc Registra un nuevo equipo (activo) en la base de datos.
+				 * @param {Object} req.body - Datos del equipo (nombre, modelo, id_placa, etc.)
+				 */
+				exports.createActivo = async (req, res) => {
+					try {
+						const nuevoActivo = new Activos(req.body);
+						const activoGuardado = await nuevoActivo.save();
+						res.status(201).json(activoGuardado);
+					} catch (error) {
+						res.status(400).json({ message: 'Error al crear el activo', error });
+					}
+				};
+
+				/**
+				 * @route PUT /api/activos/:id
+				 * @desc Actualiza la información de un equipo específico por su ID.
+				 * @param {String} req.params.id - ID del activo a modificar.
+				 */
+				exports.updateActivo = async (req, res) => {
+					try {
+						const activoActualizado = await Activos.findByIdAndUpdate(
+							req.params.id, 
+							req.body, 
+							// { new: true } devuelve el objeto actualizado. 
+							// { runValidators: true } asegura que se respeten las reglas del Schema.
+							{ new: true, runValidators: true } 
+						);
+
+						if (!activoActualizado) {
+							return res.status(404).json({ message: 'Activo no encontrado' });
+						}
+						res.json(activoActualizado);
+					} catch (error) {
+						res.status(400).json({ message: 'Error al actualizar el activo', error });
+					}
+				};
+
+				/**
+				 * @route DELETE /api/activos/:id
+				 * @desc Elimina un equipo del inventario de activos.
+				 */
+				exports.deleteActivo = async (req, res) => {
+					try {
+						const activoEliminado = await Activos.findByIdAndDelete(req.params.id);
+						if (!activoEliminado) {
+							return res.status(404).json({ message: 'Activo no encontrado' });
+						}
+						res.json({ message: 'Activo eliminado correctamente' });
+					} catch (error) {
+						res.status(500).json({ message: 'Error al eliminar el activo', error });
+					}                                   
+				};
+		
+			--PrestamosInventarioIEE\src\controllers\SolicitudesControllers.js--
+				
+								/**
+				 * @file solicitudController.js
+				 * @description Controlador para gestionar el ciclo de vida de los préstamos (Solicitudes).
+				 * Vincula Usuarios, Activos e Insumos mediante referencias (Populate).
+				 */
+
+				const Solicitudes = require('../models/solicitudes');
+
+				/**
+				 * @route GET /api/solicitudes
+				 * @desc Obtiene todas las solicitudes con los datos de usuario, activos e insumos expandidos.
+				 */
+				exports.getSolicitudes = async (req, res) => { 
+						try {
+					const solicitudes = await Solicitudes.find()
+						// Usuario: nombres reales del schema
+						.populate('usuario', 'nombre_completo correo_electronico tipo_rol') 
+						
+						// Activos: marca y modelo (como están en activos.js)
+						.populate('activos', 'marca modelo numActivo')
+						
+						// Insumos: NombProducto y características
+						.populate('insumos.id_insumo', 'NombProducto caracteristicas');
+						
+					res.json(solicitudes);
+				} catch (error) {
+					res.status(500).json({ message: 'Error al obtener las solicitudes', error });
+				}
+					};
+
+				/**
+				 * @route POST /api/solicitudes
+				 * @desc Crea una nueva solicitud de préstamo.
+				 * @param {Object} req.body - Datos de la solicitud (usuario, activos, insumos, etc.)
+				 */
+				exports.createSolicitud = async (req, res) => {
+					try {
+						const datosSolicitud = req.body;
+
+						// Opcional: Nos aseguramos de que el historial tenga el registro inicial
+						if (!datosSolicitud.historico_estados || datosSolicitud.historico_estados.length === 0) {
+							datosSolicitud.historico_estados = [{
+								estado: 'pendiente',
+								observaciones: 'Solicitud creada por el usuario'
+							}];
+						}
+
+						const nuevaSolicitud = new Solicitudes(datosSolicitud);
+						const solicitudGuardada = await nuevaSolicitud.save();
+						
+						res.status(201).json(solicitudGuardada);
+					} catch (error) {
+						// Si el validador de 'observaciones' del Schema falla, saltará aquí
+						res.status(400).json({ 
+							message: 'Error de validación en la solicitud', 
+							detalles: error.message 
+						});
+					}
+				};
+
+				/**
+				 * @route GET /api/solicitudes/:id
+				 * @desc Obtiene el detalle completo de una sola solicitud por su ID.
+				 */
+				eexports.getSolicitudById = async (req, res) => {
+					try {
+						const solicitud = await Solicitudes.findById(req.params.id)
+							// 1. Usuarios: campos reales nombre_completo y correo_electronico
+							.populate('usuario', 'nombre_completo correo_electronico tipo_rol')
+							
+							// 2. Activos: campos reales marca y modelo
+							.populate('activos', 'marca modelo numActivo')
+							
+							// 3. Insumos: campos reales NombProducto y caracteristicas
+							.populate('insumos.id_insumo', 'NombProducto caracteristicas');
+
+						if (!solicitud) {
+							return res.status(404).json({ message: 'Solicitud no encontrada' });
+						}
+						res.json(solicitud);
+					} catch (error) {
+						// Usamos status 500 para errores de servidor (ej. ID de MongoDB mal formado)
+						res.status(500).json({ message: 'Error al obtener la solicitud', error });
+					}
+				};
+				/**
+				 * @route PUT /api/solicitudes/:id
+				 * @desc Actualiza el estado o datos de una solicitud existente.
+				 * Útil para cambiar estados (Pendiente -> Entregado).
+				 */
+				exports.updateSolicitud = async (req, res) => {
+					try {
+						// { new: true } devuelve el objeto modificado, no el viejo
+						const solicitudActualizada = await Solicitudes.findByIdAndUpdate(
+							req.params.id, 
+							req.body, 
+							{ new: true, runValidators: true } 
+						);
+
+						if (!solicitudActualizada) {
+							return res.status(404).json({ message: 'Solicitud no encontrada' });
+						}
+						res.json(solicitudActualizada);
+					} catch (error) {
+						res.status(400).json({ message: 'Error al actualizar la solicitud', error });
+					}
+				};
+
+				/**
+				 * @route DELETE /api/solicitudes/:id
+				 * @desc Elimina una solicitud del sistema.
+				 */
+				exports.deleteSolicitud = async (req, res) => {
+					try {
+						const solicitudEliminada = await Solicitudes.findByIdAndDelete(req.params.id);
+						
+						if (!solicitudEliminada) {
+							return res.status(404).json({ message: 'Solicitud no encontrada' });
+						}
+						res.json({ message: 'Solicitud eliminada correctamente' });
+					} catch (error) {
+						res.status(500).json({ message: 'Error al eliminar la solicitud', error });
+					}
+				};
+				
+			--PrestamosInventarioIEE\src\controllers\UsuariosControllores.js--
+			
+					const Usuarios = require('../models/Usuarios');
+
+				/**
+				 * @desc Obtiene todos los usuarios (sin mostrar la contraseña por seguridad).
+				 */
+				exports.getUsuarios = async (req, res) => {
+					try {
+						const usuarios = await Usuarios.find().select('-hash_contraseña');
+						res.json(usuarios);
+					} catch (error) {
+						res.status(500).json({ message: 'Error al obtener los usuarios', error });
+					}
+				};
+
+				/**
+				 * @desc Registra un nuevo usuario.
+				 */
+				exports.createUsuario = async (req, res) => {
+					try {
+						const nuevoUsuario = new Usuarios(req.body);
+						const usuarioGuardado = await nuevoUsuario.save();
+						res.status(201).json(usuarioGuardado);
+					} catch (error) {
+						res.status(400).json({ message: 'Error al crear el usuario', error });
+					}
+				};
+
+				/**
+				 * @desc Actualiza un usuario por ID.
+				 */
+				exports.updateUsuario = async (req, res) => {
+					try {
+						const usuarioActualizado = await Usuarios.findByIdAndUpdate(
+							req.params.id, 
+							req.body, 
+							{ new: true, runValidators: true } 
+						).select('-hash_contraseña');
+
+						if (!usuarioActualizado) return res.status(404).json({ message: 'Usuario no encontrado' });
+						res.json(usuarioActualizado);
+					} catch (error) {
+						res.status(400).json({ message: 'Error al actualizar el usuario', error });
+					}
+				};
+
+				/**
+				 * @desc Elimina un usuario por ID.
+				 */
+				exports.deleteUsuario = async (req, res) => {
+					try {
+						const usuarioEliminado = await Usuarios.findByIdAndDelete(req.params.id);
+						if (!usuarioEliminado) return res.status(404).json({ message: 'Usuario no encontrado' });
+						res.json({ message: 'Usuario eliminado exitosamente' });
+					} catch (error) {
+						res.status(400).json({ message: 'Error al eliminar el usuario', error });
+					}
+				};
+
+				/**
+				 * @desc Obtiene un usuario específico por ID.
+				 */
+				exports.getUsuarioById = async (req, res) => {
+					try {
+						const usuario = await Usuarios.findById(req.params.id).select('-hash_contraseña');
+						if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado' });
+						res.json(usuario);
+					} catch (error) {
+						res.status(500).json({ message: 'Error al obtener el usuario', error });
+					}
+				};
+
+				/**
+				 * @desc Busca por correo electrónico (Campo corregido: correo_electronico).
+				 */
+				exports.getUsuarioByEmail = async (req, res) => {
+					try {
+						const usuario = await Usuarios.findOne({ correo_electronico: req.params.email }).select('-hash_contraseña');
+						if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado' });
+						res.json(usuario);
+					} catch (error) {
+						res.status(500).json({ message: 'Error al obtener el usuario', error });
+					}
+				};
+
+				/**
+				 * @desc Filtra por rol (Campo corregido: tipo_rol).
+				 */
+				exports.getUsuariosByRole = async (req, res) => {
+					try {
+						const usuarios = await Usuarios.find({ tipo_rol: req.params.role }).select('-hash_contraseña');
+						if (usuarios.length === 0) {
+							return res.status(404).json({ message: `No hay usuarios con el rol: ${req.params.role}` });
+						}
+						res.json(usuarios);
+					} catch (error) {
+						res.status(500).json({ message: 'Error al obtener los usuarios por rol', error });
+					}
+				};
+
+				/**
+				 * @desc Buscador global (Campos corregidos: nombre_completo, correo_electronico).
+				 */
+				exports.searchUsuarios = async (req, res) => {
+					try {
+						const query = req.query.q;
+						const usuarios = await Usuarios.find({
+							$or: [
+								{ nombre_completo: { $regex: query, $options: 'i' } },
+								{ correo_electronico: { $regex: query, $options: 'i' } }
+							]
+						}).select('-hash_contraseña');
+						res.json(usuarios);
+					} catch (error) {
+						res.status(500).json({ message: 'Error al buscar usuarios', error });
+					}
+				};	
+							
+			--PrestamosInventarioIEE\src\controllers\ListEsperaControllers.js--
+				
+								const ListaEspera = require('../models/ListaEspera');
+
+				/**
+				 * Obtiene la lista de espera completa con información detallada de usuarios e insumos.
+				 * @async
+				 * @function getListaEspera
+				 * @param {import('express').Request} req - Objeto de petición de Express.
+				 * @param {import('express').Response} res - Objeto de respuesta de Express.
+				 * @returns {Promise<void>} Responde con un array de objetos de lista de espera 'populated'.
+				 */
+				exports.getListaEspera = async (req, res) => {
+					try {
+						const lista = await ListaEspera.find()
+							.populate('usuario', 'nombre_completo correo_electronico')
+							.populate('insumo', 'NombProducto');
+						res.json(lista);
+					} catch (error) {
+						res.status(500).json({ message: 'Error al obtener la lista', error });
+					}
+				};
+
+				/**
+				 * Registra un nuevo turno en la lista de espera.
+				 * @async
+				 * @function agregarAListaEspera
+				 * @param {import('express').Request} req - Objeto de petición. Debe contener usuario, insumo y cantidad en el body.
+				 * @param {import('express').Response} res - Objeto de respuesta.
+				 * @description Si el usuario ya está en espera para el mismo insumo, el índice único del Schema lanzará un error 400.
+				 */
+				exports.agregarAListaEspera = async (req, res) => {
+					try {
+						const nuevoTurno = new ListaEspera(req.body);
+						const guardado = await nuevoTurno.save();
+						res.status(201).json(guardado);
+					} catch (error) {
+						res.status(400).json({ 
+							message: 'Error: El usuario ya está en espera para este insumo', 
+							error 
+						});
+					}
+				};
+
+				/**
+				 * Actualiza los datos de un turno existente (estado, prioridad o cantidad).
+				 * @async
+				 * @function actualizarTurno
+				 * @param {import('express').Request} req - Objeto de petición. Contiene el ID en params y los cambios en el body.
+				 * @param {import('express').Response} res - Objeto de respuesta.
+				 */
+				exports.actualizarTurno = async (req, res) => {
+					try {
+						const actualizado = await ListaEspera.findByIdAndUpdate(
+							req.params.id,
+							req.body,
+							{ new: true, runValidators: true }
+						);
+						if (!actualizado) return res.status(404).json({ message: 'Turno no encontrado' });
+						res.json(actualizado);
+					} catch (error) {
+						res.status(400).json({ message: 'Error al actualizar', error });
+					}
+				};
+			
+	10.2.2026 13:00 -18: 50 p.m
+	
+		- Analizar que otros Cruds especificos son necesario crear
+		
+		[Activos]
+			//Ordenados por prioridades
+			- Crud insumos y activos categorias ☑️
+
+			- Añadir NumActivo y numSerie al Crud de Activos  //los cuales son unicos y ya estan establecidos
+			
+			- Solicitudes Crud de Historico de Estados
+			- Crud de autenticacion de Schema Usuarios
+			
+			Faltan
+				-Módulo de Solicitudes (Préstamos/Consumo): Este es el más importante. 
+				Es donde se une el Usuario con el Insumo. Debe registrar si es un préstamo 
+				(se devuelve) o un consumo (se gasta).
+
+				-Módulo de Inventario (Kardex): Un CRUD para registrar entradas y salidas de stock. 
+				Si llega una caja nueva de guantes, debe haber una forma de sumar ese stock al sistema.
+
+				-Reportes de Alerta de Stock Mínimo: Más que un CRUD, es un servicio que consulte 
+				qué insumos están por debajo de su cantidad mínima establecida en el Schema.
+				
+		Actividades Realizadas
+				- Añadi Funciones de Categorias en los cruds de Insumos y Activos en 
+				   su orden respectivo.
+				- Añadi en Ambas un searchbyEstado //Mas que todo pensando en un futuro en el 
+													Frontend.
+				- Todo lo he venido Subiendo en Kaban.									
+				- Primer git push con lo anterior
+				
+				-Trabajare Añadir NumActivo y numSerie al Crud de Activos
+				
+				- En CreateActivo,añadi NumSerie, NumActivo, Marca, Modelo y Categoria.
+					Ademas de autenticar que solo los roles de Adminstrativo y Admin pueden
+					hacer dichas funciones
+				- Dar restricciones que solo puedan ver docentes y estudiantes--despues--pendiente..
+
+				- Igual en Insumos modifique CreateInsumos, añadiendo NombProducto, Caracteristicas
+				y Categoria.
+					-Además que como ActivosController solo Administrador y admin pueden agregar 
+					 productos al inventario.
+				
+				- Modifique CreateSolicitudes, Añadiendo Insumos, Activos, fecha entrega, fecha limite
+					- Modifique GetSolicitudes  al permitir acceso
+					  de visualizar solicitud y Solo administrador, admin y el usario Dueño de la Solicitud
+				
+				- Modifique CreateUsuario donde tendra:
+					 -Cedula 
+				     // con la cedula deberia completar la mayoria, podemos usar la api del registro civil
+					 Nombre Completo
+				     Correo electronico
+				     hash_contraseña crear contraseña
+				     decir el rol
+				     subir un pdf, donde diga si esta matriculado o si esta activo como trabajador
+				     fecha de creacion de usuario
+			         funcion de leer pdf atraves de csv.
+						La seguridad es que nadie podra ver la contraseña y validara que la contraseña
+						es unica
+				- Hice un segundo git push, con todas las actualizaciones de Create y Get
+				
+				-Validar Deletes
+						- Solicitudes, solo puede borrar el dueño antes que Administrador acepte o rechace osea solo en pendiente 
+						   Elimina una solicitud del sistema, Pero solo el Usuario Dueño de la solicitud puede hacerlo, 
+							 * REGLA DE ORO: No se puede eliminar una solicitud que ya fue aceptada o rechazada por el admin,
+							 *  para mantener la integridad de los registros
+						  
+					- Insumos y Activos, asegurar que solo Administrador y admin pueden borrarlos, pero dando
+					  una justificacion
+					- Usuarios, Administrador y Admin, solo puede Borrar Usuario si esta inactivo
+					  o Penalizado, atraves del Pdf, o que en cada cuatri los usuarios se inactiven - por ver
+					____________________________________________________________________________________
+				  -Proximos
+				  - Crear un Multer donde contenga los pdfs
+				  - Nadie puede Borrar Solicitud, solo el Dueño de la solicitud,
+				    antes que el admin vea objeto	
+				    o aprueba dicha solicitud. <-- Es un Route
+				
+	Para mañana		
+
+	creo que para ahorrarme problemas con los penalizados y inactivos, hare que cada usuario dure 
+					solo un cuatrimestre y que tengan que volver hacer una contraseña nueva 
+					
+					
+					
+					
+					/**
+ * @route PATCH /api/usuarios/reset-ciclo
+ * @desc Inactiva a todos los estudiantes para el nuevo cuatrimestre.
+ */
+exports.resetearCicloUsuarios = async (req, res) => {
+    try {
+        // Pasamos a todos los estudiantes de 'activo' a 'inactivo'
+        const resultado = await Usuarios.updateMany(
+            { tipo_rol: 'estudiante', estado: 'activo' },
+            { 
+                estado: 'inactivo',
+                comprobante_validado: false // Esto los obliga a subir el PDF otra vez
+            }
+        );
+
+        res.json({ 
+            message: 'Ciclo finalizado con éxito.',
+            usuarios_afectados: resultado.modifiedCount,
+            nota: 'Todos los estudiantes deben volver a validar su matrícula.'
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error en el reseteo masivo.' });
+    }
+};
+
+
+
+				  	
+				/**
+ * @route PATCH /api/usuarios/cierre-cuatrimestre
+ * @desc Inactiva usuarios y fuerza reseteo de contraseña para el nuevo ciclo.
+ * @access Privado (Solo Administrador)
+ */
+exports.cierreCuatrimestre = async (req, res) => {
+    try {
+        // 1. Buscamos a todos los estudiantes activos
+        const resultado = await Usuarios.updateMany(
+            { tipo_rol: 'estudiante' },
+            { 
+                estado: 'inactivo', 
+                password: 'PENDIENTE_RESETEO', // O un hash temporal
+                comprobante_validado: false,
+                observaciones: 'Cuenta expirada por fin de cuatrimestre. Requiere nueva matrícula y contraseña.'
+            }
+        );
+
+        res.json({ 
+            message: 'Ciclo cerrado exitosamente.',
+            usuarios_afectados: resultado.modifiedCount,
+            instrucciones: 'Los usuarios deberán usar la opción "Olvidé mi contraseña" y subir su nuevo PDF para reactivarse.'
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error en el proceso de cierre de ciclo', error: error.message });
+    }
+};
+
+		11.02.2026 13:00
+		
+		- Actvidades 
+			Funcion que elimine Usuarios antiguos o viejos, o forzar a que se registren desde cero y borrar informacion de registros
+			viejos 
+			
+			
+	12.02.2026
+		Revisare todos los codigos desarrollados hoy no pienso programar sino revisar codigo para asegurarme, correguir y demas 
+		o eliminar lo que detecte que este mal.
+			
