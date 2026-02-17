@@ -1163,9 +1163,6 @@ exports.cierreCuatrimestre = async (req, res) => {
 		- Actvidades 
 			Funcion que elimine Usuarios antiguos o viejos, o forzar a que se registren desde cero y borrar informacion de registros
 			viejos 
-			
-			
-	12.02.2026
-		Revisare todos los codigos desarrollados hoy no pienso programar sino revisar codigo para asegurarme, correguir y demas 
-		o eliminar lo que detecte que este mal.
-			
+	
+	17.2.2026 
+	Reunion con el encargado de Laboratorios.
