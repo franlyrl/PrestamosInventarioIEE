@@ -1164,5 +1164,5 @@ exports.cierreCuatrimestre = async (req, res) => {
 			Funcion que elimine Usuarios antiguos o viejos, o forzar a que se registren desde cero y borrar informacion de registros
 			viejos 
 	
-	17.2.2026 
+	17.2.2026 12:55-1:10
 	Reunion con el encargado de Laboratorios.
