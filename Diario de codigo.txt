@@ -1158,11 +1158,131 @@ exports.cierreCuatrimestre = async (req, res) => {
     }
 };
 
-		11.02.2026 13:00
+		11.02.2026 13:00pm
 		
 		- Actvidades 
 			Funcion que elimine Usuarios antiguos o viejos, o forzar a que se registren desde cero y borrar informacion de registros
 			viejos 
 	
-	17.2.2026 12:55-1:10
+	17.2.2026 12:55-13:10pm
 	Reunion con el encargado de Laboratorios.
+    -Me informo que debia cambiar las categorias de Activos y insumos
+		- Activos era Herramientas y Instrumentos
+		- Insumos era componentes analogicos y digitales
+	-Ademas de programar que los usuarios de mas de 6 meses que no se hayan registrado
+	 sean elimandos de la BD
+	-Establecer un menu con las carreras competentes que pueden acceder a los Prestamos
+	-Mostrar actividad del administrativo para que el usuario pueda ver la fecha en la que es aceptado o rechazado.
+
+	18.2.2026 10:00 a.m
+	- Añadi Put Aceptar/rechazar
+		En el Controller de Soliciitudes ademas de agregar para que el administrador pueda aceptar y 
+		rechazar, permiti que hubiera una actualizacion del proceso hasta que fuera devuelto el producto.
+	- Modique las caracteristicas de Insumos y Activos segun lo que el administrador pide.
+	-Cree una carpeta de reportes, y genere un reporte de actualizacion de stock
+		-Añadir Actualizacion o visualizacion para que los usuarios puedan ver el estado de cuando el administrador rechazo o acepto, ademas
+		de configurar para que todos puedan ver los comentarios del Administrador,
+		Ya existe solo mejore controller porque ya estaba
+		
+		
+		por hacer- Voy a ahora.
+	
+	-Ajustar para Usuario esten las carreras competentes
+	-Revisar si no he añadido que en 6 meses se borren los usuarios inactivos // Esto seria todo lo de reunion con el administrador
+
+
+	
+	-Evidencia
+
+		--Modifcacion de Insumos.js
+					categoria: {
+				type: String,
+				required: [true, 'La categoría del insumo es obligatoria'],
+				enum: [
+					'Componentes Digitales', 
+					'Componentes Analógicos',
+				],
+				trim: true
+			}
+		--Modifacion Activos.js
+			Categoria: {
+				type: String,
+				required: [true, 'La categoría es obligatoria'],
+				enum: [
+					'Instrumentos',
+					'Herramientas'
+				],
+				trim: true
+			},
+
+		--Put Rechazar/Aceptar/ActualizacionProceso
+		exports.gestionarEstadoAdmin = async (req, res) => {
+			try {
+				const { nuevoEstado, observaciones } = req.body;
+				const { id } = req.params;
+
+				const solicitud = await Solicitudes.findById(id);
+				if (!solicitud) return res.status(404).json({ message: 'Solicitud no encontrada' });
+
+				// --- 1. VALIDACIÓN DE RECHAZO (Sigue aquí, Fran) ---
+				if (nuevoEstado === 'rechazada' && (!observaciones || observaciones.trim().length < 5)) {
+					return res.status(400).json({ 
+						message: 'Error: Debes proporcionar una justificación para rechazar la solicitud.' 
+					});
+				}
+
+				// Bloqueo de integridad
+				if (['rechazada', 'devuelto'].includes(solicitud.estado)) {
+					return res.status(400).json({ message: `No se puede modificar una solicitud ya ${solicitud.estado}` });
+				}
+
+				// --- 2. LÓGICA DE IMPACTO EN INVENTARIO ---
+				
+				// CASO A: APROBAR (Resta stock y marca prestado)
+				if (nuevoEstado === 'aprobada') {
+					if (solicitud.insumos?.length > 0) {
+						for (const item of solicitud.insumos) {
+							await Insumo.findByIdAndUpdate(item.id_insumo, { $inc: { cantidad: -item.cantidad } });
+						}
+					}
+					if (solicitud.activos?.length > 0) {
+						await Activo.updateMany(
+							{ _id: { $in: solicitud.activos } },
+							{ $set: { estadoActivo: 'prestado' } }
+						);
+					}
+				}
+
+				// CASO B: DEVOLVER (Solo libera activos)
+				if (nuevoEstado === 'devuelto') {
+					if (solicitud.activos?.length > 0) {
+						await Activo.updateMany(
+							{ _id: { $in: solicitud.activos } },
+							{ $set: { estadoActivo: 'disponible' } }
+						);
+					}
+				}
+
+				// NOTA: Si es 'rechazada', el código no entra a los "if" de arriba 
+				// porque no hay que mover stock. Pasa directo aquí abajo.
+
+				// --- 3. ACTUALIZACIÓN FINAL E HISTORIAL ---
+				solicitud.estado = nuevoEstado;
+				
+				solicitud.historico_estados.push({
+					estado: nuevoEstado,
+					fecha: new Date(),
+					observaciones: observaciones || `El Administrador cambió el estado a ${nuevoEstado}.`
+				});
+
+				await solicitud.save();
+				
+				res.json({ 
+					message: `Solicitud marcada como ${nuevoEstado} correctamente.`,
+					data: solicitud
+				});
+
+			} catch (error) {
+				res.status(500).json({ message: 'Error en la gestión administrativa', error: error.message });
+			}
+		};
