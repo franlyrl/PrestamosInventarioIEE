@@ -2,7 +2,7 @@
  * @file insumoController.js
  * @description Gestión de materiales consumibles (resistencias, estaño, componentes, etc.)
  */
-const Insumos = require('../models/insumos');
+const Insumos = require('../models/Insumos');
 
 /**
  * @route GET /api/insumos

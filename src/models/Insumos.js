@@ -44,13 +44,8 @@ const insumoSchema = new mongoose.Schema({
         type: String,
         required: [true, 'La categoría del insumo es obligatoria'],
         enum: [
-            'Componentes Pasivos', 
-            'Optoelectrónica', 
-            'Actuadores', 
-            'Sensores', 
-            'Conectividad', 
-            'Prototipado',
-            'Otros'
+            'Componentes Digitales', 
+            'Componentes Analógicos',
         ],
         trim: true
     }

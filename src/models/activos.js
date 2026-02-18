@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
  * Esquema de Mongoose para la gestión de activos (equipos) del inventario.
  */
 const activoSchema = new mongoose.Schema({
-    /** * @property {Number} numActivo 
+    /** * @property {Number} numActivo
      * Número identificador único del activo; debe ser positivo.
      */
     numActivo: {
@@ -12,7 +12,7 @@ const activoSchema = new mongoose.Schema({
         unique: true,
         index: true,
         required: [true, 'El número de activo es obligatorio'], 
-        min: [1, 'El número de activo debe ser un número positivo']    
+        min: [1, 'El número de activo debe ser un número positivo']
     },
     /** * @property {String} numSerie 
      * Número de serie único del fabricante para identificación precisa.
@@ -49,21 +49,15 @@ const activoSchema = new mongoose.Schema({
         required: [true, 'El modelo es obligatorio'],
         trim: true
     },
-    /** * @property {String} categoria 
+    /** * @property {String} categoria
      * Clasificación técnica del activo según su área de aplicación.
      */
     categoria: {
         type: String,
         required: [true, 'La categoría es obligatoria'],
         enum: [
-            'Sistemas de Control', 
-            'Instrumental', 
-            'Comunicaciones', 
-            'Sensores', 
-            'Herramientas', 
-            'Robótica', 
-            'IoT',
-            'Otro'
+            'Instrumentos',
+            'Herramientas'
         ],
         trim: true
     },

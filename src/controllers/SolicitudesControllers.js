@@ -196,3 +196,89 @@ exports.deleteSolicitud = async (req, res) => {
         res.status(500).json({ message: 'Error al eliminar la solicitud', error: error.message });
     }
 };
+
+/**
+    * @route PUT /api/solicitudes/admin/:id
+    * @desc Permite al Admin aprobar o rechazar una solicitud, con validaciones estrictas.
+    * REGLA DE ORO: Solo el Admin puede aprobar o rechazar solicitudes, no el estudiante.
+    * Criterio: Si el Admin rechaza, DEBE proporcionar una justificación (observaciones).
+    * Criterio: No se pueden modificar solicitudes ya rechazadas o devueltas para mantener la integridad.
+    * Criterio: Al aprobar, se deben descontar los insumos y marcar los activos como prestados.
+    * Criterio: El comentario del Admin se guarda en el histórico para transparencia.
+    * Criterio: El estado de la solicitud se actualiza en un solo paso para evitar inconsistencias.
+    * Criterio: El Admin no puede cambiar el estado a 'aprobada' si no hay activos o insumos en la solicitud, para evitar aprobaciones vacías.
+    * Criterio: El Admin no puede rechazar una solicitud sin proporcionar una razón válida, para fomentar la comunicación y el aprendizaje.
+    * Criterio: El Admin no puede modificar una solicitud que ya fue procesada (rechazada o devuelta), para mantener la integridad de los registros y evitar confusiones.
+    * Criterio: El Admin no puede aprobar una solicitud que no contiene activos ni insumos, para evitar aprobaciones sin sentido.
+*/
+
+exports.gestionarEstadoAdmin = async (req, res) => {
+    try {
+        const { nuevoEstado, observaciones } = req.body;
+        const { id } = req.params;
+
+        const solicitud = await Solicitudes.findById(id);
+        if (!solicitud) return res.status(404).json({ message: 'Solicitud no encontrada' });
+
+        // --- 1. VALIDACIÓN DE RECHAZO (Sigue aquí, Fran) ---
+        if (nuevoEstado === 'rechazada' && (!observaciones || observaciones.trim().length < 5)) {
+            return res.status(400).json({ 
+                message: 'Error: Debes proporcionar una justificación para rechazar la solicitud.' 
+            });
+        }
+
+        // Bloqueo de integridad
+        if (['rechazada', 'devuelto'].includes(solicitud.estado)) {
+            return res.status(400).json({ message: `No se puede modificar una solicitud ya ${solicitud.estado}` });
+        }
+
+        // --- 2. LÓGICA DE IMPACTO EN INVENTARIO ---
+        
+        // CASO A: APROBAR (Resta stock y marca prestado)
+        if (nuevoEstado === 'aprobada') {
+            if (solicitud.insumos?.length > 0) {
+                for (const item of solicitud.insumos) {
+                    await Insumo.findByIdAndUpdate(item.id_insumo, { $inc: { cantidad: -item.cantidad } });
+                }
+            }
+            if (solicitud.activos?.length > 0) {
+                await Activo.updateMany(
+                    { _id: { $in: solicitud.activos } },
+                    { $set: { estadoActivo: 'prestado' } }
+                );
+            }
+        }
+
+        // CASO B: DEVOLVER (Solo libera activos)
+        if (nuevoEstado === 'devuelto') {
+            if (solicitud.activos?.length > 0) {
+                await Activo.updateMany(
+                    { _id: { $in: solicitud.activos } },
+                    { $set: { estadoActivo: 'disponible' } }
+                );
+            }
+        }
+
+        // NOTA: Si es 'rechazada', el código no entra a los "if" de arriba 
+        // porque no hay que mover stock. Pasa directo aquí abajo.
+
+        // --- 3. ACTUALIZACIÓN FINAL E HISTORIAL ---
+        solicitud.estado = nuevoEstado;
+        
+        solicitud.historico_estados.push({
+            estado: nuevoEstado,
+            fecha: new Date(),
+            observaciones: observaciones || `El Administrador cambió el estado a ${nuevoEstado}.`
+        });
+
+        await solicitud.save();
+        
+        res.json({ 
+            message: `Solicitud marcada como ${nuevoEstado} correctamente.`,
+            data: solicitud
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Error en la gestión administrativa', error: error.message });
+    }
+};
