@@ -1,6 +1,6 @@
 const Usuarios = require('../models/usuarios'); // Asegúrate de que la ruta sea correcta
 const bcrypt = require('bcryptjs'); // Para el hash de la contraseña
-
+const jwt = require('jsonwebtoken'); // O tu función generarToken
 
 /**
  * @desc Obtiene todos los usuarios (sin mostrar la contraseña por seguridad).
@@ -95,7 +95,7 @@ exports.updateUsuario = async (req, res) => {
 };
 
 /**
- * @route DELETE /api/usuarios/:id
+ * @route Inactivo /api/usuarios/:id
  * @desc Elimina un usuario del sistema si cumple las condiciones de baja.
  * @access Privado (Solo Administrador/Admin)
  * 
@@ -104,60 +104,128 @@ exports.updateUsuario = async (req, res) => {
  * Si un usuario está 'activo', el sistema bloqueará la eliminación y sugerirá primero inactivarlo o penalizarlo.   
  * 
  * Nota: La eliminación física también podría incluir la eliminación del archivo PDF del comprobante, dependiendo de tu estrategia de almacenamiento.
- * 
- * Ejemplo de respuesta exitosa:
- * {
- *   "message": "Usuario Juan Pérez eliminado permanentemente.",
- *   "razon": "Estado previo: inactivo"
- * }
+ *` 
+ * Ejemplo de respuesta por usuario activo:
+ * {    
  *  
- * Ejemplo de respuesta por intentar eliminar un usuario activo:
- * {
- *   "message": "No se puede eliminar un usuario activo. Primero debe ser inactivado o penalizado."
- * }
- *  
- * Ejemplo de respuesta por falta de permisos:
- * {
- *   "message": "Acceso denegado. No tiene permisos para eliminar usuarios."
- * }
- *  
- * Ejemplo de respuesta por usuario no encontrado:
- * {
- *   "message": "Usuario no encontrado."
- * }
- *  
- * 
+ *   "message": "No se puede eliminar: El usuario está activo. Primero inactiva o penaliza al usuario."`
  * Importante: Asegúrate de que el middleware de autenticación esté configurado para agregar el objeto `usuario` al `req`, 
  * con al menos el campo `tipo_rol` para esta verificación.
  */
-exports.deleteUsuario = async (req, res) => {
+exports.inactivarUsuario = async (req, res) => {
     try {
-        // 1. Verificación de Rol (Solo la jerarquía alta)
-        if (req.usuario.tipo_rol !== 'admin' && req.usuario.tipo_rol !== 'Administrador') {
-            return res.status(403).json({ message: 'Acceso denegado. No tiene permisos para eliminar usuarios.' });
+        // 1. Verificación de permisos
+        if (!['admin', 'Administrador'].includes(req.usuario.tipo_rol)) {
+            return res.status(403).json({ message: 'No tienes permisos para esta acción.' });
         }
 
-        const usuario = await Usuarios.findById(req.params.id);
-        if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado.' });
+        // 2. ¿Tiene deudas? (No podemos inactivar a alguien que tiene un equipo)
+        const tienePrestamos = await Solicitudes.findOne({ 
+            estudiante: req.params.id, 
+            estado: { $in: ['aprobada', 'entregado'] } 
+        });
 
-        // 2. REGLA DE ORO: Solo si está Inactivo o Penalizado
-        // Si el usuario está 'activo', el sistema bloquea el borrado para evitar errores.
-        if (usuario.estado === 'activo') {
+        if (tienePrestamos) {
             return res.status(400).json({ 
-                message: 'No se puede eliminar un usuario activo. Primero debe ser inactivado o penalizado.' 
+                message: 'No se puede inactivar: El usuario tiene equipos sin devolver.' 
             });
         }
 
-        // 3. Eliminación física (Aquí podrías también borrar el archivo PDF del storage)
-        await Usuarios.findByIdAndDelete(req.params.id);
+        // 3. Cambio de estado (Pasar a "Archivo Muerto")
+        const usuario = await Usuarios.findByIdAndUpdate(
+            req.params.id, 
+            { estado: 'inactivo' }, 
+            { new: true }
+        );
+
+        const inactivo_desde = new Date(); // Fecha actual para marcar desde cuándo está inactivo
+        await Usuarios.findByIdAndUpdate(
+            req.params.id,
+            { inactivo_desde },
+            { new: true }
+        );
+
+        if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado.' });
 
         res.json({ 
-            message: `Usuario ${usuario.nombre} eliminado permanentemente.`,
-            razon: `Estado previo: ${usuario.estado}`
+            message: `Usuario ${usuario.nombre_completo} ha sido movido a inactivos.`,
+            detalle: 'Se eliminará automáticamente en la próxima limpieza de 6 meses.'
         });
 
     } catch (error) {
-        res.status(500).json({ message: 'Error al eliminar usuario.', error: error.message });
+        res.status(500).json({ message: 'Error al inactivar.', error: error.message });
+    }
+};
+
+/**
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ * @returns 
+ * @desc Login de usuario con validación de carrera
+ * Este endpoint de login no solo verifica las credenciales del usuario, sino que también implementa un filtro adicional para garantizar que solo los usuarios pertenecientes a ciertas carreras de Ingeniería puedan acceder al sistema.
+ * Solo se permiten usuarios que tengan una carrera registrada dentro de la lista de carreras autorizadas. Esto se hace para asegurar que el sistema sea utilizado exclusivamente por estudiantes, docentes o administrativos relacionados con las áreas de Ingeniería que el sistema está diseñado para servir.
+ * Ejemplo de respuesta por carrera no autorizada:
+ * {
+ *   "message": "Acceso denegado: Este sistema es exclusivo para carreras de Ingeniería seleccionadas."
+ * }
+ */
+
+exports.loginUsuario = async (req, res) => {
+    try {
+        // 1. CAPTURA Y LIMPIEZA INICIAL
+        // Usamos let o simplemente desestructuramos una vez
+        const { password } = req.body;
+        const correo = req.body.correo ? req.body.correo.toLowerCase().trim() : null;
+
+        if (!correo || !password) {
+            return res.status(400).json({ message: 'Por favor, ingresa correo y contraseña.' });
+        }
+
+        // 2. BÚSQUEDA ÚNICA EN LA BASE DE DATOS
+        const usuario = await Usuario.findOne({ correo });
+
+        // 3. VERIFICACIÓN DE EXISTENCIA (Mensaje genérico por seguridad)
+        if (!usuario) {
+            return res.status(401).json({ message: 'Credenciales inválidas' });
+        }
+
+        // 4. EL FILTRO DE INGENIERÍAS (Criterio de acceso por carrera)
+        const CARRERAS_AUTORIZADAS = [
+            'Ingeniería Electrónica',
+            'Ingeniería Eléctrica',
+            'Ingeniería en Tecnologías de Información',
+            'Ingeniería en Producción Industrial'
+        ];
+
+        if (!CARRERAS_AUTORIZADAS.includes(usuario.carrera)) {
+            return res.status(403).json({ 
+                message: 'Acceso denegado: Este sistema es exclusivo para carreras de Ingeniería seleccionadas.' 
+            });
+        }
+
+        // 5. EL "MATCH" DE CONTRASEÑA (Seguridad)
+        const esValida = await bcrypt.compare(password, usuario.password);
+        if (!esValida) {
+            return res.status(401).json({ message: 'Credenciales inválidas' });
+        }
+
+        // 6. GENERACIÓN DE TOKEN Y RESPUESTA
+        // Asegúrate de que tu función generarToken use los campos correctos (tipo_rol o rol)
+        const token = generarToken(usuario._id, usuario.tipo_rol || usuario.rol);
+
+        res.status(200).json({ 
+            token, 
+            message: 'Login exitoso',
+            usuario: {
+                nombre: usuario.nombre_completo,
+                rol: usuario.tipo_rol || usuario.rol,
+                carrera: usuario.carrera
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Error en el login', error: error.message });
     }
 };
 
@@ -241,21 +309,17 @@ exports.searchUsuarios = async (req, res) => {
  *   "usuarios_afectados": 150,
  *   "instrucciones": "Los usuarios deberán usar la opción 'Olvidé mi contraseña' y subir su nuevo PDF para reactivarse."
  * }
- * 
  * Ejemplo de respuesta por falta de permisos:
  * {
  *  "message": "Acceso denegado. No tiene permisos para cerrar el ciclo."
  * }
- *
  * Ejemplo de respuesta por error en el proceso:
  * {
  *  "message": "Error en el proceso de cierre de ciclo",
  * "error": "Descripción detallada del error"
  * }
- *
  * Nota: Asegúrate de que el middleware de autenticación esté configurado para agregar el objeto `usuario` al `req`,
  * con al menos el campo `tipo_rol` para esta verificación.
- *
  * Recomendación adicional: Antes de ejecutar este endpoint, es aconsejable realizar una copia de seguridad de la base de 
  * datos, ya que este proceso afectará a un gran número de usuarios y no se puede revertir desde esta función.
  */
@@ -289,18 +353,21 @@ exports.cierreCuatrimestre = async (req, res) => {
  */
 exports.limpiarUsuariosViejos = async (req, res) => {
     try {
-        // Definimos qué es "viejo": por ejemplo, alguien que no se loguea hace 1 año
-        const unAnioAtras = new Date();
-        unAnioAtras.setFullYear(unAnioAtras.getFullYear() - 1);
+       // 1. Definimos el punto de corte (6 meses atrás desde HOY)
+        const seisMesesAtras = new Date();
+        seisMesesAtras.setMonth(seisMesesAtras.getMonth() - 6);
 
-        // 1. Buscamos y borramos a los que:
-        // - Son estudiantes
-        // - Están inactivos
-        // - Su última actualización fue hace más de un año
+        // 2. Ejecutamos la eliminación con el filtro combinado
         const resultado = await Usuarios.deleteMany({
-            tipo_rol: 'estudiante',
-            estado: 'inactivo',
-            updatedAt: { $lt: unAnioAtras }
+            tipo_rol: 'estudiante',       // Condición A: Solo estudiantes
+            estado: 'inactivo',          // Condición B: Que estén en la papelera
+            inactivo_desde: { $lt: seisMesesAtras } // Condición C: El campo de la DB es menor a nuestra variable
+        });
+        // --- CAMBIO EN LA RESPUESTA ---
+        res.json({ 
+            message: 'Limpieza semestral de base de datos completada.',
+            usuarios_eliminados: resultado.deletedCount,
+            nota: 'Se eliminaron registros inactivos por más de 6 meses.'
         });
 
         res.json({ 

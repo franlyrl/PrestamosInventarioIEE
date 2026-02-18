@@ -105,8 +105,23 @@ const usuarioSchema = new mongoose.Schema({
      */
     ultimo_acceso: {
         type: Date
-    }       
-}, { 
+    },
+    // --- AQUÍ EL CAMBIO CLAVE ---
+    carrera: { 
+        type: String, 
+        required: true,
+        // Opcional: Puedes listar todas aquí o dejarlo abierto y filtrar solo en el código
+        enum: [
+            'Ingeniería Electrónica',
+            'Ingeniería Eléctrica',
+            'Ingeniería en Tecnologías de Información',
+            'Ingeniería en Producción Industrial'
+        ]
+    },
+    inactivo_desde: {
+        type: Date
+    }   
+}, {
     /** Incluye automáticamente campos de auditoría: createdAt y updatedAt. */
     timestamps: true 
 });
@@ -120,4 +135,23 @@ usuarioSchema.pre('save', async function(next) {
 
     try {
         const salt = await bcrypt.genSalt(10);
-        this.hash_contraseña = await bcrypt
+        this.hash_contraseña = await bcrypt.hash(this.hash_contraseña, salt);
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * Método de instancia para comparar una contraseña ingresada con el hash almacenado.
+ * @param {String} contraseñaIngresada - La contraseña que el usuario intenta usar para iniciar sesión.
+ * @returns {Promise<Boolean>} - Devuelve true si la contraseña es correcta, false si no lo es.
+ */
+
+usuarioSchema.methods.compararContraseña = async function(contraseñaIngresada) {
+    return await bcrypt.compare(contraseñaIngresada, this.hash_contraseña);
+};
+
+// Exportamos el modelo de Mongoose basado en el esquema definido
+module.exports = mongoose.model('Usuario', usuarioSchema);
+

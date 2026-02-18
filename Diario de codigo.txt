@@ -1189,7 +1189,7 @@ exports.cierreCuatrimestre = async (req, res) => {
 	
 	-Ajustar para Usuario esten las carreras competentes
 	-Revisar si no he añadido que en 6 meses se borren los usuarios inactivos // Esto seria todo lo de reunion con el administrador
-
+	- Ajustar los populate de los controllers
 
 	
 	-Evidencia
