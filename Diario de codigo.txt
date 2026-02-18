@@ -1174,7 +1174,7 @@ exports.cierreCuatrimestre = async (req, res) => {
 	-Establecer un menu con las carreras competentes que pueden acceder a los Prestamos
 	-Mostrar actividad del administrativo para que el usuario pueda ver la fecha en la que es aceptado o rechazado.
 
-	18.2.2026 10:00 a.m
+	18.2.2026 10:00 a.m -17:00 pm
 	- Añadi Put Aceptar/rechazar
 		En el Controller de Soliciitudes ademas de agregar para que el administrador pueda aceptar y 
 		rechazar, permiti que hubiera una actualizacion del proceso hasta que fuera devuelto el producto.
