@@ -1183,15 +1183,9 @@ exports.cierreCuatrimestre = async (req, res) => {
 		-Añadir Actualizacion o visualizacion para que los usuarios puedan ver el estado de cuando el administrador rechazo o acepto, ademas
 		de configurar para que todos puedan ver los comentarios del Administrador,
 		Ya existe solo mejore controller porque ya estaba
-		
-		
-		por hacer- Voy a ahora.
-	
 	-Ajustar para Usuario esten las carreras competentes
 	-Revisar si no he añadido que en 6 meses se borren los usuarios inactivos // Esto seria todo lo de reunion con el administrador
-	- Ajustar los populate de los controllers
-
-	
+			
 	-Evidencia
 
 		--Modifcacion de Insumos.js
@@ -1286,3 +1280,8 @@ exports.cierreCuatrimestre = async (req, res) => {
 				res.status(500).json({ message: 'Error en la gestión administrativa', error: error.message });
 			}
 		};
+
+		19.2.2026 
+
+		por hacer- Voy a ahora.
+		- Ajustar los populate de los controllers
