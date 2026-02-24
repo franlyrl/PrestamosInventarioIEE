@@ -88,6 +88,73 @@ exports.updateUsuario = async (req, res) => {
 };
 
 /**
+ * @desc Sanciona a un usuario y marca la solicitud como penalizada.
+ * Bloquea al usuario para que no pida más ni pueda ser inactivado/borrado.
+ * Importante: Este endpoint debe ser utilizado con precaución, ya que sancionar a un usuario es una acción que afecta su capacidad de interactuar con el sistema. Asegúrate
+ *  de que el motivo de la sanción esté claramente documentado en las observaciones y que el usuario haya sido notificado 
+ * sobre la falta cometida y las consecuencias de la sanción. Además, este proceso no solo cambia el estado de la solicitud a 
+ * "penalizado", sino que también bloquea al usuario para futuras solicitudes, garantizando así la integridad del sistema y 
+ * la responsabilidad del usuario.
+ * Ejemplo de respuesta exitosa:
+ * {
+ *   "message": "Acción completada: El usuario Juan Pérez ha sido sancionado.",
+ *   "detalle": "Solicitud marcada como 'penalizada'. El usuario no podrá realizar trámites hasta que se resuelva esta falta."
+ * }
+ * Ejemplo de respuesta por solicitud no encontrada:
+ * {
+ *   "message": "No se encontró la solicitud de préstamo."
+ * }
+ * Ejemplo de respuesta por usuario no encontrado:
+ * {
+ *   "message": "La solicitud existe pero el usuario ya no está en el sistema."
+ * }
+ * Ejemplo de respuesta por error en el proceso:
+ * {
+ *   "message": "Error al procesar la sanción del usuario.",
+ *   "error": "Descripción detallada del error"
+ * }
+ * Nota: Asegúrate de que el middleware de autenticación esté configurado para agregar el objeto `usuario` al `req`, 
+ * con al menos el campo `tipo_rol` para esta verificación, y que solo los administradores puedan acceder a este endpoint.
+ */
+exports.sancionarUsuarioPorFalta = async (req, res) => {
+    try {
+        // 1. Buscamos la solicitud que originó el problema
+        const solicitud = await Solicitudes.findById(req.params.id);
+        if (!solicitud) {
+            return res.status(404).json({ message: 'No se encontró la solicitud de préstamo.' });
+        }
+
+        // 2. Cambiamos el estado de la SOLICITUD (El registro del objeto)
+        solicitud.estado = 'penalizado';
+        solicitud.observaciones_admin = req.body.motivo || 'Incumplimiento en la entrega/daño de equipo';
+        await solicitud.save();
+
+        // 3. IMPACTO EN EL USUARIO (La sanción real)
+        // Buscamos al dueño de esa solicitud y lo bloqueamos
+        const usuarioSancionado = await Usuarios.findByIdAndUpdate(
+            solicitud.estudiante, 
+            { 
+                estado: 'sancionado',
+                // Podemos agregar una nota en el perfil del usuario si tienes ese campo
+            }, 
+            { new: true }
+        );
+
+        if (!usuarioSancionado) {
+            return res.status(404).json({ message: 'La solicitud existe pero el usuario ya no está en el sistema.' });
+        }
+
+        res.json({ 
+            message: `Acción completada: El usuario ${usuarioSancionado.nombre_completo} ha sido sancionado.`,
+            detalle: `Solicitud marcada como 'penalizada'. El usuario no podrá realizar trámites hasta que se resuelva esta falta.`
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Error al procesar la sanción del usuario.', error: error.message });
+    }
+};
+
+/**
  * @route Inactivo /api/usuarios/:id
  * @desc Elimina un usuario del sistema si cumple las condiciones de baja.
  * @access Privado (Solo Administrador/Admin)
@@ -107,36 +174,61 @@ exports.updateUsuario = async (req, res) => {
  */
 exports.inactivarUsuario = async (req, res) => {
     try {
+        // 1. Verificación de permisos
         if (!['admin', 'Administrador'].includes(req.usuario.tipo_rol)) {
-            return res.status(403).json({ message: 'No tienes permisos.' });
+            return res.status(403).json({ message: 'No tienes permisos para esta acción.' });
         }
 
-        const tienePrestamos = await Solicitudes.findOne({ 
+        // 2. EVITAR AUTO-BLOQUEO: Un admin no puede inactivarse a sí mismo
+        if (req.usuario.id === req.params.id) {
+            return res.status(400).json({ message: 'No puedes inactivar tu propia cuenta de administrador.' });
+        }
+
+        // 3. Inactivar al usuario
+        const usuario = await Usuarios.findById(req.params.id);
+        if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+
+       // 4. REGLA DE ORO ACTUALIZADA
+        // Revisamos el estado del usuario directamente y las solicitudes
+        // A. Verificación por estado del Usuario
+        if (usuario.estado === 'pendiente_devolucion' || usuario.estado === 'sancionado') {
+            return res.status(400).json({ 
+                message: `No se puede inactivar: El usuario está en estado '${usuario.estado}'.` 
+            });
+        }
+
+        // Y por seguridad, mantenemos el chequeo en Solicitudes por si acaso
+        // B. Verificación de seguridad en Solicitudes
+        const tienePendientes = await Solicitudes.findOne({ 
             estudiante: req.params.id, 
-            estado: { $in: ['aprobada', 'entregado'] } 
+            estado: { $in: ['aprobada', 'entregado', 'penalizado'] } 
+        });
+        if (tienePendientes) {
+            return res.status(400).json({ 
+                message: 'No se puede inactivar: El usuario tiene solicitudes de préstamo activas o pendientes de devolución.' 
+            });
+        }
+
+        // 5. CAMBIO DE ESTADO
+        if (usuario.estado === 'inactivo') {
+            return res.status(400).json({ message: 'El usuario ya está inactivo.' });
+        }
+
+        usuario.estado = 'inactivo';
+        usuario.inactivo_desde = new Date(); // Para seguimiento de inactividad
+        await usuario.save();
+
+        res.json({ 
+            message: `Usuario ${usuario.nombre_completo} inactivado correctamente.`,
+            nota: 'Si el usuario regresa después de un año, deberá pasar por el proceso de reactivación y cambio de clave.'
         });
 
-        if (tienePrestamos) {
-            return res.status(400).json({ message: 'El usuario tiene equipos sin devolver.' });
-        }
-
-        const usuario = await Usuarios.findByIdAndUpdate(
-            req.params.id, 
-            { 
-                estado: 'inactivo',
-                inactivo_desde: new Date() // Sello para la limpieza anual
-            }, 
-            { new: true }
-        );
-
-        if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado.' });
-
-        res.json({ message: `Usuario ${usuario.nombre_completo} inactivado.` });
     } catch (error) {
-        res.status(500).json({ message: 'Error al inactivar.', error: error.message });
+        res.status(500).json({ message: 'Error en el proceso de inactivación.', error: error.message });
     }
-};
 
+};
 /**
  * 
  * @param {*} req 

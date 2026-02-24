@@ -90,7 +90,7 @@ const usuarioSchema = new mongoose.Schema({
      */
     estado: {
         type: String,
-        enum: ['activo', 'inactivo', 'sancionado'],
+        enum: ['activo', 'inactivo', 'sancionado', 'pendiente_devolucion'],
         default: 'activo'
     },
     /** * @property {Date} fecha_creacion 

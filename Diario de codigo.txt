@@ -1281,7 +1281,58 @@ exports.cierreCuatrimestre = async (req, res) => {
 			}
 		};
 
-		19.2.2026 
+		23.02.2026 13.00-16.00 pm
+		- Ajuste varios de los ajustes que el Profesor me Comunicaciones
+			-Hice un Historial de usuario donde no se elimine los datos para que pueden estar los datos de los usuarios que estuvieron
+				-Entonces cree un esquema de HistorialUsuarios y Controller de ello.
+				- ajuste eliminar, ya que ahora no pasara sino ajustarlo para que se limpien los activos y mandarlos a Historial de Usuarios 
+			- Que los usuarios se inactiven despues de un año, gracias que aquellos estudiantes que puede que un curso no lleven en un año y no quiere 
+			  decir que no esten activos.
+			- limpie el codigo para que fuera mas practico efectivo.
+			- añadi mas const como estos:
+				const Usuarios = require('../models/usuarios'); // Para verificar roles de usuario si es necesario
+				const { generarToken } = require('../utils/generarToken'); // Si necesitas autenticación para ciertas acciones
+				const { consultarNombrePorCedula } = require('../utils/registroCivil'); // Para validar cédula si es necesario
+				const Solicitudes = require('../models/Solicitudes'); // Para verificar préstamos activos si es necesario
+				const { validationResult } = require('express-validator'); // Para validación de datos entrantes
+				const mongoose = require('mongoose'); // Para validaciones de ID y operaciones avanzadas con MongoDB
 
-		por hacer- Voy a ahora.
-		- Ajustar los populate de los controllers
+
+
+			24.02.2026 14.00
+			- Ajustamos Inactivar Usuario ya que	
+				que si tiene deudas no se puedan inactivar
+			
+			-Creamos el crud en Usuarios de penalizacion, que sancione los usuarios que no han entregado los articulos, ya que	
+				no puede pedir mas prestamos, ni inactivarse hasta que pague o devuelva los insumos
+						Paso 1 (Incumplimiento): El estudiante no entrega el artículo o lo entrega dañado.
+
+						Paso 2 (Acción del Admin): El Admin usa el "CRUD de penalización" (la función que acabas de poner).
+
+						Paso 3 (Efecto en Cascada): * La Solicitud queda marcada como penalizado.
+							El Usuario queda marcado como sancionado.
+
+						Paso 4 (Bloqueo): * No puede pedir más préstamos (porque su estado es sancionado).
+							No puede inactivarse (porque tu función inactivarUsuario detecta la solicitud penalizado).
+							No puede irse al historial (porque nunca llegará a ser un "inactivo limpio").
+			
+			-Ajuste inactivo, para que este penalizado y pendiente a devolver, donde tambien lo ajuste en el schema
+		-- hasta que hecho por el momento.	
+			-Ajustare gracias a los cambios de usuarios para que los que tengan estado penalizado, o pendiente de devolucion, no puedan pedir 
+			solicitud nuevas, hasta que no devuelvan o paguen por ser penalizado, como explica a continuacion.
+
+				1. solicitudesController.js (Cambios Críticos)
+
+				Este es el que más cambia porque es el que alimenta los estados del usuario.
+					Al crear una solicitud (POST): Debes añadir un bloqueo. Si el usuario.estado es sancionado o inactivo, no debe dejarlo ni siquiera enviar la solicitud.
+					Al entregar el equipo (Aprobar/Entregar): En el momento que el Admin entrega el equipo físico, el controlador debe hacer un findByIdAndUpdate del usuario para cambiarlo a pendiente_devolucion.
+					Al recibir el equipo (Devolución): Cuando se marca como devuelto, el controlador debe devolver al usuario al estado activo.
+
+				2. activosController.js (Cambios de Seguridad)
+				Aunque este maneja los equipos (multímetros, osciloscopios), se ve afectado indirectamente:
+					Disponibilidad: Si un activo está asociado a una solicitud penalizada (porque se perdió), el activo debería pasar a un estado de fuera_de_servicio o perdido automáticamente para que nadie más intente pedirlo.
+
+				3. authController.js (El Portero)
+				El módulo de Login también necesita un pequeño ajuste:
+					Bloqueo de entrada: Si un usuario está inactivo (porque ya pasó un año), el login debería rebotarlo con un mensaje: "Tu cuenta está inactiva por falta de uso, contacta al administrador". Sin esto, un inactivo podría seguir entrando al sistema.
+
