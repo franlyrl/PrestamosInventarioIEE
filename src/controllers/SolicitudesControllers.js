@@ -5,6 +5,13 @@
  */
 
 const Solicitudes = require('../models/solicitudes');
+const Usuarios = require('../models/usuarios'); // Para verificar roles de usuario si es necesario
+const Activos = require('../models/activos'); // Para verificar disponibilidad de activos
+const Insumos = require('../models/insumos'); // Para verificar stock de insumos
+const { generarToken } = require('../utils/generarToken'); // Si necesitas autenticación para ciertas acciones
+const { consultarNombrePorCedula } = require('../utils/registroCivil'); // Para validar cédula si es necesario
+const { validationResult } = require('express-validator'); // Para validación de datos entrantes
+const mongoose = require('mongoose'); // Para validaciones de ID y operaciones avanzadas con MongoDB
 
 /**
  * @route GET /api/solicitudes

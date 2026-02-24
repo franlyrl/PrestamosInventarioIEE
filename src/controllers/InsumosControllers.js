@@ -3,6 +3,12 @@
  * @description Gestión de materiales consumibles (resistencias, estaño, componentes, etc.)
  */
 const Insumos = require('../models/Insumos');
+const { generarToken } = require('../utils/generarToken'); // Si necesitas autenticación para ciertas acciones
+const { consultarNombrePorCedula } = require('../utils/registroCivil'); // Para validar cédula si es necesario
+const Usuarios = require('../models/usuarios'); // Para verificar roles de usuario si es necesario
+const Solicitudes = require('../models/Solicitudes'); // Para verificar préstamos activos si es necesario
+const { validationResult } = require('express-validator'); // Para validación de datos entrantes
+const mongoose = require('mongoose'); // Para validaciones de ID y operaciones avanzadas con MongoDB
 
 /**
  * @route GET /api/insumos

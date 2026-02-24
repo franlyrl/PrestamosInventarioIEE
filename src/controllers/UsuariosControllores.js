@@ -1,6 +1,10 @@
 const Usuarios = require('../models/usuarios'); // Asegúrate de que la ruta sea correcta
 const bcrypt = require('bcryptjs'); // Para el hash de la contraseña
 const jwt = require('jsonwebtoken'); // O tu función generarToken
+const { generarToken } = require('../utils/generarToken'); // Asegúrate de que esta función esté bien implementada
+const { consultarNombrePorCedula } = require('../utils/registroCivil'); // Función para validar cédula
+const Solicitudes = require('../models/Solicitudes'); // Para verificar préstamos activos
+
 
 /**
  * @desc Obtiene todos los usuarios (sin mostrar la contraseña por seguridad).
@@ -16,62 +20,51 @@ exports.getUsuarios = async (req, res) => {
 
 exports.createUsuario = async (req, res) => {
     try {
-        const { cedula, correo_electronico, hash_contraseña, tipo_rol, telefono } = req.body;
+        const { cedula, correo_electronico, hash_contraseña, tipo_rol, telefono, carrera } = req.body;
 
-        // 1. EL "ESCUDO" DE DUPLICADOS
-        const usuarioExiste = await Usuario.findOne({ $or: [{ cedula }, { correo_electronico }] });
+        // 1. Escudo de duplicados
+        const usuarioExiste = await Usuarios.findOne({ $or: [{ cedula }, { correo_electronico }] });
         if (usuarioExiste) {
             return res.status(400).json({ 
-                message: 'Error: La cédula o el correo electrónico ya se encuentran en nuestra base de datos.' 
+                message: 'La cédula o el correo electrónico ya existen.' 
             });
         }
 
-        // 2. CONSULTA REAL DE IDENTIDAD (Criterio Picky)
-        // En lugar de confiar en el nombre que mande el usuario, lo traemos de la fuente oficial
+        // 2. Validación de nombre (Asumiendo que tienes la función externa)
         let nombre_completo;
         try {
             nombre_completo = await consultarNombrePorCedula(cedula);
         } catch (error) {
-            // Si la API falla, podrías permitir que lo escriban o lanzar error
             return res.status(400).json({ message: 'No se pudo validar la cédula con el Registro Civil.' });
         }
 
-        // 3. SEGURIDAD DE CONTRASEÑA (Lo que hablábamos del Salt)
+        // 3. Encriptación
         const salt = await bcrypt.genSalt(10);
         const passwordEncriptada = await bcrypt.hash(hash_contraseña, salt);
 
-        // 4. VALIDACIÓN DEL COMPROBANTE (PDF)
-        // Usamos req.file (asumiendo Multer como middleware en la ruta) //en un futuro podríamos validar 
-        // el contenido del PDF para asegurarnos que es un documento válido de la UTN
+        // 4. Validación del PDF
         if (!req.file) {
-            return res.status(400).json({ message: 'Es obligatorio subir un comprobante (PDF) para validar su rol.' });
+            return res.status(400).json({ message: 'Es obligatorio subir un comprobante PDF.' });
         }
 
-        // 5. CREACIÓN DEL REGISTRO
-        const nuevoUsuario = new Usuario({
+        // 5. Creación
+        const nuevoUsuario = new Usuarios({
             cedula,
             nombre_completo,
             correo_electronico,
             hash_contraseña: passwordEncriptada,
             telefono,
             tipo_rol,
-            comprobante_pdf: req.file.path, // Guardamos la ruta del archivo, hay que crear el campo en el modelo
-            estado: 'inactivo', // Nace inactivo para que el admin lo revise
-            fecha_creacion: Date.now()
+            carrera,
+            comprobante_pdf: req.file.path,
+            estado: 'inactivo' // Esperando aprobación
         });
 
         await nuevoUsuario.save();
-
-        res.status(201).json({
-            status: 'success',
-            message: `Usuario ${nombre_completo} registrado correctamente. Su cuenta está en revisión administrativa.`
-        });
+        res.status(201).json({ status: 'success', message: `Usuario ${nombre_completo} registrado.` });
 
     } catch (error) {
-        res.status(500).json({ 
-            message: 'Error crítico en el proceso de registro', 
-            error: error.message 
-        });
+        res.status(500).json({ message: 'Error crítico en registro', error: error.message });
     }
 };
 
@@ -114,44 +107,31 @@ exports.updateUsuario = async (req, res) => {
  */
 exports.inactivarUsuario = async (req, res) => {
     try {
-        // 1. Verificación de permisos
         if (!['admin', 'Administrador'].includes(req.usuario.tipo_rol)) {
-            return res.status(403).json({ message: 'No tienes permisos para esta acción.' });
+            return res.status(403).json({ message: 'No tienes permisos.' });
         }
 
-        // 2. ¿Tiene deudas? (No podemos inactivar a alguien que tiene un equipo)
         const tienePrestamos = await Solicitudes.findOne({ 
             estudiante: req.params.id, 
             estado: { $in: ['aprobada', 'entregado'] } 
         });
 
         if (tienePrestamos) {
-            return res.status(400).json({ 
-                message: 'No se puede inactivar: El usuario tiene equipos sin devolver.' 
-            });
+            return res.status(400).json({ message: 'El usuario tiene equipos sin devolver.' });
         }
 
-        // 3. Cambio de estado (Pasar a "Archivo Muerto")
         const usuario = await Usuarios.findByIdAndUpdate(
             req.params.id, 
-            { estado: 'inactivo' }, 
-            { new: true }
-        );
-
-        const inactivo_desde = new Date(); // Fecha actual para marcar desde cuándo está inactivo
-        await Usuarios.findByIdAndUpdate(
-            req.params.id,
-            { inactivo_desde },
+            { 
+                estado: 'inactivo',
+                inactivo_desde: new Date() // Sello para la limpieza anual
+            }, 
             { new: true }
         );
 
         if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado.' });
 
-        res.json({ 
-            message: `Usuario ${usuario.nombre_completo} ha sido movido a inactivos.`,
-            detalle: 'Se eliminará automáticamente en la próxima limpieza de 6 meses.'
-        });
-
+        res.json({ message: `Usuario ${usuario.nombre_completo} inactivado.` });
     } catch (error) {
         res.status(500).json({ message: 'Error al inactivar.', error: error.message });
     }
@@ -173,57 +153,32 @@ exports.inactivarUsuario = async (req, res) => {
 
 exports.loginUsuario = async (req, res) => {
     try {
-        // 1. CAPTURA Y LIMPIEZA INICIAL
-        // Usamos let o simplemente desestructuramos una vez
         const { password } = req.body;
         const correo = req.body.correo ? req.body.correo.toLowerCase().trim() : null;
 
-        if (!correo || !password) {
-            return res.status(400).json({ message: 'Por favor, ingresa correo y contraseña.' });
-        }
+        const usuario = await Usuarios.findOne({ correo_electronico: correo });
+        if (!usuario) return res.status(401).json({ message: 'Credenciales inválidas' });
 
-        // 2. BÚSQUEDA ÚNICA EN LA BASE DE DATOS
-        const usuario = await Usuario.findOne({ correo });
-
-        // 3. VERIFICACIÓN DE EXISTENCIA (Mensaje genérico por seguridad)
-        if (!usuario) {
-            return res.status(401).json({ message: 'Credenciales inválidas' });
-        }
-
-        // 4. EL FILTRO DE INGENIERÍAS (Criterio de acceso por carrera)
+        // Filtro de Carreras UTN
         const CARRERAS_AUTORIZADAS = [
-            'Ingeniería Electrónica',
-            'Ingeniería Eléctrica',
-            'Ingeniería en Tecnologías de Información',
-            'Ingeniería en Producción Industrial'
+            'Ingeniería Electrónica', 'Ingeniería Eléctrica', 
+            'Ingeniería en Tecnologías de Información', 'Ingeniería en Producción Industrial'
         ];
 
         if (!CARRERAS_AUTORIZADAS.includes(usuario.carrera)) {
-            return res.status(403).json({ 
-                message: 'Acceso denegado: Este sistema es exclusivo para carreras de Ingeniería seleccionadas.' 
-            });
+            return res.status(403).json({ message: 'Acceso denegado: Carrera no autorizada.' });
         }
 
-        // 5. EL "MATCH" DE CONTRASEÑA (Seguridad)
-        const esValida = await bcrypt.compare(password, usuario.password);
-        if (!esValida) {
-            return res.status(401).json({ message: 'Credenciales inválidas' });
-        }
+        // Match de contraseña (usando el campo correcto: hash_contraseña)
+        const esValida = await bcrypt.compare(password, usuario.hash_contraseña);
+        if (!esValida) return res.status(401).json({ message: 'Credenciales inválidas' });
 
-        // 6. GENERACIÓN DE TOKEN Y RESPUESTA
-        // Asegúrate de que tu función generarToken use los campos correctos (tipo_rol o rol)
-        const token = generarToken(usuario._id, usuario.tipo_rol || usuario.rol);
+        const token = generarToken(usuario._id, usuario.tipo_rol);
 
         res.status(200).json({ 
             token, 
-            message: 'Login exitoso',
-            usuario: {
-                nombre: usuario.nombre_completo,
-                rol: usuario.tipo_rol || usuario.rol,
-                carrera: usuario.carrera
-            }
+            usuario: { nombre: usuario.nombre_completo, rol: usuario.tipo_rol, carrera: usuario.carrera }
         });
-
     } catch (error) {
         res.status(500).json({ message: 'Error en el login', error: error.message });
     }
@@ -345,37 +300,46 @@ exports.cierreCuatrimestre = async (req, res) => {
         res.status(500).json({ message: 'Error en el proceso de cierre de ciclo', error: error.message });
     }
 };
-
 /**
- * @route DELETE /api/usuarios/limpieza-antiguos
- * @desc Borra permanentemente usuarios que no se han reactivado en mucho tiempo.
+ * @route POST /api/usuarios/limpiar-archivo
+ * @desc Mueve usuarios muy antiguos a una colección histórica.
  * @access Privado (Solo Administrador)
  */
 exports.limpiarUsuariosViejos = async (req, res) => {
     try {
-       // 1. Definimos el punto de corte (6 meses atrás desde HOY)
-        const seisMesesAtras = new Date();
-        seisMesesAtras.setMonth(seisMesesAtras.getMonth() - 6);
+        // 1. Definimos el punto de corte (1 año atrás)
+        const añoatras = new Date();
+        añoatras.setFullYear(añoatras.getFullYear() - 1);
 
-        // 2. Ejecutamos la eliminación con el filtro combinado
-        const resultado = await Usuarios.deleteMany({
-            tipo_rol: 'estudiante',       // Condición A: Solo estudiantes
-            estado: 'inactivo',          // Condición B: Que estén en la papelera
-            inactivo_desde: { $lt: seisMesesAtras } // Condición C: El campo de la DB es menor a nuestra variable
-        });
-        // --- CAMBIO EN LA RESPUESTA ---
-        res.json({ 
-            message: 'Limpieza semestral de base de datos completada.',
-            usuarios_eliminados: resultado.deletedCount,
-            nota: 'Se eliminaron registros inactivos por más de 6 meses.'
+        // 2. Buscamos a los candidatos (estudiantes inactivos hace +1 año)
+        const usuariosParaHistorial = await Usuarios.find({
+            tipo_rol: 'estudiante',
+            estado: 'inactivo',
+            inactivo_desde: { $lt: añoatras }
         });
 
+        if (usuariosParaHistorial.length === 0) {
+            return res.json({ message: 'No hay usuarios tan antiguos para archivar.' });
+        }
+
+        // 3. Mover a la colección de Historial
+        // Usamos insertMany para pasar todos de un solo golpe
+        await UsuariosHistorial.insertMany(usuariosParaHistorial);
+
+        // 4. Ahora que están seguros en el historial, los sacamos de la tabla principal
+        const idsParaEliminar = usuariosParaHistorial.map(u => u._id);
+        const resultado = await Usuarios.deleteMany({ _id: { $in: idsParaEliminar } });
+
         res.json({ 
-            message: 'Limpieza de base de datos completada.',
-            usuarios_eliminados: resultado.deletedCount,
-            nota: 'Se eliminaron registros sin actividad por más de un año.'
+            message: 'Migración al historial completada con éxito.',
+            usuarios_archivados: resultado.deletedCount,
+            nota: 'Los datos ahora residen en la base de datos histórica y pueden ser recuperados.'
         });
+
     } catch (error) {
-        res.status(500).json({ message: 'Error en la purga de datos.', error: error.message });
+        res.status(500).json({ 
+            message: 'Error al mover datos al histórico.', 
+            error: error.message 
+        });
     }
 };

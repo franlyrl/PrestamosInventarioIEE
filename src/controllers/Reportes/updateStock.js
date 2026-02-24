@@ -1,6 +1,17 @@
 const Insumo = require('../models/Insumo');
 const Activo = require('../models/Activo');
 const Solicitudes = require('../models/Solicitudes');
+const Usuarios = require('../models/usuarios'); // Para verificar roles de usuario si es necesario
+const { generarToken } = require('../utils/generarToken'); // Si necesitas autenticación para ciertas acciones
+const { consultarNombrePorCedula } = require('../utils/registroCivil'); // Para validar cédula si es necesario
+const { validationResult } = require('express-validator'); // Para validación de datos entrantes
+const mongoose = require('mongoose'); // Para validaciones de ID y operaciones avanzadas con MongoDB
+
+/**
+ * @desc Controlador para actualizar el stock de insumos y el estado de los activos según las solicitudes.
+ * Este controlador se encarga de manejar la lógica de negocio relacionada con la aprobación y devolución de préstamos,
+ * asegurando que el inventario se mantenga actualizado y refleje correctamente el estado actual de los recursos.
+ */
 
 const updateStock = {
     
