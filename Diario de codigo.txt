@@ -1360,3 +1360,7 @@ exports.cierreCuatrimestre = async (req, res) => {
 ---POR HACER SI O SI
 middleware de autenticación
 Nota extra: Asegúrate de usar req.user.id (singular) si así es como lo configuraste en tu middleware de autenticación, ya que en esa línea pusiste req.usuario.id.
+
+
+validatorMiddleware: Podrías tener uno que revise que el formato del correo sea válido antes de llegar a cualquier controlador que use correos.
+npm install express-validator
