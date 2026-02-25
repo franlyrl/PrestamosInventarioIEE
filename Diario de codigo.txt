@@ -1348,7 +1348,7 @@ exports.cierreCuatrimestre = async (req, res) => {
 
 -- hasta que hecho por el momento.	
 
-25.2.26 14.00
+		25.2.26 14.00
 				2. activosController.js (Cambios de Seguridad)
 				Aunque este maneja los equipos (multímetros, osciloscopios), se ve afectado indirectamente:
 					Disponibilidad: Si un activo está asociado a una solicitud penalizada (porque se perdió), el activo debería pasar a un estado de fuera_de_servicio o perdido automáticamente para que nadie más intente pedirlo.
@@ -1357,10 +1357,21 @@ exports.cierreCuatrimestre = async (req, res) => {
 				El módulo de Login también necesita un pequeño ajuste:
 					Bloqueo de entrada: Si un usuario está inactivo (porque ya pasó un año), el login debería rebotarlo con un mensaje: "Tu cuenta está inactiva por falta de uso, contacta al administrador". Sin esto, un inactivo podría seguir entrando al sistema.
 
----POR HACER SI O SI
-middleware de autenticación
-Nota extra: Asegúrate de usar req.user.id (singular) si así es como lo configuraste en tu middleware de autenticación, ya que en esa línea pusiste req.usuario.id.
+			middleware de autenticación
+			Nota extra: Asegúrate de usar req.user.id (singular) si así es como lo configuraste en tu middleware de autenticación, ya que en esa línea pusiste req.usuario.id.
+
+			Lista de Middleware
+			AuthMiddleware
+			RoleMiddleware
+			validatorMiddleware: 
+				Podrías tener uno que revise que el formato del correo sea válido antes de llegar a cualquier controlador que use correos.
+				npm install express-validator
+			Extras
+			ErrorHandler: para que los errores en Postman se vean mejores, bonitos y organizados.
+			Ajuste apps.js a todos los middleware usados por el momento ademas de usar la libreria morgan dentro  ella.
 
 
-validatorMiddleware: Podrías tener uno que revise que el formato del correo sea válido antes de llegar a cualquier controlador que use correos.
-npm install express-validator
+
+
+
+Cors/Helmet: Solo cuando ya este a conectado el frontend. //En un futuro
