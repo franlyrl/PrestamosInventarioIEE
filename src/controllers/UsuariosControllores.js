@@ -251,7 +251,7 @@ exports.loginUsuario = async (req, res) => {
         const usuario = await Usuarios.findOne({ correo_electronico: correo });
         if (!usuario) return res.status(401).json({ message: 'Credenciales inválidas' });
 
-        // Filtro de Carreras UTN
+        // 1. Filtro de Carreras UTN
         const CARRERAS_AUTORIZADAS = [
             'Ingeniería Electrónica', 'Ingeniería Eléctrica', 
             'Ingeniería en Tecnologías de Información', 'Ingeniería en Producción Industrial'
@@ -261,21 +261,41 @@ exports.loginUsuario = async (req, res) => {
             return res.status(403).json({ message: 'Acceso denegado: Carrera no autorizada.' });
         }
 
-        // Match de contraseña (usando el campo correcto: hash_contraseña)
+        // 2. Match de contraseña
         const esValida = await bcrypt.compare(password, usuario.hash_contraseña);
         if (!esValida) return res.status(401).json({ message: 'Credenciales inválidas' });
 
+        // --- 3. EL NUEVO BLOQUEO DE ESTADO (El Portero) ---
+        // Aquí revisamos si la cuenta está inactiva o sancionada
+        if (usuario.estado === 'inactivo') {
+            return res.status(403).json({ 
+                message: 'Tu cuenta está inactiva por falta de uso, contacta al administrador.' 
+            });
+        }
+
+        if (usuario.estado === 'sancionado') {
+            return res.status(403).json({ 
+                message: 'Tu cuenta se encuentra sancionada. No puedes acceder al sistema.' 
+            });
+        }
+
+        // 4. Generación de Token (Solo si pasó todos los filtros anteriores)
         const token = generarToken(usuario._id, usuario.tipo_rol);
 
         res.status(200).json({ 
             token, 
-            usuario: { nombre: usuario.nombre_completo, rol: usuario.tipo_rol, carrera: usuario.carrera }
+            usuario: { 
+                nombre: usuario.nombre_completo, 
+                rol: usuario.tipo_rol, 
+                carrera: usuario.carrera,
+                estado: usuario.estado // Útil para que el frontend sepa el estado
+            }
         });
+
     } catch (error) {
         res.status(500).json({ message: 'Error en el login', error: error.message });
     }
 };
-
 /**
  * @desc Obtiene un usuario específico por ID.
  */

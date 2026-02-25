@@ -1348,7 +1348,7 @@ exports.cierreCuatrimestre = async (req, res) => {
 
 -- hasta que hecho por el momento.	
 
-
+25.2.26 14.00
 				2. activosController.js (Cambios de Seguridad)
 				Aunque este maneja los equipos (multímetros, osciloscopios), se ve afectado indirectamente:
 					Disponibilidad: Si un activo está asociado a una solicitud penalizada (porque se perdió), el activo debería pasar a un estado de fuera_de_servicio o perdido automáticamente para que nadie más intente pedirlo.

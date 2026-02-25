@@ -16,10 +16,20 @@ const mongoose = require('mongoose'); // Para validaciones de ID y operaciones a
  */
 exports.getActivos = async (req, res) => {
     try {
-        const activos = await Activos.find();
-        res.json(activos);
+        // 1. Primero buscamos los datos (Sin enviar respuesta aún)
+        const activosDisponibles = await Activos.find({ estado: 'disponible' });
+        const todosLosActivos = await Activos.find(); // El Admin ve todo
+
+        // 2. AHORA enviamos una SOLA respuesta con ambos
+        res.json({ 
+            total: todosLosActivos.length,
+            disponibles_count: activosDisponibles.length,
+            activosDisponibles, 
+            todosLosActivos 
+        });
+
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener los activos', error });
+        res.status(500).json({ message: 'Error al obtener los activos', error: error.message });
     }
 };
 /**
