@@ -1,0 +1,50 @@
+const express = require('express');
+const router = express.Router();
+const activosController = require('../controllers/activosController');
+const { protect } = require('../middlewares/authMiddleware');
+const { restrictTo } = require('../middlewares/roleMiddleware');
+
+/** 
+ * @description Rutas para la gestión de activos
+ * @route /api/activos
+ * @access Protegido (Cualquier usuario logueado), solo admin para gestión
+ * 
+ * Estas rutas permiten:
+ * - Listar activos (para cualquier usuario logueado)
+ * - Filtrar activos por estado o categoría (para cualquier usuario logueado)
+ * - Crear, actualizar y eliminar activos (solo para admin y administrativo)
+ * 
+ * Asegúrate de tener los controladores implementados en activosController.js
+ * y los middlewares de autenticación y autorización configurados correctamente.
+ */
+// --- TODAS LAS RUTAS REQUIEREN TOKEN ---
+router.use(protect);
+
+// 1. Rutas de Lectura (Públicas para usuarios logueados)
+router.get('/', activosController.getActivos);
+router.get('/categorias/lista', activosController.getEnumCategoriasActivos);
+router.get('/:id', activosController.getActivoById);
+router.get('/estado/:estado', activosController.getActivosByEstado);
+router.get('/categoria/:categoria', activosController.getActivosByCategoria);
+
+// 2. Rutas de Gestión (Solo Admin y Administrativo)
+// Para crear y actualizar activos, se suele usar un middleware de multer para el PDF
+router.post('/', 
+    restrictTo('admin', 'Administrador', 'administrativo'), 
+    activosController.createActivo
+);
+
+// Para actualizar, se puede usar un middleware de multer si se permite cambiar el PDF
+router.put('/:id', 
+    restrictTo('admin', 'Administrador'), 
+    activosController.updateActivo
+);
+
+// 3. Baja de Activos (Borrado lógico con observaciones)
+// En lugar de eliminar físicamente el activo, se inactiva y se registra la observación
+router.delete('/:id', 
+    restrictTo('admin', 'Administrador'), 
+    activosController.deleteActivo
+);
+
+module.exports = router;

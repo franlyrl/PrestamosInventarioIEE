@@ -10,9 +10,16 @@ const app = express();
 
 // --- 1. MIDDLEWARES DE ENTRADA (Configuración inicial) ---
 app.use(cors());
-app.use(helmet());
+app.use(helmet());  
 app.use(express.json());
 app.use(morgan('dev')); 
+app.use('/api/usuarios', require('./routes/usuariosRoutes'));
+app.use('/api/activos', require('./routes/activosRoutes'));
+app.use('/api/insumos', require('./routes/insumosRoutes'));
+app.use('/api/solicitudes', require('./routes/solicitudRoutes'));
+app.use('/api/reportes', require('./routes/UserHist_Routes'));
+// Aquí puedes agregar más rutas a medida que las vayas creando
+
 
 // --- 2. RUTAS PÚBLICAS Y PRUEBAS ---
 app.get('/', (req, res) => {

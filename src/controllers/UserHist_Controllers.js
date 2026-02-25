@@ -64,4 +64,4 @@ const UserHist_Controller = {
     }
 };
 
-module.exports = UserHist_Controller;
+module.exports = UserHist_Controllers;

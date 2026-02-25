@@ -1370,7 +1370,35 @@ exports.cierreCuatrimestre = async (req, res) => {
 			ErrorHandler: para que los errores en Postman se vean mejores, bonitos y organizados.
 			Ajuste apps.js a todos los middleware usados por el momento ademas de usar la libreria morgan dentro  ella.
 
+		--Routes-
+		1. routes/usuariosRoutes.js (Gestión de Personas)
+		Este controla quién entra al sistema y qué perfil tiene.
+			POST /register: Registrar nuevos usuarios (público o solo admin).
+			POST /login: Iniciar sesión (público).
+			GET /perfil: Ver mis datos (protegido).
+			GET /: Listar todos los usuarios (solo admin).
+			PATCH /:id/estado: Activar/Inhabilitar a un estudiante (solo admin).
 
+		2. routes/activosRoutes.js (El Inventario)
+		Este es el que ya empezamos. Es para controlar los equipos (multímetros, osciloscopios, etc.).
+			GET /: Ver lista de equipos (protegido).
+			GET /:id: Ver detalle de un equipo (protegido).
+			POST /: Registrar equipo nuevo (solo admin/administrativo).
+			PUT /:id: Editar datos del equipo (solo admin).
+			DELETE /:id: Dar de baja un equipo (solo admin).
+
+		3. routes/solicitudesRoutes.js (El Flujo de Préstamo)
+		Este es el más importante para la lógica de tu negocio. Conecta a los usuarios con los activos.
+			POST /: Crear una nueva solicitud de préstamo (estudiantes/docentes).
+			GET /mis-solicitudes: Ver qué equipos tengo prestados yo (protegido).
+			GET /: Ver todas las solicitudes (solo admin/administrativo).
+			PATCH /:id/estado: Aprobar, rechazar o marcar como "devuelto" (solo admin/administrativo).
+			DELETE /:id: Cancelar una solicitud (antes de ser aprobada).
+		4. UserHist_Routes.js
+		Mantenimiento de la base de datos y archivado.
+		| Método | Ruta | Descripción | Acceso |
+		| :--- | :--- | :--- | :--- |
+		| POST | /ejecutar-limpieza | Mueve alumnos inactivos > 1 año al historial. | Solo Admin |
 
 
 
