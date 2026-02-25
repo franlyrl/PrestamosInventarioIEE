@@ -1299,7 +1299,7 @@ exports.cierreCuatrimestre = async (req, res) => {
 
 
 
-			24.02.2026 14.00
+			24.02.2026 14.00 - 18:35pm 
 			- Ajustamos Inactivar Usuario ya que	
 				que si tiene deudas no se puedan inactivar
 			
@@ -1317,7 +1317,6 @@ exports.cierreCuatrimestre = async (req, res) => {
 							No puede irse al historial (porque nunca llegará a ser un "inactivo limpio").
 			
 			-Ajuste inactivo, para que este penalizado y pendiente a devolver, donde tambien lo ajuste en el schema
-		-- hasta que hecho por el momento.	
 			-Ajustare gracias a los cambios de usuarios para que los que tengan estado penalizado, o pendiente de devolucion, no puedan pedir 
 			solicitud nuevas, hasta que no devuelvan o paguen por ser penalizado, como explica a continuacion.
 
@@ -1327,6 +1326,28 @@ exports.cierreCuatrimestre = async (req, res) => {
 					Al crear una solicitud (POST): Debes añadir un bloqueo. Si el usuario.estado es sancionado o inactivo, no debe dejarlo ni siquiera enviar la solicitud.
 					Al entregar el equipo (Aprobar/Entregar): En el momento que el Admin entrega el equipo físico, el controlador debe hacer un findByIdAndUpdate del usuario para cambiarlo a pendiente_devolucion.
 					Al recibir el equipo (Devolución): Cuando se marca como devuelto, el controlador debe devolver al usuario al estado activo.
+				conforme al estado del usuario se busca las solicitudes, de historial de solicitudes si hay uno que este inclusa
+				por ejemplo en penalizacion o por devolver, no se pueda pedir mas prestamos.
+
+				-Actualizamos crearSolicitud para que saliera el estado del usuario y el estado de la solicitud
+				donde busque conforme al historial del usuario revise si hay deudas para prohibir que el usuario pida un prestamo.
+					
+					--findByIdAndUpdate dentro de el crud, distinto al otro crud--
+					Acción del Admin	Estado Solicitud	Acción en Usuario (Cascada)
+					Entregar equipo		entregado			Usuarios.update(estado: 'pendiente_devolucion')
+					Recibir equipo		devuelto			Usuarios.update(estado: 'activo')
+					Marcar daño			penalizado			Usuarios.update(estado: 'sancionado')
+					
+					---Nota: solicitud.estudiante funcione, en tu modelo de Solicitudes el campo estudiante
+					 debe estar definido como un ObjectId 
+					que hace referencia (ref) a la colección de Usuarios.
+
+				-ActualizarSolicitud Conforme lo anterior.
+				-Limpie todo el controlador cambiando los nombres de la variables locales, para que fueran unicas para cada crud dentro del controller de Solicitud.
+
+
+-- hasta que hecho por el momento.	
+
 
 				2. activosController.js (Cambios de Seguridad)
 				Aunque este maneja los equipos (multímetros, osciloscopios), se ve afectado indirectamente:
@@ -1336,3 +1357,6 @@ exports.cierreCuatrimestre = async (req, res) => {
 				El módulo de Login también necesita un pequeño ajuste:
 					Bloqueo de entrada: Si un usuario está inactivo (porque ya pasó un año), el login debería rebotarlo con un mensaje: "Tu cuenta está inactiva por falta de uso, contacta al administrador". Sin esto, un inactivo podría seguir entrando al sistema.
 
+---POR HACER SI O SI
+middleware de autenticación
+Nota extra: Asegúrate de usar req.user.id (singular) si así es como lo configuraste en tu middleware de autenticación, ya que en esa línea pusiste req.usuario.id.

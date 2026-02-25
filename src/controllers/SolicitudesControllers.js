@@ -4,7 +4,8 @@
  * Vincula Usuarios, Activos e Insumos mediante referencias (Populate).
  */
 
-const Solicitudes = require('../models/solicitudes');
+const Solicitudes = require('../models/solicitud'); // El modelo principal para las solicitudes
+const stockManager = require('../helpers/stockManager'); // Helper para manejar la lógica de inventario
 const Usuarios = require('../models/usuarios'); // Para verificar roles de usuario si es necesario
 const Activos = require('../models/activos'); // Para verificar disponibilidad de activos
 const Insumos = require('../models/insumos'); // Para verificar stock de insumos
@@ -22,30 +23,39 @@ exports.getSolicitudes = async (req, res) => {
         let filtro = {};
 
         // 1. EL ESCUDO DE PRIVACIDAD (Criterio: Solo veo lo mío si no soy admin)
-        // Nota: Asegúrate de si en tu Schema el campo es 'usuario' o 'estudiante'
+        // Nota: Asegúrate de si en tu Schema el campo es 'usuario'
         if (!['admin', 'administrador'].includes(req.user.role)) {
-            filtro = { estudiante: req.user.id }; 
+            filtro = { usuario: req.user.id }; 
         }
 
         // 2. LA RIQUEZA DE DATOS (El populate detallado del GET viejo)
-        const solicitudes = await Solicitudes.find(filtro)
-            .populate('estudiante', 'nombre_completo correo_electronico tipo_rol') 
-            .populate('activos', 'marca modelo numActivo')
-            .populate('insumos.id_insumo', 'NombProducto caracteristicas')
-            .sort({ fecha_prestamo: -1 }) // Picky tip: las más recientes primero
-                .lean() // .lean() hace que sea más rápido y fácil de leer
-                .select('-__v') // Limpiamos el ruido de Mongoose
-                .exec();
+        const ObtenerSolicitudes = await Solicitudes.find(filtro)
+            // 1. Traemos todo del usuario (menos la contraseña por seguridad)
+            .populate('usuario', 'id_usuario cedula nombre_completo correo_electronico tipo_rol estado') 
+            // 2. Traemos los detalles de los activos vinculados
+            .populate('activos', 'marca modelo numActivo estado serie')
+            // 3. Traemos los detalles de los insumos (ojo con la ruta exacta en tu Schema)
+            .populate('insumos.id_insumo', 'NombProducto caracteristicas unidadMedida')
+            // 4. Orden cronológico (lo más nuevo arriba)
+            .sort({ createdAt: -1 }) 
+            // 5. Rendimiento: Convierte de documento pesado de Mongoose a objeto JS simple
+            .lean() 
+            // 6. Limpieza: Quitamos la versión interna de Mongo (__v)
+            .select('-__v') 
+            .exec();
+
     // 3. MEJORA DE VISUALIZACIÓN: Ordenar historiales en la lista
         // Como es un array de solicitudes, usamos map para ordenar cada una
-        const solicitudesOrdenadas = solicitudes.map(sol => {
+        const solicitudesOrdenadas = ObtenerSolicitudes.map(sol => {
             if (sol.historico_estados) {
                 sol.historico_estados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
             }
             return sol;
         });
 
-        res.status(200).json(solicitudes);
+        res.status(200).json(solicitudesOrdenadas);
+
+        
     } catch (error) {
         res.status(500).json({ 
             message: 'Error al obtener solicitudes', 
@@ -63,43 +73,71 @@ exports.getSolicitudes = async (req, res) => {
  */
 exports.createSolicitud = async (req, res) => {
     try {
-        const idUsuarioSolicitante = req.user.id;
+        // 1. Definimos el nombre de la variable (usaremos id_usuario como pusiste arriba)
+        const id_usuario_temporal = req.user.id;
+        // --- DATOS DE LA SOLICITUD (Vienen del Formulario/Body) ---
+        // No uses comillas, JavaScript ya sabe que son los nombres del Schema
         const { activos, insumos, fecha_entrega_esperada } = req.body;
 
-        if ((!activos || activos.length === 0) && (!insumos || insumos.length === 0)) {
-            return res.status(400).json({ 
-                message: 'Error: La solicitud debe contener al menos un activo o un insumo.' 
+        // 2. REVISIÓN DEL ESTADO USANDO TU CAMPO 'id_usuario'
+        // a.Usamos findOne porque id_usuario es un campo personalizado, no el _id de Mongo
+        const usuarioDB = await Usuarios.findOne({ id_usuario: id_usuario_temporal }).select('estado'); // Solo traemos el estado para esta validación rápida
+
+        if (!usuarioDB) {
+            return res.status(404).json({ message: 'El usuario con ese ID no existe en el sistema.' });
+        }
+
+        // b. VALIDACIÓN DEL ENUM (Tal cual lo tienes en el Schema)
+        // Tu Schema dice: ['activo', 'inactivo', 'sancionado', 'pendiente_devolucion']
+        const estadosProhibidos = ['inactivo', 'sancionado', 'pendiente_devolucion'];
+        if (estadosProhibidos.includes(usuarioDB.estado)) {
+            return res.status(403).json({ 
+                message: `Acceso denegado: Tu cuenta está ${usuarioDB.estado}.` 
             });
         }
 
-        // --- LA PIEZA CLAVE QUE FALTABA ---
-        // Creamos la solicitud con el historial ya iniciado
+        // 3. REVISIÓN DE BOLETAS ABIERTAS
+        // Usamos id_usuario (el nombre que definimos arriba)
+        const solicitudActiva = await Solicitudes.findOne({ 
+            usuario: usuarioDB._id, // Aquí usamos el _id del usuario para buscar en el campo 'usuario' de tu Schema de Solicitudes
+            estado: { $in: ['pendiente', 'aprobada', 'entregado', 'penalizado'] } 
+        });
+
+        if (solicitudActiva) {
+            return res.status(403).json({ 
+                message: `No puedes crear otra solicitud. Tienes una boleta en estado: ${solicitudActiva.estado}`,
+                folio: solicitudActiva._id 
+            });
+        }
+
+        // 4. CREACIÓN (Sincronizado con tu Schema 'usuario')
         const nuevaSolicitud = new Solicitudes({
-            estudiante: idUsuarioSolicitante,
+            usuario: usuarioDB._id, // <--- Aquí conectamos el ID con el campo 'usuario' del Schema
             activos,
             insumos,
             fecha_entrega_esperada,
             estado: 'pendiente', 
-            // Esto asegura que el usuario vea algo en su pantalla de "Seguimiento"
             historico_estados: [{
                 estado: 'pendiente',
                 fecha: new Date(),
-                observaciones: 'Solicitud creada por el usuario. En espera de revisión técnica.'
+                observaciones: 'Solicitud creada exitosamente.'
             }]
         });
 
         const solicitudGuardada = await nuevaSolicitud.save();
 
-        res.status(201).json({
-            message: "Solicitud registrada con éxito. Ya puedes ver el estado en tu perfil.",
+        return res.status(201).json({
+            message: "¡Solicitud registrada con éxito!",
             data: solicitudGuardada
         });
 
     } catch (error) {
-        res.status(500).json({ message: 'Error interno', error: error.message });
+        return res.status(500).json({ 
+            message: 'Error interno en la creación de solicitud', 
+            error: error.message 
+        });
     }
 };
-
 /**
  * @route GET /api/solicitudes/:id
  * @desc Obtiene el detalle completo de una sola solicitud por su ID.
@@ -107,34 +145,36 @@ exports.createSolicitud = async (req, res) => {
 
 exports.getSolicitudById = async (req, res) => {
     try {
-       const solicitud = await Solicitudes.findById(req.params.id)
-    .populate('estudiante', 'nombre_completo correo_electronico') 
-    .populate('activos', 'marca modelo numActivo')
-    .populate('insumos.id_insumo', 'NombProducto')
-    .lean()
-    .select('-__v')
-    .exec(); // .lean() es excelente para que sea más rápido y fácil de leer
+        const SolicitudxId = await Solicitudes.findById(req.params.id)
+            // 1. Cambiamos 'estudiante' por 'usuario' (el nombre real del Schema)
+            .populate('usuario', 'nombre_completo correo_electronico')
+            .populate('activos', 'marca modelo numActivo')
+            .populate('insumos.id_insumo', 'NombProducto')
+            // Nota: Quitamos los populates del historial porque son datos simples, no IDs.
+            .lean()
+            .select('-__v')
+            .exec();
 
-if (solicitud && solicitud.historico_estados) {
-    // Ordenamos el historial manualmente para que el comentario más reciente aparezca arriba
-    solicitud.historico_estados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-}
+        if (!SolicitudxId) {
+            return res.status(404).json({ message: 'Solicitud no encontrada' });
+        }
 
+        // Ordenamos el historial (lo más nuevo arriba)
+        if (SolicitudxId.historico_estados) {
+            SolicitudxId.historico_estados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+        }
 
-
-        if (!solicitud) return res.status(404).json({ message: 'Solicitud no encontrada' });
-
-        // SECURITY CHECK
+        // --- SECURITY CHECK ---
         const isAdmin = ['admin', 'administrador'].includes(req.user.role);
-        const isOwner = solicitud.estudiante._id.toString() === req.user.id;
+        
+        // Usamos .usuario._id porque el populate lo convirtió en objeto
+        const isOwner = SolicitudxId.usuario._id.toString() === req.user.id;
 
         if (!isAdmin && !isOwner) {
             return res.status(403).json({ message: 'No tienes permiso para ver esta solicitud.' });
         }
 
-        // If it's the Admin or the Student who owns it, they see EVERYTHING
-        // Including the historico_estados with the Admin's comments.
-        res.json(solicitud);
+        res.json(SolicitudxId);
 
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener la solicitud', error: error.message });
@@ -153,26 +193,51 @@ if (solicitud && solicitud.historico_estados) {
 exports.actualizarEstadoSolicitud = async (req, res) => {
     try {
         const { nuevoEstado, observaciones } = req.body;
-        const solicitud = await Solicitudes.findById(req.params.id);
         
-        if (!solicitud) return res.status(404).json({ message: 'No encontrada' });
+        const MapearEstadoSoli = await Solicitudes.findById(req.params.id);
+        if (!MapearEstadoSoli) return res.status(404).json({ message: 'Solicitud no encontrada.' });
 
-        // Actualizamos el array histórico
-        solicitud.historico_estados.push({
+        // --- CASCADA HACIA EL USUARIO ---
+        let estadoUsuarioDestino = null;
+        if (nuevoEstado === 'entregado') estadoUsuarioDestino = 'pendiente_devolucion';
+        else if (nuevoEstado === 'devuelto') estadoUsuarioDestino = 'activo';
+        else if (nuevoEstado === 'penalizado') estadoUsuarioDestino = 'sancionado';
+
+        if (estadoUsuarioDestino) {
+            // Usamos 'solicitud.usuario' como dicta tu Schema
+            await Usuarios.findByIdAndUpdate(MapearEstadoSoli.usuario, { 
+                estado: estadoUsuarioDestino 
+            });
+        }
+
+        // --- ACTUALIZACIÓN DEL HISTÓRICO ---
+        MapearEstadoSoli.historico_estados.push({
             estado: nuevoEstado,
             fecha: new Date(),
-            observaciones: observaciones || 'Cambio procesado'
+            observaciones: observaciones // Mongoose validará esto según tu validator
         });
 
-        // CORREGIDO: Usamos 'estado' para que coincida con el Schema
-        solicitud.estado = nuevoEstado; 
+        // Actualizamos campos de fecha si es devolución
+        if (nuevoEstado === 'devuelto') {
+            MapearEstadoSoli.fecha_devolucion_real = new Date();
+        }
 
-        await solicitud.save();
-        res.json({ message: 'Actualizado', historico: solicitud.historico_estados });
+        await MapearEstadoSoli.save(); // Aquí se dispara tu validación del Schema
+        
+        return res.json({ 
+            message: `Cambio exitoso a ${nuevoEstado}`,
+            historico: MapearEstadoSoli.historico_estados 
+        });
+
     } catch (error) {
-        res.status(400).json({ message: 'Error', error: error.message });
+        // Si falta la observación en un estado crítico, este mensaje vendrá del Schema
+        return res.status(400).json({ 
+            message: 'Error en la validación de la solicitud', 
+            error: error.message 
+        });
     }
 };
+
 /**
  * @route DELETE /api/solicitudes/:id
  * @desc Elimina una solicitud del sistema, Pero solo el Usaurio Dueño de la solicitud puede hacerlo, 
@@ -185,15 +250,15 @@ exports.actualizarEstadoSolicitud = async (req, res) => {
 exports.deleteSolicitud = async (req, res) => {
     try {
         // 1. Primero BUSCAMOS, no borramos de un solo.
-        const solicitud = await Solicitudes.findById(req.params.id);
+        const eliminarSoli = await Solicitudes.findById(req.params.id);
         
-        if (!solicitud) {
+        if (!eliminarSoli) {
             return res.status(404).json({ message: 'Solicitud no encontrada' });
         }
 
         // 2. REGLA DE ORO 1: ¿Es el dueño? 
         // Comparamos el ID del usuario de la solicitud con el ID del usuario en el token (req.usuario.id)
-        if (solicitud.estudiante.toString() !== req.usuario.id) {
+        if (eliminarSoli.usuario.toString() !== req.usuario.id) {
             return res.status(403).json({ 
                 message: 'No tienes permiso. Solo el dueño puede cancelar esta solicitud.' 
             });
@@ -201,9 +266,9 @@ exports.deleteSolicitud = async (req, res) => {
 
         // 3. REGLA DE ORO 2: ¿Sigue pendiente?
         // Si ya fue aceptada o rechazada, el Admin ya trabajó en ella. No se toca.
-        if (solicitud.estado !== 'pendiente') {
+        if (eliminarSoli.estado !== 'pendiente') {
             return res.status(400).json({ 
-                message: `No se puede eliminar. La solicitud ya se encuentra en estado: ${solicitud.estado}.` 
+                message: `No se puede eliminar. La solicitud ya se encuentra en estado: ${eliminarSoli.estado}.` 
             });
         }
 
@@ -233,59 +298,57 @@ exports.deleteSolicitud = async (req, res) => {
 */
 exports.gestionarEstadoAdmin = async (req, res) => {
     try {
-        const { nuevoEstado, observaciones } = req.body;
+        const { nuevoEstadoAdmin, observaciones } = req.body;
         const { id } = req.params;
 
-        const solicitud = await Solicitudes.findById(id);
-        if (!solicitud) return res.status(404).json({ message: 'Solicitud no encontrada' });
+        // Nombre único: EstadoSoli
+        const EstadoSoli = await Solicitudes.findById(id);
+        if (!EstadoSoli) return res.status(404).json({ message: 'Solicitud no encontrada' });
 
         // --- 1. VALIDACIÓN DE RECHAZO ---
-        // Forzamos la justificación para que el alumno sepa por qué se le rechazó.
-        if (nuevoEstado === 'rechazada' && (!observaciones || observaciones.trim().length < 5)) {
+        if (nuevoEstadoAdmin === 'rechazada' && (!observaciones || observaciones.trim().length < 5)) {
             return res.status(400).json({ 
                 message: 'Error: Debes proporcionar una justificación detallada para rechazar la solicitud.' 
             });
         }
 
-        // Bloqueo de integridad: no se toca lo que ya está cerrado
-        if (['rechazada', 'devuelto'].includes(solicitud.estado)) {
+        // Bloqueo de integridad: Usamos EstadoSoli.estado (el nombre del Schema)
+        if (['rechazada', 'devuelto'].includes(EstadoSoli.estado)) {
             return res.status(400).json({ 
-                message: `Integridad de datos: No se puede modificar una solicitud que ya está ${solicitud.estado}.` 
+                message: `Integridad de datos: No se puede modificar una solicitud que ya está ${EstadoSoli.estado}.` 
             });
         }
 
-        // --- 2. MOTOR DE INVENTARIO (Lógica delegada al Helper) ---
-        // Aquí es donde ocurre la magia del Ticket #26 y #15
+        // --- 2. MOTOR DE INVENTARIO ---
         try {
-            if (nuevoEstado === 'aprobada') {
-                await stockManager.processApproval(solicitud);
-            } else if (nuevoEstado === 'devuelto') {
-                await stockManager.processReturn(solicitud);
+            if (nuevoEstadoAdmin === 'aprobada') {
+                await stockManager.processApproval(EstadoSoli);
+            } else if (nuevoEstadoAdmin === 'devuelto') {
+                await stockManager.processReturn(EstadoSoli);
             }
         } catch (errorStock) {
-            // Si el motor detecta que NO HAY STOCK, detiene el proceso aquí
             return res.status(400).json({ 
                 message: 'Error de Inventario', 
                 detalles: errorStock.message 
             });
         }
 
-        // --- 3. ACTUALIZACIÓN FINAL E HISTORIAL ---
-        solicitud.estado = nuevoEstado;
+        // --- 3. ACTUALIZACIÓN FINAL ---
+        // Aquí sincronizamos: campo del Schema = nuestra variable local
+        EstadoSoli.estado = nuevoEstadoAdmin; 
         
-        // Esta observación es la que el usuario verá en su interfaz
-        solicitud.historico_estados.push({
-            estado: nuevoEstado,
+        EstadoSoli.historico_estados.push({
+            estado: nuevoEstadoAdmin,
             fecha: new Date(),
-            observaciones: observaciones || `El Administrador cambió el estado a ${nuevoEstado}.`
+            observaciones: observaciones || `El Administrador cambió el estado a ${nuevoEstadoAdmin}.`
         });
 
-        await solicitud.save();
+        await EstadoSoli.save();
         
         res.json({ 
-            message: `Solicitud marcada como ${nuevoEstado} con éxito.`,
+            message: `Solicitud marcada como ${nuevoEstadoAdmin} con éxito.`,
             visualizacion_usuario: {
-                estado_actual: solicitud.estado,
+                estado_actual: EstadoSoli.estado,
                 ultimo_comentario: observaciones || "Sin observaciones adicionales."
             }
         });
