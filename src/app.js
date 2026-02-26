@@ -18,6 +18,8 @@ app.use('/api/activos', require('./routes/activosRoutes'));
 app.use('/api/insumos', require('./routes/insumosRoutes'));
 app.use('/api/solicitudes', require('./routes/solicitudRoutes'));
 app.use('/api/reportes', require('./routes/UserHist_Routes'));
+app.use('/api/lista-espera', require('./routes/ListEsperaRoutes'));
+app.use('/api/kardex', require('./routes/kardexRoutes')); // Nueva ruta para Kardex
 // Aquí puedes agregar más rutas a medida que las vayas creando
 
 

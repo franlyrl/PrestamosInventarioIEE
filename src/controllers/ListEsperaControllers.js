@@ -12,7 +12,12 @@ exports.getListaEspera = async (req, res) => {
     try {
         const lista = await ListaEspera.find()
             .populate('usuario', 'nombre_completo correo_electronico')
-            .populate('insumo', 'NombProducto');
+            .populate('insumo', 'NombProducto')
+            // ORDENAMIENTO: 
+            // 1. prioridad: -1 (Alta a Baja)
+            // 2. createdAt: 1 (El que llegó primero va arriba)
+            .sort({ prioridad: -1, createdAt: 1 }); 
+            
         res.json(lista);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener la lista', error });
@@ -31,6 +36,8 @@ exports.agregarAListaEspera = async (req, res) => {
     try {
         const nuevoTurno = new ListaEspera(req.body);
         const guardado = await nuevoTurno.save();
+
+        // RESPUESTA EXITOSA: 201 Created con el nuevo turno
         res.status(201).json(guardado);
     } catch (error) {
         res.status(400).json({ 

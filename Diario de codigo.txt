@@ -1400,6 +1400,14 @@ exports.cierreCuatrimestre = async (req, res) => {
 		| :--- | :--- | :--- | :--- |
 		| POST | /ejecutar-limpieza | Mueve alumnos inactivos > 1 año al historial. | Solo Admin |
 
-26.02.2026
+26.02.2026 14:13 pm
+
+			- Revisar Lista de Espera
+				tanto models como como controller.
+
+				
+			Creacion KardexServices
+			 Asi como la ruta para ella, ya que ella permite varios procesas de verificar el pdf y mas.
+
 
 Cors/Helmet: Solo cuando ya este a conectado el frontend. //En un futuro

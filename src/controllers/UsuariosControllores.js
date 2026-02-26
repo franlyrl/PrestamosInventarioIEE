@@ -18,6 +18,17 @@ exports.getUsuarios = async (req, res) => {
     }
 };
 
+/**
+ * @desc Crea un nuevo usuario con validación de cédula y generación de token.
+ * @param {Object} req - Objeto de solicitud que contiene los datos del nuevo usuario y el archivo PDF.
+ * @param {Object} res - Objeto de respuesta para enviar la respuesta al cliente.
+ * @returns {Object} Respuesta JSON con el resultado del registro.
+ * 
+ * Este endpoint no solo crea un nuevo usuario, sino que también implementa una validación adicional para verificar la autenticidad de la cédula proporcionada.
+ * Antes de crear el usuario, se realiza una consulta a un servicio externo (simulado por la función `consultarNombrePorCedula`) para validar que la cédula exista y obtener el nombre completo asociado a esa cédula. 
+ * Si la cédula es válida, se procede a crear el usuario con el nombre completo obtenido y se genera un token de autenticación para el nuevo usuario.
+ */
+
 exports.createUsuario = async (req, res) => {
     try {
         const { cedula, correo_electronico, hash_contraseña, tipo_rol, telefono, carrera } = req.body;
@@ -30,7 +41,7 @@ exports.createUsuario = async (req, res) => {
             });
         }
 
-        // 2. Validación de nombre (Asumiendo que tienes la función externa)
+        // 2. Validación de nombre con Registro Civil
         let nombre_completo;
         try {
             nombre_completo = await consultarNombrePorCedula(cedula);
@@ -38,16 +49,16 @@ exports.createUsuario = async (req, res) => {
             return res.status(400).json({ message: 'No se pudo validar la cédula con el Registro Civil.' });
         }
 
-        // 3. Encriptación
+        // 3. Encriptación de contraseña
         const salt = await bcrypt.genSalt(10);
         const passwordEncriptada = await bcrypt.hash(hash_contraseña, salt);
 
-        // 4. Validación del PDF
+        // 4. Validación física del archivo PDF
         if (!req.file) {
             return res.status(400).json({ message: 'Es obligatorio subir un comprobante PDF.' });
         }
 
-        // 5. Creación
+        // 5. Creación del Usuario en la colección principal
         const nuevoUsuario = new Usuarios({
             cedula,
             nombre_completo,
@@ -55,22 +66,46 @@ exports.createUsuario = async (req, res) => {
             hash_contraseña: passwordEncriptada,
             telefono,
             tipo_rol,
-            carrera,
-            comprobante_pdf: req.file.path,
-            estado: 'inactivo' // Esperando aprobación
+            carrera, // Se guarda en el perfil general para acceso rápido
+            estado: 'inactivo' // Queda inactivo hasta revisión del PDF
         });
 
-        await nuevoUsuario.save();
-        res.status(201).json({ status: 'success', message: `Usuario ${nombre_completo} registrado.` });
+        const usuarioGuardado = await nuevoUsuario.save();
+
+        // 6. Lógica de guardado en colecciones de Información (EL IF QUE PEDISTE)
+        if (tipo_rol === 'estudiante') {
+            const infoEstudiante = new EstudianteInfo({
+                usuario: usuarioGuardado._id,
+                comprobante_pdf: req.file.path,
+                tipo_comprobante: 'matricula_estudiante',
+                carrera: carrera // Opcional: repetir aquí si quieres info académica pura
+            });
+            await infoEstudiante.save();
+
+        } else if (tipo_rol === 'docente') {
+            const infoDocente = new DocenteInfo({
+                usuario: usuarioGuardado._id,
+                comprobante_pdf: req.file.path,
+                tipo_comprobante: 'carga_academica_docente'
+                // Aquí podrías agregar campos específicos de docentes luego
+            });
+            await infoDocente.save();
+        }
+
+        // 7. Respuesta de éxito
+        res.status(201).json({ 
+            status: 'success', 
+            message: `Usuario ${nombre_completo} registrado. El PDF de ${tipo_rol} se guardó correctamente.` 
+        });
 
     } catch (error) {
         res.status(500).json({ message: 'Error crítico en registro', error: error.message });
     }
 };
 
-
 /**
  * @desc Actualiza un usuario por ID.
+ * Nota: Este endpoint es para actualizaciones generales de perfil. Para acciones específicas como inactivar o sancionar, se deben usar los endpoints dedicados.
  */
 exports.updateUsuario = async (req, res) => {
     try {
@@ -95,27 +130,7 @@ exports.updateUsuario = async (req, res) => {
  * sobre la falta cometida y las consecuencias de la sanción. Además, este proceso no solo cambia el estado de la solicitud a 
  * "penalizado", sino que también bloquea al usuario para futuras solicitudes, garantizando así la integridad del sistema y 
  * la responsabilidad del usuario.
- * Ejemplo de respuesta exitosa:
- * {
- *   "message": "Acción completada: El usuario Juan Pérez ha sido sancionado.",
- *   "detalle": "Solicitud marcada como 'penalizada'. El usuario no podrá realizar trámites hasta que se resuelva esta falta."
- * }
- * Ejemplo de respuesta por solicitud no encontrada:
- * {
- *   "message": "No se encontró la solicitud de préstamo."
- * }
- * Ejemplo de respuesta por usuario no encontrado:
- * {
- *   "message": "La solicitud existe pero el usuario ya no está en el sistema."
- * }
- * Ejemplo de respuesta por error en el proceso:
- * {
- *   "message": "Error al procesar la sanción del usuario.",
- *   "error": "Descripción detallada del error"
- * }
- * Nota: Asegúrate de que el middleware de autenticación esté configurado para agregar el objeto `usuario` al `req`, 
- * con al menos el campo `tipo_rol` para esta verificación, y que solo los administradores puedan acceder a este endpoint.
- */
+  */
 exports.sancionarUsuarioPorFalta = async (req, res) => {
     try {
         // 1. Buscamos la solicitud que originó el problema
@@ -162,16 +177,8 @@ exports.sancionarUsuarioPorFalta = async (req, res) => {
  * REGLA DE ORO: Solo se pueden eliminar usuarios que estén en estado 'inactivo' o 'penalizado'.
  * Esto garantiza que no se borren usuarios activos por error, y que el historial de préstamos se mantenga intacto.
  * Si un usuario está 'activo', el sistema bloqueará la eliminación y sugerirá primero inactivarlo o penalizarlo.   
- * 
  * Nota: La eliminación física también podría incluir la eliminación del archivo PDF del comprobante, dependiendo de tu estrategia de almacenamiento.
- *` 
- * Ejemplo de respuesta por usuario activo:
- * {    
- *  
- *   "message": "No se puede eliminar: El usuario está activo. Primero inactiva o penaliza al usuario."`
- * Importante: Asegúrate de que el middleware de autenticación esté configurado para agregar el objeto `usuario` al `req`, 
- * con al menos el campo `tipo_rol` para esta verificación.
- */
+*/
 exports.inactivarUsuario = async (req, res) => {
     try {
         // 1. Verificación de permisos
@@ -367,26 +374,8 @@ exports.searchUsuarios = async (req, res) => {
  * 3. Forzará un reseteo de contraseña estableciendo un valor temporal (por ejemplo, "PENDIENTE_RESETEO") o un hash temporal, para garantizar que el estudiante tenga que crear una nueva contraseña al reactivarse.
  * 4. Marcará el comprobante como no validado, lo que requerirá que el estudiante suba un nuevo PDF de matrícula para validar su cuenta en el nuevo ciclo.
  * 5. Agregará una observación en el perfil del usuario indicando que su cuenta ha sido inactivada por el cierre de cuatrimestre y que necesita reactivarse para el nuevo ciclo.
- * 
  * Importante: Este proceso es irreversible desde este endpoint, por lo que se recomienda realizarlo solo después de haber confirmado que el cuatrimestre ha finalizado y que los estudiantes han sido informados sobre este procedimiento.
  * 
- * Ejemplo de respuesta exitosa:
- * {
- *   "message": "Ciclo cerrado exitosamente.",
- *   "usuarios_afectados": 150,
- *   "instrucciones": "Los usuarios deberán usar la opción 'Olvidé mi contraseña' y subir su nuevo PDF para reactivarse."
- * }
- * Ejemplo de respuesta por falta de permisos:
- * {
- *  "message": "Acceso denegado. No tiene permisos para cerrar el ciclo."
- * }
- * Ejemplo de respuesta por error en el proceso:
- * {
- *  "message": "Error en el proceso de cierre de ciclo",
- * "error": "Descripción detallada del error"
- * }
- * Nota: Asegúrate de que el middleware de autenticación esté configurado para agregar el objeto `usuario` al `req`,
- * con al menos el campo `tipo_rol` para esta verificación.
  * Recomendación adicional: Antes de ejecutar este endpoint, es aconsejable realizar una copia de seguridad de la base de 
  * datos, ya que este proceso afectará a un gran número de usuarios y no se puede revertir desde esta función.
  */
