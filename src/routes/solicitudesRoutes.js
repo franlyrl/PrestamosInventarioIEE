@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const solicitudController = require('../controllers/solicitudController');
+const solicitudesControllers = require('../controllers/solicitudesControllers');
 const { protect } = require('../middlewares/authMiddleware');
 const { restrictTo } = require('../middlewares/roleMiddleware');
 
@@ -23,16 +23,16 @@ router.use(protect);
 
 // 1. Creación de Solicitudes (Estudiantes, Docentes, Admin)
 // Nota: Tu controlador extrae el ID del usuario del token por seguridad.
-router.post('/', solicitudController.createSolicitud);
+router.post('/', solicitudesControllers.createSolicitud);
 
 // 2. Visualización de Solicitudes
 // El controlador ya filtra: si es Estudiante solo ve las suyas, si es Admin ve todas.
-router.get('/', solicitudController.getSolicitudes);
-router.get('/:id', solicitudController.getSolicitudById);
+router.get('/', solicitudesControllers.getSolicitudes);
+router.get('/:id', solicitudesControllers.getSolicitudById);
 
 // 3. Gestión del Estudiante (Cancelar su propia boleta)
 // REGLA DE ORO: Solo si el estado es 'pendiente' y es el dueño.
-router.delete('/:id', solicitudController.deleteSolicitud);
+router.delete('/:id', solicitudesControllers.deleteSolicitud);
 
 // 4. Gestión Administrativa (Solo Admin / Administrativo)
 // Estas rutas son para aprobar, rechazar o marcar devoluciones.
@@ -40,13 +40,13 @@ router.delete('/:id', solicitudController.deleteSolicitud);
 // Para aprobaciones/rechazos iniciales y disparar el motor de inventario
 router.put('/admin-gestion/:id', 
     restrictTo('admin', 'Administrador', 'administrativo'), 
-    solicitudController.gestionarEstadoAdmin
+    solicitudesControllers.gestionarEstadoAdmin
 );
 
 // Para cambios de estado generales (ej. marcar como 'entregado' cuando retiran el equipo)
 router.patch('/:id/estado', 
     restrictTo('admin', 'Administrador', 'administrativo'), 
-    solicitudController.actualizarEstadoSolicitud
+    solicitudesControllers.actualizarEstadoSolicitud
 );
 
 module.exports = router;

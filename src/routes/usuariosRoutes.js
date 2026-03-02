@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer'); // IMPORTANTE: Importar multer aquí
 const path = require('path');
-const usuarioController = require('../controllers/usuarioController');
+const generarToken = require('../utils/generarToken');
+const usuarioController = require('../controllers/usuarioControllers');
 const { protect } = require('../middlewares/authMiddleware');
 const { restrictTo } = require('../middlewares/roleMiddleware');
 

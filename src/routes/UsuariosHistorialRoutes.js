@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const UserHist_Controller = require('../controllers/UserHist_Controllers');
+const UsuariosHistorialControllers = require('../controllers/UsuariosHistorialControllers');
 const { protect } = require('../middlewares/authMiddleware');
 const { restrictTo } = require('../middlewares/roleMiddleware');
 
@@ -27,6 +27,6 @@ router.use(restrictTo('admin', 'Administrador'));
  * @desc Mueve usuarios inactivos > 1 año a la colección de historial.
  * Se usa POST porque es una acción que transforma la base de datos.
  */
-router.post('/ejecutar-limpieza', UserHist_Controllers.ejecutarLimpiezaHistorial);
+router.post('/ejecutar-limpieza', UsuariosHistorialControllers.ejecutarLimpiezaHistorial);
 
 module.exports = router;

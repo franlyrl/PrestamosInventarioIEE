@@ -1,7 +1,7 @@
-const Kardex = require('../models/Kardex');
-const Usuarios = require('../models/Usuario'); // Para validar el estado del usuario
-const Activos = require('../models/activos');
-const Insumos = require('../models/Insumos');
+const kardex = require('../models/kardex');
+const usuarios = require('../models/usuarios'); // Para validar el estado del usuario
+const activos = require('../models/activos');
+const insumos = require('../models/insumos');
 
 /**
  * @description Función central para registrar movimientos en el Kardex.

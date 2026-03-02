@@ -1,8 +1,8 @@
 /**
- * @file insumoController.js
+ * @file insumoControllers.js
  * @description Gestión de materiales consumibles (resistencias, estaño, componentes, etc.)
  */
-const Insumos = require('../models/Insumos');
+const Insumos = require('../models/insumos');
 const { generarToken } = require('../utils/generarToken'); // Si necesitas autenticación para ciertas acciones
 const { consultarNombrePorCedula } = require('../utils/registroCivil'); // Para validar cédula si es necesario
 const Usuarios = require('../models/usuarios'); // Para verificar roles de usuario si es necesario

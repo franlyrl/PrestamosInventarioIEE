@@ -1409,5 +1409,92 @@ exports.cierreCuatrimestre = async (req, res) => {
 			Creacion KardexServices
 			 Asi como la ruta para ella, ya que ella permite varios procesas de verificar el pdf y mas.
 
+2.3.2026 15:00 PM-
+	- Testear con Postman
+		-Conecte Postman al codigo directamente
+		-Corri express con 
+			npm run dev
 
-Cors/Helmet: Solo cuando ya este a conectado el frontend. //En un futuro
+-- Problemas reflejados y cambiados
+	--uno--
+		No habia instalado morgan
+			lo instalo.
+			# npm i morgan
+			--Error reflejados en la terminal
+				C:\Users\Franly\Documents\PracticaProfesional\PrestamosInventarioIEE>npm run dev
+				> practicaprofesional@1.0.0 dev
+				> nodemon src/server.js
+				[nodemon] 3.1.11
+				[nodemon] to restart at any time, enter `rs`
+				[nodemon] watching path(s): *.*
+				[nodemon] watching extensions: js,mjs,cjs,json
+				[nodemon] starting `node src/server.js`
+				node:internal/modules/cjs/loader:1247
+				throw err;
+				^
+				Error: Cannot find module 'morgan'
+				Require stack:
+				- C:\Users\Franly\Documents\PracticaProfesional\PrestamosInventarioIEE\src\app.js
+				- C:\Users\Franly\Documents\PracticaProfesional\PrestamosInventarioIEE\src\server.js
+					at Function._resolveFilename (node:internal/modules/cjs/loader:1244:15)
+					at Function._load (node:internal/modules/cjs/loader:1070:27)
+					at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+					at wrapModuleLoad (node:internal/modules/cjs/loader:217:24)
+					at Module.require (node:internal/modules/cjs/loader:1335:12)
+					at require (node:internal/modules/helpers:136:16)
+					at Object.<anonymous> (C:\Users\Franly\Documents\PracticaProfesional\PrestamosInventarioIEE\src\app.js:4:16)
+					at Module._compile (node:internal/modules/cjs/loader:1562:14)
+					at Object..js (node:internal/modules/cjs/loader:1699:10)
+					at Module.load (node:internal/modules/cjs/loader:1313:32) {
+				code: 'MODULE_NOT_FOUND',
+				requireStack: [
+					'C:\\Users\\Franly\\Documents\\PracticaProfesional\\PrestamosInventarioIEE\\src\\app.js',
+					'C:\\Users\\Franly\\Documents\\PracticaProfesional\\PrestamosInventarioIEE\\src\\server.js'
+				]
+				}
+
+				Node.js v22.13.1
+				[nodemon] app crashed - waiting for file changes before starting...				
+				--Termina aqui.
+
+	--DOS--
+		- Hace falta instalar Multer
+			# npm i multer
+			--inicio el error en la terminal--
+				C:\Users\Franly\Documents\PracticaProfesional\PrestamosInventarioIEE>npm run dev
+				> practicaprofesional@1.0.0 dev
+				> nodemon src/server.js
+				[nodemon] 3.1.11
+				[nodemon] to restart at any time, enter `rs`
+				[nodemon] watching path(s): *.*
+				[nodemon] watching extensions: js,mjs,cjs,json
+				[nodemon] starting `node src/server.js`
+				[dotenv@17.2.3] injecting env (3) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+				node:internal/modules/cjs/loader:1247
+				throw err;
+				^
+				Error: Cannot find module 'multer'
+				Require stack:
+				- C:\Users\Franly\Documents\PracticaProfesional\PrestamosInventarioIEE\src\routes\usuariosRoutes.js
+				- C:\Users\Franly\Documents\PracticaProfesional\PrestamosInventarioIEE\src\app.js
+				- C:\Users\Franly\Documents\PracticaProfesional\PrestamosInventarioIEE\src\server.js
+					at Function._resolveFilename (node:internal/modules/cjs/loader:1244:15)
+					at Function._load (node:internal/modules/cjs/loader:1070:27)
+					at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+					at wrapModuleLoad (node:internal/modules/cjs/loader:217:24)
+					at Module.require (node:internal/modules/cjs/loader:1335:12)
+					at require (node:internal/modules/helpers:136:16)
+					at Object.<anonymous> (C:\Users\Franly\Documents\PracticaProfesional\PrestamosInventarioIEE\src\routes\usuariosRoutes.js:3:16)   
+					at Module._compile (node:internal/modules/cjs/loader:1562:14)
+					at Object..js (node:internal/modules/cjs/loader:1699:10)
+					at Module.load (node:internal/modules/cjs/loader:1313:32) {
+				code: 'MODULE_NOT_FOUND',
+				requireStack: [
+					'C:\\Users\\Franly\\Documents\\PracticaProfesional\\PrestamosInventarioIEE\\src\\routes\\usuariosRoutes.js',
+					'C:\\Users\\Franly\\Documents\\PracticaProfesional\\PrestamosInventarioIEE\\src\\app.js',
+					'C:\\Users\\Franly\\Documents\\PracticaProfesional\\PrestamosInventarioIEE\\src\\server.js'
+				]
+				}
+				Node.js v22.13.1
+				[nodemon] app crashed - waiting for file changes before starting...
+				--Termina aqui.--

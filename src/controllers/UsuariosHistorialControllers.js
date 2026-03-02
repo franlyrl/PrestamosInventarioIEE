@@ -1,4 +1,4 @@
-const Usuarios = require('../models/Usuario');
+const Usuarios = require('../models/usuarios');
 const UsuariosHistorial = require('../models/UsuariosHistorial');
 const { generarToken } = require('../utils/generarToken'); // Si necesitas autenticación para ciertas acciones
 const { consultarNombrePorCedula } = require('../utils/registroCivil'); // Para validar cédula si es necesario
@@ -64,4 +64,4 @@ const UserHist_Controller = {
     }
 };
 
-module.exports = UserHist_Controllers;
+module.exports = UsuariosHistorialControllers = UserHist_Controller;

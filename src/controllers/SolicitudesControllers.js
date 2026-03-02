@@ -1,10 +1,10 @@
-/**
+/***
  * @file solicitudController.js
  * @description Controlador para gestionar el ciclo de vida de los préstamos (Solicitudes).
  * Vincula Usuarios, Activos e Insumos mediante referencias (Populate).
- */
+ **/
 
-const Solicitudes = require('../models/solicitud'); // El modelo principal para las solicitudes
+const solicitudes = require('../models/solicitudes'); // El modelo principal para las solicitudes
 const stockManager = require('../helpers/stockManager'); // Helper para manejar la lógica de inventario
 const Usuarios = require('../models/usuarios'); // Para verificar roles de usuario si es necesario
 const Activos = require('../models/activos'); // Para verificar disponibilidad de activos

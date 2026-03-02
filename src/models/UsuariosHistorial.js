@@ -93,4 +93,4 @@ const usuarioHistorialSchema = new mongoose.Schema({
  * The data is moved from the main collection already hashed.
  */
 
-module.exports = mongoose.model('UsuarioHistorial', usuarioHistorialSchema);
+module.exports = mongoose.model('UsuariosHistorial', usuarioHistorialSchema);

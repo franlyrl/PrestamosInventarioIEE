@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const insumoController = require('../controllers/insumoController');
+const insumosControllers = require('../controllers/insumosControllers');
 const { protect } = require('../middlewares/authMiddleware');
 const { restrictTo } = require('../middlewares/roleMiddleware');
 
@@ -27,36 +27,35 @@ router.use(protect);
 
 // 1. Rutas de Lectura y Búsqueda (Cualquier usuario logueado)
 // La ruta de búsqueda se puede implementar con query params para mayor flexibilidad
-router.get('/', insumoController.getInsumos);
-router.get('/categorias', insumoController.getEnumCategorias); // Lista de categorías para el select del front
-router.get('/search', insumoController.searchInsumos);
-router.get('/filtro/:categoria', insumoController.getInsumosPorCategoria);
-router.get('/estado/:estado', insumoController.getInsumosByEstado);
-router.get('/:id', insumoController.getInsumoById);
+router.get('/', insumosControllers.getInsumos);
+router.get('/categorias', insumosControllers.getEnumCategorias); // Lista de categorías para el select del front
+router.get('/search', insumosControllers.searchInsumos);
+router.get('/filtro/:categoria', insumosControllers.getInsumosPorCategoria);
+router.get('/estado/:estado', insumosControllers.getInsumosByEstado);
 
 // 2. Rutas de Gestión de Stock (Admin y Administrativo)
 // Para crear y actualizar insumos, se suele usar un middleware de multer para el PDF
 router.post('/', 
     restrictTo('admin', 'Administrador', 'administrativo'), 
-    insumoController.createInsumo
+    insumosControllers.createInsumo
 );
 
 router.patch('/:id', 
     restrictTo('admin', 'Administrador', 'administrativo'), 
-    insumoController.updateInsumo
+    insumosControllers.updateInsumo
 );
 
 // 3. Reportes y Alertas (Solo personal autorizado)
 router.get('/reportes/alertas-stock', 
     restrictTo('admin', 'Administrador', 'administrativo'), 
-    insumoController.getAlertasStock
+    insumosControllers.getAlertasStock
 );
 
 // 4. Baja de Insumos (Solo Admin)
 // En lugar de eliminar físicamente el insumo, se inactiva y se registra la observación
 router.delete('/:id', 
     restrictTo('admin', 'Administrador'), 
-    insumoController.deleteInsumo
+    insumosControllers.deleteInsumo
 );
 
 module.exports = router;

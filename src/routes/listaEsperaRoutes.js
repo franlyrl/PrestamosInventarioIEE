@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const listaEsperaController = require('../controllers/listaEsperaController');
+const listaEsperaController = require('../controllers/listaEsperaControllers');
 const { protect } = require('../middlewares/authMiddleware');
 const { restrictTo } = require('../middlewares/roleMiddleware');
 

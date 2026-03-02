@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
-
 /**
  * Esquema de Mongoose para la gestión de préstamos y solicitudes.
  * Vincula usuarios con activos e insumos, rastreando el historial de estados.
  */
-const solicitudSchema = new mongoose.Schema({
+const solicitudesSchema = new mongoose.Schema({
     /** * @property {mongoose.Types.ObjectId} usuario 
      * Referencia al usuario que realiza la solicitud.
      */
@@ -99,4 +98,6 @@ const solicitudSchema = new mongoose.Schema({
 
 /** * Modelo 'Solicitudes' para el control de flujo de préstamos.
  */
-module.exports = mongoose.model('Solicitudes', solicitudSchema);
+
+const solicitudes = mongoose.models.Solicitudes || mongoose.model('Solicitudes', solicitudesSchema);
+module.exports = solicitudes;
