@@ -1,0 +1,13 @@
+$kind: http-request
+name: Login
+url: http://localhost:4000/api/usuarios/perfil
+method: GET
+body:
+  type: json
+  content: "{\r
+
+    \    \"correo_electronico\": \"zenla@utn.ac.cr\"\r
+
+    }"
+order: 4125032566842148
+examples: ./.resources\Login.resources\examples

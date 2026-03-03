@@ -30,7 +30,7 @@ app.get('/', (req, res) => {
 });
 
 // --- 3. AQUÍ CONECTARÁS TUS ARCHIVOS DE RUTAS ---
-// app.use('/api/usuarios', require('./routes/usuarioRoutes'));
+app.use('/api/usuarios', require('./routes/usuariosRoutes'));
 // app.use('/api/activos', require('./routes/activosRoutes'));
 // app.use('/api/solicitudes', require('./routes/solicitudRoutes'));
 
@@ -39,7 +39,7 @@ app.get('/', (req, res) => {
 app.use(errorHandler);
 
 // --- 5. ARRANQUE DEL SERVIDOR ---
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 // Solo hacemos el listen si este archivo es el principal
 if (require.main === module) {
     app.listen(PORT, () => {

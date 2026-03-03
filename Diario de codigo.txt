@@ -1498,3 +1498,16 @@ exports.cierreCuatrimestre = async (req, res) => {
 				Node.js v22.13.1
 				[nodemon] app crashed - waiting for file changes before starting...
 				--Termina aqui.--
+
+
+3/3/2026 13:00				
+
+Registro Exitoso: Solucionamos el error de llave duplicada (E11000) manejando correctamente los índices y el id_usuario.
+
+Seguridad: Implementamos bcrypt para que las contraseñas no se guarden en texto plano, sino como hashes seguros.
+
+Rutas y Puertos: Ajustamos el servidor para responder en el puerto 4000 bajo el prefijo /api/usuarios.
+
+Validación de Login: Corregimos la lógica para recibir correo_electronico y contrasena, permitiendo el acceso solo a carreras autorizadas y usuarios activos.
+
+Generación de Token: Solucionamos los problemas de importación y el servidor ya entrega el JWT correctamente.

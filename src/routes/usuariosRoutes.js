@@ -24,6 +24,8 @@ const storage = multer.diskStorage({
 // --- 2. RUTAS PÚBLICAS ---
 // Usamos upload.single para que el controlador reciba el req.file
 router.post('/registro', usuarioControllers.createUsuario);
+// El login no necesita multer, así que va directo al controlador
+//router.post('/login', upload.single('comprobante'), usuarioControllers.loginUsuario); --- IGNORE ---
 router.post('/login', usuarioControllers.loginUsuario);
 
 // --- 3. RUTAS PROTEGIDAS (Cualquier usuario logueado) ---
@@ -37,6 +39,7 @@ router.get('/perfil', (req, res) => {
 router.use(restrictTo('admin', 'Administrador')); 
 
 // Nota: Cambié el orden de /buscar para que no se confunda con /:id
+router.get('/perfil', protect, usuarioControllers.getPerfil);
 router.get('/buscar', usuarioControllers.searchUsuarios);
 router.get('/', usuarioControllers.getUsuarios);
 router.get('/:id', usuarioControllers.getUsuarioById);

@@ -17,7 +17,7 @@ const Usuarios = require('../models/usuarios');
  * 5. Si todo es correcto, inyecta el usuario en req.user para que los controladores puedan acceder a su información.
  * 6. Si hay algún error (token inválido, usuario no encontrado, cuenta inactiva), responde con el error correspondiente.
  */
-exports.protect = async (req, res) => {
+exports.protect = async (req, res, next) => {
     try {
         // 1. Obtener el token del header
         let token;

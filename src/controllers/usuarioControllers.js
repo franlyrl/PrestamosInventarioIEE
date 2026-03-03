@@ -1,8 +1,7 @@
 const Usuarios = require('../models/usuarios'); // Asegúrate de que la ruta sea correcta
 const bcrypt = require('bcryptjs'); // Para el hash de la contraseña
 const jwt = require('jsonwebtoken'); // O tu función generarToken
-const { generarToken } = require('../utils/generarToken'); // Asegúrate de que esta función esté bien implementada
-const { consultarNombrePorCedula } = require('../utils/registroCivil'); // Función para validar cédula
+const generarToken = require('../utils/generarToken');
 const Solicitudes = require('../models/Solicitudes'); // Para verificar préstamos activos
 
 
@@ -11,7 +10,7 @@ const Solicitudes = require('../models/Solicitudes'); // Para verificar préstam
  */
 exports.getUsuarios = async (req, res) => {
     try {
-        const usuarios = await Usuarios.find().select('-hash_contraseña');
+        const usuarios = await usuarios.find().select('contrasena');
         res.json(usuarios);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener los usuarios', error });
@@ -43,18 +42,19 @@ exports.createUsuario = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const passwordHasheada = await bcrypt.hash(contrasena, salt);
 
-        // 3. Crear el usuario (Solo pasamos el hash al modelo)
-        const nuevoUsuario = new Usuarios({
-            cedula,
-            nombre_completo,
-            correo_electronico,
-            contrasena,        // La versión en texto (opcional si el modelo no es required)
-            // Guardamos en los dos campos que definiste en el Modelo:
-            hash_contraseña: contrasena, // La versión encriptada (con tu regla de 8 chars)
-            codigo_barras,
-            tipo_rol,
-            estado: 'activo'
-        });
+            // 3. Crear el usuario (Solo pasamos el hash al modelo)
+            const nuevoUsuario = new Usuarios({
+                id_usuario: Date.now(), // Generamos un ID único basado en la marca de tiempo
+                cedula,
+                nombre_completo,
+                correo_electronico,
+                contrasena,        // La versión en texto (opcional si el modelo no es required)
+                // Guardamos en los dos campos que definiste en el Modelo:
+                hash_contraseña: passwordHasheada, // La versión encriptada (con tu regla de 8 chars)
+                codigo_barras,
+                tipo_rol,
+                estado: 'activo'
+            });
 
         await nuevoUsuario.save();
 
@@ -84,6 +84,29 @@ exports.updateUsuario = async (req, res) => {
         res.json(usuarioActualizado);
     } catch (error) {
         res.status(400).json({ message: 'Error al actualizar el usuario', error });
+    }
+};
+
+/** 
+ * @desc Perfil del usuario autenticado
+ * @param {Object} req - Objeto de solicitud que contiene la información del usuario autenticado en req.user.
+ * @param {Object} res - Objeto de respuesta para enviar la información del perfil al cliente.
+ * @return {Object} Respuesta JSON con los datos del perfil del usuario autenticado.
+ * Importante: Este endpoint es una ruta protegida, lo que significa que solo los usuarios que han iniciado sesión y tienen un token válido pueden acceder a ella. El middleware de protección se encarga de verificar el token y cargar la información del usuario en `req.user`, lo que permite que el controlador devuelva los datos del perfil sin necesidad de recibir un ID en la URL. Esto mejora la seguridad y la experiencia del usuario, ya que no es necesario exponer el ID del usuario en la ruta para acceder a su perfil.
+ * Este endpoint devuelve la información del perfil del usuario que ha iniciado sesión, utilizando el token de autenticación para identificar al usuario. Es una ruta protegida, lo que significa que solo los usuarios autenticados pueden acceder a ella. El middleware de protección se encarga de verificar el token y cargar la información del usuario en `req.user`, lo que permite que el controlador devuelva los datos del perfil sin necesidad de recibir un ID en la URL.
+ **/
+        exports.getPerfil = async (req, res) => {
+    try {
+        // En lugar de buscar a todos, buscamos al usuario que está logueado
+        // usando el correo que ya tenemos en req.user
+        const usuario = await Usuarios.findOne({ correo_electronico: req.user.correo_electronico })
+                                      .select('-hash_contraseña'); // ¡Seguridad primero!
+        if (!usuario) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+        res.json(usuario);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener el perfil', error: error.message });
     }
 };
 
@@ -215,30 +238,39 @@ exports.inactivarUsuario = async (req, res) => {
  * }
  */
 
-exports.loginUsuario = async (req, res) => {
+      exports.loginUsuario = async (req, res) => {
     try {
-        const { password } = req.body;
-        const correo = req.body.correo ? req.body.correo.toLowerCase().trim() : null;
+        // 1. Recibimos los datos
+        const { correo_electronico, contrasena } = req.body;
+        
+        // 2. Buscamos al usuario
+        const usuario = await Usuarios.findOne({ 
+            correo_electronico: correo_electronico.toLowerCase().trim() 
+        });
 
-        const usuario = await Usuarios.findOne({ correo_electronico: correo });
-        if (!usuario) return res.status(401).json({ message: 'Credenciales inválidas' });
+        if (!usuario) {
+            return res.status(401).json({ message: 'Credenciales inválidas (Usuario no encontrado)' });
+        }
 
-        // 1. Filtro de Carreras UTN
+        // 3. COMPARACIÓN DE CONTRASEÑA (Solo una vez)
+        const esValida = await bcrypt.compare(contrasena, usuario.hash_contraseña);
+        
+        if (!esValida) {
+            return res.status(401).json({ message: 'Credenciales inválidas (Contraseña incorrecta)' });
+        }
+       
+        // 4. Filtro de Carreras UTN
         const CARRERAS_AUTORIZADAS = [
             'Ingeniería Electrónica', 'Ingeniería Eléctrica', 
-            'Ingeniería en Tecnologías de Información', 'Ingeniería en Producción Industrial'
+            'Ingeniería en Tecnologías de Información', 'Ingeniería en Producción Industrial',
+            'N/A'
         ];
 
         if (!CARRERAS_AUTORIZADAS.includes(usuario.carrera)) {
             return res.status(403).json({ message: 'Acceso denegado: Carrera no autorizada.' });
         }
 
-        // 2. Match de contraseña
-        const esValida = await bcrypt.compare(password, usuario.hash_contraseña);
-        if (!esValida) return res.status(401).json({ message: 'Credenciales inválidas' });
-
-        // --- 3. EL NUEVO BLOQUEO DE ESTADO (El Portero) ---
-        // Aquí revisamos si la cuenta está inactiva o sancionada
+        // --- 5. BLOQUEO DE ESTADO ---
         if (usuario.estado === 'inactivo') {
             return res.status(403).json({ 
                 message: 'Tu cuenta está inactiva por falta de uso, contacta al administrador.' 
@@ -251,7 +283,7 @@ exports.loginUsuario = async (req, res) => {
             });
         }
 
-        // 4. Generación de Token (Solo si pasó todos los filtros anteriores)
+        // 6. Generación de Token
         const token = generarToken(usuario._id, usuario.tipo_rol);
 
         res.status(200).json({ 
@@ -260,7 +292,7 @@ exports.loginUsuario = async (req, res) => {
                 nombre: usuario.nombre_completo, 
                 rol: usuario.tipo_rol, 
                 carrera: usuario.carrera,
-                estado: usuario.estado // Útil para que el frontend sepa el estado
+                estado: usuario.estado 
             }
         });
 

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const usuarioSchema = new mongoose.Schema({
-    id_usuario: { type: Number},
+    id_usuario: { type: Number, unique: true},
     cedula: {type: String,required: [true, 'La cédula es obligatoria'],unique: true,trim: true,match: [/^\d{9,12}$/, 'La cédula debe tener entre 9 y 12 dígitos numéricos']},
     nombre_completo: {type: String,required: [true, 'El nombre completo es obligatorio'],trim: true},
     correo_electronico: {type: String,required: [true, 'El correo electrónico es obligatorio'],unique: true,trim: true,lowercase: true, match: [/^[\w-\.]+@(est\.utn\.ac\.cr|utn\.ac\.cr)$/, 'Solo se permiten correos de la UTN']},
