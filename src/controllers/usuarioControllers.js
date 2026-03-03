@@ -30,76 +30,41 @@ exports.getUsuarios = async (req, res) => {
  */
 
 exports.createUsuario = async (req, res) => {
+    console.log("Datos recibidos en el Body:", req.body); // <-- AGREGA ESTA LÍNEA
     try {
-        const { cedula, correo_electronico, hash_contraseña, tipo_rol, telefono, carrera } = req.body;
-
-        // 1. Escudo de duplicados
-        const usuarioExiste = await Usuarios.findOne({ $or: [{ cedula }, { correo_electronico }] });
-        if (usuarioExiste) {
-            return res.status(400).json({ 
-                message: 'La cédula o el correo electrónico ya existen.' 
-            });
+        const { cedula, nombre_completo, contrasena, codigo_barras, correo_electronico, tipo_rol } = req.body;
+        console.log("Valor de contrasena:", contrasena); // <-- Y ESTA OTRA
+        // 1. Validación manual de la contraseña (antes del hash)
+        if (!contrasena || contrasena.length < 8) {
+            return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres.' });
         }
 
-        // 2. Validación de nombre con Registro Civil
-        let nombre_completo;
-        try {
-            nombre_completo = await consultarNombrePorCedula(cedula);
-        } catch (error) {
-            return res.status(400).json({ message: 'No se pudo validar la cédula con el Registro Civil.' });
-        }
-
-        // 3. Encriptación de contraseña
+        // 2. Transformación: Generar el Hash
         const salt = await bcrypt.genSalt(10);
-        const passwordEncriptada = await bcrypt.hash(hash_contraseña, salt);
+        const passwordHasheada = await bcrypt.hash(contrasena, salt);
 
-        // 4. Validación física del archivo PDF
-        if (!req.file) {
-            return res.status(400).json({ message: 'Es obligatorio subir un comprobante PDF.' });
-        }
-
-        // 5. Creación del Usuario en la colección principal
+        // 3. Crear el usuario (Solo pasamos el hash al modelo)
         const nuevoUsuario = new Usuarios({
             cedula,
             nombre_completo,
             correo_electronico,
-            hash_contraseña: passwordEncriptada,
-            telefono,
+            contrasena,        // La versión en texto (opcional si el modelo no es required)
+            // Guardamos en los dos campos que definiste en el Modelo:
+            hash_contraseña: contrasena, // La versión encriptada (con tu regla de 8 chars)
+            codigo_barras,
             tipo_rol,
-            carrera, // Se guarda en el perfil general para acceso rápido
-            estado: 'inactivo' // Queda inactivo hasta revisión del PDF
+            estado: 'activo'
         });
 
-        const usuarioGuardado = await nuevoUsuario.save();
+        await nuevoUsuario.save();
 
-        // 6. Lógica de guardado en colecciones de Información (EL IF QUE PEDISTE)
-        if (tipo_rol === 'estudiante') {
-            const infoEstudiante = new EstudianteInfo({
-                usuario: usuarioGuardado._id,
-                comprobante_pdf: req.file.path,
-                tipo_comprobante: 'matricula_estudiante',
-                carrera: carrera // Opcional: repetir aquí si quieres info académica pura
-            });
-            await infoEstudiante.save();
-
-        } else if (tipo_rol === 'docente') {
-            const infoDocente = new DocenteInfo({
-                usuario: usuarioGuardado._id,
-                comprobante_pdf: req.file.path,
-                tipo_comprobante: 'carga_academica_docente'
-                // Aquí podrías agregar campos específicos de docentes luego
-            });
-            await infoDocente.save();
-        }
-
-        // 7. Respuesta de éxito
-        res.status(201).json({ 
-            status: 'success', 
-            message: `Usuario ${nombre_completo} registrado. El PDF de ${tipo_rol} se guardó correctamente.` 
+        res.status(201).json({
+            status: 'success',
+            message: 'Usuario registrado. La contraseña fue encriptada exitosamente.'
         });
 
     } catch (error) {
-        res.status(500).json({ message: 'Error crítico en registro', error: error.message });
+        res.status(500).json({ message: 'Error en el registro', error: error.message });
     }
 };
 

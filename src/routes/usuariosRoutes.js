@@ -3,11 +3,13 @@ const router = express.Router();
 const multer = require('multer'); // IMPORTANTE: Importar multer aquí
 const path = require('path');
 const generarToken = require('../utils/generarToken');
-const usuarioController = require('../controllers/usuarioControllers');
+const usuarioControllers = require('../controllers/usuarioControllers');
 const { protect } = require('../middlewares/authMiddleware');
 const { restrictTo } = require('../middlewares/roleMiddleware');
 
-// --- 1. CONFIGURACIÓN DE MULTER (Debe ir antes de las rutas) ---
+
+/**
+ * // --- 1. CONFIGURACIÓN DE MULTER (Debe ir antes de las rutas) ---
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/comprobantes/'); 
@@ -16,47 +18,38 @@ const storage = multer.diskStorage({
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
     }
-});
+});**/
 
-const fileFilter = (req, file, cb) => {
-    if (file.mimetype === 'application/pdf') {
-        cb(null, true);
-    } else {
-        cb(new Error('Solo se permiten archivos PDF'), false);
-    }
-};
-
-const upload = multer({ storage, fileFilter });
 
 // --- 2. RUTAS PÚBLICAS ---
 // Usamos upload.single para que el controlador reciba el req.file
-router.post('/register', upload.single('comprobante_pdf'), usuarioController.createUsuario);
-router.post('/login', usuarioController.loginUsuario);
+router.post('/registro', usuarioControllers.createUsuario);
+router.post('/login', usuarioControllers.loginUsuario);
 
 // --- 3. RUTAS PROTEGIDAS (Cualquier usuario logueado) ---
-router.use(protect); 
+//router.use(protect); 
 
 router.get('/perfil', (req, res) => {
-    res.json(req.user);
+    res.json(req.user || { message: "Usuario no cargado" });
 });
 
 // --- 4. RUTAS ADMINISTRATIVAS (Solo Admin) ---
 router.use(restrictTo('admin', 'Administrador')); 
 
 // Nota: Cambié el orden de /buscar para que no se confunda con /:id
-router.get('/buscar', usuarioController.searchUsuarios);
-router.get('/', usuarioController.getUsuarios);
-router.get('/:id', usuarioController.getUsuarioById);
-router.get('/email/:email', usuarioController.getUsuarioByEmail);
-router.get('/rol/:role', usuarioController.getUsuariosByRole);
+router.get('/buscar', usuarioControllers.searchUsuarios);
+router.get('/', usuarioControllers.getUsuarios);
+router.get('/:id', usuarioControllers.getUsuarioById);
+router.get('/email/:email', usuarioControllers.getUsuarioByEmail);
+router.get('/rol/:role', usuarioControllers.getUsuariosByRole);
 
 // Acciones de control
-router.patch('/:id', usuarioController.updateUsuario);
-router.patch('/:id/inactivar', usuarioController.inactivarUsuario);
-router.post('/sancionar/:id', usuarioController.sancionarUsuarioPorFalta);
+router.patch('/:id', usuarioControllers.updateUsuario);
+router.patch('/:id/inactivar', usuarioControllers.inactivarUsuario);
+router.post('/sancionar/:id', usuarioControllers.sancionarUsuarioPorFalta);
 
 // Ciclo académico
-router.patch('/mantenimiento/cierre-cuatrimestre', usuarioController.cierreCuatrimestre);
-router.post('/mantenimiento/limpiar-archivo', usuarioController.limpiarUsuariosViejos);
+router.patch('/mantenimiento/cierre-cuatrimestre', usuarioControllers.cierreCuatrimestre);
+router.post('/mantenimiento/limpiar-archivo', usuarioControllers.limpiarUsuariosViejos);
 
 module.exports = router;

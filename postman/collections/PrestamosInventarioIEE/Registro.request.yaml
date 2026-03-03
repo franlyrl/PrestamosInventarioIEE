@@ -1,0 +1,48 @@
+$kind: http-request
+name: Registro
+url: http://localhost:4000/api/usuarios/register
+method: POST
+headers:
+  - key: ""
+    value: ""
+    disabled: true
+  - key: ""
+    value: ""
+    disabled: true
+body:
+  type: formdata
+  content:
+    - type: text
+      key: cedula
+      value: "118480834"
+      description: ""
+      disabled: false
+    - type: text
+      key: nombre_completo
+      value: Ashly Rodriguez Lanuza"
+      description: ""
+      disabled: false
+    - type: text
+      key: correo_electronico
+      value: arodriguezla@utn.ac.cr
+      description: ""
+      disabled: false
+    - type: text
+      key: contraseña
+      value: utn12345678
+      description: ""
+      disabled: false
+    - type: text
+      key: codigo_barras
+      value: UTN-2026-X
+      description: ""
+      disabled: false
+    - type: text
+      key: tipo_rol
+      value: estudiante
+      description: ""
+      disabled: false
+auth:
+  type: noauth
+order: 3827221462460232
+examples: ./.resources\Registro.resources\examples

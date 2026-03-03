@@ -1,0 +1,59 @@
+$kind: http-example
+name: Registro
+request:
+  url: http://localhost:4000/api/usuarios/registro
+  method: POST
+  headers:
+    - key: ""
+      value: ""
+      disabled: true
+    - key: ""
+      value: ""
+      disabled: true
+  body:
+    type: json
+    content: "{\r
+
+      \    \"cedula\": \"118408455\",\r
+
+      \    \"nombre_completo\": \"Franly Rivera\",\r
+
+      \    \"correo_electronico\": \"fran@utn.ac.cr\",\r
+
+      \    \"contraseña\": \"password12345\",\r
+
+      \    \"codigo_barras\": \"UTN-2026-X\",\r
+
+      \    \"tipo_rol\": \"estudiante\"\r
+
+      }"
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    access-control-allow-origin: "*"
+    content-security-policy: "default-src 'self';base-uri 'self';font-src 'self'
+      https: data:;form-action 'self';frame-ancestors 'self';img-src 'self'
+      data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src
+      'self' https: 'unsafe-inline';upgrade-insecure-requests"
+    cross-origin-opener-policy: same-origin
+    cross-origin-resource-policy: same-origin
+    origin-agent-cluster: ?1
+    referrer-policy: no-referrer
+    strict-transport-security: max-age=31536000; includeSubDomains
+    x-content-type-options: nosniff
+    x-dns-prefetch-control: off
+    x-download-options: noopen
+    x-frame-options: SAMEORIGIN
+    x-permitted-cross-domain-policies: none
+    x-xss-protection: "0"
+    content-type: application/json; charset=utf-8
+    content-length: "67"
+    etag: W/"43-n4Ej2yynkuYSOt4X0ZKwvqk+ATo"
+    date: Tue, 03 Mar 2026 03:09:57 GMT
+    connection: keep-alive
+    keep-alive: timeout=5
+  body:
+    type: json
+    content: '{"message":"Error en el registro","error":"next is not a function"}'
+order: 1772507419139

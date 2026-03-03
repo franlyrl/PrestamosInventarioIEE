@@ -1,0 +1,16 @@
+$kind: http-request
+name: http://localhost:4000/api/usuarios/register
+url: http://localhost:4000/api/usuarios/register
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"correo\": \"arodriguezla@utn.ac.cr\",\r
+
+    \  \"password\": \"Dap90629\"\r
+
+    }"
+auth:
+  type: jwt
+order: 1772493162871
