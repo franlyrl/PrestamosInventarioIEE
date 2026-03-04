@@ -28,11 +28,11 @@ router.post('/login', usuarioControllers.loginUsuario);
 router.get('/perfil', protect, usuarioControllers.getPerfil);
 
 // --- 4. RUTAS ADMINISTRATIVAS (Solo Admin) ---
-router.use(restrictTo('admin', 'Administrador')); 
+router.use(restrictTo('admin', 'administrador')); 
 
 // Nota: Cambié el orden de /buscar para que no se confunda con /:id
 router.get('/buscar', usuarioControllers.searchUsuarios);
-router.get('/', usuarioControllers.getUsuarios);
+router.get('/'  , usuarioControllers.getUsuarios);
 router.get('/:id', usuarioControllers.getUsuarioById);
 router.get('/email/:email', usuarioControllers.getUsuarioByEmail);
 router.get('/rol/:role', usuarioControllers.getUsuariosByRole);

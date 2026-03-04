@@ -1,0 +1,22 @@
+$kind: http-request
+name: registro admin
+url: http://localhost:4000/api/usuarios/registro
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"cedula\": \"1111111111\",\r
+
+    \    \"nombre_completo\": \"Ashly Rodriguez\",\r
+
+    \    \"correo_electronico\": \"ashla@utn.ac.cr\",\r
+
+    \    \"contrasena\": \"uttntutututut\",\r
+
+    \    \"codigo_barras\": \"UTN-2026-g\",\r
+
+    \    \"tipo_rol\": \"admin\"\r
+
+    }"
+order: 4494461652812393
