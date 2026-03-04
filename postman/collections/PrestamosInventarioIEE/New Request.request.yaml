@@ -5,5 +5,5 @@ method: GET
 auth:
   type: bearer
   credentials:
-    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTc0YTA1ZTUzNmYwNTY2ZDFhNzI4NSIsImlhdCI6MTc3MjU3ODI4MSwiZXhwIjoxNzc1MTcwMjgxfQ.nNqgUHosLiXYC2wVMxR1vuaXzsEd23WecPEENRBhF34
+    token: http://localhost:4000/api/usuarios/perfil
 order: 4362446073457533

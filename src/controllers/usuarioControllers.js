@@ -94,22 +94,42 @@ exports.updateUsuario = async (req, res) => {
  * @return {Object} Respuesta JSON con los datos del perfil del usuario autenticado.
  * Importante: Este endpoint es una ruta protegida, lo que significa que solo los usuarios que han iniciado sesión y tienen un token válido pueden acceder a ella. El middleware de protección se encarga de verificar el token y cargar la información del usuario en `req.user`, lo que permite que el controlador devuelva los datos del perfil sin necesidad de recibir un ID en la URL. Esto mejora la seguridad y la experiencia del usuario, ya que no es necesario exponer el ID del usuario en la ruta para acceder a su perfil.
  * Este endpoint devuelve la información del perfil del usuario que ha iniciado sesión, utilizando el token de autenticación para identificar al usuario. Es una ruta protegida, lo que significa que solo los usuarios autenticados pueden acceder a ella. El middleware de protección se encarga de verificar el token y cargar la información del usuario en `req.user`, lo que permite que el controlador devuelva los datos del perfil sin necesidad de recibir un ID en la URL.
- **/
-        exports.getPerfil = async (req, res) => {
+**/
+
+exports.getPerfil = async (req, res) => {
     try {
-        // En lugar de buscar a todos, buscamos al usuario que está logueado
-        // usando el correo que ya tenemos en req.user
-        const usuario = await Usuarios.findOne({ correo_electronico: req.user.correo_electronico })
-                                      .select('-hash_contraseña'); // ¡Seguridad primero!
-        if (!usuario) {
-            return res.status(404).json({ message: 'Usuario no encontrado' });
+        // 1. Verificamos si el middleware 'protect' realmente inyectó al usuario
+        if (!req.user) {
+            return res.status(404).json({ 
+                ok: false,
+                message: 'Error: El middleware no cargó al usuario (req.user está vacío)',
+                debug: "Asegúrate de que el middleware tenga: req.user = usuarioActual; antes del next();"
+            });
         }
-        res.json(usuario);
+
+        // 2. Si llegó aquí, ¡ÉXITO! Devolvemos los datos limpios
+        res.status(200).json({
+            ok: true,
+            message: "Perfil cargado con éxito",
+            usuario: {
+                id: req.user._id,
+                nombre: req.user.nombre_completo,
+                correo: req.user.correo_electronico,
+                rol: req.user.tipo_rol,
+                carrera: req.user.carrera,
+                estado: req.user.estado
+            }
+        });
+
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener el perfil', error: error.message });
+        // Por si ocurre un error inesperado de servidor
+        res.status(500).json({ 
+            ok: false,
+            message: 'Error interno en el servidor al obtener el perfil', 
+            error: error.message 
+        });
     }
 };
-
 /**
  * @desc Sanciona a un usuario y marca la solicitud como penalizada.
  * Bloquea al usuario para que no pida más ni pueda ser inactivado/borrado.
