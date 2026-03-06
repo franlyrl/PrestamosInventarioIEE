@@ -1,13 +1,16 @@
 $kind: http-request
 name: Login
-url: http://localhost:4000/api/usuarios/perfil
-method: GET
+url: http://localhost:4000/api/usuarios/login
+method: POST
 body:
   type: json
   content: "{\r
 
-    \    \"correo_electronico\": \"zenla@utn.ac.cr\"\r
+    \    \"correo_electronico\": \"ashla@utn.ac.cr\",\r
+
+    \    \"contrasena\": \"uttntutututut\"\r
+
+    \r
 
     }"
 order: 4125032566842148
-examples: ./.resources\Login.resources\examples

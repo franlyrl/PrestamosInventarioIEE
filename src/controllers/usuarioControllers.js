@@ -367,18 +367,31 @@ exports.getUsuariosByRole = async (req, res) => {
 exports.searchUsuarios = async (req, res) => {
     try {
         const query = req.query.q;
+
+        // 1. Validación: Si no hay búsqueda, devolvemos un array vacío o error 400
+        if (!query) {
+            return res.status(400).json({ message: 'El término de búsqueda es requerido' });
+        }
+
+        // 2. Búsqueda con MongoDB usando operadores lógicos
         const usuarios = await Usuarios.find({
             $or: [
                 { nombre_completo: { $regex: query, $options: 'i' } },
                 { correo_electronico: { $regex: query, $options: 'i' } }
             ]
-        }).select('-hash_contraseña');
+        })
+        .select('-hash_contraseña') // Excluimos la contraseña por seguridad
+        .limit(10); // Recomendado: limitar resultados para no saturar el servidor
+
         res.json(usuarios);
     } catch (error) {
-        res.status(500).json({ message: 'Error al buscar usuarios', error });
+        console.error('Error en búsqueda:', error); // Log interno para debug
+        res.status(500).json({
+            message: 'Error al buscar usuarios',
+            error: error.message
+        });
     }
 };
-
 /**
  * @route PATCH /api/usuarios/cierre-cuatrimestre
  * @desc Inactiva usuarios y fuerza reseteo de contraseña para el nuevo ciclo.
