@@ -48,6 +48,34 @@ const insumoSchema = new mongoose.Schema({
             'Componentes Analógicos',
         ],
         trim: true
+    },
+
+    /** * @property {String} estado - Estado del insumo para borrado lógico.
+     */
+        estado: {
+            type: String,
+            enum: ['activo', 'eliminado'],
+            default: 'activo'
+        },
+
+    /** * @property {String} justificacion_baja - Justificación cuando se da de baja.
+     */
+    justificacion_baja: {
+        type: String,
+        trim: true
+    },
+
+    /** * @property {Date} fecha_baja - Fecha cuando se dio de baja.
+     */
+    fecha_baja: {
+        type: Date
+    },
+
+    /** * @property {ObjectId} eliminado_por - Usuario que dio de baja.
+     */
+    eliminado_por: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Usuario'
     }
 }, { 
     /** @type {Boolean} - Habilita la creación automática de campos createdAt y updatedAt. */
