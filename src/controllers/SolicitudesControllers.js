@@ -4,7 +4,7 @@
  * Vincula Usuarios, Activos e Insumos mediante referencias (Populate).
  **/
 
-const solicitudes = require('../models/solicitudes'); // El modelo principal para las solicitudes
+const Solicitudes = require('../models/solicitudes'); // El modelo principal para las solicitudes
 const stockManager = require('../helpers/stockManager'); // Helper para manejar la lógica de inventario
 const Usuarios = require('../models/usuarios'); // Para verificar roles de usuario si es necesario
 const Activos = require('../models/activos'); // Para verificar disponibilidad de activos
@@ -25,26 +25,26 @@ exports.getSolicitudes = async (req, res) => {
         // 1. EL ESCUDO DE PRIVACIDAD (Criterio: Solo veo lo mío si no soy admin)
         // Nota: Asegúrate de si en tu Schema el campo es 'usuario'
         if (!['admin', 'administrador'].includes(req.user.role)) {
-            filtro = { usuario: req.user.id }; 
+            filtro = { usuario: req.user.id };
         }
 
         // 2. LA RIQUEZA DE DATOS (El populate detallado del GET viejo)
         const ObtenerSolicitudes = await Solicitudes.find(filtro)
             // 1. Traemos todo del usuario (menos la contraseña por seguridad)
-            .populate('usuario', 'id_usuario cedula nombre_completo correo_electronico tipo_rol estado') 
+            .populate('usuario', 'id_usuario cedula nombre_completo correo_electronico tipo_rol estado')
             // 2. Traemos los detalles de los activos vinculados
             .populate('activos', 'marca modelo numActivo estado serie')
             // 3. Traemos los detalles de los insumos (ojo con la ruta exacta en tu Schema)
             .populate('insumos.id_insumo', 'NombProducto caracteristicas unidadMedida')
             // 4. Orden cronológico (lo más nuevo arriba)
-            .sort({ createdAt: -1 }) 
+            .sort({ createdAt: -1 })
             // 5. Rendimiento: Convierte de documento pesado de Mongoose a objeto JS simple
-            .lean() 
+            .lean()
             // 6. Limpieza: Quitamos la versión interna de Mongo (__v)
-            .select('-__v') 
+            .select('-__v')
             .exec();
 
-    // 3. MEJORA DE VISUALIZACIÓN: Ordenar historiales en la lista
+        // 3. MEJORA DE VISUALIZACIÓN: Ordenar historiales en la lista
         // Como es un array de solicitudes, usamos map para ordenar cada una
         const solicitudesOrdenadas = ObtenerSolicitudes.map(sol => {
             if (sol.historico_estados) {
@@ -55,11 +55,11 @@ exports.getSolicitudes = async (req, res) => {
 
         res.status(200).json(solicitudesOrdenadas);
 
-        
+
     } catch (error) {
-        res.status(500).json({ 
-            message: 'Error al obtener solicitudes', 
-            detalles: error.message 
+        res.status(500).json({
+            message: 'Error al obtener solicitudes',
+            detalles: error.message
         });
     }
 };
@@ -73,15 +73,13 @@ exports.getSolicitudes = async (req, res) => {
  */
 exports.createSolicitud = async (req, res) => {
     try {
-        // 1. Definimos el nombre de la variable (usaremos id_usuario como pusiste arriba)
-        const id_usuario_temporal = req.user.id;
+        // 1. Obtenemos el ID del usuario del token (es el _id de MongoDB)
+        const usuarioId = req.user.id;
         // --- DATOS DE LA SOLICITUD (Vienen del Formulario/Body) ---
-        // No uses comillas, JavaScript ya sabe que son los nombres del Schema
         const { activos, insumos, fecha_entrega_esperada } = req.body;
 
-        // 2. REVISIÓN DEL ESTADO USANDO TU CAMPO 'id_usuario'
-        // a.Usamos findOne porque id_usuario es un campo personalizado, no el _id de Mongo
-        const usuarioDB = await Usuarios.findOne({ id_usuario: id_usuario_temporal }).select('estado'); // Solo traemos el estado para esta validación rápida
+        // 2. REVISIÓN DEL ESTADO USANDO EL _ID DE MONGODB
+        const usuarioDB = await Usuarios.findById(usuarioId).select('estado');
 
         if (!usuarioDB) {
             return res.status(404).json({ message: 'El usuario con ese ID no existe en el sistema.' });
@@ -91,32 +89,32 @@ exports.createSolicitud = async (req, res) => {
         // Tu Schema dice: ['activo', 'inactivo', 'sancionado', 'pendiente_devolucion']
         const estadosProhibidos = ['inactivo', 'sancionado', 'pendiente_devolucion'];
         if (estadosProhibidos.includes(usuarioDB.estado)) {
-            return res.status(403).json({ 
-                message: `Acceso denegado: Tu cuenta está ${usuarioDB.estado}.` 
+            return res.status(403).json({
+                message: `Acceso denegado: Tu cuenta está ${usuarioDB.estado}.`
             });
         }
 
         // 3. REVISIÓN DE BOLETAS ABIERTAS
-        // Usamos id_usuario (el nombre que definimos arriba)
-        const solicitudActiva = await Solicitudes.findOne({ 
-            usuario: usuarioDB._id, // Aquí usamos el _id del usuario para buscar en el campo 'usuario' de tu Schema de Solicitudes
-            estado: { $in: ['pendiente', 'aprobada', 'entregado', 'penalizado'] } 
+        // Usamos el _id del usuario directamente
+        const solicitudActiva = await Solicitudes.findOne({
+            usuario: usuarioId, // <--- Aquí usamos usuarioId directamente
+            estado: { $in: ['pendiente', 'aprobada', 'entregado', 'penalizado'] }
         });
 
         if (solicitudActiva) {
-            return res.status(403).json({ 
+            return res.status(403).json({
                 message: `No puedes crear otra solicitud. Tienes una boleta en estado: ${solicitudActiva.estado}`,
-                folio: solicitudActiva._id 
+                folio: solicitudActiva._id
             });
         }
 
         // 4. CREACIÓN (Sincronizado con tu Schema 'usuario')
         const nuevaSolicitud = new Solicitudes({
-            usuario: usuarioDB._id, // <--- Aquí conectamos el ID con el campo 'usuario' del Schema
+            usuario: usuarioId, // <--- Usamos usuarioId directamente
             activos,
             insumos,
             fecha_entrega_esperada,
-            estado: 'pendiente', 
+            estado: 'pendiente',
             historico_estados: [{
                 estado: 'pendiente',
                 fecha: new Date(),
@@ -132,9 +130,9 @@ exports.createSolicitud = async (req, res) => {
         });
 
     } catch (error) {
-        return res.status(500).json({ 
-            message: 'Error interno en la creación de solicitud', 
-            error: error.message 
+        return res.status(500).json({
+            message: 'Error interno en la creación de solicitud',
+            error: error.message
         });
     }
 };
@@ -166,7 +164,7 @@ exports.getSolicitudById = async (req, res) => {
 
         // --- SECURITY CHECK ---
         const isAdmin = ['admin', 'administrador'].includes(req.user.role);
-        
+
         // Usamos .usuario._id porque el populate lo convirtió en objeto
         const isOwner = SolicitudxId.usuario._id.toString() === req.user.id;
 
@@ -193,7 +191,7 @@ exports.getSolicitudById = async (req, res) => {
 exports.actualizarEstadoSolicitud = async (req, res) => {
     try {
         const { nuevoEstado, observaciones } = req.body;
-        
+
         const MapearEstadoSoli = await Solicitudes.findById(req.params.id);
         if (!MapearEstadoSoli) return res.status(404).json({ message: 'Solicitud no encontrada.' });
 
@@ -205,8 +203,8 @@ exports.actualizarEstadoSolicitud = async (req, res) => {
 
         if (estadoUsuarioDestino) {
             // Usamos 'solicitud.usuario' como dicta tu Schema
-            await Usuarios.findByIdAndUpdate(MapearEstadoSoli.usuario, { 
-                estado: estadoUsuarioDestino 
+            await Usuarios.findByIdAndUpdate(MapearEstadoSoli.usuario, {
+                estado: estadoUsuarioDestino
             });
         }
 
@@ -223,17 +221,17 @@ exports.actualizarEstadoSolicitud = async (req, res) => {
         }
 
         await MapearEstadoSoli.save(); // Aquí se dispara tu validación del Schema
-        
-        return res.json({ 
+
+        return res.json({
             message: `Cambio exitoso a ${nuevoEstado}`,
-            historico: MapearEstadoSoli.historico_estados 
+            historico: MapearEstadoSoli.historico_estados
         });
 
     } catch (error) {
         // Si falta la observación en un estado crítico, este mensaje vendrá del Schema
-        return res.status(400).json({ 
-            message: 'Error en la validación de la solicitud', 
-            error: error.message 
+        return res.status(400).json({
+            message: 'Error en la validación de la solicitud',
+            error: error.message
         });
     }
 };
@@ -251,24 +249,24 @@ exports.deleteSolicitud = async (req, res) => {
     try {
         // 1. Primero BUSCAMOS, no borramos de un solo.
         const eliminarSoli = await Solicitudes.findById(req.params.id);
-        
+
         if (!eliminarSoli) {
             return res.status(404).json({ message: 'Solicitud no encontrada' });
         }
 
         // 2. REGLA DE ORO 1: ¿Es el dueño? 
-        // Comparamos el ID del usuario de la solicitud con el ID del usuario en el token (req.usuario.id)
-        if (eliminarSoli.usuario.toString() !== req.usuario.id) {
-            return res.status(403).json({ 
-                message: 'No tienes permiso. Solo el dueño puede cancelar esta solicitud.' 
+        // Comparamos el ID del usuario de la solicitud con el ID del usuario en el token (req.user.id)
+        if (eliminarSoli.usuario.toString() !== req.user.id) {
+            return res.status(403).json({
+                message: 'No tienes permiso. Solo el dueño puede cancelar esta solicitud.'
             });
         }
 
         // 3. REGLA DE ORO 2: ¿Sigue pendiente?
         // Si ya fue aceptada o rechazada, el Admin ya trabajó en ella. No se toca.
-        if (eliminarSoli.estado !== 'pendiente') {
-            return res.status(400).json({ 
-                message: `No se puede eliminar. La solicitud ya se encuentra en estado: ${eliminarSoli.estado}.` 
+        if (eliminarSoli.estado && eliminarSoli.estado !== 'pendiente') {
+            return res.status(400).json({
+                message: `No se puede eliminar. La solicitud ya se encuentra en estado: ${eliminarSoli.estado}.`
             });
         }
 
@@ -307,15 +305,15 @@ exports.gestionarEstadoAdmin = async (req, res) => {
 
         // --- 1. VALIDACIÓN DE RECHAZO ---
         if (nuevoEstadoAdmin === 'rechazada' && (!observaciones || observaciones.trim().length < 5)) {
-            return res.status(400).json({ 
-                message: 'Error: Debes proporcionar una justificación detallada para rechazar la solicitud.' 
+            return res.status(400).json({
+                message: 'Error: Debes proporcionar una justificación detallada para rechazar la solicitud.'
             });
         }
 
         // Bloqueo de integridad: Usamos EstadoSoli.estado (el nombre del Schema)
         if (['rechazada', 'devuelto'].includes(EstadoSoli.estado)) {
-            return res.status(400).json({ 
-                message: `Integridad de datos: No se puede modificar una solicitud que ya está ${EstadoSoli.estado}.` 
+            return res.status(400).json({
+                message: `Integridad de datos: No se puede modificar una solicitud que ya está ${EstadoSoli.estado}.`
             });
         }
 
@@ -327,16 +325,16 @@ exports.gestionarEstadoAdmin = async (req, res) => {
                 await stockManager.processReturn(EstadoSoli);
             }
         } catch (errorStock) {
-            return res.status(400).json({ 
-                message: 'Error de Inventario', 
-                detalles: errorStock.message 
+            return res.status(400).json({
+                message: 'Error de Inventario',
+                detalles: errorStock.message
             });
         }
 
         // --- 3. ACTUALIZACIÓN FINAL ---
         // Aquí sincronizamos: campo del Schema = nuestra variable local
-        EstadoSoli.estado = nuevoEstadoAdmin; 
-        
+        EstadoSoli.estado = nuevoEstadoAdmin;
+
         EstadoSoli.historico_estados.push({
             estado: nuevoEstadoAdmin,
             fecha: new Date(),
@@ -344,8 +342,8 @@ exports.gestionarEstadoAdmin = async (req, res) => {
         });
 
         await EstadoSoli.save();
-        
-        res.json({ 
+
+        res.json({
             message: `Solicitud marcada como ${nuevoEstadoAdmin} con éxito.`,
             visualizacion_usuario: {
                 estado_actual: EstadoSoli.estado,

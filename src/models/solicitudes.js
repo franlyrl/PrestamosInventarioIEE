@@ -50,18 +50,18 @@ const solicitudesSchema = new mongoose.Schema({
             default: 'pendiente'
         },
         /** @property {Date} fecha Fecha en la que ocurrió el cambio de estado. */
-        fecha: { 
-            type: Date, 
-            default: Date.now 
+        fecha: {
+            type: Date,
+            default: Date.now
         },
         /** @property {String} observaciones Notas del cambio; obligatorio en casos críticos. */
-        observaciones: { 
-            type: String, 
+        observaciones: {
+            type: String,
             validate: {
-                validator: function(v) {
+                validator: function (v) {
                     // Validación de seguridad: obligatorios en casos críticos
                     if (['penalizado', 'devuelto', 'rechazada'].includes(this.estado)) {
-                        return v && v.trim().length > 0; 
+                        return v && v.trim().length > 0;
                     }
                     return true;
                 },
@@ -71,6 +71,15 @@ const solicitudesSchema = new mongoose.Schema({
         }
     }],
 
+    /** * @property {String} estado 
+     * Estado actual de la solicitud (pendiente, aprobada, etc.).
+     */
+    estado: {
+        type: String,
+        enum: ['pendiente', 'aprobada', 'rechazada', 'entregado', 'penalizado', 'devuelto'],
+        default: 'pendiente'
+    },
+
     /** * @property {Date} fecha_prestamo 
      * Fecha en la que se formaliza el préstamo.
      */
@@ -79,21 +88,21 @@ const solicitudesSchema = new mongoose.Schema({
     /** * @property {Date} fecha_entrega_esperada 
      * Fecha límite para devolver los activos.
      */
-    fecha_entrega_esperada: { type: Date }, 
+    fecha_entrega_esperada: { type: Date },
 
     /** * @property {Date} fecha_devolucion_real 
      * Fecha efectiva en la que se retornaron los equipos.
      */
-    fecha_devolucion_real: { type: Date }, 
+    fecha_devolucion_real: { type: Date },
 
     /** * @property {String} comentario_admin 
      * Notas internas exclusivas del administrador.
      */
     comentario_admin: { type: String, trim: true }
-    
-}, { 
+
+}, {
     /** Genera automáticamente campos de auditoría: createdAt y updatedAt. */
-    timestamps: true 
+    timestamps: true
 });
 
 /** * Modelo 'Solicitudes' para el control de flujo de préstamos.
