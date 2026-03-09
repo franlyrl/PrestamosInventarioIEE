@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer'); // IMPORTANTE: Importar multer aquí
+const multer = require('multer'); 
 const path = require('path');
 const generarToken = require('../utils/generarToken');
 const usuarioControllers = require('../controllers/usuarioControllers');
-const { protect } = require('../middlewares/authMiddleware');
-const { restrictTo } = require('../middlewares/roleMiddleware');
+const { searchUsuarios } = require('../controllers/usuarioControllers');
 
+// FIX: Combine all middleware into ONE declaration and remove the duplicates
+// Note: Make sure restrictTo is coming from the correct file (authMiddleware or roleMiddleware)
+const { protect, restrictTo } = require('../middlewares/authMiddleware');
 
 /**
  * // --- 1. CONFIGURACIÓN DE MULTER (Debe ir antes de las rutas) ---
@@ -28,22 +30,21 @@ router.post('/login', usuarioControllers.loginUsuario);
 router.get('/perfil', protect, usuarioControllers.getPerfil);
 
 // --- 4. RUTAS ADMINISTRATIVAS (Solo Admin) ---
-router.use(restrictTo('admin', 'administrador')); 
 
 // Nota: Cambié el orden de /buscar para que no se confunda con /:id
-router.get('/buscar', usuarioControllers.searchUsuarios);
-router.get('/'  , usuarioControllers.getUsuarios);
+router.get('/buscar', protect, restrictTo('admin'), searchUsuarios);
+router.get('/', protect, usuarioControllers.getUsuarios);
 router.get('/:id', usuarioControllers.getUsuarioById);
 router.get('/email/:email', usuarioControllers.getUsuarioByEmail);
 router.get('/rol/:role', usuarioControllers.getUsuariosByRole);
 
 // Acciones de control
-router.patch('/:id', usuarioControllers.updateUsuario);
-router.patch('/:id/inactivar', usuarioControllers.inactivarUsuario);
-router.post('/sancionar/:id', usuarioControllers.sancionarUsuarioPorFalta);
+router.patch('/:id', protect, usuarioControllers.updateUsuario);
+router.patch('/:id/inactivar', protect, restrictTo('admin'), usuarioControllers.inactivarUsuario);
+router.post('/sancionar/:id', protect, restrictTo('admin'), usuarioControllers.sancionarUsuarioPorFalta);
 
 // Ciclo académico
-router.patch('/mantenimiento/cierre-cuatrimestre', usuarioControllers.cierreCuatrimestre);
-router.post('/mantenimiento/limpiar-archivo', usuarioControllers.limpiarUsuariosViejos);
+router.patch('/mantenimiento/cierre-cuatrimestre', protect, restrictTo('admin'), usuarioControllers.cierreCuatrimestre);
+router.post('/mantenimiento/limpiar-archivo', protect, restrictTo('admin'), usuarioControllers.limpiarUsuariosViejos);
 
 module.exports = router;

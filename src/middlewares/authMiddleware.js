@@ -1,49 +1,70 @@
-    const jwt = require('jsonwebtoken');
-    const usuarios = require('../models/usuarios');
-    const usuarioControllers = require('../controllers/usuarioControllers');
+const jwt = require('jsonwebtoken');
+const usuarios = require('../models/usuarios');
 
-    /**
-     * @param {*} req 
-     * @param {*} res 
-     * @param {*} next 
-     * @returns Middleware de autenticación para proteger rutas. Verifica que el usuario tenga un token válido y que su cuenta esté activa.
-     *  Middleware de autenticación para proteger rutas. Verifica que el usuario tenga un token válido y que su cuenta esté activa.
-     * Se debe usar en las rutas que requieren autenticación, por ejemplo: router.get('/perfil', protect, userController.getPerfil);
-     * Proceso: 
-     * 1. Extrae el token del header Authorization (Bearer token).
-     * 2. Verifica el token usando JWT y la clave secreta.
-     * 3. Busca el usuario en la base de datos usando el ID del token.
-     * 4. Verifica que el usuario no esté inactivo o sancionado.
-     * 5. Si todo es correcto, inyecta el usuario en req.user para que los controladores puedan acceder a su información.
-     * 6. Si hay algún error (token inválido, usuario no encontrado, cuenta inactiva), responde con el error correspondiente.
-     */
+/**
+ * Middleware de autenticación para proteger rutas.
+ */
+exports.protect = async (req, res, next) => {
+  try {
+    let token;
 
-    exports.protect = async (req, res, next) => {
-        try {
-            let token;
-            if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-                token = req.headers.authorization.split(' ')[1];
-            }
+    // 1. Extraer el token del header Authorization
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
 
-            if (!token) return res.status(401).json({ message: 'No enviaste el token.' });
+    if (!token) {
+      return res.status(401).json({ message: 'No enviaste el token.' });
+    }
 
-            // --- DEPURACIÓN ---
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            console.log("ID decodificado del Token:", decoded.id); 
+    // 2. Verificar el token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    console.log("------------------------------------------");
+    console.log("🔍 [Middleware] Payload decodificado:", decoded);
 
-            const usuarioActual = await usuarios.findById(decoded.id);
-            console.log("¿Se encontró usuario en DB?:", usuarioActual ? "SÍ" : "NO");
-            // ------------------
+    // 3. Buscar el usuario en la base de datos
+    const usuarioActual = await usuarios.findById(decoded.id);
 
-            if (!usuarioActual) {
-                return res.status(401).json({ message: 'El ID del token no coincide con ningún usuario.' });
-            }
+    if (!usuarioActual) {
+      console.log("❌ [Middleware] El ID del token no existe en la DB:", decoded.id);
+      return res.status(401).json({ 
+        message: 'El usuario asociado a este token ya no existe.' 
+      });
+    }
 
-            req.user = usuarioActual;
-            next();
-            console.log("✅ [Middleware] Usuario localizado:", req.user.correo_electronico);
-        } catch (error) {
-            console.log("Error en Middleware:", error.message);
-            res.status(401).json({ message: 'Token inválido', error: error.message });
+    // 4. Inyectar el usuario en la petición
+    // IMPORTANTE: Usamos req.user (estándar) para que restrictTo lo encuentre
+    req.user = usuarioActual;
+    
+    console.log("✅ [Middleware] Acceso concedido a:", usuarioActual.correo_electronico);
+    console.log("------------------------------------------");
+    
+    next();
+  } catch (error) {
+    console.log("❌ [Middleware] Error de validación:", error.message);
+    
+    let mensaje = 'Token inválido';
+    if (error.name === 'TokenExpiredError') mensaje = 'El token ha expirado. Inicia sesión de nuevo.';
+    
+    res.status(401).json({ 
+      message: mensaje, 
+      error: error.message 
+    });
+  }
+};
+
+/**
+ * Middleware para restringir por roles (VA AFUERA de protect)
+ */
+exports.restrictTo = (...roles) => {
+    return (req, res, next) => {
+        // Usamos req.user porque así lo nombramos en 'protect'
+        if (!roles.includes(req.user.tipo_rol)) {
+            return res.status(403).json({ 
+                message: 'No tienes permiso para realizar esta acción' 
+            });
         }
+        next();
     };
+};

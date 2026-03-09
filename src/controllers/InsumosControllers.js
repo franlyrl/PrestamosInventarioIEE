@@ -32,39 +32,60 @@ exports.createInsumo = async (req, res) => {
         // 1. FILTRO DE SEGURIDAD (Solo administrativos)
         const rolesAutorizados = ['admin', 'administrador'];
         
-        if (!req.user || !rolesAutorizados.includes(req.user.role)) {
+        if (!req.user || !rolesAutorizados.includes(req.user.tipo_rol)) {
             return res.status(403).json({ 
-                message: 'Acceso denegado: No tienes permisos para añadir insumos.' 
+                message: 'Acceso denegado: No tienes permisos para añadir insumos.',
+                debug: `rol actual: ${req.user?.tipo_rol}`
             });
         }
 
-        // 2. EXTRACCIÓN DE DATOS 
-        const { NombProducto, caracteristicas, categoria, stock } = req.body;
-
-        // 3. VALIDACIÓN DE PRESENCIA (Campos técnicos obligatorios)
-        if (!NombProducto || !caracteristicas || !categoria) {
-            return res.status(400).json({ 
-                message: 'Error: El nombre, las características y la categoría son campos técnicos obligatorios.' 
-            });
-        }
-
-        // 4. VALIDACIÓN DE CATEGORÍA (Enum Check)
+        // detect whether we received an array (bulk) or single object
+        const datos = req.body;
         const categoriasValidas = Insumos.schema.path('categoria').enumValues;
-        if (!categoriasValidas.includes(categoria)) {
-            return res.status(400).json({ 
-                message: 'Categoría no válida.', 
-                categoriasPermitidas: categoriasValidas 
+
+        const validarObjeto = obj => {
+            const { NombProducto, caracteristicas, categoria } = obj;
+            if (!NombProducto || !caracteristicas || !categoria) {
+                return false;
+            }
+            if (!categoriasValidas.includes(categoria)) {
+                return false;
+            }
+            return true;
+        };
+
+        if (Array.isArray(datos)) {
+            // bulk insert
+            if (datos.length === 0) {
+                return res.status(400).json({ message: 'Array vacío enviado para creación masiva.' });
+            }
+            for (const item of datos) {
+                if (!validarObjeto(item)) {
+                    return res.status(400).json({ message: 'Uno o más objetos del array no son válidos.' });
+                }
+            }
+            const insertados = await Insumos.insertMany(datos);
+            return res.status(201).json({
+                message: 'Insumos registrados con éxito (bulk)',
+                count: insertados.length,
+                data: insertados
+            });
+        } else {
+            // single insert (caída original)
+            const { NombProducto, caracteristicas, categoria } = datos;
+            if (!validarObjeto(datos)) {
+                return res.status(400).json({ 
+                    message: 'Error: El nombre, las características y la categoría son campos técnicos obligatorios ó categoría inválida.' 
+                });
+            }
+            const nuevoInsumo = new Insumos(datos);
+            const insumoGuardado = await nuevoInsumo.save();
+
+            return res.status(201).json({
+                message: "Insumo registrado con éxito",
+                data: insumoGuardado
             });
         }
-
-        // 5. GUARDADO
-        const nuevoInsumo = new Insumos(req.body);
-        const insumoGuardado = await nuevoInsumo.save();
-
-        res.status(201).json({
-            message: "Insumo registrado con éxito",
-            data: insumoGuardado
-        });
 
     } catch (error) {
         res.status(500).json({ 
@@ -95,6 +116,24 @@ exports.updateInsumo = async (req, res) => {
         res.json(insumoActualizado);
     } catch (error) {
         res.status(400).json({ message: 'Error al actualizar el insumo', error });
+    }
+};
+
+/**
+ * @route GET /api/insumos/:id
+ * @desc Devuelve un insumo por su ID.
+ * @access Privado (cualquier usuario autenticado)
+ */
+exports.getInsumoById = async (req, res) => {
+    try {
+        const insumo = await Insumos.findById(req.params.id);
+        if (!insumo) {
+            return res.status(404).json({ message: 'Insumo no encontrado' });
+        }
+        res.json(insumo);
+    } catch (error) {
+        // si el id no es un ObjectId válido, mongoose lanza CastError
+        res.status(400).json({ message: 'Error al obtener el insumo', error: error.message });
     }
 };
 
@@ -147,14 +186,15 @@ exports.deleteInsumo = async (req, res) => {
         const { motivo_eliminacion } = req.body;
 
         // 1. Verificación de Rol
-        if (req.usuario.tipo_rol !== 'admin' && req.usuario.tipo_rol !== 'Administrador') {
+        // note: middleware auth coloca el usuario en req.user, no req.usuario
+        if (!req.user || (req.user.tipo_rol !== 'admin' && req.user.tipo_rol !== 'Administrador')) {
             return res.status(403).json({ 
                 message: 'No autorizado. Solo administradores pueden dar de baja insumos.' 
             });
         }
 
         // 2. Verificación de Justificación (Obligatoria)
-        if (!justificacion_dbaja || justificacion_dbaja.trim().length < 10) {
+        if (!motivo_eliminacion || motivo_eliminacion.trim().length < 10) {
             return res.status(400).json({ 
                 message: 'Se requiere una justificación (mín. 10 caracteres) para la baja del insumo.'
             });
@@ -165,9 +205,9 @@ exports.deleteInsumo = async (req, res) => {
             req.params.id,
             { 
                 estado: 'eliminado', // Asegúrate de tener el campo 'estado' en el Schema también
-                justificacion_baja: justificacion_dbaja,
+                justificacion_baja: motivo_eliminacion,
                 fecha_baja: new Date(),
-                eliminado_por: req.usuario.id 
+                eliminado_por: req.user._id 
             },
             { new: true }
         );
@@ -180,8 +220,8 @@ exports.deleteInsumo = async (req, res) => {
             message: 'Insumo dado de baja correctamente.',
             detalles: {
                 id: insumoActualizado._id,
-                nombre: insumoActualizado.nombre,
-                motivo: insumoActualizado.justificacion_sbaja
+                nombre: insumoActualizado.NombProducto,
+                motivo: insumoActualizado.justificacion_baja
             }
         });
 
@@ -277,12 +317,27 @@ exports.getInsumosPorCategoria = async (req, res) => {
 exports.searchInsumos = async (req, res) => {
     try {
         const { q } = req.query;
-        const insumos = await Insumos.find({
-            $text: { $search: q }
-        });
+
+        // Validation: If 'q' is missing or just whitespace, return an empty array
+        // This prevents passing null/undefined to the $text operator
+        if (!q || q.trim() === "") {
+            return res.json([]);
+        }
+
+        // Perform the text search
+        // Using 'score' allows us to sort by the most relevant match
+        const insumos = await Insumos.find(
+            { $text: { $search: q } },
+            { score: { $meta: "textScore" } }
+        ).sort({ score: { $meta: "textScore" } });
+
         res.json(insumos);
     } catch (error) {
-        res.status(500).json({ message: 'Error al buscar insumos', error });
+        console.error("Search Error:", error);
+        res.status(500).json({ 
+            message: 'Error al buscar insumos', 
+            error: error.message || error 
+        });
     }
 };
 
@@ -308,31 +363,173 @@ exports.getInsumosByEstado = async (req, res) => {
 };
 
 /**
+ * @route PATCH /api/insumos/:id/stock
+ * @desc Actualiza solo la cantidad de un insumo (incrementar o decrementar).
+ * @access Privado (Admin/Administrador)
+ * @body {Number} cantidad - cantidad a sumar o restar
+ * @body {String} operacion - 'incrementar' o 'decrementar'
+ */
+exports.updateStock = async (req, res) => {
+    try {
+        const { cantidad, operacion } = req.body;
+
+        if (!cantidad || !operacion) {
+            return res.status(400).json({ 
+                message: 'Se requieren los campos "cantidad" y "operacion"' 
+            });
+        }
+
+        if (!['incrementar', 'decrementar'].includes(operacion)) {
+            return res.status(400).json({ 
+                message: 'La operación debe ser "incrementar" o "decrementar"' 
+            });
+        }
+
+        const insumo = await Insumos.findById(req.params.id);
+        if (!insumo) {
+            return res.status(404).json({ message: 'Insumo no encontrado' });
+        }
+
+        const nuevaCantidad = operacion === 'incrementar' 
+            ? insumo.cantidad + cantidad 
+            : insumo.cantidad - cantidad;
+
+        if (nuevaCantidad < 0) {
+            return res.status(400).json({ 
+                message: 'La cantidad resultante no puede ser negativa' 
+            });
+        }
+
+        insumo.cantidad = nuevaCantidad;
+        const actualizado = await insumo.save();
+
+        res.json({
+            message: `Stock ${operacion}do correctamente`,
+            data: actualizado
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            message: 'Error al actualizar el stock', 
+            error: error.message 
+        });
+    }
+};
+
+/**
+ * @route PATCH /api/insumos/:id/reactivar
+ * @desc Reactiva un insumo que fue eliminado.
+ * @access Privado (Solo Admin)
+ */
+exports.reactivarInsumo = async (req, res) => {
+    try {
+        const insumo = await Insumos.findById(req.params.id);
+        if (!insumo) {
+            return res.status(404).json({ message: 'Insumo no encontrado' });
+        }
+
+        insumo.estado = 'activo';
+        insumo.justificacion_baja = null;
+        insumo.fecha_baja = null;
+        insumo.eliminado_por = null;
+        const reactivado = await insumo.save();
+
+        res.json({
+            message: 'Insumo reactivado correctamente',
+            data: reactivado
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            message: 'Error al reactivar el insumo', 
+            error: error.message 
+        });
+    }
+};
+
+/**
+ * @route GET /api/insumos/estadisticas
+ * @desc Retorna estadísticas del inventario (total, cantidad total, categorías).
+ * @access Privado (cualquier usuario autenticado)
+ */
+exports.getEstadisticas = async (req, res) => {
+    try {
+        const totalInsumos = await Insumos.countDocuments();
+        const cantidadTotal = await Insumos.aggregate([
+            { $group: { _id: null, total: { $sum: '$cantidad' } } }
+        ]);
+        
+        const porCategoria = await Insumos.aggregate([
+            { $group: { _id: '$categoria', cantidad: { $sum: '$cantidad' }, count: { $sum: 1 } } }
+        ]);
+
+        res.json({
+            totalInsumos: totalInsumos,
+            cantidadTotal: cantidadTotal[0]?.total || 0,
+            porCategoria: porCategoria
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            message: 'Error al obtener estadísticas', 
+            error: error.message 
+        });
+    }
+};
+
+/**
+ * @route GET /api/insumos/bajo-stock
+ * @desc Retorna insumos con stock por debajo del límite especificado.
+ * @access Privado (cualquier usuario autenticado)
+ * @query {Number} limite - cantidad mínima (default: 5)
+ */
+exports.getBajoStock = async (req, res) => {
+    try {
+        const limite = parseInt(req.query.limite) || 5;
+        
+        const insumosBajos = await Insumos.find({ cantidad: { $lte: limite } })
+            .sort({ cantidad: 1 });
+
+        res.json({
+            limite: limite,
+            total: insumosBajos.length,
+            data: insumosBajos
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            message: 'Error al obtener insumos de bajo stock', 
+            error: error.message 
+        });
+    }
+};
+
+/**
  * @route GET /api/reportes/alertas-stock
  * @desc Genera un reporte de insumos con stock crítico (menos de 5 unidades).
  * @access Privado (Admin/Administrador)
  */
 exports.getAlertasStock = async (req, res) => {
     try {
-        // Definimos un umbral por defecto
-        const UMBRAL_CRITICO = 5;
+        // Permitimos que el umbral sea dinámico vía query params o usamos 5 por defecto
+        const UMBRAL_CRITICO = parseInt(req.query.umbral) || 5;
 
         // Buscamos insumos cuya cantidad sea menor o igual al umbral
-        const insumosBajos = await Insumo.find({
+        // Solo incluimos productos que no estén marcados como eliminados/inactivos si aplica
+        const insumosBajos = await Insumos.find({
             cantidad: { $lte: UMBRAL_CRITICO }
         })
         .select('id_insumo NombProducto cantidad categoria')
-        .sort({ cantidad: 1 }); // De menor a mayor para ver lo más urgente primero
+        .sort({ cantidad: 1 }); // Prioridad: los que tienen menos stock primero
 
-        res.json({
+        return res.status(200).json({
+            ok: true,
             total_alertas: insumosBajos.length,
-            fecha_reporte: new Date(),
+            fecha_reporte: new Date().toLocaleString(),
             criterio: `Insumos con ${UMBRAL_CRITICO} unidades o menos.`,
             data: insumosBajos
         });
 
     } catch (error) {
-        res.status(500).json({ 
+        console.error("Error en reporte de alertas:", error);
+        return res.status(500).json({ 
+            ok: false,
             message: 'Error al generar el reporte de stock.', 
             error: error.message 
         });

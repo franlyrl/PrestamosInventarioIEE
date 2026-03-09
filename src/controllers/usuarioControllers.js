@@ -10,11 +10,13 @@ const Solicitudes = require('../models/Solicitudes'); // Para verificar préstam
  */
 exports.getUsuarios = async (req, res) => {
     try {
-        const usuarios = await usuarios.find().select('contrasena');
+        const usuarios = await Usuarios.find().select('cedula nombre_completo correo_electronico tipo_rol estado');
         res.json(usuarios);
+
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener los usuarios', error });
-    }
+    console.error("DEBUG ERROR:", error); // This shows the error in your terminal
+    res.status(500).json({ message: "Error al obtener los usuarios", error: error.message });
+}
 };
 
 /**
@@ -189,16 +191,20 @@ exports.sancionarUsuarioPorFalta = async (req, res) => {
 */
 exports.inactivarUsuario = async (req, res) => {
     try {
-        // 1. Verificación de permisos
-        if (!['admin', 'Administrador'].includes(req.usuario.tipo_rol)) {
-            return res.status(403).json({ message: 'No tienes permisos para esta acción.' });
+        // 1. Verificación de permisos (Usamos req.user que viene del middleware protect)
+        const admin = req.user; 
+
+        if (!admin || !['admin', 'Administrador'].includes(admin.tipo_rol)) {
+            return res.status(403).json({ 
+                message: 'No tienes permisos para esta acción.',
+                debug: `Tu rol actual es: ${admin?.tipo_rol}` // Esto te ayudará a ver qué llega
+            });
         }
 
-        // 2. EVITAR AUTO-BLOQUEO: Un admin no puede inactivarse a sí mismo
-        if (req.usuario.id === req.params.id) {
+        // 2. EVITAR AUTO-BLOQUEO
+        if (admin._id.toString() === req.params.id) {
             return res.status(400).json({ message: 'No puedes inactivar tu propia cuenta de administrador.' });
         }
-
         // 3. Inactivar al usuario
         const usuario = await Usuarios.findById(req.params.id);
         if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -364,34 +370,68 @@ exports.getUsuariosByRole = async (req, res) => {
 /**
  * @desc Buscador global (Campos corregidos: nombre_completo, correo_electronico).
  */
+const usuarios = require('../models/usuarios');
+
+/**
+ * @route GET /api/usuarios/buscar?q=termino
+ * @desc Busca usuarios por nombre o correo electrónico.
+ * @access Privado (Solo Administrador/Admin)
+ * Busca usuarios por nombre o correo electrónico.
+ * Implementa búsqueda con operadores lógicos y exclusión de datos sensibles.
+ * Nota: Si recibes un error 401 en Postman, el problema suele estar en el 
+ * middleware de validación de JWT, no en este controlador.
+ * @param {Object} req - Request de Express con query param 'q'
+ * @param {Object} res - Response de Express
+ */
 exports.searchUsuarios = async (req, res) => {
     try {
         const query = req.query.q;
+        
+        // As seen in your logs, the payload has 'id'
+        const idLogueado = req.user?.id; 
 
-        // 1. Validación: Si no hay búsqueda, devolvemos un array vacío o error 400
         if (!query) {
-            return res.status(400).json({ message: 'El término de búsqueda es requerido' });
+            return res.status(400).json({ 
+                status: 'fail',
+                message: 'Please provide a search term.' 
+            });
         }
 
-        // 2. Búsqueda con MongoDB usando operadores lógicos
-        const usuarios = await Usuarios.find({
+        // Logic for filtering
+        const filters = {
             $or: [
                 { nombre_completo: { $regex: query, $options: 'i' } },
                 { correo_electronico: { $regex: query, $options: 'i' } }
             ]
-        })
-        .select('-hash_contraseña') // Excluimos la contraseña por seguridad
-        .limit(10); // Recomendado: limitar resultados para no saturar el servidor
+        };
 
-        res.json(usuarios);
+        // Exclude the logged-in user if the ID exists
+        if (idLogueado) {
+            filters._id = { $ne: idLogueado };
+        }
+
+        // Now 'Usuario' will be defined!
+        const resultados = await Usuarios.find(filters)
+            .select('-hash_contraseña') 
+            .limit(10)
+            .lean();
+
+        res.status(200).json({
+            status: 'success',
+            results: resultados.length,
+            data: { usuarios: resultados }
+        });
+
     } catch (error) {
-        console.error('Error en búsqueda:', error); // Log interno para debug
-        res.status(500).json({
-            message: 'Error al buscar usuarios',
-            error: error.message
+        console.error('❌ Error in searchUsuarios:', error);
+        res.status(500).json({ 
+            status: 'error',
+            message: 'Server Error', 
+            error: error.message 
         });
     }
 };
+
 /**
  * @route PATCH /api/usuarios/cierre-cuatrimestre
  * @desc Inactiva usuarios y fuerza reseteo de contraseña para el nuevo ciclo.

@@ -38,51 +38,65 @@ exports.getActivos = async (req, res) => {
  */
 exports.createActivo = async (req, res) => {
     try {
-        // 1. ESCUDO DE SEGURIDAD (Autorización)
-        // Solo permitimos el paso a roles 'admin' o 'administrador'
-        const rolesAutorizados = ['admin', 'administrador'];
-        
-        if (!req.user || !rolesAutorizados.includes(req.user.role)) {
+            // 1. El middleware de rutas ya limita el acceso a usuarios con tipo_rol
+        //    'admin', 'Administrador' o 'administrativo'. Si por alguna razón se llama al
+        //    controlador directamente, hacemos una verificación ligera usando el campo
+        //    correcto del modelo ('tipo_rol').
+        const allowed = ['admin', 'administrativo', 'Administrador'];
+        if (!req.user || !allowed.includes(req.user.tipo_rol)) {
             return res.status(403).json({ 
                 message: 'Acceso denegado: Solo el personal administrativo puede registrar activos.' 
             });
         }
 
-        // 2. EXTRACCIÓN Y VALIDACIÓN DE CAMPOS TÉCNICOS
-        const { numActivo, numSerie, marca, modelo, categoria } = req.body;
-
-        if (!numActivo || !numSerie || !marca || !modelo || !categoria) {
-            return res.status(400).json({ 
-                message: 'Error: Faltan campos obligatorios (Números de identificación, marca, modelo o categoría).' 
-            });
-        }
-
-        // 3. VALIDACIÓN DEL ENUM (Integridad de Categoría)
+        // support bulk array or single
+        const datos = req.body;
         const categoriasValidas = Activos.schema.path('categoria').enumValues;
-        if (!categoriasValidas.includes(categoria)) {
-            return res.status(400).json({ 
-                message: 'La categoría seleccionada no es válida.', 
-                opciones: categoriasValidas 
+
+        const validar = obj => {
+            const { numActivo, numSerie, marca, modelo, categoria } = obj;
+            if (!numActivo || !numSerie || !marca || !modelo || !categoria) return false;
+            if (!categoriasValidas.includes(categoria)) return false;
+            return true;
+        };
+
+        if (Array.isArray(datos)) {
+            if (datos.length === 0) {
+                return res.status(400).json({ message: 'Array vacío enviado para creación masiva.' });
+            }
+            for (const it of datos) {
+                if (!validar(it)) {
+                    return res.status(400).json({ message: 'Uno o más activos del array no son válidos.' });
+                }
+            }
+            const insertados = await Activos.insertMany(datos);
+            return res.status(201).json({
+                message: 'Activos registrados con éxito (bulk)',
+                count: insertados.length,
+                data: insertados
             });
         }
 
-        // 4. PROCESO DE GUARDADO
-        const nuevoActivo = new Activos(req.body);
+        // single
+        if (!validar(datos)) {
+            return res.status(400).json({ 
+                message: 'Error: faltan campos obligatorios o categoría inválida.' 
+            });
+        }
+        const nuevoActivo = new Activos(datos);
         const activoGuardado = await nuevoActivo.save();
 
-        res.status(201).json({
+        return res.status(201).json({
             message: "Equipo registrado con éxito en el sistema de activos",
             data: activoGuardado
         });
 
     } catch (error) {
-        // 5. MANEJO DE DUPLICADOS (Seguridad de Identidad Única)
         if (error.code === 11000) {
             return res.status(400).json({ 
                 message: 'Error: El Número de Activo o de Serie ya está asignado a otro equipo.' 
             });
         }
-        
         res.status(500).json({ 
             message: 'Error interno al procesar el registro', 
             error: error.message 
@@ -159,31 +173,30 @@ exports.updateActivo = async (req, res) => {
  */
 exports.deleteActivo = async (req, res) => {
     try {
-        // Extraemos 'observaciones' del body, que será nuestro motivo de baja
         const { observaciones } = req.body;
 
         // 1. Verificación de Rol
-        if (req.usuario.tipo_rol !== 'admin' && req.usuario.tipo_rol !== 'Administrador') {
+        if (!req.user || (req.user.tipo_rol !== 'admin' && req.user.tipo_rol !== 'Administrador')) {
             return res.status(403).json({ 
                 message: 'No tiene permisos suficientes para eliminar activos del sistema.' 
             });
         }
 
-        // 2. Verificación de Justificación (Reutilizando el campo observaciones)
+        // 2. Verificación de Justificación
         if (!observaciones || observaciones.trim().length < 10) {
             return res.status(400).json({ 
                 message: 'Debe proporcionar una justificación en el campo de observaciones (mín. 10 caracteres) para la baja.' 
             });
         }
 
-        // 3. Borrado Lógico: Actualizamos estado y observaciones
+        // 3. Borrado lógico
         const activoActualizado = await Activos.findByIdAndUpdate(
             req.params.id,
             { 
                 estado: 'eliminado',
-                observaciones: `BAJA: ${observaciones}`, // Marcamos que esto fue por una baja
+                observaciones: `BAJA: ${observaciones}`,
                 fecha_baja: new Date(),
-                eliminado_por: req.usuario.id 
+                eliminado_por: req.user._id 
             },
             { new: true }
         );
@@ -276,5 +289,69 @@ exports.getActivosByCategoria = async (req, res) => {
 exports.getEnumCategoriasActivos = (req, res) => {
     const categorias = Activos.schema.path('categoria').enumValues;
     res.json(categorias);
+};
+
+/**
+ * @route PATCH /api/activos/:id/reactivar
+ * @desc Reactiva un activo dado de baja (estado -> 'activo').
+ * @access Privado (Solo admin)
+ */
+exports.reactivarActivo = async (req, res) => {
+    try {
+        const activo = await Activos.findById(req.params.id);
+        if (!activo) {
+            return res.status(404).json({ message: 'Activo no encontrado' });
+        }
+        activo.estado = 'activo';
+        activo.observaciones = null;
+        activo.fecha_baja = null;
+        activo.eliminado_por = null;
+        const reactivado = await activo.save();
+        res.json({ message: 'Activo reactivado con éxito', data: reactivado });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al reactivar el activo', error: error.message });
+    }
+};
+
+/**
+ * @route GET /api/activos/estadisticas
+ * @desc Devuelve estadísticas básicas del inventario de activos.
+ * @access Privado (cualquier usuario autenticado)
+ */
+exports.getEstadisticas = async (req, res) => {
+    try {
+        const total = await Activos.countDocuments();
+        const porCategoria = await Activos.aggregate([
+            { $group: { _id: '$categoria', count: { $sum: 1 } } }
+        ]);
+        res.json({ total, porCategoria });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener estadísticas', error: error.message });
+    }
+};
+
+/**
+ * @route GET /api/activos/search?q=xxx
+ * @desc Busca activos por nombre, marca o modelo usando texto completo.
+ * @access Privado (cualquier usuario autenticado)
+ */
+exports.searchActivos = async (req, res) => {
+    try {
+        const { q } = req.query;
+        if (!q || q.trim() === '') return res.json([]);
+        
+        // Búsqueda con regex en marca, modelo y características (no requiere índice de texto)
+        const regex = new RegExp(q, 'i'); // 'i' = case-insensitive
+        const activos = await Activos.find({
+            $or: [
+                { marca: regex },
+                { modelo: regex },
+                { caracteristicas: regex }
+            ]
+        });
+        res.json(activos);
+    } catch (error) {
+        res.status(500).json({ message: 'Error en búsqueda de activos', error: error.message });
+    }
 };
 

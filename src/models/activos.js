@@ -82,6 +82,9 @@ const activoSchema = new mongoose.Schema({
     timestamps: true 
 });
 
+// Índice de texto para búsqueda completa en marca, modelo y características
+activoSchema.index({ marca: 'text', modelo: 'text', caracteristicas: 'text' });
+
 /** * Modelo 'Activo' para interactuar con la colección de activos en la base de datos.
  */
 const Activo = mongoose.model('Activo', activoSchema);
