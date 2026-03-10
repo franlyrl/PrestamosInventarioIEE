@@ -1,0 +1,261 @@
+/* Estilos específicos para la página de Activos */
+
+/* Grid de Activos */
+.activos-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+@media (max-width: 768px) {
+  .activos-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .activos-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+/* Cards de Activos */
+.activo-card {
+  position: relative;
+  border-left: 4px solid var(--utn-blue);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.activo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 68, 124, 0.15);
+  border-left-color: var(--utn-blue-light);
+}
+
+/* Status Badge */
+.activo-status {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.activo-status.disponible {
+  background-color: #10b981;
+  color: white;
+}
+
+.activo-status.prestado {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.activo-status.mantenimiento {
+  background-color: #ef4444;
+  color: white;
+}
+
+.activo-status.danado {
+  background-color: #6b7280;
+  color: white;
+}
+
+/* Imagen del Activo */
+.activo-imagen {
+  width: 100%;
+  height: 12rem;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.activo-imagen-placeholder {
+  width: 100%;
+  height: 12rem;
+  background-color: var(--slate-100);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  font-size: 3rem;
+  color: var(--slate-400);
+}
+
+/* Información del Activo */
+.activo-info h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--slate-800);
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+}
+
+.activo-info p {
+  font-size: 0.875rem;
+  color: var(--slate-600);
+  margin-bottom: 0.5rem;
+}
+
+.activo-caracteristicas {
+  font-size: 0.75rem;
+  color: var(--slate-500);
+  line-height: 1.4;
+  margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Acciones del Activo */
+.activo-acciones {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.activo-acciones button {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+/* Filtros Avanzados */
+.filtros-avanzados {
+  background: linear-gradient(135deg, var(--slate-50) 0%, white 100%);
+  border: 1px solid var(--slate-200);
+}
+
+.filtros-avanzados .input-field {
+  background-color: white;
+}
+
+/* Vista de Lista */
+.activos-lista {
+  display: none;
+}
+
+.activos-lista .activo-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--slate-200);
+  transition: all 0.3s ease;
+}
+
+.activos-lista .activo-item:hover {
+  background-color: var(--slate-50);
+}
+
+.activos-lista .activo-imagen-mini {
+  width: 4rem;
+  height: 4rem;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  margin-right: 1rem;
+}
+
+.activos-lista .activo-detalles {
+  flex: 1;
+}
+
+.activos-lista .activo-acciones-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+/* Toggle Vista */
+.vista-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.vista-toggle button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--slate-200);
+  background-color: white;
+  color: var(--slate-600);
+  transition: all 0.3s ease;
+}
+
+.vista-toggle button.active {
+  background-color: var(--utn-blue);
+  color: white;
+  border-color: var(--utn-blue);
+}
+
+/* Search Highlight */
+.search-highlight {
+  background-color: #fef3c7;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+}
+
+/* Animaciones de Entrada */
+.activo-card {
+  animation: slideInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .activo-imagen,
+  .activo-imagen-placeholder {
+    height: 10rem;
+  }
+  
+  .activo-acciones {
+    flex-direction: column;
+  }
+  
+  .activo-acciones button {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .activo-imagen,
+  .activo-imagen-placeholder {
+    height: 8rem;
+  }
+  
+  .activo-info h3 {
+    font-size: 1rem;
+  }
+  
+  .activo-info p {
+    font-size: 0.8rem;
+  }
+  
+  .activo-caracteristicas {
+    font-size: 0.7rem;
+  }
+}

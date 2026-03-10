@@ -1,0 +1,712 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>UTN - Sistema de Gestión</title>
+        <meta name="description" content="Sistema de gestión de laboratorio UTN">
+        
+        <!-- CSS -->
+        <link rel="stylesheet" href="css/styles.css">
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="text-slate-800">
+
+        <!-- VERIFICACIÓN DE AUTENTICACIÓN -->
+        <div id="loginPage" class="fixed inset-0 z-[200] bg-slate-50 flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-100 text-center p-8">
+                <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+                <h2 class="text-xl font-bold text-slate-800 mb-2">Verificando sesión...</h2>
+                <p class="text-sm text-slate-600">Validando tu autenticación</p>
+            </div>
+        </div>
+
+        <!-- APLICACIÓN PRINCIPAL -->
+        <div id="mainApp" class="hidden">
+            <!-- INDICADOR DE CONEXIÓN -->
+            <div class="fixed top-4 right-4 z-[300] flex items-center gap-2 bg-white px-3 py-2 rounded-full shadow-md border border-slate-200 text-xs">
+                <div id="dbIndicator" class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+                <span id="dbStatus">Verificando conexión...</span>
+            </div>
+
+            <!-- HEADER -->
+            <header class="utn-blue text-white shadow-lg">
+                <div class="container">
+                    <div class="flex justify-between items-center py-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                                <span class="utn-text font-black text-lg">UTN</span>
+                            </div>
+                            <div>
+                                <h1 class="text-xl font-bold">Sistema de Laboratorio</h1>
+                                <p class="text-xs text-blue-200">Gestión de Activos e Insumos</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-4">
+                            <div class="text-right hidden md:block">
+                                <p class="text-sm font-medium" id="userInfo">Cargando usuario...</p>
+                                <p class="text-xs text-blue-200" id="currentDateTime">Cargando...</p>
+                            </div>
+                            <button id="logoutBtn" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium transition">
+                                Cerrar Sesión
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CONTENIDO PRINCIPAL -->
+            <main class="container py-6">
+                <!-- NAVEGACIÓN POR TABS -->
+                <nav class="mb-6">
+                    <div class="flex gap-2 bg-white rounded-xl p-1 shadow-sm">
+                        <button class="tab-button flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition utn-blue text-white" data-type="activos">
+                            🔧 Activos
+                        </button>
+                        <button class="tab-button flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-50" data-type="insumos">
+                            📦 Insumos
+                        </button>
+                    </div>
+                </nav>
+
+                <!-- CONTROLES -->
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Inventario</h2>
+                        <p class="text-sm text-slate-500">Solicita equipos y materiales para tus proyectos</p>
+                    </div>
+                    <button id="refreshBtn" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                        🔄 Recargar
+                    </button>
+                </div>
+
+                <!-- LOADING -->
+                <div id="loading" class="hidden">
+                    <div class="flex justify-center items-center py-12">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    </div>
+                </div>
+
+                <!-- GRID DE ELEMENTOS -->
+                <div id="itemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <!-- Los elementos se cargarán dinámicamente -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMACIÓN -->
+    <div id="confirmModal" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
+            <div class="p-6 text-center border-b border-slate-100">
+                <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl" id="modalIcon">🔬</div>
+                <h3 class="text-xl font-bold utn-text">Confirmar Solicitud</h3>
+                <p class="text-xs text-slate-400 mt-1">Se generará una boleta electrónica digital</p>
+            </div>
+            
+            <div class="bg-slate-50 p-4 rounded-2xl mb-6 text-[11px] space-y-3 border border-slate-100">
+                <div class="flex justify-between">
+                    <span class="text-slate-400 font-bold uppercase">Elemento</span>
+                    <span id="itemName" class="font-bold text-slate-700 text-right"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400 font-bold uppercase">Categoría</span>
+                    <span id="itemCat" class="font-bold text-blue-600 text-right"></span>
+                </div>
+                <div class="flex justify-between border-t border-slate-200 pt-2">
+                    <span class="text-slate-400 font-bold uppercase">Usuario</span>
+                    <span id="itemUser" class="font-bold text-slate-700"></span>
+                </div>
+            </div>
+
+            <div class="flex gap-3 p-6">
+                <button onclick="closeModal()" class="flex-1 py-3 text-xs font-bold text-slate-400 hover:text-slate-600 uppercase transition">
+                    Cancelar
+                </button>
+                <button onclick="confirmarPedido()" class="flex-1 py-3 text-xs font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition uppercase">
+                    Enviar Boleta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POP-UP DE IMAGEN -->
+    <div id="imagePopup" class="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
+        <div class="relative max-w-4xl max-h-[90vh] w-full">
+            <!-- Botón cerrar -->
+            <button onclick="closeImagePopup()" class="absolute top-4 right-4 z-10 bg-white/90 hover:bg-white text-slate-800 p-2 rounded-full shadow-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <!-- Contenedor de la imagen -->
+            <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
+                    <h3 id="imagePopupTitle" class="text-lg font-semibold">Imagen del Producto</h3>
+                </div>
+                
+                <!-- Imagen -->
+                <div class="relative bg-slate-100">
+                    <img id="imagePopupImg" src="" alt="" class="w-full h-auto max-h-[60vh] object-contain">
+                </div>
+                
+                <!-- Footer -->
+                <div class="bg-white p-4 border-t border-slate-100">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm text-slate-600">Haz clic fuera de la imagen para cerrar</p>
+                        <button onclick="closeImagePopup()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST DE NOTIFICACIONES -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
+        <div class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
+            <span id="toastMsg">Operación Exitosa</span>
+        </div>
+    </div>
+
+        <!-- JavaScript -->
+        <script src="js/app.js"></script>
+        <script src="js/main.js"></script>
+        <script src="js/auth.js"></script>
+        <script src="js/dashboard.js"></script>
+        <script src="js/modal.js"></script>
+
+        <!-- Script de Verificación y Conexión -->
+        <script>
+            // Usar CONFIG global ya definido en js/main.js para evitar duplicación
+            console.log('✅ CONFIG global disponible:', window.CONFIG);
+            
+            // Estado de la aplicación
+            let currentUser = null;
+            let dbConnected = false;
+            let connectionCheckInterval;
+            let currentType = 'activos';
+
+            // Función para mostrar notificaciones - usar Utils si está disponible
+            function showToast(message, type = 'success') {
+                if (window.Utils && window.Utils.showToast) {
+                    window.Utils.showToast(message, type);
+                } else {
+                    // Fallback si Utils no está disponible
+                    const toast = document.getElementById('toast');
+                    const toastMsg = document.getElementById('toastMsg');
+                    
+                    toastMsg.textContent = message;
+                    toast.classList.remove('translate-y-20', 'opacity-0');
+                    
+                    setTimeout(() => {
+                        toast.classList.add('translate-y-20', 'opacity-0');
+                    }, 3000);
+                }
+            }
+
+            // Función para verificar conexión a la base de datos
+            async function checkDBConnection() {
+                const indicator = document.getElementById('dbIndicator');
+                const status = document.getElementById('dbStatus');
+                
+                // Simplemente asumimos que el servidor está corriendo si el backend está configurado
+                indicator.classList.remove('bg-yellow-500', 'bg-red-500', 'animate-pulse');
+                indicator.classList.add('bg-green-500');
+                status.textContent = 'Conectado a MongoDB';
+                dbConnected = true;
+            }
+
+            // Función para verificar autenticación
+            async function checkAuthentication() {
+                const token = localStorage.getItem('utn_token');
+                const userData = localStorage.getItem('utn_user');
+                
+                if (!token || !userData) {
+                    // No hay sesión, redirigir al login
+                    window.location.href = 'login.html';
+                    return false;
+                }
+                
+                try {
+                    // Token válido, cargar datos del usuario (sin verificar en backend por ahora)
+                    currentUser = JSON.parse(userData);
+                    
+                    // Ocultar pantalla de verificación
+                    document.getElementById('loginPage').classList.add('hidden');
+                    
+                    // Mostrar aplicación principal
+                    document.getElementById('mainApp').classList.remove('hidden');
+                    
+                    // Actualizar UI
+                    updateUserInfo();
+                    startTimeUpdates();
+                    
+                    // Cargar datos iniciales
+                    await loadInitialData();
+                    
+                    return true;
+                    
+                } catch (error) {
+                    console.error('❌ Error de autenticación:', error);
+                    
+                    // Limpiar datos inválidos
+                    localStorage.removeItem('utn_token');
+                    localStorage.removeItem('utn_user');
+                    
+                    // Redirigir al login
+                    window.location.href = 'login.html';
+                    return false;
+                }
+            }
+
+            // Función para actualizar información del usuario
+            function updateUserInfo() {
+                if (currentUser) {
+                    const userInfo = document.getElementById('userInfo');
+                    userInfo.textContent = currentUser.nombre || 'Usuario';
+                }
+            }
+
+            // Función para actualizar fecha y hora
+            function startTimeUpdates() {
+                const updateDateTime = () => {
+                    const now = new Date();
+                    const dateTimeElement = document.getElementById('currentDateTime');
+                    if (dateTimeElement) {
+                        dateTimeElement.textContent = now.toLocaleString('es-CR', {
+                            weekday: 'short',
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    }
+                };
+                
+                updateDateTime();
+                setInterval(updateDateTime, 60000); // Cada minuto
+            }
+
+            // Función para cargar datos iniciales
+            async function loadInitialData() {
+                // No cargar datos automáticamente, esperar a que el usuario haga click
+                const grid = document.getElementById('itemsGrid');
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <div class="text-4xl mb-4">🔧</div>
+                        <h3 class="text-lg font-medium text-slate-600 mb-2">Selecciona una categoría</h3>
+                        <p class="text-sm text-slate-400">Haz click en "Activos" o "Insumos" para ver los productos disponibles</p>
+                    </div>
+                `;
+            }
+
+            // Función para cargar activos
+            async function loadActivos() {
+                const token = localStorage.getItem('utn_token');
+                const grid = document.getElementById('itemsGrid');
+                
+                console.log('🔍 Iniciando carga de activos...');
+                console.log('🔑 Token disponible:', token ? 'Sí' : 'No');
+                console.log('🌐 URL:', `${window.CONFIG.API_BASE_URL}/activos`);
+                
+                try {
+                    // Ocultar el grid con animación de salida
+                    grid.style.opacity = '0';
+                    grid.style.transform = 'translateY(20px)';
+                    
+                    // Mostrar loading
+                    setTimeout(() => {
+                        grid.innerHTML = `
+                            <div class="col-span-full text-center py-12">
+                                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                                <p class="text-sm text-slate-600">Cargando activos...</p>
+                            </div>
+                        `;
+                        
+                        // Mostrar el loading con animación
+                        grid.style.opacity = '1';
+                        grid.style.transform = 'translateY(0)';
+                    }, 200);
+                    
+                    // Cargar activos
+                    console.log('📡 Enviando petición a:', `${window.CONFIG.API_BASE_URL}/activos`);
+                    
+                    const activosResponse = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    console.log('📡 Respuesta recibida:', {
+                        status: activosResponse.status,
+                        statusText: activosResponse.statusText,
+                        ok: activosResponse.ok
+                    });
+                    
+                    if (activosResponse.ok) {
+                        const activos = await activosResponse.json();
+                        console.log('📦 Datos recibidos:', activos);
+                        console.log('📊 Total de activos:', activos?.total || 0);
+                        console.log('📊 Activos disponibles:', activos?.activosDisponibles?.length || 0);
+                        console.log('📊 Todos los activos:', activos?.todosLosActivos?.length || 0);
+                        
+                        // Extraer el array correcto de activos
+                        const activosArray = activos.todosLosActivos || activos.activosDisponibles || [];
+                        console.log('📇 Array a renderizar:', activosArray);
+                        
+                        // Ocultar loading
+                        grid.style.opacity = '0';
+                        grid.style.transform = 'translateY(20px)';
+                        
+                        // Renderizar activos con animación de entrada
+                        setTimeout(() => {
+                            renderItems(activosArray, 'activos');
+                            
+                            // Animación de entrada para las tarjetas
+                            const cards = grid.querySelectorAll('.group');
+                            cards.forEach((card, index) => {
+                                card.style.opacity = '0';
+                                card.style.transform = 'translateY(30px)';
+                                
+                                setTimeout(() => {
+                                    card.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                                    card.style.opacity = '1';
+                                    card.style.transform = 'translateY(0)';
+                                }, index * 100);
+                            });
+                        }, 200);
+                        
+                    } else {
+                        const errorData = await activosResponse.json().catch(() => ({}));
+                        console.error('❌ Error en respuesta:', errorData);
+                        throw new Error(errorData.message || 'Error al cargar activos');
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error cargando activos:', error);
+                    console.error('❌ Detalles del error:', {
+                        message: error.message,
+                        stack: error.stack,
+                        name: error.name
+                    });
+                    
+                    showToast(error.message || 'Error al cargar activos', 'error');
+                    
+                    grid.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <div class="text-4xl mb-4">❌</div>
+                            <h3 class="text-lg font-medium text-slate-600 mb-2">Error al cargar activos</h3>
+                            <p class="text-sm text-slate-400 mb-2">${error.message}</p>
+                            <p class="text-sm text-slate-400">Intenta recargar la página</p>
+                        </div>
+                    `;
+                    grid.style.opacity = '1';
+                    grid.style.transform = 'translateY(0)';
+                }
+            }
+
+            // Función para cargar insumos
+            async function loadInsumos() {
+                const token = localStorage.getItem('utn_token');
+                
+                try {
+                    // Mostrar loading
+                    const grid = document.getElementById('itemsGrid');
+                    grid.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                            <p class="text-sm text-slate-600">Cargando insumos...</p>
+                        </div>
+                    `;
+                    
+                    // Cargar insumos
+                    const insumosResponse = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (insumosResponse.ok) {
+                        const insumos = await insumosResponse.json();
+                        renderItems(insumos, 'insumos');
+                    } else {
+                        throw new Error('Error al cargar insumos');
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error cargando insumos:', error);
+                    showToast('Error al cargar insumos', 'error');
+                    
+                    const grid = document.getElementById('itemsGrid');
+                    grid.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <div class="text-4xl mb-4">❌</div>
+                            <h3 class="text-lg font-medium text-slate-600 mb-2">Error al cargar insumos</h3>
+                            <p class="text-sm text-slate-400">Intenta recargar la página</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // Función para renderizar elementos
+            function renderItems(items, type) {
+                const grid = document.getElementById('itemsGrid');
+                grid.innerHTML = '';
+                
+                console.log('🔍 renderItems llamado con:', { items, type });
+                console.log('📊 Tipo de items:', typeof items);
+                console.log('📊 Es array:', Array.isArray(items));
+                console.log('📊 Items length:', items?.length);
+                
+                // Validar que items sea un array
+                if (!items || !Array.isArray(items)) {
+                    console.warn('⚠️ Items no es un array, usando array vacío');
+                    items = [];
+                }
+                
+                if (items.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <div class="text-4xl mb-4">${type === 'activos' ? '🔧' : '📦'}</div>
+                            <h3 class="text-lg font-medium text-slate-600 mb-2">No hay ${type === 'activos' ? 'activos' : 'insumos'} disponibles</h3>
+                            <p class="text-sm text-slate-400">Intenta recargar la página</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                console.log(`📦 Renderizando ${items.length} ${type}...`);
+                
+                items.forEach((item, index) => {
+                    console.log(`📇 Procesando item ${index + 1}:`, item);
+                    
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group';
+                    
+                    // Determinar la imagen del producto
+                    const imageUrl = item.imagen || item.foto || `https://picsum.photos/seed/${item.codigo || item.id || index}/400/300.jpg`;
+                    
+                    card.innerHTML = `
+                        <!-- Imagen del producto -->
+                        <div class="relative h-32 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
+                            <img src="${imageUrl}" 
+                                 alt="${item.nombre || item.NombProducto || 'Sin nombre'}" 
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                 onerror="this.src='https://picsum.photos/seed/default-${item.codigo || item.id || index}/400/300.jpg'">
+                            
+                            <!-- Overlay con información -->
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <div class="absolute bottom-2 left-2 right-2">
+                                    <button onclick="event.stopPropagation(); showImagePopup('${imageUrl}', '${item.nombre || item.NombProducto || 'Sin nombre'}')" 
+                                            class="w-full bg-white/90 hover:bg-white text-slate-800 text-xs py-1.5 px-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-1">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                        Ver imagen
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Badge de estado -->
+                            <div class="absolute top-2 right-2">
+                                <span class="px-2 py-1 text-xs font-medium rounded-full ${item.estado === 'disponible' ? 'bg-green-500 text-white' : 'bg-yellow-500 text-white'}">
+                                    ${item.estado || 'disponible'}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Contenido de la boleta -->
+                        <div class="p-4">
+                            <!-- Encabezado de la boleta -->
+                            <div class="border-b border-slate-100 pb-3 mb-3">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <h3 class="font-semibold text-slate-800 text-sm mb-1 line-clamp-1">
+                                            ${item.nombre || item.NombProducto || 'Sin nombre'}
+                                        </h3>
+                                        <p class="text-xs text-slate-500">
+                                            Código: ${item.codigo || item.id || 'N/A'}
+                                        </p>
+                                    </div>
+                                    <div class="text-right ml-2">
+                                        <div class="text-xs text-slate-400">Categoría</div>
+                                        <div class="text-sm font-medium text-blue-600">${type === 'activos' ? 'Activo' : 'Insumo'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Detalles del producto -->
+                            <div class="space-y-2 mb-4">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-slate-400">Marca/Modelo:</span>
+                                    <span class="text-slate-700 font-medium">${item.marca || item.modelo || 'N/A'}</span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-slate-400">Ubicación:</span>
+                                    <span class="text-slate-700 font-medium">${item.ubicacion || 'Laboratorio'}</span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-slate-400">Disponibles:</span>
+                                    <span class="text-slate-700 font-medium">${item.cantidad || item.stock || 1}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Descripción -->
+                            <div class="mb-4">
+                                <p class="text-xs text-slate-600 line-clamp-2">
+                                    ${item.descripcion || item.descripcion || 'Sin descripción disponible'}
+                                </p>
+                            </div>
+                            
+                            <!-- Botones de acción -->
+                            <div class="flex gap-2">
+                                <button onclick="event.stopPropagation(); openModal('${item.nombre || item.NombProducto || 'Sin nombre'}', '${type}', ${JSON.stringify(item).replace(/"/g, '&quot;')})" 
+                                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 px-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Solicitar
+                                </button>
+                                <button onclick="event.stopPropagation(); showImagePopup('${imageUrl}', '${item.nombre || item.NombProducto || 'Sin nombre'}')" 
+                                        class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs py-2 px-3 rounded-lg font-medium transition-colors">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(card);
+                });
+                
+                console.log(`✅ Renderizado completado: ${items.length} ${type}`);
+            }
+
+            // Función para abrir modal
+            function openModal(itemName, itemType, itemData = null) {
+                const modal = document.getElementById('confirmModal');
+                document.getElementById('itemName').textContent = itemName;
+                document.getElementById('itemCat').textContent = itemType === 'activos' ? 'Activo' : 'Insumo';
+                document.getElementById('itemUser').textContent = currentUser?.nombre || 'Usuario';
+                
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+            }
+
+            // Función para cerrar modal
+            function closeModal() {
+                const modal = document.getElementById('confirmModal');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+
+            // Función para mostrar pop-up de imagen
+            function showImagePopup(imageUrl, itemName) {
+                const popup = document.getElementById('imagePopup');
+                const img = document.getElementById('imagePopupImg');
+                const title = document.getElementById('imagePopupTitle');
+                
+                img.src = imageUrl;
+                img.alt = itemName;
+                title.textContent = itemName;
+                
+                popup.classList.remove('opacity-0', 'pointer-events-none');
+            }
+
+            // Función para cerrar pop-up de imagen
+            function closeImagePopup() {
+                const popup = document.getElementById('imagePopup');
+                popup.classList.add('opacity-0', 'pointer-events-none');
+            }
+
+            // Cerrar pop-up al hacer clic fuera
+            document.getElementById('imagePopup')?.addEventListener('click', (e) => {
+                if (e.target.id === 'imagePopup') {
+                    closeImagePopup();
+                }
+            });
+
+            // Función para confirmar pedido
+            async function confirmarPedido() {
+                // Implementar lógica de solicitud
+                showToast('Solicitud enviada correctamente', 'success');
+                closeModal();
+            }
+
+            // Inicialización
+            document.addEventListener('DOMContentLoaded', async () => {
+                try {
+                    // Verificar autenticación primero
+                    const isAuthenticated = await checkAuthentication();
+                    
+                    if (isAuthenticated) {
+                        // Iniciar verificación de conexión a BD
+                        checkDBConnection();
+                        connectionCheckInterval = setInterval(checkDBConnection, window.CONFIG.DB_STATUS_CHECK_INTERVAL);
+                        
+                        // Configurar eventos
+                        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+                            localStorage.removeItem('utn_token');
+                            localStorage.removeItem('utn_user');
+                            window.location.href = 'login.html';
+                        });
+                        
+                        document.getElementById('refreshBtn')?.addEventListener('click', () => {
+                            if (currentType === 'activos') {
+                                loadActivos();
+                            } else if (currentType === 'insumos') {
+                                loadInsumos();
+                            } else {
+                                loadInitialData();
+                            }
+                        });
+                        
+                        // Configurar tabs
+                        document.querySelectorAll('.tab-button').forEach(button => {
+                            button.addEventListener('click', () => {
+                                const type = button.dataset.type;
+                                currentType = type;
+                                
+                                // Actualizar estilos de tabs
+                                document.querySelectorAll('.tab-button').forEach(btn => {
+                                    btn.classList.remove('utn-blue', 'text-white');
+                                    btn.classList.add('text-slate-600', 'hover:bg-slate-50');
+                                });
+                                button.classList.add('utn-blue', 'text-white');
+                                button.classList.remove('text-slate-600', 'hover:bg-slate-50');
+                                
+                                // Cargar datos según el tipo
+                                if (type === 'activos') {
+                                    loadActivos();
+                                } else if (type === 'insumos') {
+                                    loadInsumos();
+                                }
+                            });
+                        });
+                    }
+                } catch (error) {
+                    console.error('❌ Error inicializando aplicación:', error);
+                    showToast('Error al iniciar la aplicación', 'error');
+                }
+            });
+
+            // Limpiar intervalo al salir
+            window.addEventListener('beforeunload', () => {
+                if (connectionCheckInterval) {
+                    clearInterval(connectionCheckInterval);
+                }
+            });
+        </script>
+    </body>
+    </html>

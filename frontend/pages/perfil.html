@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil - UTN Sistema de Gestión</title>
+    <meta name="description" content="Perfil de usuario del sistema UTN">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/pages/perfil.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="text-slate-800">
+    
+    <!-- Header Component -->
+    <div id="header-component"></div>
+    
+    <!-- Contenido Principal -->
+    <main class="container py-6">
+        <div class="flex gap-6">
+            <!-- Sidebar Component -->
+            <div id="sidebar-component"></div>
+            
+            <!-- Contenido del Perfil -->
+            <div class="flex-1 max-w-4xl">
+                <header class="mb-6">
+                    <h1 class="text-3xl font-bold text-slate-800">👤 Mi Perfil</h1>
+                    <p class="text-slate-600">Gestiona tu información personal y preferencias</p>
+                </header>
+                
+                <!-- Información Personal -->
+                <section class="card p-6 mb-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-slate-800">Información Personal</h2>
+                        <button id="editar-perfil-btn" class="btn btn-secondary">
+                            ✏️ Editar
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Nombre Completo</label>
+                            <p id="nombre-completo" class="text-slate-900 font-medium">-</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Cédula</label>
+                            <p id="cedula" class="text-slate-900 font-medium">-</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Correo Electrónico</label>
+                            <p id="correo" class="text-slate-900 font-medium">-</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Código de Barras</label>
+                            <p id="codigo-barras" class="text-slate-900 font-medium">-</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Rol</label>
+                            <p id="rol" class="text-slate-900 font-medium">-</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Estado</label>
+                            <p id="estado" class="text-slate-900 font-medium">-</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Estadísticas del Usuario -->
+                <section class="card p-6 mb-6">
+                    <h2 class="text-xl font-bold text-slate-800 mb-6">📊 Mis Estadísticas</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-3xl mb-2">📋</div>
+                            <h3 class="text-2xl font-bold text-blue-600" id="total-solicitudes">0</h3>
+                            <p class="text-sm text-slate-600">Total Solicitudes</p>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-3xl mb-2">📦</div>
+                            <h3 class="text-2xl font-bold text-green-600" id="activos-en-uso">0</h3>
+                            <p class="text-sm text-slate-600">Activos en Uso</p>
+                        </div>
+                        <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                            <div class="text-3xl mb-2">⏳</div>
+                            <h3 class="text-2xl font-bold text-yellow-600" id="solicitudes-pendientes">0</h3>
+                            <p class="text-sm text-slate-600">Pendientes</p>
+                        </div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div class="text-3xl mb-2">✅</div>
+                            <h3 class="text-2xl font-bold text-purple-600" id="devoluciones-tiempo">0</h3>
+                            <p class="text-sm text-slate-600">Devoluciones a Tiempo</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Historial de Actividad -->
+                <section class="card p-6 mb-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-slate-800">📜 Historial de Actividad</h2>
+                        <button id="ver-todo-btn" class="btn btn-secondary">
+                            Ver Todo
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-3" id="actividad-reciente">
+                        <!-- La actividad se cargará dinámicamente -->
+                    </div>
+                </section>
+                
+                <!-- Preferencias -->
+                <section class="card p-6 mb-6">
+                    <h2 class="text-xl font-bold text-slate-800 mb-6">⚙️ Preferencias</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-medium text-slate-900">Notificaciones por Email</h3>
+                                <p class="text-sm text-slate-600">Recibir notificaciones sobre solicitudes y devoluciones</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="notificaciones-email" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-medium text-slate-900">Recordatorios de Devolución</h3>
+                                <p class="text-sm text-slate-600">Recibir recordatorios antes de la fecha de devolución</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="recordatorios-devolucion" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Idioma</label>
+                            <select id="idioma-select" class="input-field w-48">
+                                <option value="es">Español</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <button id="guardar-preferencias-btn" class="btn btn-primary">
+                            💾 Guardar Preferencias
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- Cambio de Contraseña -->
+                <section class="card p-6">
+                    <h2 class="text-xl font-bold text-slate-800 mb-6">🔒 Cambiar Contraseña</h2>
+                    
+                    <div class="space-y-4 max-w-md">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Contraseña Actual</label>
+                            <input type="password" id="password-actual" class="input-field w-full" placeholder="Ingresa tu contraseña actual">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Nueva Contraseña</label>
+                            <input type="password" id="password-nueva" class="input-field w-full" placeholder="Ingresa tu nueva contraseña">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Confirmar Nueva Contraseña</label>
+                            <input type="password" id="password-confirmacion" class="input-field w-full" placeholder="Confirma tu nueva contraseña">
+                        </div>
+                        
+                        <button id="cambiar-password-btn" class="btn btn-primary">
+                            🔒 Cambiar Contraseña
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Modals Component -->
+    <div id="modals-component"></div>
+    
+    <!-- Toast Component -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
+        <div class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
+            <span id="toastMsg">Operación Exitosa</span>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="../js/main.js"></script>
+    <script src="../js/components/header.js"></script>
+    <script src="../js/components/sidebar.js"></script>
+    <script src="../js/components/modals.js"></script>
+    <script src="../js/pages/perfil.js"></script>
+    
+    <!-- Inicialización -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar autenticación
+            const isAuth = window.authController?.checkAuthStatus();
+            
+            if (!isAuth) {
+                window.location.href = '../index.html';
+            } else {
+                // Inicializar página de perfil
+                window.perfilController?.initialize();
+            }
+        });
+    </script>
+</body>
+</html>

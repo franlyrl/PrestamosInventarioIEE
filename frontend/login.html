@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UTN - Portal de Acceso</title>
+    <meta
+      name="description"
+      content="Portal de acceso al sistema de gestión UTN" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="text-slate-800">
+    <!-- PANTALLA DE LOGIN -->
+    <div
+      id="loginPage "
+      class="fixed inset-0 z-[200] bg-slate-50 flex items-center justify-center p-4">
+      <div
+        class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
+        <div class="utn-blue p-8 text-center text-white">
+          <div
+            class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <span class="utn-text font-black text-xl">UTN</span>
+          </div>
+          <h2 class="text-2xl font-bold tracking-tight">
+            Sistema de Electrónica
+          </h2>
+          <p
+            class="text-blue-200 text-xs mt-1 uppercase tracking-widest font-medium">
+            Control de Activos e Insumos
+          </p>
+        </div>
+
+        <form id="loginForm" class="p-8 space-y-5">
+          <div>
+            <label
+              class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1"
+              >Usuario / Carnet</label
+            >
+            <input
+              type="text"
+              id="userInput"
+              placeholder="604550123"
+              class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm"
+              required />
+          </div>
+          <div>
+            <label
+              class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1"
+              >Contraseña</label
+            >
+            <input
+              type="password"
+              id="passInput"
+              placeholder="••••••••"
+              class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm"
+              required />
+          </div>
+
+          <button
+            type="submit"
+            id="loginBtn"
+            class="w-full utn-blue text-white py-3.5 rounded-xl font-bold text-sm shadow-xl shadow-blue-100 hover:bg-blue-800 active:scale-[0.98] transition-all">
+            ACCEDER AL SISTEMA
+          </button>
+                
+          <div class="text-center pt-4 border-t border-slate-100">
+            <p class="text-xs text-slate-500 mb-3">¿No tienes cuenta?</p>
+            <button type="button" onclick="goToSignUp()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl font-medium text-sm transition-all border border-slate-200">
+              CREAR CUENTA
+            </button>
+          </div>
+        </form>
+
+        <div class="p-4 bg-slate-50 text-center border-t border-slate-100">
+          <p class="text-[10px] text-slate-400">
+            Acceso restringido a personal y estudiantes UTN
+          </p>
+          <p class="text-[9px] text-slate-300 mt-1">
+            Conectado a MongoDB Atlas
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- INDICADOR DE CONEXIÓN -->
+    <div
+      id="connectionStatus"
+      class="fixed top-4 right-4 z-[300] flex items-center gap-2 bg-white px-3 py-2 rounded-full shadow-md border border-slate-200 text-xs">
+      <div
+        id="dbIndicator"
+        class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+      <span id="dbStatus">Verificando conexión...</span>
+    </div>
+
+    <!-- TOAST DE NOTIFICACIONES -->
+    <div
+      id="toast"
+      class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
+      <div
+        class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
+        <span id="toastMsg">Operación Exitosa</span>
+      </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+      // Configuración global - solo una vez
+      const CONFIG = {
+        API_BASE_URL: 'http://localhost:4000/api',
+        DB_STATUS_CHECK_INTERVAL: 30000 // 30 segundos
+      };
+
+      // Estado de conexión
+      let dbConnected = false;
+      let connectionCheckInterval;
+
+      // Función para mostrar notificaciones
+      function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+        
+        toastMsg.textContent = message;
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        
+        setTimeout(() => {
+          toast.classList.add('translate-y-20', 'opacity-0');
+        }, 3000);
+      }
+
+      // Función para verificar conexión a la base de datos
+        async function checkDBConnection() {
+            const indicator = document.getElementById('dbIndicator');
+            const status = document.getElementById('dbStatus');
+            
+            try {
+                // Verificar si el servidor está corriendo (endpoint público)
+                const response = await fetch(`${CONFIG.API_BASE_URL}/usuarios/login`, {
+                    method: 'OPTIONS',
+                    timeout: 5000
+                });
+                
+                // Si el servidor responde, asumimos que la BD está conectada
+                indicator.classList.remove('bg-yellow-500', 'bg-red-500', 'animate-pulse');
+                indicator.classList.add('bg-green-500');
+                status.textContent = 'Conectado a MongoDB';
+                dbConnected = true;
+                
+            } catch (error) {
+                indicator.classList.remove('bg-yellow-500', 'bg-green-500', 'animate-pulse');
+                indicator.classList.add('bg-red-500');
+                status.textContent = 'Sin conexión a BD';
+                dbConnected = false;
+            }
+        }
+
+      // Función de login
+      async function handleLogin(credentials) {
+        const loginBtn = document.getElementById('loginBtn');
+        
+        try {
+          // Loading state
+          loginBtn.disabled = true;
+          loginBtn.textContent = 'Iniciando sesión...';
+          
+          // Convertir cédula a email si es necesario
+          let correoElectronico = credentials.correo_electronico;
+          if (/^\d{9,12}$/.test(correoElectronico)) {
+            correoElectronico = `${correoElectronico}@utn.ac.cr`;
+          }
+
+          const loginData = {
+            correo_electronico: correoElectronico.toLowerCase().trim(),
+            contrasena: credentials.contrasena
+          };
+
+          console.log('🔍 Intentando login con:', loginData);
+
+          // Usar la ruta correcta del backend
+          const response = await fetch(`${CONFIG.API_BASE_URL}/usuarios/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(loginData)
+          });
+
+          console.log('🌐 Respuesta del servidor:', response.status, response.statusText);
+          
+          const data = await response.json();
+          console.log('📦 Datos recibidos:', data);
+
+          if (!response.ok) {
+            throw new Error(data.message || 'Error de autenticación');
+          }
+
+          // Guardar en localStorage
+          localStorage.setItem('utn_token', data.token);
+          localStorage.setItem('utn_user', JSON.stringify(data.usuario));
+
+          console.log('✅ Login exitoso:', data);
+          console.log('🔑 Token guardado:', data.token);
+          console.log('👤 Usuario guardado:', data.usuario);
+
+          showToast(`¡Bienvenido ${data.usuario.nombre}!`, 'success');
+          
+          // Redirigir inmediatamente a la aplicación principal
+          console.log('🔄 Redirigiendo a index.html...');
+          window.location.href = 'index.html';
+
+        } catch (error) {
+          console.error('❌ Error de login:', error);
+          showToast(error.message || 'Error al iniciar sesión', 'error');
+        } finally {
+          loginBtn.disabled = false;
+          loginBtn.textContent = 'ACCEDER AL SISTEMA';
+        }
+      }
+
+      // Inicialización
+      document.addEventListener('DOMContentLoaded', () => {
+        // Enfocar en el input de usuario
+        document.getElementById('userInput')?.focus();
+        
+        // Verificar conexión a la BD
+        checkDBConnection();
+        connectionCheckInterval = setInterval(checkDBConnection, CONFIG.DB_STATUS_CHECK_INTERVAL);
+        
+        // Manejo del formulario
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          
+          const username = document.getElementById('userInput').value.trim();
+          const password = document.getElementById('passInput').value;
+          
+          if (!username || !password) {
+            showToast('Por favor complete todos los campos', 'error');
+            return;
+          }
+          
+          handleLogin({ correo_electronico: username, contrasena: password });
+        });
+        
+        // Manejo de teclas
+        document.getElementById('userInput')?.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            document.getElementById('passInput')?.focus();
+          }
+        });
+        
+        document.getElementById('passInput')?.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+          }
+        });
+      });
+
+      // Limpiar intervalo al salir
+      window.addEventListener('beforeunload', () => {
+        if (connectionCheckInterval) {
+          clearInterval(connectionCheckInterval);
+        }
+      });
+
+      // Función para ir a la página de registro
+      function goToSignUp() {
+        window.location.href = 'signup.html';
+      }
+    </script>
+  </body>
+</html>

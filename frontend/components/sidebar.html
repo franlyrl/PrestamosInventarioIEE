@@ -1,0 +1,76 @@
+<!-- Sidebar Component -->
+<nav class="bg-white rounded-xl p-4 shadow-sm w-64">
+    <h2 class="font-bold text-slate-800 mb-4">Navegación</h2>
+    <ul class="space-y-2" id="nav-menu">
+        <li>
+            <a href="../index.html" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-slate-50 text-slate-600" data-page="index">
+                <span>🏠</span>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <a href="activos.html" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-slate-50 text-slate-600" data-page="activos">
+                <span>🔧</span>
+                <span>Activos</span>
+            </a>
+        </li>
+        <li>
+            <a href="insumos.html" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-slate-50 text-slate-600" data-page="insumos">
+                <span>📦</span>
+                <span>Insumos</span>
+            </a>
+        </li>
+        <li>
+            <a href="solicitudes.html" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-slate-50 text-slate-600" data-page="solicitudes">
+                <span>📋</span>
+                <span>Solicitudes</span>
+            </a>
+        </li>
+        <li>
+            <a href="perfil.html" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-slate-50 text-slate-600" data-page="perfil">
+                <span>👤</span>
+                <span>Mi Perfil</span>
+            </a>
+        </li>
+        <li>
+            <a href="reportes.html" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-slate-50 text-slate-600" data-page="reportes">
+                <span>📊</span>
+                <span>Reportes</span>
+            </a>
+        </li>
+    </ul>
+    
+    <!-- Información del Sistema -->
+    <div class="mt-8 pt-4 border-t border-slate-200">
+        <div class="text-xs text-slate-500 space-y-2">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>Sistema Online</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span>📡</span>
+                <span>API Conectada</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span>🔄</span>
+                <span id="lastUpdate">Actualizado hace 1 min</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Acciones Rápidas -->
+    <div class="mt-6">
+        <h3 class="text-sm font-medium text-slate-700 mb-3">Acciones Rápidas</h3>
+        <div class="space-y-2">
+            <button class="w-full text-left px-3 py-2 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition">
+                ➕ Nueva Solicitud
+            </button>
+            <button class="w-full text-left px-3 py-2 text-sm bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition">
+                📋 Ver Lista de Espera
+            </button>
+            <button class="w-full text-left px-3 py-2 text-sm bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition">
+                📊 Generar Reporte
+            </button>
+        </div>
+    </div>
+</nav>

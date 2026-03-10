@@ -1,0 +1,385 @@
+/* Estilos específicos para la página de Solicitudes */
+
+/* Tabla de Solicitudes */
+.solicitudes-table {
+  width: 100%;
+  background: white;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.solicitudes-table th {
+  background-color: var(--slate-50);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: var(--slate-700);
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--slate-200);
+}
+
+.solicitudes-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--slate-200);
+  vertical-align: middle;
+}
+
+.solicitudes-table tr:hover {
+  background-color: var(--slate-50);
+}
+
+/* Estado de Solicitud */
+.estado-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.estado-badge.pendiente {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.estado-badge.aprobada {
+  background-color: #10b981;
+  color: white;
+}
+
+.estado-badge.rechazada {
+  background-color: #ef4444;
+  color: white;
+}
+
+.estado-badge.entregado {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.estado-badge.devuelto {
+  background-color: #8b5cf6;
+  color: white;
+}
+
+/* Tarjeta de Solicitud */
+.solicitud-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid var(--utn-blue);
+  transition: all 0.3s ease;
+}
+
+.solicitud-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.solicitud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.solicitud-id {
+  font-size: 0.875rem;
+  color: var(--slate-500);
+  font-weight: 500;
+}
+
+.solicitud-fecha {
+  font-size: 0.75rem;
+  color: var(--slate-400);
+}
+
+.solicitud-usuario {
+  margin-bottom: 1rem;
+}
+
+.solicitud-usuario h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--slate-800);
+  margin-bottom: 0.25rem;
+}
+
+.solicitud-usuario p {
+  font-size: 0.875rem;
+  color: var(--slate-600);
+}
+
+.solicitud-elementos {
+  margin-bottom: 1rem;
+}
+
+.solicitud-elemento {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background-color: var(--slate-50);
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.solicitud-elemento-icon {
+  font-size: 1.25rem;
+}
+
+.solicitud-elemento-info {
+  flex: 1;
+}
+
+.solicitud-elemento-nombre {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--slate-800);
+}
+
+.solicitud-elemento-cantidad {
+  font-size: 0.75rem;
+  color: var(--slate-600);
+}
+
+.solicitud-acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.solicitud-acciones button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+/* Vista de Tarjetas */
+.solicitudes-tarjetas {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+}
+
+@media (max-width: 768px) {
+  .solicitudes-tarjetas {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* Filtros Avanzados */
+.filtros-solicitudes {
+  background: linear-gradient(135deg, var(--slate-50) 0%, white 100%);
+  border: 1px solid var(--slate-200);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.filtros-solicitudes .filtro-grupo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filtros-solicitudes .filtro-grupo:last-child {
+  margin-bottom: 0;
+}
+
+.filtro-solicitudes label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--slate-700);
+  margin-bottom: 0.5rem;
+}
+
+/* Estadísticas */
+.estadisticas-solicitudes {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-bottom: 2rem;
+}
+
+.estadistica-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.estadistica-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.estadistica-icono {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.estadistica-valor {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--slate-800);
+  margin-bottom: 0.25rem;
+}
+
+.estadistica-label {
+  font-size: 0.875rem;
+  color: var(--slate-600);
+}
+
+/* Timeline de Solicitudes */
+.solicitud-timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.solicitud-timeline::before {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--slate-200);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -1.5rem;
+  top: 0.5rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background-color: var(--utn-blue);
+  border: 2px solid white;
+}
+
+.timeline-content {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-fecha {
+  font-size: 0.75rem;
+  color: var(--slate-500);
+  margin-bottom: 0.5rem;
+}
+
+.timeline-descripcion {
+  font-size: 0.875rem;
+  color: var(--slate-700);
+}
+
+/* Paginación */
+.paginacion {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--slate-200);
+}
+
+.paginacion-info {
+  font-size: 0.875rem;
+  color: var(--slate-600);
+}
+
+.paginacion-botones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.paginacion-botones button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--slate-200);
+  background-color: white;
+  color: var(--slate-700);
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.paginacion-botones button:hover:not(:disabled) {
+  background-color: var(--slate-50);
+  border-color: var(--slate-300);
+}
+
+.paginacion-botones button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .solicitudes-table {
+    font-size: 0.875rem;
+  }
+  
+  .solicitudes-table th,
+  .solicitudes-table td {
+    padding: 0.5rem;
+  }
+  
+  .solicitud-card {
+    padding: 1rem;
+  }
+  
+  .solicitud-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .solicitud-acciones {
+    flex-direction: column;
+  }
+  
+  .filtros-solicitudes .filtro-grupo {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .estadisticas-solicitudes {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .solicitudes-tarjetas {
+    grid-template-columns: 1fr;
+  }
+  
+  .estadisticas-solicitudes {
+    grid-template-columns: 1fr;
+  }
+  
+  .paginacion {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+}
