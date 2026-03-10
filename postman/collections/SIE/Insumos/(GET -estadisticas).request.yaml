@@ -1,0 +1,9 @@
+$kind: http-request
+name: (GET /estadisticas)
+url: http://localhost:4000/api/insumos/estadisticas
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4
+order: 12000

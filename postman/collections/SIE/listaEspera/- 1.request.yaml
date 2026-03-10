@@ -1,0 +1,20 @@
+$kind: http-request
+name: /
+url: http://localhost:4000/api/listaEspera/
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"usuario\": \"69a88288367341c69354b17c\",\r
+
+    \  \"insumo\": \"64f8a1b2c3d4e5f6a7b8c9d3\",\r
+
+    \  \"cantidad_solicitada\": 5\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394
+order: 2000

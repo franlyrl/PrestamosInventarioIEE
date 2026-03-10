@@ -1,0 +1,9 @@
+$kind: http-request
+name: patch('/:id')
+url: http://localhost:4000/api/insumos/69ae4a811c2b7671525a1f27
+method: PATCH
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M
+order: 7000

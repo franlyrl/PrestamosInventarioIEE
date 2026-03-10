@@ -1,0 +1,21 @@
+$kind: http-example
+name: /admin-gestion/:id
+request:
+  url: http://localhost:4000/api/solicitudes/admin-gestion/69af499bcd88b7b30ca06816
+  method: PUT
+  body:
+    type: json
+    content: "{\r
+
+      \  \"nuevoEstadoAdmin\": \"aprobada\",\r
+
+      \  \"observaciones\": \"Solicitud aprobada para proyecto de circuitos\"\r
+
+      }\r\n"
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: text
+    content: ""
+order: 1000

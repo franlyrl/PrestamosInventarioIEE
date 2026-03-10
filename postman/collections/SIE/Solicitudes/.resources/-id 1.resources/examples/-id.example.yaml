@@ -1,0 +1,35 @@
+$kind: http-example
+name: /id
+request:
+  url: http://localhost:4000/api/solicitudes/id
+  method: DELETE
+  body:
+    type: text
+    content: "{\r
+
+      \  \"activos\": [\"64f8a1b2c3d4e5f6a7b8c9d0\"],\r
+
+      \  \"insumos\": [\r
+
+      \    {\r
+
+      \      \"id_insumo\": \"64f8a1b2c3d4e5f6a7b8c9d2\",\r
+
+      \      \"nombreProducto\": \"Resistencia 10kΩ\",\r
+
+      \      \"cantidad\": 5\r
+
+      \    }\r
+
+      \  ],\r
+
+      \  \"fecha_entrega_esperada\": \"2024-12-20T14:30:00.000Z\"\r
+
+      }"
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: text
+    content: ""
+order: 1000

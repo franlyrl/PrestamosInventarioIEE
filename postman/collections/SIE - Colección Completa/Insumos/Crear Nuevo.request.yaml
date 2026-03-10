@@ -1,0 +1,28 @@
+$kind: http-request
+url: http://localhost:4000/api/insumos
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"id_insumo\": 2001,\r
+
+    \    \"NombProducto\": \"Resistencia 10k Ohm 1/4W\",\r
+
+    \    \"cantidad\": 500,\r
+
+    \    \"caracteristicas\": \"Resistencia de carbón 5% tolerancia 1/4 de
+    vatios\",\r
+
+    \    \"categoria\": \"Componentes Analógicos\",\r
+
+    \    \"imagenUrl\":
+    \"https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=300&\
+    fit=crop&auto=format\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc9Njg3NTA7fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394
+order: 2000

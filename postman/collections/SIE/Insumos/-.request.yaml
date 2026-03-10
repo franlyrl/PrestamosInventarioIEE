@@ -1,0 +1,85 @@
+$kind: http-request
+name: /
+url: http://localhost:4000/api/insumos/
+method: GET
+body:
+  type: json
+  content: "[\r
+
+    \  {\r
+
+    \    \"id_insumo\": 1001,\r
+
+    \    \"NombProducto\": \"Resistencia 10Ω 1/4W\",\r
+
+    \    \"cantidad\": 500,\r
+
+    \    \"caracteristicas\": \"Resistencia de película metalizada, tolerancia
+    5%\",\r
+
+    \    \"categoria\": \"Componentes Analógicos\"\r
+
+    \  },\r
+
+    \  {\r
+
+    \    \"id_insumo\": 1002,\r
+
+    \    \"NombProducto\": \"Capacitor electrolítico 100µF 25V\",\r
+
+    \    \"cantidad\": 300,\r
+
+    \    \"caracteristicas\": \"Polarizado, 105°C, snap-in\",\r
+
+    \    \"categoria\": \"Componentes Analógicos\"\r
+
+    \  },\r
+
+    \  {\r
+
+    \    \"id_insumo\": 1003,\r
+
+    \    \"NombProducto\": \"Microcontrolador PIC16F877A\",\r
+
+    \    \"cantidad\": 120,\r
+
+    \    \"caracteristicas\": \"40 pines, 8-bit, 8K Flash\",\r
+
+    \    \"categoria\": \"Componentes Digitales\"\r
+
+    \  },\r
+
+    \  {\r
+
+    \    \"id_insumo\": 1004,\r
+
+    \    \"NombProducto\": \"LED rojo 5 mm\",\r
+
+    \    \"cantidad\": 1000,\r
+
+    \    \"caracteristicas\": \"Difuso, 2V, 20mA\",\r
+
+    \    \"categoria\": \"Componentes Digitales\"\r
+
+    \  },\r
+
+    \  {\r
+
+    \    \"id_insumo\": 1005,\r
+
+    \    \"NombProducto\": \"Transistor NPN 2N2222\",\r
+
+    \    \"cantidad\": 750,\r
+
+    \    \"caracteristicas\": \"300 mA, 40 V, TO‑92\",\r
+
+    \    \"categoria\": \"Componentes Analógicos\"\r
+
+    \  }\r
+
+    ]"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M
+order: 1000

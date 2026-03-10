@@ -1,0 +1,468 @@
+{
+  "info": {
+    "_postman_id": "86a8ae00-223f-412a-a350-cffc74190113",
+    "name": "SIE - Actualizado con Imágenes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "26664419"
+  },
+  "item": [
+    {
+      "name": "Insumos - Actualizados",
+      "item": [
+        {
+          "name": "Crear Insumo con Imagen",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"id_insumo\": 2001,\r\n    \"NombProducto\": \"Resistencia 10k Ohm 1/4W\",\r\n    \"cantidad\": 500,\r\n    \"caracteristicas\": \"Resistencia de carbón 5% tolerancia 1/4 de vatios\",\r\n    \"categoria\": \"Componentes Analógicos\",\r\n    \"imagenUrl\": \"https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=300&fit=crop&auto=format\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/insumos",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Creación Masiva con Imágenes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n    {\r\n        \"id_insumo\": 2007,\r\n        \"NombProducto\": \"Protoboard 830 puntos\",\r\n        \"cantidad\": 75,\r\n        \"caracteristicas\": \"Placa de prototipado 830 puntos doble cara alimentación central\",\r\n        \"categoria\": \"Herramientas Menores\",\r\n        \"imagenUrl\": \"https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&fit=crop&auto=format\"\r\n    },\r\n    {\r\n        \"id_insumo\": 2008,\r\n        \"NombProducto\": \"Cable Dupont 20cm Macho-Hembra\",\r\n        \"cantidad\": 500,\r\n        \"caracteristicas\": \"Juego de 40 cables dupont 20cm macho-hembra colores variados\",\r\n        \"categoria\": \"Herramientas Menores\",\r\n        \"imagenUrl\": \"https://images.unsplash.com/photo-1598300044257-a5143e815c2b?w=400&h=300&fit=crop&auto=format\"\r\n    },\r\n    {\r\n        \"id_insumo\": 2009,\r\n        \"NombProducto\": \"Transistor 2N2222 NPN\",\r\n        \"cantidad\": 300,\r\n        \"caracteristicas\": \"Transistor NPN 2N2222 TO-92 800mA 30V\",\r\n        \"categoria\": \"Componentes Digitales\",\r\n        \"imagenUrl\": \"https://images.unsplash.com/photo-1603792553731-c1f3a8802d1b?w=400&h=300&fit=crop&auto=format\"\r\n    }\r\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/bulk",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "bulk"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Todos",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {},
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Lista Espera",
+      "item": [
+        {
+          "name": "Ver Lista Completa",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {},
+            "url": {
+              "raw": "http://localhost:4000/api/listaEspera/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "listaEspera",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Agregar Manualmente",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA7fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"usuario\": \"69a88288367341c69354b17c\",\r\n    \"insumo\": \"60f5a3c2b4d1c81234567891\",\r\n    \"cantidad_solicitada\": 3\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/listaEspera/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "listaEspera",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Historial Usuarios",
+      "item": [
+        {
+          "name": "Establecer Fechas Inactividad",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA7fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/historial-usuarios/establecer-fechas-inactividad",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "historial-usuarios",
+                "establecer-fechas-inactividad"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ejecutar Archivado",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc5Njg3NTA7fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/historial-usuarios/ejecutar-limpieza",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "historial-usuarios",
+                "ejecutar-limpieza"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ver Historial Completo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc5Njg3NTA7fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {},
+            "url": {
+              "raw": "http://localhost:4000/api/historial-usuarios/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "historial-usuarios",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar por Cédula",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc5Njg3NTA7fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {},
+            "url": {
+              "raw": "http://localhost:4000/api/historial-usuarios/usuario/1111111111",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "historial-usuarios",
+                "usuario",
+                "1111111111"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Activos - Actualizados",
+      "item": [
+        {
+          "name": "Crear Activo con Imagen",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc9Njg3NTA7fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"numActivo\": 1001,\r\n    \"numSerie\": \"SN001234\",\r\n    \"estadoActivo\": \"disponible\",\r\n    \"marca\": \"Fluke\",\r\n    \"modelo\": \"87V\",\r\n    \"categoria\": \"Instrumentos\",\r\n    \"imagenUrl\": \"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop&auto=format\",\r\n    \"observaciones\": \"Multímetro digital\",\r\n    \"caracteristicas\": \"Rango automático, True RMS, pantalla retroiluminada\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/activos",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Creación Masiva con Imágenes",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc9Njg3NTA7fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n    {\r\n        \"numActivo\": 1002,\r\n        \"numSerie\": \"SN002345\",\r\n        \"estadoActivo\": \"disponible\",\r\n        \"marca\": \"Tektronix\",\r\n        \"modelo\": \"TBS1102\",\r\n        \"categoria\": \"Instrumentos\",\r\n        \"imagenUrl\": \"https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&fit=crop&auto=format\",\r\n        \"observaciones\": \"Osciloscopio digital\",\r\n        \"caracteristicas\": \"2 canales, 100MHz, pantalla LCD\"\r\n    },\r\n    {\r\n        \"numActivo\": 1003,\r\n        \"numSerie\": \"SN003456\",\r\n        \"estadoActivo\": \"disponible\",\r\n        \"marca\": \"Hakko\",\r\n        \"modelo\": \"FX-888D\",\r\n        \"categoria\": \"Herramientas\",\r\n        \"imagenUrl\": \"https://images.unsplash.com/photo-1622634365545-3ee3228c0a3d?w=400&h=300&fit=crop&auto=format\",\r\n        \"observaciones\": \"Estación de soldadura\",\r\n        \"caracteristicas\": \"Control de temperatura digital, 50W\"\r\n    }\r\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/activos/bulk",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos",
+                "bulk"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Todos",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc9Njg3NTA7fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {},
+            "url": {
+              "raw": "http://localhost:4000/api/activos",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

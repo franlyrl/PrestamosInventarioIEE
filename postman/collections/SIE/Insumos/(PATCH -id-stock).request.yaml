@@ -1,0 +1,19 @@
+$kind: http-request
+name: (PATCH /:id/stock)
+url: http://localhost:4000/api/insumos/id/stock
+method: PATCH
+body:
+  type: json
+  content: "{\r
+
+    \  \"cantidad\": 50,\r
+
+    \  \"operacion\": \"incrementar\"\r
+
+    }\r\n"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M
+examples: ./.resources/(PATCH -id-stock).resources/examples
+order: 11000

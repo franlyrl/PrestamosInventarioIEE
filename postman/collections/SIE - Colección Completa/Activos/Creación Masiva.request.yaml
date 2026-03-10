@@ -1,0 +1,61 @@
+$kind: http-request
+url: http://localhost:4000/api/activos/bulk
+method: POST
+body:
+  type: json
+  content: "[\r
+
+    \    {\r
+
+    \        \"numActivo\": 1002,\r
+
+    \        \"numSerie\": \"SN002345\",\r
+
+    \        \"estadoActivo\": \"disponible\",\r
+
+    \        \"marca\": \"Tektronix\",\r
+
+    \        \"modelo\": \"TBS1102\",\r
+
+    \        \"categoria\": \"Instrumentos\",\r
+
+    \        \"imagenUrl\":
+    \"https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&\
+    fit=crop&auto=format\",\r
+
+    \        \"observaciones\": \"Osciloscopio digital\",\r
+
+    \        \"caracteristicas\": \"2 canales, 100MHz, pantalla LCD\"\r
+
+    \    },\r
+
+    \    {\r
+
+    \        \"numActivo\": 1003,\r
+
+    \        \"numSerie\": \"SN003456\",\r
+
+    \        \"estadoActivo\": \"disponible\",\r
+
+    \        \"marca\": \"Hakko\",\r
+
+    \        \"modelo\": \"FX-888D\",\r
+
+    \        \"categoria\": \"Herramientas\",\r
+
+    \        \"imagenUrl\":
+    \"https://images.unsplash.com/photo-1622634365545-3ee3228c0a3d?w=400&h=300&\
+    fit=crop&auto=format\",\r
+
+    \        \"observaciones\": \"Estación de soldadura\",\r
+
+    \        \"caracteristicas\": \"Control de temperatura digital, 50W\"\r
+
+    \    }\r
+
+    ]"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc9Njg3NTA7fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394
+order: 3000

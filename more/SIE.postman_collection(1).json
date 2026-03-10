@@ -1,0 +1,2882 @@
+{
+  "info": {
+    "_postman_id": "86a8ae00-223f-412a-a350-cffc74190112",
+    "name": "SIE",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "26664418"
+  },
+  "item": [
+    {
+      "name": "Usuarios",
+      "item": [
+        {
+          "name": "/id",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyMzQzMywiZXhwIjoxNzc1NjE1NDMzfQ.69JU55z3SRNv88L7LBvt2z-L5BaWrrwoBwJ8Hd8bFME",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/usuarios/id",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "usuarios",
+                "id"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/id",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/usuarios/69a749c7e536f0566d1a7282",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "usuarios",
+                    "69a749c7e536f0566d1a7282"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "/buscar",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyMDkxMSwiZXhwIjoxNzc1NjEyOTExfQ.Wl-mC5w-OKdkFH3t6sLXPp4mW0_BNkFPSs1nZzY1h3E",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/usuarios/buscar?q=nombre_completo",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "usuarios",
+                "buscar"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "nombre_completo"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/buscar",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/usuarios/buscar?q=Zenelia",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "usuarios",
+                    "buscar"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "Zenelia"
+                    }
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "/login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"correo_electronico\": \"ashla@utn.ac.cr\",\r\n    \"contrasena\": \"uttntutututut\"\r\n\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/usuarios/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "usuarios",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyMzQzMywiZXhwIjoxNzc1NjE1NDMzfQ.69JU55z3SRNv88L7LBvt2z-L5BaWrrwoBwJ8Hd8bFME",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/usuarios/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "usuarios",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/email/:email",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyMzk0MiwiZXhwIjoxNzc1NjE1OTQyfQ.DAmpwTWZcLnFEs3dlwUAv8-9I-joPppmt3hdIViYkXc",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/usuarios/email/email",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "usuarios",
+                "email",
+                "email"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/email/:email",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/usuarios/email/ashly@utn.ac.cr",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "usuarios",
+                    "email",
+                    "ashly@utn.ac.cr"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "'/:id/inactivar",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/usuarios/69a749c7e536f0566d1a7282/inactivar",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "usuarios",
+                "69a749c7e536f0566d1a7282",
+                "inactivar"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/sancionar/:id'",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/usuarios/sancionar/id",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "usuarios",
+                "sancionar",
+                "id"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/sancionar/:id'",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/usuarios/sancionar/69a74a05e536f0566d1a7285",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "usuarios",
+                    "sancionar",
+                    "69a74a05e536f0566d1a7285"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "patch('/:id')",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyMzk0MiwiZXhwIjoxNzc1NjE1OTQyfQ.DAmpwTWZcLnFEs3dlwUAv8-9I-joPppmt3hdIViYkXc",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/usuarios/id",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "usuarios",
+                "id"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "patch('/:id')",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/usuarios/69a749c7e536f0566d1a7282",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "usuarios",
+                    "69a749c7e536f0566d1a7282"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "/mantenimiento/cierre-cuatrimestre",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/usuarios/mantenimiento/cierre-cuatrimestre",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "usuarios",
+                "mantenimiento",
+                "cierre-cuatrimestre"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/mantenimiento/limpiar-archivo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/usuarios/mantenimiento/limpiar-archivo",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "usuarios",
+                "mantenimiento",
+                "limpiar-archivo"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/buscar",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyMDkxMSwiZXhwIjoxNzc1NjEyOTExfQ.Wl-mC5w-OKdkFH3t6sLXPp4mW0_BNkFPSs1nZzY1h3E",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/usuarios/buscar?q=nombre_completo",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "usuarios",
+                "buscar"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "nombre_completo"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/buscar",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/usuarios/buscar?q=Zenelia",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "usuarios",
+                    "buscar"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "Zenelia"
+                    }
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Solicitudes",
+      "item": [
+        {
+          "name": "/",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5MjM0NCwiZXhwIjoxNzc1Njg0MzQ0fQ.rWTsW7hA1N0nexSf-mr69qhikUvGVPo5p4eW34_clFg",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"activos\": [\"64f8a1b2c3d4e5f6a7b8c9d0\"],\r\n  \"insumos\": [\r\n    {\r\n      \"id_insumo\": \"64f8a1b2c3d4e5f6a7b8c9d2\",\r\n      \"nombreProducto\": \"Resistencia 10kΩ\",\r\n      \"cantidad\": 5\r\n    }\r\n  ],\r\n  \"fecha_entrega_esperada\": \"2024-12-20T14:30:00.000Z\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/solicitudes/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "solicitudes",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5MjM0NCwiZXhwIjoxNzc1Njg0MzQ0fQ.rWTsW7hA1N0nexSf-mr69qhikUvGVPo5p4eW34_clFg",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"activos\": [\"64f8a1b2c3d4e5f6a7b8c9d0\"],\r\n  \"insumos\": [\r\n    {\r\n      \"id_insumo\": \"64f8a1b2c3d4e5f6a7b8c9d2\",\r\n      \"nombreProducto\": \"Resistencia 10kΩ\",\r\n      \"cantidad\": 5\r\n    }\r\n  ],\r\n  \"fecha_entrega_esperada\": \"2024-12-20T14:30:00.000Z\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/solicitudes/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "solicitudes",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/:id",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5MjM0NCwiZXhwIjoxNzc1Njg0MzQ0fQ.rWTsW7hA1N0nexSf-mr69qhikUvGVPo5p4eW34_clFg",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"activos\": [\"64f8a1b2c3d4e5f6a7b8c9d0\"],\r\n  \"insumos\": [\r\n    {\r\n      \"id_insumo\": \"64f8a1b2c3d4e5f6a7b8c9d2\",\r\n      \"nombreProducto\": \"Resistencia 10kΩ\",\r\n      \"cantidad\": 5\r\n    }\r\n  ],\r\n  \"fecha_entrega_esperada\": \"2024-12-20T14:30:00.000Z\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/solicitudes/id",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "solicitudes",
+                "id"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/:id",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"activos\": [\"64f8a1b2c3d4e5f6a7b8c9d0\"],\r\n  \"insumos\": [\r\n    {\r\n      \"id_insumo\": \"64f8a1b2c3d4e5f6a7b8c9d2\",\r\n      \"nombreProducto\": \"Resistencia 10kΩ\",\r\n      \"cantidad\": 5\r\n    }\r\n  ],\r\n  \"fecha_entrega_esperada\": \"2024-12-20T14:30:00.000Z\"\r\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:4000/api/solicitudes/69af4822cd88b7b30ca067ff",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "solicitudes",
+                    "69af4822cd88b7b30ca067ff"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "/id",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"activos\": [\"64f8a1b2c3d4e5f6a7b8c9d0\"],\r\n  \"insumos\": [\r\n    {\r\n      \"id_insumo\": \"64f8a1b2c3d4e5f6a7b8c9d2\",\r\n      \"nombreProducto\": \"Resistencia 10kΩ\",\r\n      \"cantidad\": 5\r\n    }\r\n  ],\r\n  \"fecha_entrega_esperada\": \"2024-12-20T14:30:00.000Z\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/solicitudes/id",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "solicitudes",
+                "id"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/id",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"activos\": [\"64f8a1b2c3d4e5f6a7b8c9d0\"],\r\n  \"insumos\": [\r\n    {\r\n      \"id_insumo\": \"64f8a1b2c3d4e5f6a7b8c9d2\",\r\n      \"nombreProducto\": \"Resistencia 10kΩ\",\r\n      \"cantidad\": 5\r\n    }\r\n  ],\r\n  \"fecha_entrega_esperada\": \"2024-12-20T14:30:00.000Z\"\r\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:4000/api/solicitudes/id",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "solicitudes",
+                    "id"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "/admin-gestion/:id",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nuevoEstadoAdmin\": \"aprobada\",\r\n  \"observaciones\": \"Solicitud aprobada para proyecto de circuitos\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/solicitudes/admin-gestion/id",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "solicitudes",
+                "admin-gestion",
+                "id"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/admin-gestion/:id",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"nuevoEstadoAdmin\": \"aprobada\",\r\n  \"observaciones\": \"Solicitud aprobada para proyecto de circuitos\"\r\n}\r\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:4000/api/solicitudes/admin-gestion/69af499bcd88b7b30ca06816",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "solicitudes",
+                    "admin-gestion",
+                    "69af499bcd88b7b30ca06816"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "/:id/estado",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nuevoEstado\": \"entregado\",\r\n  \"observaciones\": \"Equipo entregado al estudiante en laboratorio\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/solicitudes/id/estado",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "solicitudes",
+                "id",
+                "estado"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/:id/estado",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"nuevoEstado\": \"entregado\",\r\n  \"observaciones\": \"Equipo entregado al estudiante en laboratorio\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:4000/api/solicitudes/69af499bcd88b7b30ca06816/estado",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "solicitudes",
+                    "69af499bcd88b7b30ca06816",
+                    "estado"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Insumos",
+      "item": [
+        {
+          "name": "/",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n  {\r\n    \"id_insumo\": 1001,\r\n    \"NombProducto\": \"Resistencia 10Ω 1/4W\",\r\n    \"cantidad\": 500,\r\n    \"caracteristicas\": \"Resistencia de película metalizada, tolerancia 5%\",\r\n    \"categoria\": \"Componentes Analógicos\"\r\n  },\r\n  {\r\n    \"id_insumo\": 1002,\r\n    \"NombProducto\": \"Capacitor electrolítico 100µF 25V\",\r\n    \"cantidad\": 300,\r\n    \"caracteristicas\": \"Polarizado, 105°C, snap-in\",\r\n    \"categoria\": \"Componentes Analógicos\"\r\n  },\r\n  {\r\n    \"id_insumo\": 1003,\r\n    \"NombProducto\": \"Microcontrolador PIC16F877A\",\r\n    \"cantidad\": 120,\r\n    \"caracteristicas\": \"40 pines, 8-bit, 8K Flash\",\r\n    \"categoria\": \"Componentes Digitales\"\r\n  },\r\n  {\r\n    \"id_insumo\": 1004,\r\n    \"NombProducto\": \"LED rojo 5 mm\",\r\n    \"cantidad\": 1000,\r\n    \"caracteristicas\": \"Difuso, 2V, 20mA\",\r\n    \"categoria\": \"Componentes Digitales\"\r\n  },\r\n  {\r\n    \"id_insumo\": 1005,\r\n    \"NombProducto\": \"Transistor NPN 2N2222\",\r\n    \"cantidad\": 750,\r\n    \"caracteristicas\": \"300 mA, 40 V, TO‑92\",\r\n    \"categoria\": \"Componentes Analógicos\"\r\n  }\r\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/categorias",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/categorias",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "categorias"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/search",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/search?q=NombProducto",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "NombProducto"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/search",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/insumos/search?q=Resistencia 10Ω",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "insumos",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "Resistencia 10Ω"
+                    }
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": ""
+            },
+            {
+              "name": "/search",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/insumos/search?q=NombProducto",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "insumos",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "NombProducto"
+                    }
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "/filtro/:categoria",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/filtro/Componentes Digitales",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "filtro",
+                "Componentes Digitales"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/estado/:estado",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/estado/estado",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "estado",
+                "estado"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/estado/:estado",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/insumos/estado/elminado",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "insumos",
+                    "estado",
+                    "elminado"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "post('/'",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n  {\r\n    \"id_insumo\": 2,\r\n    \"NombProducto\": \"LED Rojo 5mm\",\r\n    \"cantidad\": 100,\r\n    \"caracteristicas\": \"LED difuso rojo, tensión 2.2V, corriente 20mA\",\r\n    \"categoria\": \"Componentes Digitales\"\r\n  },\r\n  {\r\n    \"id_insumo\": 3,\r\n    \"NombProducto\": \"Capacitor Cerámico 10nF\",\r\n    \"cantidad\": 200,\r\n    \"caracteristicas\": \"Capacitor cerámico MLCC, tensión 50V, tolerancia 10%\",\r\n    \"categoria\": \"Componentes Analógicos\"\r\n  },\r\n  {\r\n    \"id_insumo\": 4,\r\n    \"NombProducto\": \"Transistor BC547 NPN\",\r\n    \"cantidad\": 75,\r\n    \"caracteristicas\": \"Transistor bipolar NPN, hFE 200-450, corriente 100mA\",\r\n    \"categoria\": \"Componentes Digitales\"\r\n  }\r\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "patch('/:id')",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/69ae4a811c2b7671525a1f27",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "69ae4a811c2b7671525a1f27"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get('/reportes/alertas-stock'",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/reportes/alertas-stock?umbral=10",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "reportes",
+                "alertas-stock"
+              ],
+              "query": [
+                {
+                  "key": "umbral",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete('/:id')",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"motivo_eliminacion\": \"justificación con al menos 10 caracteres\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/id",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "id"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "delete('/:id')",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"motivo_eliminacion\": \"justificación con al menos 10 caracteres\" }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:4000/api/insumos/69ae4a811c2b7671525a1f18",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "insumos",
+                    "69ae4a811c2b7671525a1f18"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "(PATCH /:id/reactivar)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/id/reactivar",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "id",
+                "reactivar"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "(PATCH /:id/reactivar)",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/insumos/69ae48af6bb40c3010187e09/reactivar",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "insumos",
+                    "69ae48af6bb40c3010187e09",
+                    "reactivar"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "(PATCH /:id/stock)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"cantidad\": 50,\r\n  \"operacion\": \"incrementar\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/id/stock",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "id",
+                "stock"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "(PATCH /:id/stock)",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"cantidad\": 50,\r\n  \"operacion\": \"incrementar\"\r\n}\r\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:4000/api/insumos/69ae4a811c2b7671525a1f27/stock",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "insumos",
+                    "69ae4a811c2b7671525a1f27",
+                    "stock"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "(GET /estadisticas)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/estadisticas",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "estadisticas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "(GET /bajo-stock)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/bajo-stock?limite=100",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "bajo-stock"
+              ],
+              "query": [
+                {
+                  "key": "limite",
+                  "value": "100"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "post('/bulk')",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n  {\r\n    \"id_insumo\": 2001,\r\n    \"NombProducto\": \"Resistencia 10kΩ 1/4W\",\r\n    \"cantidad\": 50,\r\n    \"caracteristicas\": \"Resistencia de carbón, tolerancia 5%, 1/4 watt\",\r\n    \"categoria\": \"Componentes Analógicos\"\r\n  },\r\n  {\r\n    \"id_insumo\": 2002,\r\n    \"NombProducto\": \"Arduino UNO R3\",\r\n    \"cantidad\": 15,\r\n    \"caracteristicas\": \"Microcontrolador ATmega328P, 14 pines digitales, 6 entradas analógicas\",\r\n    \"categoria\": \"Componentes Digitales\"\r\n  },\r\n  {\r\n    \"id_insumo\": 2003,\r\n    \"NombProducto\": \"Capacitor 100μF 25V\",\r\n    \"cantidad\": 30,\r\n    \"caracteristicas\": \"Capacitor electrolítico, radial, 100 microfaradios, 25V\",\r\n    \"categoria\": \"Componentes Analógicos\"\r\n  }\r\n]\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/bulk",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "bulk"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/search",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/search?q=NombProducto",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "NombProducto"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/search",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/insumos/search?q=Módulo Bluetooth HC‑05",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "insumos",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "Módulo Bluetooth HC‑05"
+                    }
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "/estado/:estado",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/estado/estado",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "estado",
+                "estado"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/estado/:estado",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/insumos/estado/activo",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "insumos",
+                    "estado",
+                    "activo"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "(PATCH /:id/stock)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"cantidad\": 50,\r\n  \"operacion\": \"incrementar\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/id/stock",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "id",
+                "stock"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "(PATCH /:id/stock)",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"cantidad\": 50,\r\n  \"operacion\": \"incrementar\"\r\n}\r\n",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:4000/api/insumos/69ae4a811c2b7671525a1f27/stock",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "insumos",
+                    "69ae4a811c2b7671525a1f27",
+                    "stock"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "/search",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/search?q=LED rojo 5 mm",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "LED rojo 5 mm"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/estado/:estado",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/insumos/estado/eliminado",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "insumos",
+                "estado",
+                "eliminado"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Activos",
+      "item": [
+        {
+          "name": "/",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/activos/id",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos",
+                "id"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:4000/api/activos/69ae5808579a3dda36e5a287",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "activos",
+                    "69ae5808579a3dda36e5a287"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "get(/categorias/lista)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/activos/categorias/lista",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos",
+                "categorias",
+                "lista"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get('/:id')",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/activos/69ae5808579a3dda36e5a287",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos",
+                "69ae5808579a3dda36e5a287"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "get('/:id')",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/activos/id",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "activos",
+                    "id"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "get(/estado/:estado)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/activos/estado/estado",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos",
+                "estado",
+                "estado"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "get(/estado/:estado)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/activos/estado/prestado",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "activos",
+                    "estado",
+                    "prestado"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "get('/categoria/:categoria')",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/activos/categoria/Herramientas",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos",
+                "categoria",
+                "Herramientas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAzMzMyNiwiZXhwIjoxNzc1NjI1MzI2fQ.R6Umnl0FMsYB-6Xhjzd9DrC1vGerspFvvofXN5pavBI",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"numActivo\": 1,\r\n  \"numSerie\": \"SN-0001-XYZ\",\r\n  \"estadoActivo\": \"disponible\",\r\n  \"marca\": \"Fluke\",\r\n  \"modelo\": \"115 True-RMS\",\r\n  \"categoria\": \"Instrumentos\",\r\n  \"caracteristicas\": \"Multímetro digital, 600 V, 10 A, funciones TRMS.\",\r\n  \"observaciones\": \"Incluye probadores de punta fina.\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/activos/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "put('/:id')",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/activos/id",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos",
+                "id"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "put('/:id')",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/activos/69ae5808579a3dda36e5a287",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "activos",
+                    "69ae5808579a3dda36e5a287"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "delete('/:id')",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"observaciones\": \"Equipo obsoleto y sin repuestos disponibles.\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/activos/id",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos",
+                "id"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "delete('/:id')",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"observaciones\": \"Equipo obsoleto y sin repuestos disponibles.\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://localhost:4000/api/activos/69ae5808579a3dda36e5a287",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "activos",
+                    "69ae5808579a3dda36e5a287"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        },
+        {
+          "name": "get('/estadisticas')",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/activos/estadisticas",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos",
+                "estadisticas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get('/search')",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/activos/search?q=marca",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "marca"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "get('/search')",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/activos/search?q=fluke",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "activos",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "fluke"
+                    }
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            },
+            {
+              "name": "get('/search')",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/activos/search?q=Keysight",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "activos",
+                    "search"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "Keysight"
+                    }
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "post('/bulk')",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\r\n  {\r\n    \"numActivo\": 2,\r\n    \"numSerie\": \"SN-0002-XYZ\",\r\n    \"estadoActivo\": \"prestado\",\r\n    \"marca\": \"Keysight\",\r\n    \"modelo\": \"DSOX1102G\",\r\n    \"categoria\": \"Instrumentos\",\r\n    \"caracteristicas\": \"Osciloscopio 2 canales, 100 MHz, memoria profunda.\",\r\n    \"observaciones\": \"Préstamo al laboratorio de electrónica.\"\r\n  },\r\n  {\r\n    \"numActivo\": 3,\r\n    \"numSerie\": \"SN-0003-XYZ\",\r\n    \"estadoActivo\": \"disponible\",\r\n    \"marca\": \"Stanley\",\r\n    \"modelo\": \"FatMax 45‑905\",\r\n    \"categoria\": \"Herramientas\",\r\n    \"caracteristicas\": \"Cinta métrica de 8 m con carcasa resistente.\",\r\n    \"observaciones\": \"Nueva adquisición para mediciones.\"\r\n  },\r\n  {\r\n    \"numActivo\": 4,\r\n    \"numSerie\": \"SN-0004-XYZ\",\r\n    \"estadoActivo\": \"deteriorado\",\r\n    \"marca\": \"Makita\",\r\n    \"modelo\": \"TD110\",\r\n    \"categoria\": \"Herramientas\",\r\n    \"caracteristicas\": \"Atornillador eléctrico 10.8 V – batería agotada.\",\r\n    \"observaciones\": \"Necesita reemplazo de batería.\"\r\n  },\r\n  {\r\n    \"numActivo\": 5,\r\n    \"numSerie\": \"SN-0005-XYZ\",\r\n    \"estadoActivo\": \"dañado\",\r\n    \"marca\": \"Tektronix\",\r\n    \"modelo\": \"TDS2024C\",\r\n    \"categoria\": \"Instrumentos\",\r\n    \"caracteristicas\": \"Osciloscopio 4 canales, 200 MHz (pantalla rota).\"\r\n  }\r\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/activos/bulk",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos",
+                "bulk"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "patch('/:id/reactivar')",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/activos/id/reactivar",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "activos",
+                "id",
+                "reactivar"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "patch('/:id/reactivar')",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:4000/api/activos/69ae5808579a3dda36e5a287/reactivar",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "activos",
+                    "69ae5808579a3dda36e5a287",
+                    "reactivar"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "listaEspera",
+      "item": [
+        {
+          "name": "/",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"nuevoEstado\": \"entregado\",\r\n  \"observaciones\": \"Equipo entregado al estudiante en laboratorio\"\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/listaEspera/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "listaEspera",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"usuario\": \"69a88288367341c69354b17c\",\r\n  \"insumo\": \"64f8a1b2c3d4e5f6a7b8c9d3\",\r\n  \"cantidad_solicitada\": 5\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/listaEspera/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "listaEspera",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"usuario\": \"69a88288367341c69354b17c\",\r\n  \"insumo\": \"64f8a1b2c3d4e5f6a7b8c9d3\",\r\n  \"cantidad_solicitada\": 5\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/listaEspera/id",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "listaEspera",
+                "id"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "/",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"usuario\": \"69a88288367341c69354b17c\",\r\n  \"insumo\": \"64f8a1b2c3d4e5f6a7b8c9d3\",\r\n  \"cantidad_solicitada\": 5\r\n}"
+                },
+                "url": {
+                  "raw": "http://localhost:4000/api/listaEspera/69af67a513959083c8b4a6f0",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "4000",
+                  "path": [
+                    "api",
+                    "listaEspera",
+                    "69af67a513959083c8b4a6f0"
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "UsuariosHistorial",
+      "item": [
+        {
+          "name": "/ejecutar-limpieza",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/historial-usuarios/ejecutar-limpieza",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "historial-usuarios",
+                "ejecutar-limpieza"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/historial-usuarios/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "historial-usuarios",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/usuario/:cedula",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/historial-usuarios/usuario/118480834",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "historial-usuarios",
+                "usuario",
+                "118480834"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/limpiar-antiguo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/historial-usuarios/limpiar-antiguo",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "historial-usuarios",
+                "limpiar-antiguo"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/estadisticas",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:4000/api/historial-usuarios/estadisticas",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "historial-usuarios",
+                "estadisticas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "/ejecutar-limpieza",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

@@ -1413,7 +1413,7 @@ exports.cierreCuatrimestre = async (req, res) => {
 	- Testear con Postman
 		-Conecte Postman al codigo directamente
 		-Corri express con 
-			npm run dev
+			npm run dev	
 
 -- Problemas reflejados y cambiados
 	--uno--

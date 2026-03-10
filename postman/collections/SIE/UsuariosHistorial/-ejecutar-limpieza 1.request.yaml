@@ -1,0 +1,5 @@
+$kind: http-request
+name: /ejecutar-limpieza
+url: http://
+method: GET
+order: 6000

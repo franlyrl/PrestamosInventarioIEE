@@ -1,0 +1,15 @@
+$kind: http-example
+name: delete('/:id')
+request:
+  url: http://localhost:4000/api/insumos/69ae4a811c2b7671525a1f18
+  method: DELETE
+  body:
+    type: json
+    content: '{ "motivo_eliminacion": "justificación con al menos 10 caracteres" }'
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: text
+    content: ""
+order: 1000

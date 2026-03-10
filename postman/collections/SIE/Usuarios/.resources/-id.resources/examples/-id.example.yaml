@@ -1,0 +1,12 @@
+$kind: http-example
+name: /id
+request:
+  url: http://localhost:4000/api/usuarios/69a749c7e536f0566d1a7282
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: text
+    content: ""
+order: 1000

@@ -1,0 +1,23 @@
+$kind: http-example
+name: /
+request:
+  url: http://localhost:4000/api/listaEspera/69af67a513959083c8b4a6f0
+  method: PATCH
+  body:
+    type: text
+    content: "{\r
+
+      \  \"usuario\": \"69a88288367341c69354b17c\",\r
+
+      \  \"insumo\": \"64f8a1b2c3d4e5f6a7b8c9d3\",\r
+
+      \  \"cantidad_solicitada\": 5\r
+
+      }"
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: text
+    content: ""
+order: 1000

@@ -1,0 +1,10 @@
+$kind: http-request
+name: /id
+url: http://localhost:4000/api/usuarios/id
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyMzQzMywiZXhwIjoxNzc1NjE1NDMzfQ.69JU55z3SRNv88L7LBvt2z-L5BaWrrwoBwJ8Hd8bFME
+examples: ./.resources/-id.resources/examples
+order: 1000

@@ -1,0 +1,96 @@
+$kind: http-request
+name: post('/bulk')
+url: http://localhost:4000/api/activos/bulk
+method: POST
+body:
+  type: json
+  content: "[\r
+
+    \  {\r
+
+    \    \"numActivo\": 2,\r
+
+    \    \"numSerie\": \"SN-0002-XYZ\",\r
+
+    \    \"estadoActivo\": \"prestado\",\r
+
+    \    \"marca\": \"Keysight\",\r
+
+    \    \"modelo\": \"DSOX1102G\",\r
+
+    \    \"categoria\": \"Instrumentos\",\r
+
+    \    \"caracteristicas\": \"Osciloscopio 2 canales, 100 MHz, memoria
+    profunda.\",\r
+
+    \    \"observaciones\": \"Préstamo al laboratorio de electrónica.\"\r
+
+    \  },\r
+
+    \  {\r
+
+    \    \"numActivo\": 3,\r
+
+    \    \"numSerie\": \"SN-0003-XYZ\",\r
+
+    \    \"estadoActivo\": \"disponible\",\r
+
+    \    \"marca\": \"Stanley\",\r
+
+    \    \"modelo\": \"FatMax 45‑905\",\r
+
+    \    \"categoria\": \"Herramientas\",\r
+
+    \    \"caracteristicas\": \"Cinta métrica de 8 m con carcasa
+    resistente.\",\r
+
+    \    \"observaciones\": \"Nueva adquisición para mediciones.\"\r
+
+    \  },\r
+
+    \  {\r
+
+    \    \"numActivo\": 4,\r
+
+    \    \"numSerie\": \"SN-0004-XYZ\",\r
+
+    \    \"estadoActivo\": \"deteriorado\",\r
+
+    \    \"marca\": \"Makita\",\r
+
+    \    \"modelo\": \"TD110\",\r
+
+    \    \"categoria\": \"Herramientas\",\r
+
+    \    \"caracteristicas\": \"Atornillador eléctrico 10.8 V – batería
+    agotada.\",\r
+
+    \    \"observaciones\": \"Necesita reemplazo de batería.\"\r
+
+    \  },\r
+
+    \  {\r
+
+    \    \"numActivo\": 5,\r
+
+    \    \"numSerie\": \"SN-0005-XYZ\",\r
+
+    \    \"estadoActivo\": \"dañado\",\r
+
+    \    \"marca\": \"Tektronix\",\r
+
+    \    \"modelo\": \"TDS2024C\",\r
+
+    \    \"categoria\": \"Instrumentos\",\r
+
+    \    \"caracteristicas\": \"Osciloscopio 4 canales, 200 MHz (pantalla
+    rota).\"\r
+
+    \  }\r
+
+    ]"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4
+order: 11000

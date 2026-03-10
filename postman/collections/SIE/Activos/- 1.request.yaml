@@ -1,0 +1,31 @@
+$kind: http-request
+name: /
+url: http://localhost:4000/api/activos/
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"numActivo\": 1,\r
+
+    \  \"numSerie\": \"SN-0001-XYZ\",\r
+
+    \  \"estadoActivo\": \"disponible\",\r
+
+    \  \"marca\": \"Fluke\",\r
+
+    \  \"modelo\": \"115 True-RMS\",\r
+
+    \  \"categoria\": \"Instrumentos\",\r
+
+    \  \"caracteristicas\": \"Multímetro digital, 600 V, 10 A, funciones
+    TRMS.\",\r
+
+    \  \"observaciones\": \"Incluye probadores de punta fina.\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAzMzMyNiwiZXhwIjoxNzc1NjI1MzI2fQ.R6Umnl0FMsYB-6Xhjzd9DrC1vGerspFvvofXN5pavBI
+order: 6000

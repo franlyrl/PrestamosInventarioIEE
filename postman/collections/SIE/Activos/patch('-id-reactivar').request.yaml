@@ -1,0 +1,10 @@
+$kind: http-request
+name: patch('/:id/reactivar')
+url: http://localhost:4000/api/activos/id/reactivar
+method: PATCH
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4
+examples: ./.resources/patch('-id-reactivar').resources/examples
+order: 12000

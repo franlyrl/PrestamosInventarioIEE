@@ -1,0 +1,14 @@
+$kind: http-example
+name: get('/search')
+request:
+  url: http://localhost:4000/api/activos/search?q=Keysight
+  method: GET
+  queryParams:
+    q: Keysight
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: text
+    content: ""
+order: 2000

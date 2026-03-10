@@ -1,0 +1,12 @@
+$kind: http-example
+name: /email/:email
+request:
+  url: http://localhost:4000/api/usuarios/email/ashly@utn.ac.cr
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: text
+    content: ""
+order: 1000

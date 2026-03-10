@@ -1,0 +1,12 @@
+$kind: http-example
+name: /estado/:estado
+request:
+  url: http://localhost:4000/api/insumos/estado/elminado
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: text
+    content: ""
+order: 1000

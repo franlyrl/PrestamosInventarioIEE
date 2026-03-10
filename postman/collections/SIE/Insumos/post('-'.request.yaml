@@ -1,0 +1,59 @@
+$kind: http-request
+name: post('/'
+url: http://localhost:4000/api/insumos/
+method: POST
+body:
+  type: json
+  content: "[\r
+
+    \  {\r
+
+    \    \"id_insumo\": 2,\r
+
+    \    \"NombProducto\": \"LED Rojo 5mm\",\r
+
+    \    \"cantidad\": 100,\r
+
+    \    \"caracteristicas\": \"LED difuso rojo, tensión 2.2V, corriente
+    20mA\",\r
+
+    \    \"categoria\": \"Componentes Digitales\"\r
+
+    \  },\r
+
+    \  {\r
+
+    \    \"id_insumo\": 3,\r
+
+    \    \"NombProducto\": \"Capacitor Cerámico 10nF\",\r
+
+    \    \"cantidad\": 200,\r
+
+    \    \"caracteristicas\": \"Capacitor cerámico MLCC, tensión 50V, tolerancia
+    10%\",\r
+
+    \    \"categoria\": \"Componentes Analógicos\"\r
+
+    \  },\r
+
+    \  {\r
+
+    \    \"id_insumo\": 4,\r
+
+    \    \"NombProducto\": \"Transistor BC547 NPN\",\r
+
+    \    \"cantidad\": 75,\r
+
+    \    \"caracteristicas\": \"Transistor bipolar NPN, hFE 200-450, corriente
+    100mA\",\r
+
+    \    \"categoria\": \"Componentes Digitales\"\r
+
+    \  }\r
+
+    ]"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4
+order: 6000

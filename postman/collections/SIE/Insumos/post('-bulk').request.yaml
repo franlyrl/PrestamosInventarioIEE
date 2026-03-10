@@ -1,0 +1,59 @@
+$kind: http-request
+name: post('/bulk')
+url: http://localhost:4000/api/insumos/bulk
+method: POST
+body:
+  type: json
+  content: "[\r
+
+    \  {\r
+
+    \    \"id_insumo\": 2001,\r
+
+    \    \"NombProducto\": \"Resistencia 10kΩ 1/4W\",\r
+
+    \    \"cantidad\": 50,\r
+
+    \    \"caracteristicas\": \"Resistencia de carbón, tolerancia 5%, 1/4
+    watt\",\r
+
+    \    \"categoria\": \"Componentes Analógicos\"\r
+
+    \  },\r
+
+    \  {\r
+
+    \    \"id_insumo\": 2002,\r
+
+    \    \"NombProducto\": \"Arduino UNO R3\",\r
+
+    \    \"cantidad\": 15,\r
+
+    \    \"caracteristicas\": \"Microcontrolador ATmega328P, 14 pines digitales,
+    6 entradas analógicas\",\r
+
+    \    \"categoria\": \"Componentes Digitales\"\r
+
+    \  },\r
+
+    \  {\r
+
+    \    \"id_insumo\": 2003,\r
+
+    \    \"NombProducto\": \"Capacitor 100μF 25V\",\r
+
+    \    \"cantidad\": 30,\r
+
+    \    \"caracteristicas\": \"Capacitor electrolítico, radial, 100
+    microfaradios, 25V\",\r
+
+    \    \"categoria\": \"Componentes Analógicos\"\r
+
+    \  }\r
+
+    ]\r\n"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyOTMxOSwiZXhwIjoxNzc1NjIxMzE5fQ.ou-bHzRo_XO5JKZPsYCaEtr2Y3GU1obAAtCSFJIxeu4
+order: 14000

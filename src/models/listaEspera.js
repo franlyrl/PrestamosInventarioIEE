@@ -9,7 +9,7 @@ const listaEsperaSchema = new mongoose.Schema({
      */
     usuario: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Usuarios',
+        ref: 'Usuario',
         required: [true, 'El ID del usuario es obligatorio']
     },
     /** * @property {mongoose.Types.ObjectId} insumo 
@@ -17,15 +17,15 @@ const listaEsperaSchema = new mongoose.Schema({
      */
     insumo: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Insumos',
+        ref: 'Insumo',
         required: [true, 'El ID del insumo es obligatorio']
     },
     /** * @property {Number} cantidad_solicitada 
      * Cantidad de unidades que el usuario necesita (por defecto 1).
      */
-    cantidad_solicitada: { 
-        type: Number, 
-        default: 1 
+    cantidad_solicitada: {
+        type: Number,
+        default: 1
     },
     /** * @property {String} estado 
      * Estado del turno en la lista (esperando, notificado, entregado, cancelado).
@@ -44,7 +44,7 @@ const listaEsperaSchema = new mongoose.Schema({
     }
 }, {
     /** Genera automáticamente createdAt (fecha de entrada a la lista) y updatedAt. */
-    timestamps: true 
+    timestamps: true
 });
 
 /** * Índice compuesto único: Evita que un usuario tenga múltiples registros 

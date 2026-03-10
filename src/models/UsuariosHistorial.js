@@ -26,13 +26,13 @@ const usuarioHistorialSchema = new mongoose.Schema({
         trim: true
     },
     correo_electronico: {
-        type: String,       
+        type: String,
         required: [true, 'El correo electrónico es obligatorio'],
         unique: true,
         trim: true,
         lowercase: true,
         match: [
-            /^[\w-\.]+@(est\.utn\.ac\.cr|utn\.ac\.cr)$/, 
+            /^[\w-\.]+@(est\.utn\.ac\.cr|utn\.ac\.cr)$/,
             'Solo se permiten correos de la UTN (@est.utn.ac.cr o @utn.ac.cr)'
         ]
     },
@@ -42,10 +42,10 @@ const usuarioHistorialSchema = new mongoose.Schema({
     },
     tipo_rol: {
         type: String,
-        required: true, 
+        required: true,
         enum: ['estudiante', 'docente', 'administrativo', 'admin'],
-        lowercase: true, 
-        trim: true      
+        lowercase: true,
+        trim: true
     },
     comprobante_pdf: {
         type: String,
@@ -54,7 +54,7 @@ const usuarioHistorialSchema = new mongoose.Schema({
     estado: {
         type: String,
         enum: ['activo', 'inactivo', 'sancionado', 'archivado'],
-        default: 'archivado' 
+        default: 'archivado'
     },
     fecha_creacion: {
         type: Date,
@@ -63,8 +63,8 @@ const usuarioHistorialSchema = new mongoose.Schema({
     ultimo_acceso: {
         type: Date
     },
-    carrera: { 
-        type: String, 
+    carrera: {
+        type: String,
         required: true,
         enum: [
             'Ingeniería Electrónica',
@@ -83,14 +83,9 @@ const usuarioHistorialSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-}, { 
+}, {
     timestamps: true,
-    collection: 'usuarios_historial' 
+    collection: 'usuarios_historial'
 });
-
-/**
- * NOTE: No 'pre-save' bcrypt middleware is needed here.
- * The data is moved from the main collection already hashed.
- */
 
 module.exports = mongoose.model('UsuariosHistorial', usuarioHistorialSchema);

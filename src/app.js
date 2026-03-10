@@ -10,15 +10,15 @@ const app = express();
 
 // --- 1. MIDDLEWARES DE ENTRADA (Configuración inicial) ---
 app.use(cors());
-app.use(helmet());  
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Permite leer formularios
-app.use(morgan('dev')); 
+app.use(morgan('dev'));
 app.use('/api/usuarios', require('./routes/usuariosRoutes'));
 app.use('/api/activos', require('./routes/activosRoutes'));
 app.use('/api/insumos', require('./routes/insumosRoutes'));
 app.use('/api/solicitudes', require('./routes/solicitudesRoutes'));
-app.use('/api/reportes', require('./routes/UsuariosHistorialRoutes'));
+app.use('/api/historial-usuarios', require('./routes/UsuariosHistorialRoutes'));
 app.use('/api/listaEspera', require('./routes/listaEsperaRoutes'));
 app.use('/api/kardex', require('./routes/kardexRoutes')); // Nueva ruta para Kardex
 // Aquí puedes agregar más rutas a medida que las vayas creando
@@ -26,7 +26,7 @@ app.use('/api/kardex', require('./routes/kardexRoutes')); // Nueva ruta para Kar
 
 // --- 2. RUTAS PÚBLICAS Y PRUEBAS ---
 app.get('/', (req, res) => {
-        res.json({ message: 'API del Laboratorio funcionando ✅' });
+    res.json({ message: 'API del Laboratorio funcionando ✅' });
 });
 
 // --- 3. AQUÍ CONECTARÁS TUS ARCHIVOS DE RUTAS ---

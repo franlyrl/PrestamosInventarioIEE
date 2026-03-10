@@ -1,0 +1,10 @@
+$kind: http-request
+name: /email/:email
+url: http://localhost:4000/api/usuarios/email/email
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyMzk0MiwiZXhwIjoxNzc1NjE1OTQyfQ.DAmpwTWZcLnFEs3dlwUAv8-9I-joPppmt3hdIViYkXc
+examples: ./.resources/-email-email.resources/examples
+order: 5000

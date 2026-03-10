@@ -1,9 +1,0 @@
-$kind: http-request
-name: New Request
-url: http://localhost:4000/api/usuarios/perfil
-method: GET
-auth:
-  type: bearer
-  credentials:
-    token: http://localhost:4000/api/usuarios/perfil
-order: 4362446073457533

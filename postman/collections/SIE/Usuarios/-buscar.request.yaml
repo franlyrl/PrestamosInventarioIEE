@@ -1,0 +1,12 @@
+$kind: http-request
+name: /buscar
+url: http://localhost:4000/api/usuarios/buscar?q=nombre_completo
+method: GET
+queryParams:
+  q: nombre_completo
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyMDkxMSwiZXhwIjoxNzc1NjEyOTExfQ.Wl-mC5w-OKdkFH3t6sLXPp4mW0_BNkFPSs1nZzY1h3E
+examples: ./.resources/-buscar.resources/examples
+order: 2000

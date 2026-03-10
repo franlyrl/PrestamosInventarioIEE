@@ -10,17 +10,30 @@ const ListaEspera = require('../models/ListaEspera');
  */
 exports.getListaEspera = async (req, res) => {
     try {
+        console.log("🔍 [ListaEspera] Obteniendo lista de espera...");
+
         const lista = await ListaEspera.find()
             .populate('usuario', 'nombre_completo correo_electronico')
-            .populate('insumo', 'NombProducto')
+            .populate('insumo', 'NombProducto cantidad')
             // ORDENAMIENTO: 
             // 1. prioridad: -1 (Alta a Baja)
             // 2. createdAt: 1 (El que llegó primero va arriba)
-            .sort({ prioridad: -1, createdAt: 1 }); 
-            
-        res.json(lista);
+            .sort({ prioridad: -1, createdAt: 1 });
+
+        console.log(`✅ [ListaEspera] Se encontraron ${lista.length} registros`);
+
+        res.json({
+            total: lista.length,
+            data: lista,
+            message: lista.length === 0 ? 'No hay usuarios en lista de espera' : 'Lista de espera obtenida correctamente'
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Error al obtener la lista', error });
+        console.error("❌ [ListaEspera] Error al obtener la lista:", error);
+        res.status(500).json({
+            message: 'Error al obtener la lista',
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };
 
@@ -34,15 +47,59 @@ exports.getListaEspera = async (req, res) => {
  */
 exports.agregarAListaEspera = async (req, res) => {
     try {
+        console.log("🔄 [ListaEspera] Agregando usuario a lista de espera...");
+        console.log("   - Body recibido:", req.body);
+
         const nuevoTurno = new ListaEspera(req.body);
+
+        // Validar que los campos requeridos existan
+        if (!nuevoTurno.usuario || !nuevoTurno.insumo) {
+            return res.status(400).json({
+                message: 'Faltan campos requeridos',
+                required: ['usuario', 'insumo'],
+                received: req.body
+            });
+        }
+
         const guardado = await nuevoTurno.save();
 
+        console.log("✅ [ListaEspera] Usuario agregado exitosamente:", guardado._id);
+
         // RESPUESTA EXITOSA: 201 Created con el nuevo turno
-        res.status(201).json(guardado);
+        res.status(201).json({
+            message: 'Usuario agregado a lista de espera exitosamente',
+            data: guardado
+        });
     } catch (error) {
-        res.status(400).json({ 
-            message: 'Error: El usuario ya está en espera para este insumo', 
-            error 
+        console.error("❌ [ListaEspera] Error al agregar a lista de espera:", error);
+
+        // Manejar errores específicos
+        if (error.code === 11000) {
+            // Error de duplicado (índice único)
+            return res.status(400).json({
+                message: 'El usuario ya está en lista de espera para este insumo',
+                error: error.message
+            });
+        }
+
+        if (error.name === 'ValidationError') {
+            // Error de validación de Mongoose
+            const errores = Object.values(error.errors).map(err => ({
+                campo: err.path,
+                mensaje: err.message
+            }));
+
+            return res.status(400).json({
+                message: 'Error de validación',
+                errores: errores,
+                error: error.message
+            });
+        }
+
+        res.status(400).json({
+            message: 'Error al agregar a lista de espera',
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 };

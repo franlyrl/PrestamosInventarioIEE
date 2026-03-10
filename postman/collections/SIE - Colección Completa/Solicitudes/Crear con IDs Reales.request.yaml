@@ -1,0 +1,33 @@
+$kind: http-request
+url: http://localhost:4000/api/solicitudes
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"activos\": [\"60f5a3c2b4d1c81234567890\"],\r
+
+    \    \"insumos\": [\r
+
+    \        {\r
+
+    \            \"id_insumo\": \"60f5a3c2b4d1c81234567891\",\r
+
+    \            \"cantidad\": 2,\r
+
+    \            \"caracteristicas\": \"Para proyecto de electrónica\",\r
+
+    \            \"descripcion\": \"Resistencias para circuito\"\r
+
+    \        }\r
+
+    \    ],\r
+
+    \    \"fecha_entrega_esperada\": \"2026-03-15\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc5Njg3NTA7fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394
+order: 3000

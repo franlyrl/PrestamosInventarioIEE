@@ -1,0 +1,11 @@
+$kind: http-request
+url: http://localhost:4000/api/historial-usuarios/ejecutar-limpieza
+method: POST
+body:
+  type: json
+  content: "{}"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc9Njg3NTA7fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394
+order: 2000

@@ -1,0 +1,19 @@
+$kind: http-request
+name: /admin-gestion/:id
+url: http://localhost:4000/api/solicitudes/admin-gestion/id
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \  \"nuevoEstadoAdmin\": \"aprobada\",\r
+
+    \  \"observaciones\": \"Solicitud aprobada para proyecto de circuitos\"\r
+
+    }\r\n"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc1Njg3NTA3fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394
+examples: ./.resources/-admin-gestion-id.resources/examples
+order: 5000

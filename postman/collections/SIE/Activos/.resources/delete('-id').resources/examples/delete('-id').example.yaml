@@ -1,0 +1,19 @@
+$kind: http-example
+name: delete('/:id')
+request:
+  url: http://localhost:4000/api/activos/69ae5808579a3dda36e5a287
+  method: DELETE
+  body:
+    type: json
+    content: "{\r
+
+      \  \"observaciones\": \"Equipo obsoleto y sin repuestos disponibles.\"\r
+
+      }"
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: text
+    content: ""
+order: 1000

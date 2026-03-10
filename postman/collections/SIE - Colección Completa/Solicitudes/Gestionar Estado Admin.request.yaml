@@ -1,0 +1,17 @@
+$kind: http-request
+url: http://localhost:4000/api/solicitudes/admin-gestion/60f5a3c2b4d1c81234567892
+method: PUT
+body:
+  type: json
+  content: "{\r
+
+    \    \"nuevoEstadoAdmin\": \"aprobada\",\r
+
+    \    \"observaciones\": \"Aprobado por admin con stock disponible\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc5Njg3NTA7fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394
+order: 4000

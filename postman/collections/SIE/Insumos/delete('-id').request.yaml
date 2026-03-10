@@ -1,0 +1,13 @@
+$kind: http-request
+name: delete('/:id')
+url: http://localhost:4000/api/insumos/id
+method: DELETE
+body:
+  type: json
+  content: '{ "motivo_eliminacion": "justificación con al menos 10 caracteres" }'
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzAyNTg2MCwiZXhwIjoxNzc1NjE3ODYwfQ.qHLfF0rwJdo0YmZxVlxGil9alCn-jYyeP-AMun0if3M
+examples: ./.resources/delete('-id').resources/examples
+order: 9000

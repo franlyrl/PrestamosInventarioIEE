@@ -1,0 +1,34 @@
+$kind: http-request
+url: http://localhost:4000/api/activos
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"numActivo\": 1001,\r
+
+    \    \"numSerie\": \"SN001234\",\r
+
+    \    \"estadoActivo\": \"disponible\",\r
+
+    \    \"marca\": \"Fluke\",\r
+
+    \    \"modelo\": \"87V\",\r
+
+    \    \"categoria\": \"Instrumentos\",\r
+
+    \    \"imagenUrl\":
+    \"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit\
+    =crop&auto=format\",\r
+
+    \    \"observaciones\": \"Multímetro digital\",\r
+
+    \    \"caracteristicas\": \"Rango automático, True RMS, pantalla
+    retroiluminada\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YTg4Mjg4MzY3MzQxYzY5MzU0YjE3YyIsImlhdCI6MTc3MzA5NTUwNywiZXhwIjoxNzc9Njg3NTA7fQ.l4OmgoQknQI1s1XtPeyCGo2lYA4kVyf1FkI4Oa0L394
+order: 2000
