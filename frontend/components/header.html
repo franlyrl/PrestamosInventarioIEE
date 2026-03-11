@@ -1,38 +1,112 @@
 <!-- Header Component -->
-<header class="utn-blue text-white shadow-lg">
+<header class="bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] text-white shadow-xl border-b border-[#004a8c]/20">
     <div class="container">
         <div class="flex justify-between items-center py-4">
+            <!-- Logo y Branding -->
             <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                    <span class="utn-text font-black text-lg">UTN</span>
+                <div class="w-10 h-10 bg-white rounded-lg shadow-lg flex items-center justify-center transform hover:scale-105 transition-transform">
+                    <span class="font-black text-lg" style="color: #002e6e; font-weight: bold;">UTN</span>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold">Sistema de Laboratorio</h1>
-                    <p class="text-xs text-blue-200">Gestión de Activos e Insumos</p>
+                    <h1 class="text-xl font-bold tracking-tight">Sistema de Laboratorio</h1>
+                    <p class="text-xs font-medium" style="color: #f78b08;">Gestión de Activos e Insumos</p>
                 </div>
             </div>
             
+            <!-- Info de Usuario y Acciones -->
             <div class="flex items-center gap-4">
-                <div class="text-right hidden md:block">
-                    <p class="text-sm font-medium" id="userInfo">Usuario</p>
-                    <p class="text-xs text-blue-200" id="currentDateTime">Cargando...</p>
-                </div>
+                <!-- Carrito de Solicitudes -->
                 <div class="relative">
-                    <button id="user-menu-btn" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                        👤 <span id="userMenuName">Usuario</span>
-                        <span class="text-xs">▼</span>
+                    <button id="cartBtn" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:scale-105">
+                        🛒 Solicitudes
+                        <span id="cartCount" class="bg-white text-xs px-2 py-0.5 rounded-full font-bold" style="color: #002e6e;">0</span>
                     </button>
-                    <!-- Dropdown Menu -->
-                    <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
-                        <a href="pages/perfil.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
-                            👤 Mi Perfil
-                        </a>
-                        <a href="pages/reportes.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
-                            📊 Reportes
-                        </a>
-                        <div class="border-t border-slate-200 my-2"></div>
-                        <button id="logoutBtn" class="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
-                            🚪 Cerrar Sesión
+                </div>
+                
+                <!-- Info Usuario -->
+                <div class="text-right hidden md:block">
+                    <p class="text-sm font-semibold text-white" id="userInfo">Salatiel Riveros</p>
+                    <p class="text-xs flex items-center gap-1" id="currentDateTime" style="color: #f78b08;">
+                        <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: #f78b08;"></span>
+                        Conectado
+                    </p>
+                </div>
+                
+                <!-- Menú Usuario -->
+                <div class="relative">
+                    <button id="user-menu-btn" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:scale-105">
+                        <div class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                            👤
+                        </div>
+                        <span id="userMenuName">Salatiel Riveros</span>
+                        <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    
+                    <!-- Dropdown Menu Mejorado -->
+                    <div id="user-dropdown" class="hidden absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 transform transition-all duration-200">
+                        <!-- Header del Dropdown -->
+                        <div class="bg-gradient-to-r from-[#004a8c] to-[#0066cc] p-4 text-white">
+                            <p class="text-sm font-semibold" id="dropdownUserName">Salatiel Riveros</p>
+                            <p class="text-xs" id="dropdownUserRole" style="color: #f78b08;">Estudiante</p>
+                        </div>
+                        
+                        <!-- Opciones del Menú -->
+                        <div class="py-2">
+                            <a href="/" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
+                                    <span style="color: #004a8c;">🏠</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Inicio</p>
+                                    <p class="text-xs text-slate-500">Página principal</p>
+                                </div>
+                            </a>
+                            
+                            <a href="/pages/perfil.html" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
+                                    <span style="color: #004a8c;">👤</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Mi Perfil</p>
+                                    <p class="text-xs text-slate-500">Gestionar cuenta</p>
+                                </div>
+                            </a>
+                            
+                            <a href="/pages/reportes.html" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
+                                    <span style="color: #004a8c;">📊</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Reportes</p>
+                                    <p class="text-xs text-slate-500">Ver estadísticas</p>
+                                </div>
+                            </a>
+                            
+                            <a href="/pages/solicitudes.html" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
+                                    <span style="color: #004a8c;">📋</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Mis Solicitudes</p>
+                                    <p class="text-xs text-slate-500">Historial completo</p>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <!-- Separador -->
+                        <div class="border-t border-slate-200"></div>
+                        
+                        <!-- Cerrar Sesión -->
+                        <button id="logoutBtn" class="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-red-100">
+                                <span style="color: #dc2626;">🚪</span>
+                            </div>
+                            <div class="text-left">
+                                <p class="font-medium">Cerrar Sesión</p>
+                                <p class="text-xs text-slate-500">Salir del sistema</p>
+                            </div>
                         </button>
                     </div>
                 </div>

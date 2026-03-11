@@ -31,48 +31,8 @@
                 <span id="dbStatus">Verificando conexión...</span>
             </div>
 
-            <!-- HEADER -->
-            <header class="utn-blue text-white shadow-lg">
-                <div class="container">
-                    <div class="flex justify-between items-center py-4">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-                                <span class="utn-text font-black text-lg">UTN</span>
-                            </div>
-                            <div>
-                                <h1 class="text-xl font-bold">Sistema de Laboratorio</h1>
-                                <p class="text-xs text-blue-200">Gestión de Activos e Insumos</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center gap-4">
-                            <div class="text-right hidden md:block">
-                                <p class="text-sm font-medium" id="userInfo">Cargando usuario...</p>
-                                <p class="text-xs text-blue-200" id="currentDateTime">Cargando...</p>
-                            </div>
-                            <div class="relative">
-                                <button id="user-menu-btn" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                                    👤 <span id="userMenuName">Usuario</span>
-                                    <span class="text-xs">▼</span>
-                                </button>
-                                <!-- Dropdown Menu -->
-                                <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
-                                    <a href="pages/perfil.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
-                                        👤 Mi Perfil
-                                    </a>
-                                    <a href="pages/reportes.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
-                                        📊 Reportes
-                                    </a>
-                                    <div class="border-t border-slate-200 my-2"></div>
-                                    <button id="logoutBtn" class="block w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
-                                        🚪 Cerrar Sesión
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            <!-- HEADER COMPONENT -->
+            <div id="header-component"></div>
 
             <!-- CONTENIDO PRINCIPAL -->
             <main class="container py-6">
@@ -749,6 +709,19 @@
                     if (isAuthenticated) {
                         // Marcar como inicializado
                         isInitialized = true;
+                        
+                        // Cargar componentes
+                        console.log('🔧 Cargando componentes...');
+                        try {
+                            // Cargar header component
+                            const headerResponse = await fetch('components/header.html');
+                            const headerHtml = await headerResponse.text();
+                            document.getElementById('header-component').innerHTML = headerHtml;
+                            console.log('✅ Header component cargado');
+                        } catch (error) {
+                            console.error('❌ Error cargando header component:', error);
+                        }
+                        
                         // Iniciar verificación de conexión a BD
                         checkDBConnection();
                         connectionCheckInterval = setInterval(checkDBConnection, window.CONFIG.DB_STATUS_CHECK_INTERVAL);

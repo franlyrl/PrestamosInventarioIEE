@@ -105,36 +105,110 @@
         
         <!-- Toast Component -->
         <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
-            <div class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
-                <span id="toastMsg">Operación Exitosa</span>
-            </div>
         </div>
-        
-        <!-- JavaScript -->
-        <script src="../js/main.js"></script>
-        <script src="../js/components/header.js"></script>
-        <script src="../js/components/sidebar.js"></script>
-        <script src="../js/components/modals.js"></script>
-        <script src="../js/pages/activos.js"></script>
-        
-        <!-- Inicialización -->
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                // Verificar autenticación usando la misma lógica que index.html
-                const token = localStorage.getItem('utn_token');
-                const userData = localStorage.getItem('utn_user');
+    </main>
+    
+    <!-- Modals Component -->
+    <div id="modals-component"></div>
+    
+    <!-- Toast Component -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
+        <div class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
+            <span id="toastMsg">Operación Exitosa</span>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="../js/main.js"></script>
+    <script src="../js/components/header.js"></script>
+    <script src="../js/components/sidebar.js"></script>
+    <script src="../js/components/modals.js"></script>
+    <script src="../js/pages/activos.js"></script>
+    
+    <!-- Carga del Header Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Cargar header component
+            try {
+                const headerResponse = await fetch('../components/header.html');
+                const headerHtml = await headerResponse.text();
+                document.getElementById('header-component').innerHTML = headerHtml;
+                console.log('✅ Header component cargado en activos.html');
                 
-                if (!token || !userData) {
-                    console.log('🚫 No hay sesión en activos.html, redirigiendo...');
-                    window.location.href = '../index.html';
-                    return;
+                // Actualizar información del usuario
+                const userData = localStorage.getItem('utn_user');
+                if (userData) {
+                    const currentUser = JSON.parse(userData);
+                    const userInfo = document.getElementById('userInfo');
+                    const userMenuName = document.getElementById('userMenuName');
+                    const dropdownUserName = document.getElementById('dropdownUserName');
+                    const dropdownUserRole = document.getElementById('dropdownUserRole');
+                    
+                    const nombreCompleto = currentUser.nombre_completo || currentUser.nombre || 'Usuario';
+                    
+                    if (userInfo) userInfo.textContent = nombreCompleto;
+                    if (userMenuName) userMenuName.textContent = nombreCompleto;
+                    if (dropdownUserName) dropdownUserName.textContent = nombreCompleto;
+                    if (dropdownUserRole) dropdownUserRole.textContent = currentUser.rol || 'Estudiante';
                 }
                 
-                console.log('✅ Sesión válida en activos.html, inicializando...');
+                // Configurar logout
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', () => {
+                        localStorage.removeItem('utn_token');
+                        localStorage.removeItem('utn_user');
+                        window.location.href = '../index.html';
+                    });
+                }
                 
-                // Inicializar página de activos
-                window.activosController?.initialize();
+                // Configurar menú usuario
+                const userMenuBtn = document.getElementById('user-menu-btn');
+                const userDropdown = document.getElementById('user-dropdown');
+                if (userMenuBtn && userDropdown) {
+                    userMenuBtn.addEventListener('click', () => {
+                        userDropdown.classList.toggle('hidden');
+                    });
+                    
+                    // Cerrar al hacer click fuera
+                    document.addEventListener('click', (e) => {
+                        if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                            userDropdown.classList.add('hidden');
+                        }
+                    });
+                }
+                
+            } catch (error) {
+                console.error('❌ Error cargando header component:', error);
+            }
+        });
+    </script>
+    
+    <!-- Inicialización -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Iniciando activos.html...');
+            
+            // Verificar autenticación usando la misma lógica que index.html
+            const token = localStorage.getItem('utn_token');
+            const userData = localStorage.getItem('utn_user');
+            
+            console.log('🔍 Verificando sesión en activos.html:', {
+                token: token ? 'existe' : 'no existe',
+                usuario: userData ? 'existe' : 'no existe'
             });
-        </script>
-    </body>
-    </html>
+            
+            if (!token || !userData) {
+                console.log('🚫 No hay sesión en activos.html, redirigiendo a ../index.html...');
+                window.location.href = '../index.html';
+                return;
+            }
+            
+            console.log('✅ Sesión válida en activos.html, inicializando...');
+            
+            // Inicializar página de activos
+            window.activosController?.initialize();
+        });
+    </script>
+</body>
+</html>

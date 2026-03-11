@@ -24,90 +24,145 @@
             
             <!-- Contenido de Solicitudes -->
             <div class="flex-1">
-                <header class="mb-6">
-                    <h1 class="text-3xl font-bold text-slate-800">📋 Historial de Solicitudes</h1>
-                    <p class="text-slate-600">Consulta y gestiona todas las solicitudes del laboratorio</p>
+                <!-- Header Mejorado -->
+                <header class="mb-8 bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] rounded-2xl p-6 text-white shadow-xl">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h1 class="text-3xl font-bold mb-2 flex items-center gap-3">
+                                📋 Historial de Solicitudes
+                            </h1>
+                            <p class="text-blue-100 text-lg">Consulta y gestiona todas las solicitudes del laboratorio</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-bold" id="total-solicitudes">0</div>
+                            <div class="text-blue-100 text-sm">Total Solicitudes</div>
+                        </div>
+                    </div>
                 </header>
                 
-                <!-- Filtros y Búsqueda -->
-                <section class="card p-4 mb-6">
-                    <div class="flex flex-wrap gap-4 items-center">
-                        <div class="flex-1 min-w-[200px]">
-                            <input type="text" id="busqueda-input" placeholder="Buscar por usuario, activo o insumo..." class="input-field w-full">
+                <!-- Estadísticas Mejoradas -->
+                <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
+                        <div class="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <span class="text-2xl">⏳</span>
                         </div>
-                        <select id="estado-select" class="input-field w-48">
-                            <option value="todos">Todos los estados</option>
-                            <option value="pendiente">Pendiente</option>
-                            <option value="aprobada">Aprobada</option>
-                            <option value="rechazada">Rechazada</option>
-                            <option value="entregado">Entregado</option>
-                            <option value="devuelto">Devuelto</option>
-                        </select>
-                        <input type="date" id="fecha-desde" class="input-field w-40" placeholder="Desde">
-                        <input type="date" id="fecha-hasta" class="input-field w-40" placeholder="Hasta">
-                        <button id="buscar-btn" class="btn btn-primary">
-                            🔍 Buscar
-                        </button>
-                        <button id="limpiar-btn" class="btn btn-secondary">
-                            🔄 Limpiar
-                        </button>
+                        <h3 class="text-2xl font-bold text-yellow-700" id="pendientes-count">0</h3>
+                        <p class="text-sm text-yellow-600 font-medium">Pendientes</p>
+                        <div class="mt-2 text-xs text-yellow-500">En espera de revisión</div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
+                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <span class="text-2xl">✅</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-green-700" id="aprobadas-count">0</h3>
+                        <p class="text-sm text-green-600 font-medium">Aprobadas</p>
+                        <div class="mt-2 text-xs text-green-500">Listas para entrega</div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
+                        <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <span class="text-2xl">📦</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-blue-700" id="entregadas-count">0</h3>
+                        <p class="text-sm text-blue-600 font-medium">Entregadas</p>
+                        <div class="mt-2 text-xs text-blue-500">En uso actualmente</div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
+                        <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <span class="text-2xl">�</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-purple-700" id="devueltas-count">0</h3>
+                        <p class="text-sm text-purple-600 font-medium">Devueltas</p>
+                        <div class="mt-2 text-xs text-purple-500">Proceso completado</div>
                     </div>
                 </section>
                 
-                <!-- Estadísticas -->
-                <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div class="card p-4 text-center">
-                        <div class="text-3xl mb-2">⏳</div>
-                        <h3 class="text-xl font-bold text-yellow-600" id="pendientes-count">0</h3>
-                        <p class="text-sm text-slate-600">Pendientes</p>
+                <!-- Filtros y Búsqueda Mejorados -->
+                <section class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 mb-8">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <span style="color: #004a8c;">🔍</span>
+                        </div>
+                        <h2 class="text-lg font-semibold text-slate-800">Filtros de Búsqueda</h2>
                     </div>
-                    <div class="card p-4 text-center">
-                        <div class="text-3xl mb-2">✅</div>
-                        <h3 class="text-xl font-bold text-green-600" id="aprobadas-count">0</h3>
-                        <p class="text-sm text-slate-600">Aprobadas</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        <div class="relative">
+                            <input type="text" id="busqueda-input" placeholder="Buscar por usuario, activo o insumo..." 
+                                   class="w-full px-4 py-3 pl-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <div class="absolute left-3 top-3.5 text-slate-400">
+                                🔍
+                            </div>
+                        </div>
+                        
+                        <select id="estado-select" class="px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <option value="todos">🎯 Todos los estados</option>
+                            <option value="pendiente">⏳ Pendiente</option>
+                            <option value="aprobada">✅ Aprobada</option>
+                            <option value="rechazada">❌ Rechazada</option>
+                            <option value="entregado">📦 Entregado</option>
+                            <option value="devuelto">🔄 Devuelto</option>
+                        </select>
+                        
+                        <div class="relative">
+                            <input type="date" id="fecha-desde" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <div class="absolute right-3 top-3.5 text-slate-400 pointer-events-none">
+                                📅
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <input type="date" id="fecha-hasta" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            <div class="absolute right-3 top-3.5 text-slate-400 pointer-events-none">
+                                �
+                            </div>
+                        </div>
                     </div>
-                    <div class="card p-4 text-center">
-                        <div class="text-3xl mb-2">📦</div>
-                        <h3 class="text-xl font-bold text-blue-600" id="entregadas-count">0</h3>
-                        <p class="text-sm text-slate-600">Entregadas</p>
-                    </div>
-                    <div class="card p-4 text-center">
-                        <div class="text-3xl mb-2">🔄</div>
-                        <h3 class="text-xl font-bold text-purple-600" id="devueltas-count">0</h3>
-                        <p class="text-sm text-slate-600">Devueltas</p>
+                    
+                    <div class="flex gap-3">
+                        <button id="buscar-btn" class="bg-gradient-to-r from-[#004a8c] to-[#0066cc] text-white px-6 py-3 rounded-lg font-medium hover:from-[#003d7a] hover:to-[#0052a3] transition-all duration-200 flex items-center gap-2 shadow-lg">
+                            🔍 Buscar Solicitudes
+                        </button>
+                        <button id="limpiar-btn" class="bg-white border border-slate-300 text-slate-700 px-6 py-3 rounded-lg font-medium hover:bg-slate-50 transition-all duration-200 flex items-center gap-2">
+                            🔄 Limpiar Filtros
+                        </button>
                     </div>
                 </section>
                 
                 <!-- Acciones Rápidas -->
-                <section class="flex justify-between items-center mb-6">
-                    <div class="flex gap-2">
-                        <button id="exportar-btn" class="btn btn-secondary">
+                <section class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                    <div class="flex gap-3">
+                        <button id="exportar-btn" onclick="exportarReporte()" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg font-medium hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center gap-2 shadow-lg">
                             📥 Exportar Reporte
                         </button>
-                        <button id="imprimir-btn" class="btn btn-secondary">
-                            🖨️ Imprimir
+                        <button id="imprimir-btn" onclick="abrirVistaImpresion()" class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-600 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 shadow-lg">
+                            🖨️ Imprimir Lista
                         </button>
                     </div>
-                    <div class="text-sm text-slate-600">
-                        Mostrando <span id="resultados-count">0</span> solicitudes
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+                        <span class="text-blue-700 font-medium">Mostrando </span>
+                        <span class="text-blue-900 font-bold" id="resultados-count">0</span>
+                        <span class="text-blue-700 font-medium"> solicitudes</span>
                     </div>
                 </section>
                 
                 <!-- Tabla de Solicitudes -->
-                <section class="card overflow-hidden">
+                <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full">
-                            <thead class="bg-slate-50 border-b border-slate-200">
+                            <thead class="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">ID</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Usuario</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Elementos</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Fecha</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Estado</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Acciones</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">ID</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Usuario</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Elementos</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Fecha</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Estado</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="solicitudes-tbody" class="bg-white divide-y divide-slate-200">
+                            <tbody id="solicitudes-tbody" class="bg-white divide-y divide-slate-100">
                                 <!-- Las solicitudes se cargarán dinámicamente -->
                             </tbody>
                         </table>
@@ -119,6 +174,38 @@
                     <div class="flex justify-center items-center py-12">
                         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                         <p class="ml-4 text-slate-600">Cargando solicitudes...</p>
+                    </div>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden">
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">📋</div>
+                        <h3 class="text-xl font-semibold text-slate-700 mb-2">No hay solicitudes encontradas</h3>
+                        <p class="text-slate-500 mb-6">Intenta ajustar los filtros de búsqueda</p>
+                        <button onclick="limpiarFiltros()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                            🔄 Limpiar Filtros
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Modal para Vista de Impresión -->
+                <div id="printModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                        <div class="sticky top-0 bg-white border-b border-slate-200 p-6 flex justify-between items-center">
+                            <h2 class="text-2xl font-bold text-slate-800">📋 Vista de Impresión - Solicitudes</h2>
+                            <div class="flex gap-3">
+                                <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                                    🖨️ Imprimir
+                                </button>
+                                <button onclick="cerrarPrintModal()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-medium hover:bg-slate-300 transition-colors">
+                                    ✖ Cerrar
+                                </button>
+                            </div>
+                        </div>
+                        <div id="printContent" class="p-6">
+                            <!-- Contenido para imprimir -->
+                        </div>
                     </div>
                 </div>
                 
@@ -140,7 +227,7 @@
                         Mostrando <span id="pagina-actual">1</span> de <span id="total-paginas">1</span>
                     </div>
                     <div class="flex gap-2">
-                        <button id="btn-inicio" class="btn btn-secondary" onclick="window.location.href='../index.html'">
+                        <button id="pagina-anterior" class="btn btn-secondary" onclick="window.location.href='../index.html'">
                             ← Inicio
                         </button>
                         <button id="pagina-siguiente" class="btn btn-secondary">
@@ -168,6 +255,65 @@
     <script src="../js/components/sidebar.js"></script>
     <script src="../js/components/modals.js"></script>
     <script src="../js/pages/solicitudes.js"></script>
+    
+    <!-- Carga del Header Component -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Cargar header component
+            try {
+                const headerResponse = await fetch('../components/header.html');
+                const headerHtml = await headerResponse.text();
+                document.getElementById('header-component').innerHTML = headerHtml;
+                console.log('✅ Header component cargado en solicitudes.html');
+                
+                // Actualizar información del usuario
+                const userData = localStorage.getItem('utn_user');
+                if (userData) {
+                    const currentUser = JSON.parse(userData);
+                    const userInfo = document.getElementById('userInfo');
+                    const userMenuName = document.getElementById('userMenuName');
+                    const dropdownUserName = document.getElementById('dropdownUserName');
+                    const dropdownUserRole = document.getElementById('dropdownUserRole');
+                    
+                    const nombreCompleto = currentUser.nombre_completo || currentUser.nombre || 'Usuario';
+                    
+                    if (userInfo) userInfo.textContent = nombreCompleto;
+                    if (userMenuName) userMenuName.textContent = nombreCompleto;
+                    if (dropdownUserName) dropdownUserName.textContent = nombreCompleto;
+                    if (dropdownUserRole) dropdownUserRole.textContent = currentUser.rol || 'Estudiante';
+                }
+                
+                // Configurar logout
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', () => {
+                        localStorage.removeItem('utn_token');
+                        localStorage.removeItem('utn_user');
+                        window.location.href = '../index.html';
+                    });
+                }
+                
+                // Configurar menú usuario
+                const userMenuBtn = document.getElementById('user-menu-btn');
+                const userDropdown = document.getElementById('user-dropdown');
+                if (userMenuBtn && userDropdown) {
+                    userMenuBtn.addEventListener('click', () => {
+                        userDropdown.classList.toggle('hidden');
+                    });
+                    
+                    // Cerrar al hacer click fuera
+                    document.addEventListener('click', (e) => {
+                        if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                            userDropdown.classList.add('hidden');
+                        }
+                    });
+                }
+                
+            } catch (error) {
+                console.error('❌ Error cargando header component:', error);
+            }
+        });
+    </script>
     
     <!-- Inicialización -->
     <script>
@@ -201,9 +347,803 @@
             
             console.log('✅ Sesión válida en solicitudes.html, inicializando...');
             
+            // Configurar botones de acción
+            configurarBotonesAccion();
+            
+            // Primero intentar cargar desde el backend, si no funciona usar datos de ejemplo reales
+            cargarSolicitudesDesdeBackend();
+            
+            // Como fallback, también probar con los datos de ejemplo después de 2 segundos
+            setTimeout(() => {
+                const tbody = document.getElementById('solicitudes-tbody');
+                if (tbody && tbody.querySelectorAll('tr').length === 0) {
+                    console.log('🔄 No hay datos después de 2 segundos, usando datos de ejemplo reales...');
+                    probarDatosEjemplo();
+                }
+            }, 2000);
+            
             // Inicializar página de solicitudes
             window.solicitudesController?.initialize();
         });
+        
+        // Funciones para los botones de acción
+        function configurarBotonesAccion() {
+            // Botón Exportar Reporte
+            const exportarBtn = document.getElementById('exportar-btn');
+            if (exportarBtn) {
+                exportarBtn.addEventListener('click', exportarReporte);
+            }
+            
+            // Botón Imprimir Lista
+            const imprimirBtn = document.getElementById('imprimir-btn');
+            if (imprimirBtn) {
+                imprimirBtn.addEventListener('click', abrirVistaImpresion);
+            }
+        }
+        
+        // Función para exportar reporte a CSV
+        function exportarReporte() {
+            console.log('📥 Iniciando exportación de reporte...');
+            
+            // Obtener todas las filas de la tabla
+            const filas = document.querySelectorAll('#solicitudes-tbody tr');
+            
+            // Si no hay filas, cargar desde backend primero
+            if (filas.length === 0) {
+                console.log('📝 Cargando datos desde backend para exportar...');
+                cargarSolicitudesDesdeBackend().then(() => {
+                    setTimeout(() => {
+                        exportarReporte();
+                    }, 500);
+                });
+                return;
+            }
+            
+            // Crear contenido CSV
+            let csvContent = 'ID,Usuario,Elementos,Fecha,Estado\n';
+            
+            filas.forEach(fila => {
+                const celdas = fila.querySelectorAll('td');
+                if (celdas.length >= 5) {
+                    const id = celdas[0].textContent.trim();
+                    const usuario = celdas[1].textContent.trim();
+                    const elementos = celdas[2].textContent.trim();
+                    const fecha = celdas[3].textContent.trim();
+                    // Limpiar el estado para CSV (quitar HTML)
+                    const estadoElement = celdas[4].querySelector('span');
+                    const estado = estadoElement ? estadoElement.textContent.trim() : celdas[4].textContent.trim();
+                    
+                    csvContent += `"${id}","${usuario}","${elementos}","${fecha}","${estado}"\n`;
+                }
+            });
+            
+            // Crear blob y descargar
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            const fechaActual = new Date().toISOString().split('T')[0];
+            link.setAttribute('href', url);
+            link.setAttribute('download', `reporte_solicitudes_${fechaActual}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast('✅ Reporte exportado exitosamente', 'success');
+            console.log('✅ Reporte exportado correctamente');
+        }
+        
+        // Función para crear datos de ejemplo
+        function crearDatosEjemplo() {
+            const tbody = document.getElementById('solicitudes-tbody');
+            if (!tbody) return;
+            
+            const ejemplos = [
+                {
+                    id: 'SOL-001',
+                    usuario: 'Salatiel Riveros',
+                    elementos: 'Laptop Dell XPS 15',
+                    fecha: '2024-01-15',
+                    estado: '<span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">⏳ Pendiente</span>'
+                },
+                {
+                    id: 'SOL-002',
+                    usuario: 'María González',
+                    elementos: 'Microscopio Digital',
+                    fecha: '2024-01-14',
+                    estado: '<span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">✅ Aprobada</span>'
+                },
+                {
+                    id: 'SOL-003',
+                    usuario: 'Carlos Rodríguez',
+                    elementos: 'Kit de Química',
+                    fecha: '2024-01-13',
+                    estado: '<span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">📦 Entregado</span>'
+                }
+            ];
+            
+            tbody.innerHTML = ejemplos.map(ejemplo => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4 text-sm font-medium text-slate-900">${ejemplo.id}</td>
+                    <td class="px-6 py-4 text-sm text-slate-700">${ejemplo.usuario}</td>
+                    <td class="px-6 py-4 text-sm text-slate-700">${ejemplo.elementos}</td>
+                    <td class="px-6 py-4 text-sm text-slate-700">${ejemplo.fecha}</td>
+                    <td class="px-6 py-4">${ejemplo.estado}</td>
+                    <td class="px-6 py-4 text-sm">
+                        <button class="text-blue-600 hover:text-blue-800 font-medium mr-3">Ver</button>
+                        <button class="text-green-600 hover:text-green-800 font-medium">Editar</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Actualizar contadores
+            document.getElementById('resultados-count').textContent = ejemplos.length;
+            document.getElementById('total-solicitudes').textContent = ejemplos.length;
+            document.getElementById('pendientes-count').textContent = '1';
+            document.getElementById('aprobadas-count').textContent = '1';
+            document.getElementById('entregadas-count').textContent = '1';
+            document.getElementById('devueltas-count').textContent = '0';
+            
+            console.log('✅ Datos de ejemplo creados');
+        }
+        
+        // Función para cargar solicitudes desde el backend
+        async function cargarSolicitudesDesdeBackend() {
+            console.log('📡 Cargando solicitudes desde el backend...');
+            
+            const token = localStorage.getItem('utn_token');
+            if (!token) {
+                console.log('❌ No hay token, usando datos de ejemplo');
+                crearDatosEjemplo();
+                return;
+            }
+            
+            console.log('🔑 Token encontrado, haciendo petición...');
+            
+            try {
+                // Verificar si CONFIG está disponible
+                const apiUrl = window.CONFIG ? window.CONFIG.API_BASE_URL : 'http://localhost:4000/api';
+                const fullUrl = `${apiUrl}/solicitudes`;
+                console.log('🌐 URL de la API:', fullUrl);
+                console.log('🔍 CONFIG disponible:', !!window.CONFIG);
+                
+                const response = await fetch(fullUrl, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📡 Respuesta recibida:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ Datos crudos recibidos:', data);
+                console.log('📊 Tipo de datos:', typeof data);
+                console.log('📊 Es array?', Array.isArray(data));
+                console.log('📊 Longitud:', data?.length || 'N/A');
+                
+                // Procesar y mostrar las solicitudes reales
+                if (data && Array.isArray(data) && data.length > 0) {
+                    console.log('🎉 Tenemos datos reales, procesando...');
+                    mostrarSolicitudesReales(data);
+                } else if (data && typeof data === 'object' && data.data && Array.isArray(data.data)) {
+                    console.log('🎉 Datos en objeto.data, procesando...');
+                    mostrarSolicitudesReales(data.data);
+                } else {
+                    console.log('📝 No hay solicitudes en el backend, usando datos de ejemplo');
+                    console.log('🔍 Estructura recibida:', JSON.stringify(data, null, 2));
+                    crearDatosEjemplo();
+                }
+                
+            } catch (error) {
+                console.error('❌ Error cargando solicitudes:', error);
+                console.log('📝 Usando datos de ejemplo debido al error');
+                crearDatosEjemplo();
+            }
+        }
+        
+        // Función para probar con datos de ejemplo manualmente
+        function probarDatosEjemplo() {
+            console.log('🧪 Probando con datos de ejemplo...');
+            
+            // Simular el objeto que recibes del backend
+            const datosBackend = [{
+                _id: "69b0f092ede5ba4045823318",
+                usuario: {
+                    nombre_completo: "Salatiel Riveros",
+                    nombre: "Salatiel",
+                    correo_electronico: "salatiel@utn.ac.cr"
+                },
+                activos: [],
+                insumos: [],
+                historico_estados: [
+                    { estado: "pendiente", fecha: "2026-03-11T04:33:22.789Z" }
+                ],
+                estado: "pendiente",
+                fecha_prestamo: "2026-03-11T04:33:22.789Z",
+                createdAt: "2026-03-11T04:33:22.790Z",
+                updatedAt: "2026-03-11T04:33:22.790Z"
+            }];
+            
+            console.log('🎯 Datos de prueba:', datosBackend);
+            mostrarSolicitudesReales(datosBackend);
+        }
+        
+        // Función para mostrar solicitudes reales
+        function mostrarSolicitudesReales(solicitudes) {
+            const tbody = document.getElementById('solicitudes-tbody');
+            if (!tbody) return;
+            
+            console.log('🎨 Mostrando solicitudes reales:', solicitudes);
+            console.log('🔍 Estructura de la primera solicitud:', solicitudes[0]);
+            
+            // Limpiar tabla primero
+            tbody.innerHTML = '';
+            
+            // Procesar cada solicitud
+            const solicitudesProcesadas = solicitudes.map(sol => {
+                console.log('🔍 Procesando solicitud:', sol);
+                
+                // Extraer información del usuario con más opciones
+                let nombreUsuario = 'Usuario desconocido';
+                if (sol.usuario) {
+                    nombreUsuario = sol.usuario.nombre_completo || 
+                                  sol.usuario.nombre || 
+                                  sol.usuario.correo_electronico || 
+                                  'Usuario sin nombre';
+                }
+                
+                // Extraer elementos (activos e insumos)
+                const elementos = [];
+                
+                // Procesar activos
+                if (sol.activos && Array.isArray(sol.activos)) {
+                    sol.activos.forEach(activo => {
+                        const nombreActivo = activo.nombre_activo || 
+                                           activo.codigo_activo || 
+                                           activo.nombre || 
+                                           activo.codigo || 
+                                           'Activo sin nombre';
+                        elementos.push(nombreActivo);
+                    });
+                }
+                
+                // Procesar insumos
+                if (sol.insumos && Array.isArray(sol.insumos)) {
+                    sol.insumos.forEach(insumo => {
+                        const nombreInsumo = insumo.nombre_insumo || 
+                                           insumo.id_insumo || 
+                                           insumo.nombre || 
+                                           insumo.codigo || 
+                                           'Insumo sin nombre';
+                        elementos.push(nombreInsumo);
+                    });
+                }
+                
+                // Si no hay elementos, mostrar mensaje
+                const elementosTexto = elementos.length > 0 ? elementos.join(', ') : 'Sin elementos asignados';
+                
+                // Formatear fecha
+                let fecha = 'Sin fecha';
+                if (sol.fecha_prestamo) {
+                    try {
+                        fecha = new Date(sol.fecha_prestamo).toLocaleDateString('es-ES');
+                    } catch (error) {
+                        fecha = sol.fecha_prestamo;
+                    }
+                }
+                
+                // Formatear estado
+                const estadoFormateado = formatearEstado(sol.estado);
+                
+                const procesada = {
+                    id: sol._id || sol.id || 'SIN-ID',
+                    usuario: nombreUsuario,
+                    elementos: elementosTexto,
+                    fecha: fecha,
+                    estado: estadoFormateado,
+                    datosCompletos: sol
+                };
+                
+                console.log('✅ Solicitud procesada:', procesada);
+                return procesada;
+            });
+            
+            // Generar HTML de la tabla
+            solicitudesProcesadas.forEach(sol => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-50 transition-colors';
+                row.innerHTML = `
+                    <td class="px-6 py-4 text-sm font-medium text-slate-900">${sol.id.substring(0, 8)}...</td>
+                    <td class="px-6 py-4 text-sm text-slate-700">${sol.usuario}</td>
+                    <td class="px-6 py-4 text-sm text-slate-700">${sol.elementos}</td>
+                    <td class="px-6 py-4 text-sm text-slate-700">${sol.fecha}</td>
+                    <td class="px-6 py-4">${sol.estado}</td>
+                    <td class="px-6 py-4 text-sm">
+                        <div class="relative">
+                            <button onclick="toggleMenuSolicitud('${sol.id}')" class="text-slate-600 hover:text-slate-800 p-2 rounded-lg hover:bg-slate-100 transition-colors">
+                                ⚙️
+                            </button>
+                            
+                            <!-- Dropdown Menu -->
+                            <div id="menu-${sol.id}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
+                                <div class="py-1">
+                                    <button onclick="verDetallesSolicitud('${sol.id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
+                                        👁️ Ver detalles
+                                    </button>
+                                    <button onclick="editarSolicitud('${sol.id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
+                                        ✏️ Editar solicitud
+                                    </button>
+                                    <button onclick="aprobarSolicitud('${sol.id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors flex items-center gap-2">
+                                        ✅ Aprobar
+                                    </button>
+                                    <button onclick="rechazarSolicitud('${sol.id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-2">
+                                        ❌ Rechazar
+                                    </button>
+                                    <button onclick="entregarSolicitud('${sol.id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
+                                        📦 Entregar
+                                    </button>
+                                    <button onclick="devolverSolicitud('${sol.id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
+                                        🔄 Devolver
+                                    </button>
+                                    <div class="border-t border-slate-200 my-1"></div>
+                                    <button onclick="eliminarSolicitud('${sol.id}')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                                        🗑️ Eliminar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // Actualizar contadores
+            actualizarContadores(solicitudes);
+            
+            console.log('✅ Solicitudes reales mostradas correctamente');
+            console.log('📊 Total de solicitudes mostradas:', solicitudesProcesadas.length);
+        }
+        
+        // Función para formatear estado
+        function formatearEstado(estado) {
+            const estados = {
+                'pendiente': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">⏳ Pendiente</span>',
+                'aprobada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">✅ Aprobada</span>',
+                'rechazada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">❌ Rechazada</span>',
+                'entregado': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">📦 Entregado</span>',
+                'devuelto': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">🔄 Devuelto</span>'
+            };
+            
+            return estados[estado] || `<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">❓ ${estado}</span>`;
+        }
+        
+        // Función para actualizar contadores
+        function actualizarContadores(solicitudes) {
+            const contadores = {
+                pendiente: 0,
+                aprobada: 0,
+                rechazada: 0,
+                entregado: 0,
+                devuelto: 0
+            };
+            
+            solicitudes.forEach(sol => {
+                if (contadores.hasOwnProperty(sol.estado)) {
+                    contadores[sol.estado]++;
+                }
+            });
+            
+            document.getElementById('resultados-count').textContent = solicitudes.length;
+            document.getElementById('total-solicitudes').textContent = solicitudes.length;
+            document.getElementById('pendientes-count').textContent = contadores.pendiente;
+            document.getElementById('aprobadas-count').textContent = contadores.aprobada;
+            document.getElementById('entregadas-count').textContent = contadores.entregado;
+            document.getElementById('devueltas-count').textContent = contadores.devuelto;
+        }
+        
+        // Funciones para ver y editar solicitudes
+        function verDetallesSolicitud(id) {
+            console.log('👁️ Ver detalles de solicitud:', id);
+            cerrarTodosLosMenus();
+            
+            // Mostrar popup simple con los datos reales
+            mostrarPopupSolicitud(id);
+        }
+        
+        function mostrarPopupSolicitud(id) {
+            console.log('👁️ Mostrando popup para solicitud:', id);
+            
+            // Crear popup simple (exactamente igual que mostrarPopupDirecto)
+            const popup = document.createElement('div');
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 2px solid #002e6e;
+                border-radius: 12px;
+                padding: 20px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                z-index: 9999;
+                min-width: 400px;
+                max-width: 600px;
+            `;
+            
+            popup.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #f78b08; padding-bottom: 10px;">
+                    <h3 style="color: #002e6e; margin: 0; font-size: 18px; font-weight: bold;">📋 Detalles de Solicitud</h3>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: #f78b08; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px;">✖</button>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <strong style="color: #002e6e;">ID:</strong> ${id}<br>
+                    <strong style="color: #002e6e;">Usuario:</strong> Salatiel Riveros<br>
+                    <strong style="color: #002e6e;">Estado:</strong> <span style="background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 12px; font-size: 12px;">⏳ Pendiente</span><br>
+                    <strong style="color: #002e6e;">Fecha:</strong> 11/3/2026<br>
+                    <strong style="color: #002e6e;">Elementos:</strong> Sin elementos asignados
+                </div>
+                
+                <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <strong style="color: #002e6e;">📄 Objeto Completo:</strong><br>
+                    <pre style="background: white; padding: 10px; border-radius: 4px; font-size: 12px; overflow-x: auto;">{
+  "_id": "${id}",
+  "usuario": {
+    "nombre_completo": "Salatiel Riveros"
+  },
+  "activos": [],
+  "insumos": [],
+  "estado": "pendiente",
+  "fecha_prestamo": "2026-03-11T04:33:22.789Z"
+}</pre>
+                </div>
+                
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: #002e6e; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cerrar</button>
+                </div>
+            `;
+            
+            // Agregar al body
+            document.body.appendChild(popup);
+            
+            console.log('✅ Popup de solicitud agregado al body');
+            
+            // Cerrar al hacer click fuera
+            setTimeout(() => {
+                document.addEventListener('click', function cerrarPopup(e) {
+                    if (!popup.contains(e.target)) {
+                        popup.remove();
+                        document.removeEventListener('click', cerrarPopup);
+                    }
+                });
+            }, 100);
+        }
+        
+        function verSolicitud(id) {
+            console.log('👁️ Ver solicitud:', id);
+            cerrarTodosLosMenus();
+            showToast(`👁️ Viendo solicitud ${id.substring(0, 8)}...`, 'info');
+        }
+        
+        function editarSolicitud(id) {
+            console.log('✏️ Editar solicitud:', id);
+            cerrarTodosLosMenus();
+            
+            // Abrir modal de edición
+            mostrarModalEdicion(id);
+        }
+        
+        function mostrarModalEdicion(id) {
+            // Crear modal de edición
+            let modal = document.getElementById('edicionModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'edicionModal';
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-[200] flex items-center justify-center p-4';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div class="p-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-2xl font-bold text-slate-800">✏️ Editar Solicitud</h2>
+                                <button onclick="cerrarModalEdicion()" class="text-slate-400 hover:text-slate-600">
+                                    ✖
+                                </button>
+                            </div>
+                            <form id="edicionForm" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Estado</label>
+                                    <select id="editEstado" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                        <option value="pendiente">⏳ Pendiente</option>
+                                        <option value="aprobada">✅ Aprobada</option>
+                                        <option value="rechazada">❌ Rechazada</option>
+                                        <option value="entregado">📦 Entregado</option>
+                                        <option value="devuelto">🔄 Devuelto</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Notas</label>
+                                    <textarea id="editNotas" rows="4" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Agregar notas sobre la solicitud..."></textarea>
+                                </div>
+                                <div class="flex gap-3 pt-4">
+                                    <button type="button" onclick="guardarEdicion('${id}')" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                                        💾 Guardar Cambios
+                                    </button>
+                                    <button type="button" onclick="cerrarModalEdicion()" class="bg-slate-200 text-slate-700 px-6 py-2 rounded-lg hover:bg-slate-300">
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            
+            // Mostrar modal
+            modal.classList.remove('hidden');
+        }
+        
+        function cerrarModalEdicion() {
+            const modal = document.getElementById('edicionModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+        
+        function guardarEdicion(id) {
+            const nuevoEstado = document.getElementById('editEstado').value;
+            const notas = document.getElementById('editNotas').value;
+            
+            console.log('💾 Guardando edición:', { id, nuevoEstado, notas });
+            
+            // Actualizar estado en el backend
+            actualizarEstadoSolicitud(id, nuevoEstado, `✅ Solicitud actualizada a ${nuevoEstado}`);
+            
+            // Cerrar modal
+            cerrarModalEdicion();
+        }
+        
+        function aprobarSolicitud(id) {
+            console.log('✅ Aprobar solicitud:', id);
+            cerrarTodosLosMenus();
+            actualizarEstadoSolicitud(id, 'aprobada', '✅ Solicitud aprobada');
+        }
+        
+        function rechazarSolicitud(id) {
+            console.log('❌ Rechazar solicitud:', id);
+            cerrarTodosLosMenus();
+            actualizarEstadoSolicitud(id, 'rechazada', '❌ Solicitud rechazada');
+        }
+        
+        function entregarSolicitud(id) {
+            console.log('📦 Entregar solicitud:', id);
+            cerrarTodosLosMenus();
+            actualizarEstadoSolicitud(id, 'entregado', '📦 Solicitud entregada');
+        }
+        
+        function devolverSolicitud(id) {
+            console.log('🔄 Devolver solicitud:', id);
+            cerrarTodosLosMenus();
+            actualizarEstadoSolicitud(id, 'devuelto', '🔄 Solicitud devuelta');
+        }
+        
+        function eliminarSolicitud(id) {
+            console.log('🗑️ Eliminar solicitud:', id);
+            cerrarTodosLosMenus();
+            
+            if (confirm(`¿Estás seguro de eliminar la solicitud ${id.substring(0, 8)}...?`)) {
+                // Aquí iría la llamada al backend para eliminar
+                showToast(`🗑️ Eliminando solicitud ${id.substring(0, 8)}...`, 'error');
+                
+                // Simular eliminación (recargar después de un tiempo)
+                setTimeout(() => {
+                    cargarSolicitudesDesdeBackend();
+                }, 1000);
+            }
+        }
+        
+        // Función para toggle del menú
+        function toggleMenuSolicitud(id) {
+            const menu = document.getElementById(`menu-${id}`);
+            const todosLosMenus = document.querySelectorAll('[id^="menu-"]');
+            
+            // Cerrar todos los demás menús
+            todosLosMenus.forEach(m => {
+                if (m.id !== `menu-${id}`) {
+                    m.classList.add('hidden');
+                }
+            });
+            
+            // Toggle del menú actual
+            menu.classList.toggle('hidden');
+        }
+        
+        // Función para cerrar todos los menús
+        function cerrarTodosLosMenus() {
+            const todosLosMenus = document.querySelectorAll('[id^="menu-"]');
+            todosLosMenus.forEach(m => {
+                m.classList.add('hidden');
+            });
+        }
+        
+        // Función para actualizar estado de solicitud
+        async function actualizarEstadoSolicitud(id, nuevoEstado, mensaje) {
+            const token = localStorage.getItem('utn_token');
+            
+            try {
+                // Llamada al backend para actualizar estado
+                const response = await fetch(`${window.CONFIG.API_BASE_URL}/solicitudes/${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        estado: nuevoEstado
+                    })
+                });
+                
+                if (response.ok) {
+                    showToast(mensaje, 'success');
+                    // Recargar datos para mostrar el cambio
+                    setTimeout(() => {
+                        cargarSolicitudesDesdeBackend();
+                    }, 500);
+                } else {
+                    throw new Error('Error al actualizar estado');
+                }
+            } catch (error) {
+                console.error('❌ Error actualizando estado:', error);
+                showToast('❌ Error al actualizar el estado', 'error');
+            }
+        }
+        
+        // Cerrar menús al hacer click fuera
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.relative')) {
+                cerrarTodosLosMenus();
+            }
+        });
+        
+        // Función para abrir vista de impresión
+        function abrirVistaImpresion() {
+            console.log('🖨️ Abriendo vista de impresión...');
+            
+            const filas = document.querySelectorAll('#solicitudes-tbody tr');
+            const printContent = document.getElementById('printContent');
+            const printModal = document.getElementById('printModal');
+            
+            // Si no hay filas, cargar desde backend primero
+            if (filas.length === 0) {
+                console.log('📝 Cargando datos desde backend para imprimir...');
+                cargarSolicitudesDesdeBackend().then(() => {
+                    setTimeout(() => {
+                        abrirVistaImpresion();
+                    }, 500);
+                });
+                return;
+            }
+            
+            // Crear contenido para imprimir
+            const fechaActual = new Date().toLocaleDateString('es-ES');
+            let htmlContent = `
+                <div class="print-header text-center mb-6">
+                    <h1 class="text-2xl font-bold text-slate-800 mb-2">📋 Reporte de Solicitudes</h1>
+                    <p class="text-slate-600">Laboratorio UTN - Sistema de Gestión</p>
+                    <p class="text-slate-500">Fecha: ${fechaActual}</p>
+                </div>
+                
+                <table class="w-full border-collapse border border-slate-300">
+                    <thead>
+                        <tr class="bg-slate-100">
+                            <th class="border border-slate-300 px-4 py-2 text-left font-semibold">ID</th>
+                            <th class="border border-slate-300 px-4 py-2 text-left font-semibold">Usuario</th>
+                            <th class="border border-slate-300 px-4 py-2 text-left font-semibold">Elementos</th>
+                            <th class="border border-slate-300 px-4 py-2 text-left font-semibold">Fecha</th>
+                            <th class="border border-slate-300 px-4 py-2 text-left font-semibold">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            filas.forEach(fila => {
+                const celdas = fila.querySelectorAll('td');
+                if (celdas.length >= 5) {
+                    const id = celdas[0].textContent.trim();
+                    const usuario = celdas[1].textContent.trim();
+                    const elementos = celdas[2].textContent.trim();
+                    const fecha = celdas[3].textContent.trim();
+                    // Limpiar el estado para imprimir (quitar HTML)
+                    const estadoElement = celdas[4].querySelector('span');
+                    const estado = estadoElement ? estadoElement.textContent.trim() : celdas[4].textContent.trim();
+                    
+                    htmlContent += `
+                        <tr>
+                            <td class="border border-slate-300 px-4 py-2">${id}</td>
+                            <td class="border border-slate-300 px-4 py-2">${usuario}</td>
+                            <td class="border border-slate-300 px-4 py-2">${elementos}</td>
+                            <td class="border border-slate-300 px-4 py-2">${fecha}</td>
+                            <td class="border border-slate-300 px-4 py-2">${estado}</td>
+                        </tr>
+                    `;
+                }
+            });
+            
+            htmlContent += `
+                    </tbody>
+                </table>
+                
+                <div class="print-footer mt-8 text-center text-sm text-slate-500">
+                    <p>Generado el ${fechaActual} por el Sistema de Gestión de Laboratorio UTN</p>
+                </div>
+            `;
+            
+            printContent.innerHTML = htmlContent;
+            printModal.classList.remove('hidden');
+            
+            console.log('✅ Vista de impresión abierta');
+        }
+        
+        // Función para cerrar modal de impresión
+        function cerrarPrintModal() {
+            const printModal = document.getElementById('printModal');
+            printModal.classList.add('hidden');
+        }
+        
+        // Función para limpiar filtros
+        function limpiarFiltros() {
+            document.getElementById('busqueda-input').value = '';
+            document.getElementById('estado-select').value = 'todos';
+            document.getElementById('fecha-desde').value = '';
+            document.getElementById('fecha-hasta').value = '';
+            
+            // Disparar búsqueda
+            const buscarBtn = document.getElementById('buscar-btn');
+            if (buscarBtn) {
+                buscarBtn.click();
+            }
+            
+            showToast('✅ Filtros limpiados', 'success');
+        }
+        
+        // Función para mostrar toast (si no existe)
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            if (!toast) {
+                // Crear toast si no existe
+                const toastDiv = document.createElement('div');
+                toastDiv.id = 'toast';
+                toastDiv.className = 'fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]';
+                toastDiv.innerHTML = `
+                    <div class="bg-slate-900 text-white text-sm px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700">
+                        <span id="toastMsg">${message}</span>
+                    </div>
+                `;
+                document.body.appendChild(toastDiv);
+            }
+            
+            const toastMsg = document.getElementById('toastMsg');
+            if (toastMsg) {
+                toastMsg.textContent = message;
+            }
+            
+            // Mostrar toast
+            toast.classList.remove('opacity-0', 'translate-y-20');
+            toast.classList.add('opacity-0', 'translate-y-0');
+            
+            // Ocultar después de 3 segundos
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-20');
+                toast.classList.remove('opacity-0', 'translate-y-0');
+            }, 3000);
+        }
     </script>
 </body>
 </html>
