@@ -49,29 +49,92 @@
                 </div>
             </div>
 
-            <!-- CONTROLES -->
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <p class="text-sm text-slate-500">Solicita equipos y materiales para tus proyectos</p>
-                </div>
-                <div class="flex gap-3">
-                    <!-- Carrito de Solicitudes -->
-                    <div class="relative">
-                        <button id="cartBtn" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                            � Solicitudes
-                            <span id="cartCount" class="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">0</span>
-                        </button>
-                    </div>
-                    <button id="refreshBtn" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                        🔄 Actualizar
-                    </button>
-                </div>
+        <!-- CONTROLES -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <p class="text-sm text-slate-500">Solicita equipos y materiales para tus proyectos</p>
+            </div>
+            <div class="flex gap-3">
+                <button id="refreshBtn" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                    🔄 Actualizar
+                </button>
+            </div>
+        </div>
+            
+        <!-- GRID DE ITEMS -->
+        <div id="itemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Los items se cargarán aquí dinámicamente -->
+        </div>
+    </main>
+</div>
+</div>
+
+<!-- MODAL DE CONFIRMACIÓN -->
+<div id="confirmModal" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
+        <div class="p-6 text-center border-b border-slate-100">
+            <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl" id="modalIcon">🔬</div>
+            <h3 class="text-xl font-bold utn-text">Confirmar Solicitud</h3>
+            <p class="text-xs text-slate-400 mt-1">Se generará una boleta electrónica digital</p>
+        </div>
+        
+        <div class="bg-slate-50 p-4 rounded-2xl mb-6 text-[11px] space-y-3 border border-slate-100">
+            <div class="flex justify-between">
+                <span class="text-slate-400 font-bold uppercase">Elemento</span>
+                <span id="itemName" class="font-bold text-slate-700 text-right"></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-400 font-bold uppercase">Categoría</span>
+                <span id="itemCat" class="font-bold text-blue-600 text-right"></span>
+            </div>
+            <div class="flex justify-between border-t border-slate-200 pt-2">
+                <span class="text-slate-400 font-bold uppercase">Usuario</span>
+                <span id="itemUser" class="font-bold text-slate-700"></span>
+            </div>
+        </div>
+
+        <div class="flex gap-3 p-6">
+            <button onclick="closeModal()" class="flex-1 py-3 text-xs font-bold text-slate-400 hover:text-slate-600 uppercase transition">
+                Cancelar
+            </button>
+            <button onclick="confirmarPedido()" class="flex-1 py-3 text-xs font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition uppercase">
+                Enviar Boleta
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DEL CARRITO DE SOLICITUDES -->
+<div id="cartModal" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
+        <div class="p-6 border-b border-slate-100">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-bold text-slate-800">🛒 Carrito de Solicitudes</h2>
+                <button onclick="closeCartModal()" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <div id="cartItems" class="space-y-3 max-h-96 overflow-y-auto mb-6">
+                <!-- Los items del carrito se cargarán aquí -->
+            </div>
+            
+            <div class="border-t border-slate-200 pt-4">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-lg font-bold text-slate-800">Total de items:</span>
+                    <span id="cartTotal" class="text-2xl font-bold text-blue-600">0</span>
                 </div>
                 
-                <!-- GRID DE ITEMS -->
-                <div id="itemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <!-- Los items se cargarán aquí dinámicamente -->
-                </div>
+                <div class="flex gap-3">
+                    <button onclick="clearCart()" class="flex-1 py-3 text-sm font-bold bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition">
+                        🗑️ Vaciar Carrito
+                    </button>
+                    <button onclick="sendRequest()" class="flex-1 py-3 text-sm font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition">
+                        📤 Enviar Solicitud
             </main>
         </div>
     </div>
@@ -305,15 +368,33 @@
                 if (currentUser) {
                     const userInfo = document.getElementById('userInfo');
                     const userMenuName = document.getElementById('userMenuName');
+                    const dropdownUserName = document.getElementById('dropdownUserName');
+                    const dropdownUserRole = document.getElementById('dropdownUserRole');
+                    
+                    // Actualizar nombre
+                    const nombreCompleto = currentUser.nombre || currentUser.nombre_completo || 'Usuario';
                     
                     if (userInfo) {
-                        userInfo.textContent = currentUser.nombre || currentUser.nombre_completo || 'Usuario';
-                        console.log('✅ userInfo actualizado:', userInfo.textContent);
+                        userInfo.textContent = nombreCompleto;
+                        console.log('✅ userInfo actualizado:', nombreCompleto);
                     }
                     
                     if (userMenuName) {
-                        userMenuName.textContent = currentUser.nombre || currentUser.nombre_completo || 'Usuario';
-                        console.log('✅ userMenuName actualizado:', userMenuName.textContent);
+                        userMenuName.textContent = nombreCompleto;
+                        console.log('✅ userMenuName actualizado:', nombreCompleto);
+                    }
+                    
+                    if (dropdownUserName) {
+                        dropdownUserName.textContent = nombreCompleto;
+                        console.log('✅ dropdownUserName actualizado:', nombreCompleto);
+                    }
+                    
+                    // Actualizar rol dinámicamente
+                    const rol = currentUser.rol || currentUser.rol_nombre || 'Estudiante';
+                    
+                    if (dropdownUserRole) {
+                        dropdownUserRole.textContent = rol;
+                        console.log('✅ dropdownUserRole actualizado:', rol);
                     }
                 } else {
                     console.log('❌ No hay currentUser para actualizar');
