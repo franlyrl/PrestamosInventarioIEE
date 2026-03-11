@@ -347,23 +347,42 @@
             
             console.log('✅ Sesión válida en solicitudes.html, inicializando...');
             
-            // Configurar botones de acción
-            configurarBotonesAccion();
-            
-            // Primero intentar cargar desde el backend, si no funciona usar datos de ejemplo reales
-            cargarSolicitudesDesdeBackend();
-            
-            // Como fallback, también probar con los datos de ejemplo después de 2 segundos
-            setTimeout(() => {
-                const tbody = document.getElementById('solicitudes-tbody');
-                if (tbody && tbody.querySelectorAll('tr').length === 0) {
-                    console.log('🔄 No hay datos después de 2 segundos, usando datos de ejemplo reales...');
-                    probarDatosEjemplo();
+            // Cargar header component
+            try {
+                const headerResponse = await fetch('../components/header.html');
+                const headerHtml = await headerResponse.text();
+                document.getElementById('header-component').innerHTML = headerHtml;
+                console.log('✅ Header component cargado en solicitudes.html');
+                
+                // IMPORTANTE: Llamar a updateUserInfo() después de cargar el header
+                if (typeof updateUserInfo === 'function') {
+                    console.log('🔄 Llamando a updateUserInfo() desde solicitudes.html...');
+                    updateUserInfo();
+                } else {
+                    console.log('❌ updateUserInfo() no está disponible');
                 }
-            }, 2000);
-            
-            // Inicializar página de solicitudes
-            window.solicitudesController?.initialize();
+                
+                // Configurar botones de acción
+                configurarBotonesAccion();
+                
+                // Primero intentar cargar desde el backend, si no funciona usar datos de ejemplo reales
+                cargarSolicitudesDesdeBackend();
+                
+                // Como fallback, también probar con los datos de ejemplo después de 2 segundos
+                setTimeout(() => {
+                    const tbody = document.getElementById('solicitudes-tbody');
+                    if (tbody && tbody.querySelectorAll('tr').length === 0) {
+                        console.log('🔄 No hay datos después de 2 segundos, usando datos de ejemplo reales...');
+                        probarDatosEjemplo();
+                    }
+                }, 2000);
+                
+                // Inicializar página de solicitudes
+                window.solicitudesController?.initialize();
+                
+            } catch (error) {
+                console.error('❌ Error cargando header:', error);
+            }
         });
         
         // Funciones para los botones de acción

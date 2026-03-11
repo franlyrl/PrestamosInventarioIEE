@@ -718,6 +718,14 @@
                             const headerHtml = await headerResponse.text();
                             document.getElementById('header-component').innerHTML = headerHtml;
                             console.log('✅ Header component cargado');
+                            
+                            // IMPORTANTE: Llamar a updateUserInfo() después de cargar el header
+                            if (typeof updateUserInfo === 'function') {
+                                console.log('🔄 Llamando a updateUserInfo() desde index.html...');
+                                updateUserInfo();
+                            } else {
+                                console.log('❌ updateUserInfo() no está disponible');
+                            }
                         } catch (error) {
                             console.error('❌ Error cargando header component:', error);
                         }

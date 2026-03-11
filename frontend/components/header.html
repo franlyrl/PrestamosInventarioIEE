@@ -25,7 +25,7 @@
                 
                 <!-- Info Usuario -->
                 <div class="text-right hidden md:block">
-                    <p class="text-sm font-semibold text-white" id="userInfo">Salatiel Riveros</p>
+                    <p class="text-sm font-semibold text-white" id="userInfo">Usuario</p>
                     <p class="text-xs flex items-center gap-1" id="currentDateTime" style="color: #f78b08;">
                         <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: #f78b08;"></span>
                         Conectado
@@ -38,7 +38,7 @@
                         <div class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
                             👤
                         </div>
-                        <span id="userMenuName">Salatiel Riveros</span>
+                        <span id="userMenuName">Usuario</span>
                         <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
@@ -48,8 +48,8 @@
                     <div id="user-dropdown" class="hidden absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 transform transition-all duration-200">
                         <!-- Header del Dropdown -->
                         <div class="bg-gradient-to-r from-[#004a8c] to-[#0066cc] p-4 text-white">
-                            <p class="text-sm font-semibold" id="dropdownUserName">Salatiel Riveros</p>
-                            <p class="text-xs" id="dropdownUserRole" style="color: #f78b08;">Estudiante</p>
+                            <p class="text-sm font-semibold" id="dropdownUserName">Usuario</p>
+                            <p class="text-xs" id="dropdownUserRole">Cargando rol...</p>
                         </div>
                         
                         <!-- Opciones del Menú -->
@@ -114,3 +114,53 @@
         </div>
     </div>
 </header>
+
+<script>
+// NO ejecutar updateUserInfo automáticamente aquí
+// La función se ejecutará desde la página que carga el header (como en perfil.html)
+
+// Función updateUserInfo disponible para que las páginas la llamen
+function updateUserInfo() {
+    console.log('👤 updateUserInfo() llamada desde header...');
+    
+    // Obtener currentUser de localStorage
+    const userData = localStorage.getItem('utn_user');
+    const currentUser = userData ? JSON.parse(userData) : null;
+    
+    console.log('👤 currentUser en updateUserInfo():', currentUser);
+    
+    if (currentUser) {
+        const userInfo = document.getElementById('userInfo');
+        const userMenuName = document.getElementById('userMenuName');
+        const dropdownUserName = document.getElementById('dropdownUserName');
+        const dropdownUserRole = document.getElementById('dropdownUserRole');
+        
+        // Usar la misma lógica que perfil.html
+        const nombreCompleto = currentUser.nombre_completo || currentUser.nombre || 'Usuario';
+        
+        if (userInfo) {
+            userInfo.textContent = nombreCompleto;
+            console.log('✅ userInfo actualizado:', nombreCompleto);
+        }
+        
+        if (userMenuName) {
+            userMenuName.textContent = nombreCompleto;
+            console.log('✅ userMenuName actualizado:', nombreCompleto);
+        }
+        
+        if (dropdownUserName) {
+            dropdownUserName.textContent = nombreCompleto;
+            console.log('✅ dropdownUserName actualizado:', nombreCompleto);
+        }
+        
+        if (dropdownUserRole) {
+            dropdownUserRole.textContent = currentUser.rol || currentUser.rol_nombre || 'Estudiante';
+            console.log('✅ dropdownUserRole actualizado:', currentUser.rol || currentUser.rol_nombre || 'Estudiante');
+        }
+    } else {
+        console.log('❌ No hay currentUser para actualizar');
+    }
+}
+
+console.log('� Header cargado - updateUserInfo() disponible para ser llamada desde la página');
+</script>
