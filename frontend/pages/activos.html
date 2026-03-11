@@ -1,135 +1,140 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activos - UTN Sistema de Gestión</title>
-    <meta name="description" content="Gestión de activos del laboratorio UTN">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="../css/main.css">
-    <link rel="stylesheet" href="../css/pages/activos.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="text-slate-800">
-    
-    <!-- Header Component -->
-    <div id="header-component"></div>
-    
-    <!-- Contenido Principal -->
-    <main class="container py-6">
-        <div class="flex gap-6">
-            <!-- Sidebar Component -->
-            <div id="sidebar-component"></div>
-            
-            <!-- Contenido de Activos -->
-            <div class="flex-1">
-                <header class="mb-6">
-                    <h1 class="text-3xl font-bold text-slate-800">🔧 Gestión de Activos</h1>
-                    <p class="text-slate-600">Administra los equipos y herramientas del laboratorio</p>
-                </header>
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Activos - UTN Sistema de Gestión</title>
+        <meta name="description" content="Gestión de activos del laboratorio UTN">
+        
+        <!-- CSS -->
+        <link rel="stylesheet" href="../css/main.css">
+        <link rel="stylesheet" href="../css/pages/activos.css">
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="text-slate-800">
+        
+        <!-- Header Component -->
+        <div id="header-component"></div>
+        
+        <!-- Contenido Principal -->
+        <main class="container py-6">
+            <div class="flex gap-6">
+                <!-- Sidebar Component -->
+                <div id="sidebar-component"></div>
                 
-                <!-- Filtros y Búsqueda -->
-                <section class="card p-4 mb-6">
-                    <div class="flex flex-wrap gap-4 items-center">
-                        <div class="flex-1 min-w-[200px]">
-                            <input type="text" id="busqueda-input" placeholder="Buscar activos..." class="input-field w-full">
+                <!-- Contenido de Activos -->
+                <div class="flex-1">
+                    <header class="mb-6">
+                        <h1 class="text-3xl font-bold text-slate-800">🔧 Gestión de Activos</h1>
+                        <p class="text-slate-600">Administra los equipos y herramientas del laboratorio</p>
+                    </header>
+                    
+                    <!-- Filtros y Búsqueda -->
+                    <section class="card p-4 mb-6">
+                        <div class="flex flex-wrap gap-4 items-center">
+                            <div class="flex-1 min-w-[200px]">
+                                <input type="text" id="busqueda-input" placeholder="Buscar activos..." class="input-field w-full">
+                            </div>
+                            <select id="categoria-select" class="input-field w-48">
+                                <option value="todas">Todas las categorías</option>
+                                <option value="Instrumentos">Instrumentos</option>
+                                <option value="Herramientas">Herramientas</option>
+                                <option value="Equipos">Equipos</option>
+                                <option value="Medición">Medición</option>
+                            </select>
+                            <select id="estado-select" class="input-field w-32">
+                                <option value="todos">Todos</option>
+                                <option value="disponible">Disponible</option>
+                                <option value="prestado">Prestado</option>
+                                <option value="mantenimiento">Mantenimiento</option>
+                            </select>
+                            <button id="buscar-btn" class="btn btn-primary">
+                                🔍 Buscar
+                            </button>
+                            <button id="limpiar-btn" class="btn btn-secondary">
+                                🔄 Limpiar
+                            </button>
                         </div>
-                        <select id="categoria-select" class="input-field w-48">
-                            <option value="todas">Todas las categorías</option>
-                            <option value="Instrumentos">Instrumentos</option>
-                            <option value="Herramientas">Herramientas</option>
-                            <option value="Equipos">Equipos</option>
-                            <option value="Medición">Medición</option>
-                        </select>
-                        <select id="estado-select" class="input-field w-32">
-                            <option value="todos">Todos</option>
-                            <option value="disponible">Disponible</option>
-                            <option value="prestado">Prestado</option>
-                            <option value="mantenimiento">Mantenimiento</option>
-                        </select>
-                        <button id="buscar-btn" class="btn btn-primary">
-                            🔍 Buscar
-                        </button>
-                        <button id="limpiar-btn" class="btn btn-secondary">
-                            🔄 Limpiar
-                        </button>
+                    </section>
+                    
+                    <!-- Acciones Rápidas -->
+                    <section class="flex justify-between items-center mb-6">
+                        <div class="flex gap-2">
+                            <button id="agregar-btn" class="btn btn-primary">
+                                ➕ Agregar Activo
+                            </button>
+                            <button id="exportar-btn" class="btn btn-secondary">
+                                📥 Exportar
+                            </button>
+                        </div>
+                        <div class="text-sm text-slate-600">
+                            Mostrando <span id="resultados-count">0</span> resultados
+                        </div>
+                    </section>
+                    
+                    <!-- Grid de Activos -->
+                    <section id="activos-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <!-- Los activos se cargarán dinámicamente -->
+                    </section>
+                    
+                    <!-- Loading State -->
+                    <div id="loading-state" class="hidden">
+                        <div class="flex justify-center items-center py-12">
+                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                            <p class="ml-4 text-slate-600">Cargando activos...</p>
+                        </div>
                     </div>
-                </section>
-                
-                <!-- Acciones Rápidas -->
-                <section class="flex justify-between items-center mb-6">
-                    <div class="flex gap-2">
-                        <button id="agregar-btn" class="btn btn-primary">
-                            ➕ Agregar Activo
-                        </button>
-                        <button id="exportar-btn" class="btn btn-secondary">
-                            📥 Exportar
-                        </button>
-                    </div>
-                    <div class="text-sm text-slate-600">
-                        Mostrando <span id="resultados-count">0</span> resultados
-                    </div>
-                </section>
-                
-                <!-- Grid de Activos -->
-                <section id="activos-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    <!-- Los activos se cargarán dinámicamente -->
-                </section>
-                
-                <!-- Loading State -->
-                <div id="loading-state" class="hidden">
-                    <div class="flex justify-center items-center py-12">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                        <p class="ml-4 text-slate-600">Cargando activos...</p>
-                    </div>
-                </div>
-                
-                <!-- Empty State -->
-                <div id="empty-state" class="hidden">
-                    <div class="text-center py-12">
-                        <div class="text-6xl mb-4">🔧</div>
-                        <h3 class="text-xl font-bold text-slate-700 mb-2">No se encontraron activos</h3>
-                        <p class="text-slate-500 mb-4">Intenta ajustar los filtros o agrega nuevos activos</p>
-                        <button class="btn btn-primary" onclick="activosController.showAgregarModal()">
-                            ➕ Agregar Primer Activo
-                        </button>
+                    
+                    <!-- Empty State -->
+                    <div id="empty-state" class="hidden">
+                        <div class="text-center py-12">
+                            <div class="text-6xl mb-4">🔧</div>
+                            <h3 class="text-xl font-bold text-slate-700 mb-2">No se encontraron activos</h3>
+                            <p class="text-slate-500 mb-4">Intenta ajustar los filtros o agrega nuevos activos</p>
+                            <button class="btn btn-primary" onclick="activosController.showAgregarModal()">
+                                ➕ Agregar Primer Activo
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
+        </main>
+        
+        <!-- Modals Component -->
+        <div id="modals-component"></div>
+        
+        <!-- Toast Component -->
+        <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
+            <div class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
+                <span id="toastMsg">Operación Exitosa</span>
+            </div>
         </div>
-    </main>
-    
-    <!-- Modals Component -->
-    <div id="modals-component"></div>
-    
-    <!-- Toast Component -->
-    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
-        <div class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
-            <span id="toastMsg">Operación Exitosa</span>
-        </div>
-    </div>
-    
-    <!-- JavaScript -->
-    <script src="../js/main.js"></script>
-    <script src="../js/components/header.js"></script>
-    <script src="../js/components/sidebar.js"></script>
-    <script src="../js/components/modals.js"></script>
-    <script src="../js/pages/activos.js"></script>
-    
-    <!-- Inicialización -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Verificar autenticación
-            const isAuth = window.authController?.checkAuthStatus();
-            
-            if (!isAuth) {
-                window.location.href = '../index.html';
-            } else {
+        
+        <!-- JavaScript -->
+        <script src="../js/main.js"></script>
+        <script src="../js/components/header.js"></script>
+        <script src="../js/components/sidebar.js"></script>
+        <script src="../js/components/modals.js"></script>
+        <script src="../js/pages/activos.js"></script>
+        
+        <!-- Inicialización -->
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                // Verificar autenticación usando la misma lógica que index.html
+                const token = localStorage.getItem('utn_token');
+                const userData = localStorage.getItem('utn_user');
+                
+                if (!token || !userData) {
+                    console.log('🚫 No hay sesión en activos.html, redirigiendo...');
+                    window.location.href = '../index.html';
+                    return;
+                }
+                
+                console.log('✅ Sesión válida en activos.html, inicializando...');
+                
                 // Inicializar página de activos
                 window.activosController?.initialize();
-            }
-        });
-    </script>
-</body>
-</html>
+            });
+        </script>
+    </body>
+    </html>

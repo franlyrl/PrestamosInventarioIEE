@@ -140,8 +140,8 @@
                         Mostrando <span id="pagina-actual">1</span> de <span id="total-paginas">1</span>
                     </div>
                     <div class="flex gap-2">
-                        <button id="pagina-anterior" class="btn btn-secondary" disabled>
-                            ← Anterior
+                        <button id="btn-inicio" class="btn btn-secondary" onclick="window.location.href='../index.html'">
+                            ← Inicio
                         </button>
                         <button id="pagina-siguiente" class="btn btn-secondary">
                             Siguiente →
@@ -172,15 +172,37 @@
     <!-- Inicialización -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Verificar autenticación
-            const isAuth = window.authController?.checkAuthStatus();
+            console.log('🚀 Iniciando solicitudes.html...');
             
-            if (!isAuth) {
-                window.location.href = '../index.html';
-            } else {
-                // Inicializar página de solicitudes
-                window.solicitudesController?.initialize();
+            // Verificar autenticación usando la misma lógica que index.html
+            const token = localStorage.getItem('utn_token');
+            const userData = localStorage.getItem('utn_user');
+            
+            console.log('🔍 Verificando sesión en solicitudes.html:', {
+                token: token ? 'existe' : 'no existe',
+                usuario: userData ? 'existe' : 'no existe'
+            });
+            
+            if (!token || !userData) {
+                console.log('🚫 No hay sesión en solicitudes.html, redirigiendo a ../index.html...');
+                console.log('🎯 ESTE MENSAJE DEBERÍA APARECER ANTES DE REDIRIGIR');
+                
+                // Forzar redirección
+                try {
+                    window.location.href = '../index.html';
+                    console.log('🚫 ESTE MENSAJE NO DEBERÍA APARECER NUNCA');
+                } catch (error) {
+                    console.error('❌ Error redirigiendo:', error);
+                    // Intentar método alternativo
+                    window.location.replace('../index.html');
+                }
+                return;
             }
+            
+            console.log('✅ Sesión válida en solicitudes.html, inicializando...');
+            
+            // Inicializar página de solicitudes
+            window.solicitudesController?.initialize();
         });
     </script>
 </body>

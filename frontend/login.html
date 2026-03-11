@@ -193,22 +193,56 @@
           console.log('📦 Datos recibidos:', data);
 
           if (!response.ok) {
+            console.error('❌ Respuesta no OK:', response.status, response.statusText);
+            console.error('❌ Datos de error:', data);
             throw new Error(data.message || 'Error de autenticación');
           }
 
           // Guardar en localStorage
+          console.log('💾 Guardando datos en localStorage...');
           localStorage.setItem('utn_token', data.token);
           localStorage.setItem('utn_user', JSON.stringify(data.usuario));
 
           console.log('✅ Login exitoso:', data);
           console.log('🔑 Token guardado:', data.token);
           console.log('👤 Usuario guardado:', data.usuario);
+          
+          // Verificar que se guardaron correctamente
+          const tokenGuardado = localStorage.getItem('utn_token');
+          const userGuardado = localStorage.getItem('utn_user');
+          console.log('🔍 Verificación de guardado:', {
+              token: tokenGuardado ? 'guardado' : 'no guardado',
+              usuario: userGuardado ? 'guardado' : 'no guardado'
+          });
 
           showToast(`¡Bienvenido ${data.usuario.nombre}!`, 'success');
           
-          // Redirigir inmediatamente a la aplicación principal
-          console.log('🔄 Redirigiendo a index.html...');
-          window.location.href = 'index.html';
+          // Esperar un momento para asegurar que todo se guarde correctamente
+          console.log('🔄 Preparando redirección...');
+          console.log('🎯 ESTE MENSAJE DEBERÍA APARECER ANTES DE LA REDIRECCIÓN');
+          
+          setTimeout(() => {
+              console.log('🔄 Redirigiendo a index.html...');
+              console.log('🎯 ESTE MENSAJE DEBERÍA APARECER EN EL TIMEOUT');
+              console.log('🔍 Estado final del localStorage:', {
+                  token: localStorage.getItem('utn_token') ? 'existe' : 'no existe',
+                  usuario: localStorage.getItem('utn_user') ? 'existe' : 'no existe'
+              });
+              
+              console.log('🎯 A PUNTO DE EJECUTAR REDIRECCIÓN...');
+              
+              // Forzar la redirección (ruta relativa como en signup.html)
+              try {
+                  window.location.href = 'index.html';
+                  console.log('🎯 ESTE MENSAJE NO DEBERÍA APARECER NUNCA (si redirige bien)');
+              } catch (redirectError) {
+                  console.error('❌ Error en redirección:', redirectError);
+                  // Intentar método alternativo
+                  console.log('🔄 Intentando método alternativo de redirección...');
+                  window.location.replace('index.html');
+              }
+
+            }, 500);
 
         } catch (error) {
           console.error('❌ Error de login:', error);

@@ -179,15 +179,20 @@
     <!-- Inicialización -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Verificar autenticación
-            const isAuth = window.authController?.checkAuthStatus();
+            // Verificar autenticación usando la misma lógica que index.html
+            const token = localStorage.getItem('utn_token');
+            const userData = localStorage.getItem('utn_user');
             
-            if (!isAuth) {
+            if (!token || !userData) {
+                console.log('🚫 No hay sesión en reportes.html, redirigiendo...');
                 window.location.href = '../index.html';
-            } else {
-                // Inicializar página de reportes
-                window.reportesController?.initialize();
+                return;
             }
+            
+            console.log('✅ Sesión válida en reportes.html, inicializando...');
+            
+            // Inicializar página de reportes
+            window.reportesController?.initialize();
         });
     </script>
 </body>

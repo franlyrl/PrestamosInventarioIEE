@@ -198,15 +198,20 @@
     <!-- Inicialización -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Verificar autenticación
-            const isAuth = window.authController?.checkAuthStatus();
+            // Verificar autenticación usando la misma lógica que index.html
+            const token = localStorage.getItem('utn_token');
+            const userData = localStorage.getItem('utn_user');
             
-            if (!isAuth) {
+            if (!token || !userData) {
+                console.log('🚫 No hay sesión en perfil.html, redirigiendo...');
                 window.location.href = '../index.html';
-            } else {
-                // Inicializar página de perfil
-                window.perfilController?.initialize();
+                return;
             }
+            
+            console.log('✅ Sesión válida en perfil.html, inicializando...');
+            
+            // Inicializar página de perfil
+            window.perfilController?.initialize();
         });
     </script>
 </body>
