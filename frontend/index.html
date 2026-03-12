@@ -11,7 +11,19 @@
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body class="text-slate-800">
-
+  <!-- * Estructura HTML para la aplicación de gestión de laboratorio de la UTN.
+    * Incluye:
+    * - Pantalla de verificación de autenticación
+    * - Indicador de conexión a la base de datos
+    * - Header con información del usuario y fecha/hora
+    * - Navegación por tabs para activos e insumos
+    * - Grid dinámico para mostrar los items disponibles
+    * - Modales para confirmación de solicitudes y carrito de compras
+    * - Pop-up para mostrar imágenes de los productos
+    * - Toast para notificaciones rápidas
+    * El diseño es responsivo y utiliza Tailwind CSS para estilos rápidos y modernos.
+    * La lógica de autenticación, carga de datos y manejo de UI se encuentra en los archivos JS vinculados al final del body.
+    * ---`-->
         <!-- VERIFICACIÓN DE AUTENTICACIÓN -->
         <div id="loginPage" class="fixed inset-0 z-[200] bg-slate-50 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-100 text-center p-8">
@@ -23,7 +35,10 @@
             </div>
         </div>
 
-        <!-- APLICACIÓN PRINCIPAL -->
+        <!-- APLICACIÓN PRINCIPAL-->
+        <!-- El mainApp se muestra solo después de la verificación de autenticación
+                para evitar que usuarios no autenticados vean el contenido aunque sea momentáneamente
+                -->
         <div id="mainApp" class="hidden">
             <!-- INDICADOR DE CONEXIÓN -->
             <div class="fixed top-4 right-4 z-[300] flex items-center gap-2 bg-white px-3 py-2 rounded-full shadow-md border border-slate-200 text-xs">
@@ -105,6 +120,7 @@
 </div>
 
 <!-- MODAL DEL CARRITO DE SOLICITUDES -->
+<!<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.1/css/all.css" integrity="sha384-O8whS3fhG2OnA5Kas0Y9l3cfpmYjapjI0E4theH4iuMD+pLhbf6JI0jIMfYcK3yZ" crossorigin="anonymous">
 <div id="cartModal" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
     <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
         <div class="p-6 border-b border-slate-100">
@@ -249,6 +265,7 @@
         <script src="js/auth.js"></script>
         <script src="js/dashboard.js"></script>
         <script src="js/modal.js"></script>
+
 
         <!-- Script de Verificación y Conexión -->
         <script>
