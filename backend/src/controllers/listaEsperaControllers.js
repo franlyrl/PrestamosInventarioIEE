@@ -1,4 +1,4 @@
-const ListaEspera = require('../models/ListaEspera');
+const ListaEspera = require('../models/listaEspera');
 
 /**
  * Obtiene la lista de espera completa con información detallada de usuarios e insumos.

@@ -2,7 +2,7 @@ const Usuarios = require('../models/usuarios'); // Asegúrate de que la ruta sea
 const bcrypt = require('bcryptjs'); // Para el hash de la contraseña
 const jwt = require('jsonwebtoken'); // O tu función generarToken
 const generarToken = require('../utils/generarToken');
-const Solicitudes = require('../models/Solicitudes'); // Para verificar préstamos activos
+const Solicitudes = require('../models/solicitudes'); // Para verificar préstamos activos
 
 
 /**

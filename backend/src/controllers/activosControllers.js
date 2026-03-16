@@ -6,7 +6,7 @@ const Activos = require('../models/activos');
 const Usuarios = require('../models/usuarios');
 const { generarToken } = require('../utils/generarToken');
 const { consultarNombrePorCedula } = require('../utils/registroCivil');
-const Solicitudes = require('../models/Solicitudes');
+const Solicitudes = require('../models/solicitudes');
 const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
 

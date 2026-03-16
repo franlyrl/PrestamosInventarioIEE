@@ -2,7 +2,7 @@ const Usuarios = require('../models/usuarios');
 const UsuariosHistorial = require('../models/UsuariosHistorial');
 const { generarToken } = require('../utils/generarToken'); // Si necesitas autenticación para ciertas acciones
 const { consultarNombrePorCedula } = require('../utils/registroCivil'); // Para validar cédula si es necesario
-const Solicitudes = require('../models/Solicitudes'); // Para verificar préstamos activos si es necesario
+const Solicitudes = require('../models/solicitudes'); // Para verificar préstamos activos si es necesario
 const { validationResult } = require('express-validator'); // Para validación de datos entrantes
 const mongoose = require('mongoose'); // Para validaciones de ID y operaciones avanzadas con MongoDB
 
@@ -107,7 +107,7 @@ const UserHist_Controller = {
             }
 
             // 3. Verificar que no tengan préstamos activos
-            const Solicitudes = require('../models/Solicitudes');
+            const Solicitudes = require('../models/solicitudes');
             const idsCandidatos = candidatos.map(u => u._id);
 
             const prestamosActivos = await Solicitudes.find({

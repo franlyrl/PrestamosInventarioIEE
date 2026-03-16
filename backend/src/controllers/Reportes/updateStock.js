@@ -1,6 +1,6 @@
 const Insumo = require('../models/Insumo');
 const Activo = require('../models/Activo');
-const Solicitudes = require('../models/Solicitudes');
+const Solicitudes = require('../models/solicitudes');
 const Usuarios = require('../models/usuarios'); // Para verificar roles de usuario si es necesario
 const { generarToken } = require('../utils/generarToken'); // Si necesitas autenticación para ciertas acciones
 const { consultarNombrePorCedula } = require('../utils/registroCivil'); // Para validar cédula si es necesario
