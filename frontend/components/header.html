@@ -135,7 +135,7 @@ function updateUserInfo() {
         const dropdownUserName = document.getElementById('dropdownUserName');
         const dropdownUserRole = document.getElementById('dropdownUserRole');
         
-        // Usar la misma lógica que perfil.html
+        // Usar el campo correcto de la base de datos (colección usuarios)
         const nombreCompleto = currentUser.nombre_completo || currentUser.nombre || 'Usuario';
         
         if (userInfo) {

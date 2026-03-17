@@ -236,10 +236,6 @@
                       class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
                       Estado
                     </th>
-                    <th
-                      class="px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                      Acciones
-                    </th>
                   </tr>
                 </thead>
                 <tbody
@@ -404,52 +400,67 @@
 
         // Cargar header component
         try {
-          const headerResponse = await fetch("../components/header.html");
+          const headerResponse = await fetch('../components/header.html');
           const headerHtml = await headerResponse.text();
-          document.getElementById("header-component").innerHTML = headerHtml;
-          console.log("✅ Header component cargado en solicitudes.html");
-
-          // IMPORTANTE: Llamar a updateUserInfo() después de cargar el header
-          if (typeof updateUserInfo === "function") {
-            console.log(
-              "🔄 Llamando a updateUserInfo() desde solicitudes.html...",
-            );
-            updateUserInfo();
-          } else {
-            console.log("❌ updateUserInfo() no está disponible");
+          document.getElementById('header-component').innerHTML = headerHtml;
+          console.log('✅ Header component cargado en solicitudes.html');
+          
+          // Actualizar información del usuario (exactamente como perfil.html)
+          const userData = localStorage.getItem('utn_user');
+          if (userData) {
+            const currentUser = JSON.parse(userData);
+            const userInfo = document.getElementById('userInfo');
+            const userMenuName = document.getElementById('userMenuName');
+            const dropdownUserName = document.getElementById('dropdownUserName');
+            const dropdownUserRole = document.getElementById('dropdownUserRole');
+            
+            const nombreCompleto = currentUser.nombre_completo || currentUser.nombre || 'Usuario';
+            
+            if (userInfo) userInfo.textContent = nombreCompleto;
+            if (userMenuName) userMenuName.textContent = nombreCompleto;
+            if (dropdownUserName) dropdownUserName.textContent = nombreCompleto;
+            if (dropdownUserRole) dropdownUserRole.textContent = currentUser.rol || 'Estudiante';
+            
+            console.log('✅ Información de usuario actualizada como en perfil.html');
           }
-
+          
           // Configurar logout
-          const logoutBtn = document.getElementById("logoutBtn");
+          const logoutBtn = document.getElementById('logoutBtn');
           if (logoutBtn) {
-            logoutBtn.addEventListener("click", () => {
-              localStorage.removeItem("utn_token");
-              localStorage.removeItem("utn_user");
-              window.location.href = "../index.html";
+            logoutBtn.addEventListener('click', () => {
+              localStorage.removeItem('utn_token');
+              localStorage.removeItem('utn_user');
+              window.location.href = '../index.html';
             });
-            console.log("✅ Botón logout configurado");
           }
-
+          
           // Configurar menú usuario
-          const userMenuBtn = document.getElementById("user-menu-btn");
-          const userDropdown = document.getElementById("user-dropdown");
+          const userMenuBtn = document.getElementById('user-menu-btn');
+          const userDropdown = document.getElementById('user-dropdown');
           if (userMenuBtn && userDropdown) {
-            userMenuBtn.addEventListener("click", () => {
-              userDropdown.classList.toggle("hidden");
+            userMenuBtn.addEventListener('click', () => {
+              userDropdown.classList.toggle('hidden');
             });
-            console.log("✅ Menú usuario configurado");
-
+            
             // Cerrar al hacer click fuera
-            document.addEventListener("click", (e) => {
-              if (
-                !userMenuBtn.contains(e.target) &&
-                !userDropdown.contains(e.target)
-              ) {
-                userDropdown.classList.add("hidden");
+            document.addEventListener('click', (e) => {
+              if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                userDropdown.classList.add('hidden');
               }
             });
           }
-
+          
+          // IMPORTANTE: Llamar a updateUserInfo() después de cargar el header
+          if (typeof updateUserInfo === 'function') {
+            console.log('🔄 Llamando a updateUserInfo() desde solicitudes.html...');
+            // Pequeño retraso para asegurar que el DOM esté listo
+            setTimeout(() => {
+              updateUserInfo();
+            }, 100);
+          } else {
+            console.log('❌ updateUserInfo() no está disponible');
+          }
+          
           // Configurar botones de acción
           configurarBotonesAccion();
 
@@ -463,7 +474,7 @@
               console.log(
                 "🔄 No hay datos después de 2 segundos, usando datos de ejemplo reales...",
               );
-              probarDatosEjemplo();
+              crearDatosEjemplo();
             }
           }, 2000);
 
@@ -603,28 +614,15 @@
           currentUser.rol || currentUser.rol_nombre,
         );
         console.log("🆔 ID del usuario:", currentUser._id || currentUser.id);
+        console.log("🔍 Campos de currentUser:", Object.keys(currentUser));
+        console.log("👤 currentUser completo:", currentUser);
 
         try {
           // Verificar si CONFIG está disponible
           const apiUrl = window.CONFIG
             ? window.CONFIG.API_BASE_URL
             : "http://localhost:4000/api";
-          let fullUrl = `${apiUrl}/solicitudes`;
-
-          // Filtrar según el rol del usuario
-          const rolUsuario =
-            currentUser.rol || currentUser.rol_nombre || "Estudiante";
-          console.log("🎭 Rol detectado:", rolUsuario);
-
-          if (rolUsuario.toLowerCase() === "estudiante") {
-            // Estudiante: solo sus solicitudes
-            fullUrl = `${apiUrl}/solicitudes/usuario/${currentUser._id || currentUser.id}`;
-            console.log("👨‍🎓 Cargando solicitudes del estudiante...");
-          } else {
-            // Docente/Admin: todas las solicitudes
-            fullUrl = `${apiUrl}/solicitudes`;
-            console.log("👨‍🏫 Cargando todas las solicitudes (docente/admin)...");
-          }
+          let fullUrl = `${apiUrl}/solicitudes/usuario/${currentUser._id || currentUser.id}`;
 
           console.log("🌐 URL final:", fullUrl);
           console.log(
@@ -732,29 +730,14 @@
       // Función para probar con datos de ejemplo manualmente
       function probarDatosEjemplo() {
         console.log("🧪 Probando con datos de ejemplo...");
+        
+        // Obtener usuario actual del localStorage
+        const userData = localStorage.getItem('utn_user');
+        const currentUser = userData ? JSON.parse(userData) : null;
+        
+        console.log("👤 Usuario actual:", currentUser);
 
-        // Simular el objeto que recibes del backend
-        const datosBackend = [
-          {
-            _id: "69b0f092ede5ba4045823318",
-            usuario: {
-              nombre_completo: "Salatiel Riveros",
-              nombre: "Salatiel",
-              correo_electronico: "salatiel@utn.ac.cr",
-            },
-            activos: [],
-            insumos: [],
-            historico_estados: [
-              { estado: "pendiente", fecha: "2026-03-11T04:33:22.789Z" },
-            ],
-            estado: "pendiente",
-            fecha_prestamo: "2026-03-11T04:33:22.789Z",
-            createdAt: "2026-03-11T04:33:22.790Z",
-            updatedAt: "2026-03-11T04:33:22.790Z",
-          },
-        ];
-
-        console.log("🎯 Datos de prueba:", datosBackend);
+        console.log("🎯 Datos de prueba con usuario actual:", datosBackend);
         mostrarSolicitudesReales(datosBackend);
       }
 
@@ -858,19 +841,9 @@
                     <td class="px-6 py-4">${sol.estado}</td>
                     <td class="px-6 py-4 text-sm">
                         <div class="relative">
-                            <button onclick="toggleMenuSolicitud('${sol.id}')" class="text-slate-600 hover:text-slate-800 p-2 rounded-lg hover:bg-slate-100 transition-colors">
-                                ⚙️
-                            </button>
-                            
                             <!-- Dropdown Menu -->
                             <div id="menu-${sol.id}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
                                 <div class="py-1">
-                                    <button onclick="verDetallesSolicitud('${sol.id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
-                                        👁️ Ver detalles
-                                    </button>
-                                    <button onclick="editarSolicitud('${sol.id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
-                                        ✏️ Editar solicitud
-                                    </button>
                                     <button onclick="aprobarSolicitud('${sol.id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors flex items-center gap-2">
                                         ✅ Aprobar
                                     </button>
@@ -885,8 +858,9 @@
                                     </button>
                                     <div class="border-t border-slate-200 my-1"></div>
                                     <button onclick="eliminarSolicitud('${sol.id}')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
-                                        🗑️ Eliminar
+                                        🗑️ Eliminar    
                                     </button>
+                                
                                 </div>
                             </div>
                         </div>
@@ -969,76 +943,7 @@
           contadores.devuelto;
       }
 
-      // Funciones para ver y editar solicitudes
-      function verDetallesSolicitud(id) {
-        console.log("👁️ Ver detalles de solicitud:", id);
-        cerrarTodosLosMenus();
-
-        // Mostrar popup simple con los datos reales
-        mostrarPopupSolicitud(id);
-      }
-
-      function mostrarPopupSolicitud(id) {
-        console.log("👁️ Mostrando popup para solicitud:", id);
-
-        // Crear popup simple (exactamente igual que mostrarPopupDirecto)
-        const popup = document.createElement("div");
-        popup.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                border: 2px solid #002e6e;
-                border-radius: 12px;
-                padding: 20px;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-                z-index: 9999;
-                min-width: 400px;
-                max-width: 600px;
-            `;
-
-        popup.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #f78b08; padding-bottom: 10px;">
-                    <h3 style="color: #002e6e; margin: 0; font-size: 18px; font-weight: bold;">📋 Detalles de Solicitud</h3>
-                    <button onclick="this.parentElement.parentElement.remove()" style="background: #f78b08; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px;">✖</button>
-                </div>
-                
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
-                    <strong style="color: #002e6e;">ID:</strong> ${id}<br>
-                    <strong style="color: #002e6e;">Usuario:</strong> Salatiel Riveros<br>
-                    <strong style="color: #002e6e;">Estado:</strong> <span style="background: #fff3cd; color: #856404; padding: 2px 8px; border-radius: 12px; font-size: 12px;">⏳ Pendiente</span><br>
-                    <strong style="color: #002e6e;">Fecha:</strong> 11/3/2026<br>
-                    <strong style="color: #002e6e;">Elementos:</strong> Sin elementos asignados
-                </div>
-                
-                <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                    <strong style="color: #002e6e;">📄 Objeto Completo:</strong><br>
-                    <pre style="background: white; padding: 10px; border-radius: 4px; font-size: 12px; overflow-x: auto;">{
-  </pre>
-                </div>
-                
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                    <button onclick="this.parentElement.parentElement.remove()" style="background: #002e6e; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cerrar</button>
-                </div>
-            `;
-
-        // Agregar al body
-        document.body.appendChild(popup);
-
-        console.log("✅ Popup de solicitud agregado al body");
-
-        // Cerrar al hacer click fuera
-        setTimeout(() => {
-          document.addEventListener("click", function cerrarPopup(e) {
-            if (!popup.contains(e.target)) {
-              popup.remove();
-              document.removeEventListener("click", cerrarPopup);
-            }
-          });
-        }, 100);
-      }
-
+      
       function verSolicitud(id) {
         console.log("👁️ Ver solicitud:", id);
         cerrarTodosLosMenus();

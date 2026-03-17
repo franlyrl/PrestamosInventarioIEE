@@ -41,7 +41,7 @@ class SolicitudesController {
         // Fechas
         const fechaDesde = document.getElementById('fecha-desde');
         const fechaHasta = document.getElementById('fecha-hasta');
-        
+
         if (fechaDesde) {
             fechaDesde.addEventListener('change', (e) => {
                 this.filtros.fechaDesde = e.target.value;
@@ -112,7 +112,7 @@ class SolicitudesController {
         if (!tbody) return;
 
         const solicitudesFiltradas = this.filtrarSolicitudes();
-        
+
         // Actualizar contador
         if (resultadosCount) {
             resultadosCount.textContent = solicitudesFiltradas.length;
@@ -128,7 +128,7 @@ class SolicitudesController {
             return;
         }
 
-        tbody.innerHTML = solicitudesFiltradas.map(solicitud => 
+        tbody.innerHTML = solicitudesFiltradas.map(solicitud =>
             this.createSolicitudRow(solicitud)
         ).join('');
 
@@ -138,12 +138,12 @@ class SolicitudesController {
 
     filtrarSolicitudes() {
         return this.solicitudes.filter(solicitud => {
-            const coincideBusqueda = !this.filtros.busqueda || 
+            const coincideBusqueda = !this.filtros.busqueda ||
                 (solicitud.usuario?.nombre_completo && solicitud.usuario.nombre_completo.toLowerCase().includes(this.filtros.busqueda.toLowerCase())) ||
                 (solicitud.activos && solicitud.activos.some(a => a.nombre?.toLowerCase().includes(this.filtros.busqueda.toLowerCase()))) ||
                 (solicitud.insumos && solicitud.insumos.some(i => i.nombreProducto?.toLowerCase().includes(this.filtros.busqueda.toLowerCase())));
 
-            const coincideEstado = this.filtros.estado === 'todos' || 
+            const coincideEstado = this.filtros.estado === 'todos' ||
                 solicitud.estado === this.filtros.estado;
 
             const coincideFecha = this.checkFechaFilter(solicitud);
@@ -170,7 +170,7 @@ class SolicitudesController {
     createSolicitudRow(solicitud) {
         const estadoClass = this.getEstadoClass(solicitud.estado);
         const elementos = this.getElementosInfo(solicitud);
-        
+
         return `
             <tr>
                 <td class="px-4 py-3">
@@ -199,23 +199,13 @@ class SolicitudesController {
                 <td class="px-4 py-3">
                     <span class="estado-badge ${estadoClass}">${solicitud.estado || 'pendiente'}</span>
                 </td>
-                <td class="px-4 py-3">
-                    <div class="flex gap-2">
-                        <button class="btn btn-secondary btn-sm" onclick="solicitudesController.verDetalles('${solicitud._id}')">
-                            👁️
-                        </button>
-                        <button class="btn btn-primary btn-sm" onclick="solicitudesController.gestionarSolicitud('${solicitud._id}')">
-                            ⚙️
-                        </button>
-                    </div>
-                </td>
             </tr>
         `;
     }
 
     getElementosInfo(solicitud) {
         const elementos = [];
-        
+
         if (solicitud.activos && solicitud.activos.length > 0) {
             solicitud.activos.forEach(activo => {
                 elementos.push({
@@ -225,7 +215,7 @@ class SolicitudesController {
                 });
             });
         }
-        
+
         if (solicitud.insumos && solicitud.insumos.length > 0) {
             solicitud.insumos.forEach(insumo => {
                 elementos.push({
@@ -235,7 +225,7 @@ class SolicitudesController {
                 });
             });
         }
-        
+
         return elementos;
     }
 
@@ -381,7 +371,7 @@ class SolicitudesController {
 
     exportarDatos() {
         const solicitudesFiltradas = this.filtrarSolicitudes();
-        
+
         if (solicitudesFiltradas.length === 0) {
             Utils.showToast('No hay datos para exportar', 'error');
             return;
