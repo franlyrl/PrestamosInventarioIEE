@@ -13,10 +13,12 @@ class SolicitudesController {
     }
 
     async initialize() {
+        console.log('🚀 Inicializando SolicitudesController...');
         await this.cargarSolicitudes();
         this.setupEventListeners();
         this.renderSolicitudes();
         this.updateEstadisticas();
+        console.log('✅ SolicitudesController inicializado completamente');
     }
 
     setupEventListeners() {
@@ -94,8 +96,11 @@ class SolicitudesController {
     async cargarSolicitudes() {
         try {
             Utils.showLoading(true);
-            const response = await ApiService.getSolicitudes();
+            console.log('🔄 Cargando solicitudes del usuario actual...');
+            const response = await ApiService.getMisSolicitudes();
+            console.log('📡 Respuesta de getMisSolicitudes:', response);
             this.solicitudes = response.data || response;
+            console.log('✅ Solicitudes cargadas:', this.solicitudes.length, 'solicitudes');
             Utils.showLoading(false);
         } catch (error) {
             console.error('Error cargando solicitudes:', error);
@@ -171,6 +176,11 @@ class SolicitudesController {
         const estadoClass = this.getEstadoClass(solicitud.estado);
         const elementos = this.getElementosInfo(solicitud);
 
+        // Obtener información del usuario desde la solicitud
+        // En MongoDB el campo es nombre_completo
+        const usuarioNombre = solicitud.nombre_completo || solicitud.usuario_nombre || 'Usuario';
+        const usuarioEmail = solicitud.correo_electronico || solicitud.usuario_correo || '';
+
         return `
             <tr>
                 <td class="px-4 py-3">
@@ -178,8 +188,8 @@ class SolicitudesController {
                 </td>
                 <td class="px-4 py-3">
                     <div>
-                        <p class="font-medium">${solicitud.usuario?.nombre_completo || 'Usuario'}</p>
-                        <p class="text-xs text-slate-500">${solicitud.usuario?.correo_electronico || ''}</p>
+                        <p class="font-medium">${usuarioNombre}</p>
+                        <p class="text-xs text-slate-500">${usuarioEmail}</p>
                     </div>
                 </td>
                 <td class="px-4 py-3">
@@ -188,9 +198,9 @@ class SolicitudesController {
                             <div class="flex items-center gap-1 mb-1">
                                 <span>${el.icono}</span>
                                 <span>${el.nombre}</span>
-                                <span class="text-slate-500">(${el.cantidad})</span>
+                                <span class="text-xs text-slate-500">x${el.cantidad}</span>
                             </div>
-                        `).join('')}
+                        `).join('') || '<span class="text-slate-400">Sin elementos</span>'}
                     </div>
                 </td>
                 <td class="px-4 py-3">

@@ -125,7 +125,8 @@
 
             <div
               class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-              <div class="relative">
+              <!-- Campo de búsqueda solo para administradores -->
+              <div id="busqueda-container" class="relative hidden">
                 <input
                   type="text"
                   id="busqueda-input"
@@ -134,6 +135,7 @@
                 <div class="absolute left-3 top-3.5 text-slate-400">🔍</div>
               </div>
 
+              <!-- Filtro de estado para todos -->
               <select
                 id="estado-select"
                 class="px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
@@ -145,7 +147,8 @@
                 <option value="devuelto">🔄 Devuelto</option>
               </select>
 
-              <div class="relative">
+              <!-- Filtros de fecha solo para administradores -->
+              <div class="relative fecha-container hidden">
                 <input
                   type="date"
                   id="fecha-desde"
@@ -156,14 +159,14 @@
                 </div>
               </div>
 
-              <div class="relative">
+              <div class="relative fecha-container hidden">
                 <input
                   type="date"
                   id="fecha-hasta"
                   class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" />
                 <div
                   class="absolute right-3 top-3.5 text-slate-400 pointer-events-none">
-                  �
+                  📅
                 </div>
               </div>
             </div>
@@ -415,11 +418,29 @@
             const dropdownUserRole = document.getElementById('dropdownUserRole');
             
             const nombreCompleto = currentUser.nombre_completo || currentUser.nombre || 'Usuario';
+            const rol = currentUser.rol || currentUser.rol_nombre || 'estudiante';
             
             if (userInfo) userInfo.textContent = nombreCompleto;
             if (userMenuName) userMenuName.textContent = nombreCompleto;
             if (dropdownUserName) dropdownUserName.textContent = nombreCompleto;
-            if (dropdownUserRole) dropdownUserRole.textContent = currentUser.rol || 'Estudiante';
+            if (dropdownUserRole) dropdownUserRole.textContent = rol;
+            
+            // Mostrar/ocultar filtros según el rol
+            const isAdmin = rol.toLowerCase().includes('admin') || rol.toLowerCase().includes('administrador');
+            const busquedaContainer = document.getElementById('busqueda-container');
+            const fechaContainers = document.querySelectorAll('.fecha-container');
+            
+            if (isAdmin) {
+              // Mostrar todos los filtros para administradores
+              if (busquedaContainer) busquedaContainer.classList.remove('hidden');
+              fechaContainers.forEach(container => container.classList.remove('hidden'));
+              console.log('✅ Modo administrador: todos los filtros visibles');
+            } else {
+              // Ocultar búsqueda y fechas para docentes/estudiantes
+              if (busquedaContainer) busquedaContainer.classList.add('hidden');
+              fechaContainers.forEach(container => container.classList.add('hidden'));
+              console.log('✅ Modo usuario normal: solo filtro de estado visible');
+            }
             
             console.log('✅ Información de usuario actualizada como en perfil.html');
           }
@@ -464,21 +485,7 @@
           // Configurar botones de acción
           configurarBotonesAccion();
 
-          // Primero intentar cargar desde el backend, si no funciona usar datos de ejemplo reales
-          cargarSolicitudesDesdeBackend();
-
-          // Como fallback, también probar con los datos de ejemplo después de 2 segundos
-          setTimeout(() => {
-            const tbody = document.getElementById("solicitudes-tbody");
-            if (tbody && tbody.querySelectorAll("tr").length === 0) {
-              console.log(
-                "🔄 No hay datos después de 2 segundos, usando datos de ejemplo reales...",
-              );
-              crearDatosEjemplo();
-            }
-          }, 2000);
-
-          // Inicializar página de solicitudes
+          // Inicializar página de solicitudes usando el controller
           window.solicitudesController?.initialize();
         } catch (error) {
           console.error("❌ Error cargando header:", error);
@@ -758,13 +765,49 @@
 
           // Extraer información del usuario con más opciones
           let nombreUsuario = "Usuario desconocido";
-          if (sol.usuario) {
-            nombreUsuario =
-              sol.usuario.nombre_completo ||
-              sol.usuario.nombre ||
-              sol.usuario.correo_electronico ||
-              "Usuario sin nombre";
+          let emailUsuario = "";
+          
+          console.log("🔍 Estructura completa de la solicitud:", JSON.stringify(sol, null, 2));
+          console.log("🔍 Estructura de sol.usuario:", JSON.stringify(sol.usuario, null, 2));
+          
+          // PRIORIDAD 1: Datos del populate del backend (100% dinámico)
+          if (sol.usuario && sol.usuario.nombre_completo) {
+            nombreUsuario = sol.usuario.nombre_completo;
+            emailUsuario = sol.usuario.correo_electronico || "";
+            console.log("✅ Usando nombre_completo del populate del backend:", nombreUsuario);
+          } else if (sol.usuario && sol.usuario.nombre) {
+            nombreUsuario = sol.usuario.nombre;
+            emailUsuario = sol.usuario.correo_electronico || "";
+            console.log("⚠️ Usando nombre del populate del backend:", nombreUsuario);
           }
+          
+          // PRIORIDAD 2: Datos directos del backend (si no hay populate)
+          else if (sol.nombre_completo) {
+            nombreUsuario = sol.nombre_completo;
+            console.log("⚠️ Usando nombre_completo directo del backend:", nombreUsuario);
+          } else if (sol.usuario_nombre) {
+            nombreUsuario = sol.usuario_nombre;
+            console.log("⚠️ Usando usuario_nombre del backend:", nombreUsuario);
+          }
+          
+          // ÚLTIMO RECURSO: Solo si no hay datos del backend
+          else {
+            console.log("❌ Sin datos del backend, usando localStorage como fallback");
+            const userData = localStorage.getItem("utn_user");
+            const currentUser = userData ? JSON.parse(userData) : null;
+            
+            if (currentUser && currentUser.nombre_completo) {
+              nombreUsuario = currentUser.nombre_completo;
+            } else if (currentUser && currentUser.nombre) {
+              nombreUsuario = currentUser.nombre;
+            }
+            
+            if (currentUser && currentUser.correo_electronico) {
+              emailUsuario = currentUser.correo_electronico;
+            }
+          }
+          
+          console.log("👤 Usuario final (dinámico):", nombreUsuario, emailUsuario);
 
           // Extraer elementos (activos e insumos)
           const elementos = [];
@@ -785,11 +828,12 @@
           // Procesar insumos
           if (sol.insumos && Array.isArray(sol.insumos)) {
             sol.insumos.forEach((insumo) => {
-              const nombreInsumo =
-                insumo.nombre_insumo ||
-                insumo.id_insumo ||
-                insumo.nombre ||
-                insumo.codigo ||
+              // Usar el nombre ya enriquecido desde main.js
+              const nombreInsumo = 
+                insumo.nombre_insumo ||  // ← Nombre ya enriquecido
+                insumo.NombProducto ||  // ← Campo alternativo
+                insumo.nombre ||         // ← Campo alternativo
+                insumo.id_insumo ||  // ← Fallback
                 "Insumo sin nombre";
               elementos.push(nombreInsumo);
             });
@@ -817,6 +861,7 @@
           const procesada = {
             id: sol._id || sol.id || "SIN-ID",
             usuario: nombreUsuario,
+            email: emailUsuario,
             elementos: elementosTexto,
             fecha: fecha,
             estado: estadoFormateado,
@@ -835,7 +880,12 @@
           row.className = "hover:bg-slate-50 transition-colors";
           row.innerHTML = `
                     <td class="px-6 py-4 text-sm font-medium text-slate-900">${sol.id.substring(0, 8)}...</td>
-                    <td class="px-6 py-4 text-sm text-slate-700">${sol.usuario}</td>
+                    <td class="px-6 py-4 text-sm text-slate-700">
+                        <div>
+                            <p class="font-medium">${sol.usuario}</p>
+                            <p class="text-xs text-slate-500">${sol.email}</p>
+                        </div>
+                    </td>
                     <td class="px-6 py-4 text-sm text-slate-700">${sol.elementos}</td>
                     <td class="px-6 py-4 text-sm text-slate-700">${sol.fecha}</td>
                     <td class="px-6 py-4">${sol.estado}</td>

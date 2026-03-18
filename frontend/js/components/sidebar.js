@@ -22,10 +22,10 @@ class SidebarComponent {
 
     updateActiveNavigation() {
         const navLinks = document.querySelectorAll('.nav-link');
-        
+
         navLinks.forEach(link => {
             const page = link.dataset.page;
-            
+
             if (page === this.currentPage) {
                 link.classList.add('active');
                 link.classList.remove('text-slate-600');
@@ -47,7 +47,7 @@ class SidebarComponent {
         if (lastUpdateElement) {
             const now = new Date();
             const minutes = Math.floor((Date.now() - now) / 60000);
-            
+
             if (minutes === 0) {
                 lastUpdateElement.textContent = 'Actualizado ahora';
             } else if (minutes === 1) {
@@ -60,9 +60,22 @@ class SidebarComponent {
 
     // Acciones rápidas
     setupQuickActions() {
-        const nuevaSolicitudBtn = document.querySelector('button:has-text("Nueva Solicitud")');
-        const listaEsperaBtn = document.querySelector('button:has-text("Ver Lista de Espera")');
-        const generarReporteBtn = document.querySelector('button:has-text("Generar Reporte")');
+        // Usar selectores compatibles en lugar de :has-text()
+        const buttons = document.querySelectorAll('button');
+        let nuevaSolicitudBtn = null;
+        let listaEsperaBtn = null;
+        let generarReporteBtn = null;
+
+        // Buscar botones por su contenido de texto
+        buttons.forEach(button => {
+            if (button.textContent.includes('Nueva Solicitud')) {
+                nuevaSolicitudBtn = button;
+            } else if (button.textContent.includes('Ver Lista de Espera')) {
+                listaEsperaBtn = button;
+            } else if (button.textContent.includes('Generar Reporte')) {
+                generarReporteBtn = button;
+            }
+        });
 
         if (nuevaSolicitudBtn) {
             nuevaSolicitudBtn.addEventListener('click', () => {

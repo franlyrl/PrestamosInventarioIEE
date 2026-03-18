@@ -1029,17 +1029,28 @@
                     // Obtener usuario actual
                     const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
                     
+                    // Separar activos e insumos del carrito
+                    const activos = cart.filter(item => item.type === 'activos').map(item => ({
+                        codigo_activo: item.data.codigo_activo || item.data._id,
+                        nombre: item.name,
+                        marca: item.data.marca || '',
+                        modelo: item.data.modelo || '',
+                        numActivo: item.data.numActivo || ''
+                    }));
+                    
+                    const insumos = cart.filter(item => item.type === 'insumos').map(item => ({
+                        id_insumo: item.data._id?.toString() || item.data.id_insumo?.toString() || '',
+                        cantidad: item.data.cantidad || 1,
+                        caracteristicas: item.data.caracteristicas || '',
+                        descripcion: item.data.descripcion || ''
+                    }));
+                    
                     // Preparar datos de la solicitud
                     const requestData = {
                         usuario_solicitante: user.nombre_completo || user.correo_electronico || 'Usuario',
                         correo_solicitante: user.correo_electronico || 'usuario@example.com',
-                        items_solicitados: cart.map(item => ({
-                            tipo: item.type,
-                            nombre: item.name,
-                            codigo: item.data.codigo_activo || item.data.id_insumo || item.data._id,
-                            cantidad: 1,
-                            detalles: item.data
-                        })),
+                        activos: activos,
+                        insumos: insumos,
                         estado: 'pendiente',
                         fecha_solicitud: new Date().toISOString(),
                         observaciones: `Solicitud generada desde el carrito con ${cart.length} items`
