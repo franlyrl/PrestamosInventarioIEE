@@ -412,70 +412,79 @@ const ApiService = {
     // Enriquecer datos de usuario si viene solo como ID
     async enrichUsersWithFullData(solicitudes) {
         try {
+            console.log('🔄 Iniciando enriquecimiento de solicitudes:', solicitudes.length);
+            
             const enrichedSolicitudes = await Promise.all(
-                solicitudes.map(async (solicitud) => {
-                    // Si el usuario es solo un ID, obtener datos completos
-                    if (solicitud.usuario && typeof solicitud.usuario === 'string') {
-                        console.log('🔄 Enriqueciendo solicitud con usuario completo:', solicitud.usuario);
-
-                        // Obtener datos completos del usuario
-                        const usuarioCompleto = await this.getUserFullData(solicitud.usuario);
-
-                        // Reemplazar el usuario con los datos completos
-                        return {
-                            ...solicitud,
-                            usuario: usuarioCompleto
-                        };
+                solicitudes.map(async (solicitud, index) => {
+                    console.log(`🔄 Procesando solicitud ${index + 1}:`, solicitud);
+                    
+                    let enrichedSolicitud = { ...solicitud };
+                    
+                    // Si el usuario es un objeto con $oid, extraer el ID
+                    if (solicitud.usuario && typeof solicitud.usuario === 'object') {
+                        const usuarioId = solicitud.usuario.$oid || solicitud.usuario._id || solicitud.usuario.id;
+                        console.log(`👤 Usuario ID extraído: ${usuarioId}`);
+                        
+                        if (usuarioId) {
+                            try {
+                                // Intentar obtener datos completos del usuario
+                                const usuarioCompleto = await this.getUserFullData(usuarioId);
+                                enrichedSolicitud.usuario = usuarioCompleto;
+                                console.log(`✅ Usuario ${index + 1} enriquecido:`, usuarioCompleto);
+                            } catch (error) {
+                                console.error(`❌ Error obteniendo usuario ${usuarioId}:`, error);
+                                // Usar datos básicos del localStorage
+                                const userData = localStorage.getItem('utn_user');
+                                const currentUser = userData ? JSON.parse(userData) : null;
+                                enrichedSolicitud.usuario = {
+                                    _id: usuarioId,
+                                    nombre_completo: currentUser?.nombre_completo || currentUser?.nombre || 'Usuario',
+                                    correo_electronico: currentUser?.correo_electronico || currentUser?.email || ''
+                                };
+                            }
+                        }
                     }
-
+                    
                     // Enriquecer insumos con nombres reales
                     if (solicitud.insumos && Array.isArray(solicitud.insumos)) {
+                        console.log(`📦 Procesando ${solicitud.insumos.length} insumos`);
+                        
                         const enrichedInsumos = await Promise.all(
-                            solicitud.insumos.map(async (insumo) => {
-                                if (insumo.id_insumo && typeof insumo.id_insumo === 'string') {
-                                    const insumoCompleto = await this.getInsumoFullData(insumo.id_insumo);
-                                    return {
-                                        ...insumo,
-                                        nombre_insumo: insumoCompleto.NombProducto || 'Insumo sin nombre'
-                                    };
+                            solicitud.insumos.map(async (insumo, insumoIndex) => {
+                                console.log(`📦 Insumo ${insumoIndex + 1}:`, insumo);
+                                
+                                let enrichedInsumo = { ...insumo };
+                                
+                                // Si id_insumo es un objeto con $oid
+                                if (insumo.id_insumo && typeof insumo.id_insumo === 'object') {
+                                    const insumoId = insumo.id_insumo.$oid || insumo.id_insumo._id || insumo.id_insumo.id;
+                                    console.log(`📦 Insumo ID extraído: ${insumoId}`);
+                                    
+                                    if (insumoId) {
+                                        try {
+                                            const insumoCompleto = await this.getInsumoFullData(insumoId);
+                                            enrichedInsumo.nombre_insumo = insumoCompleto.NombProducto || insumoCompleto.nombre || 'Insumo sin nombre';
+                                            console.log(`✅ Insumo ${insumoIndex + 1} enriquecido:`, insumoCompleto);
+                                        } catch (error) {
+                                            console.error(`❌ Error obteniendo insumo ${insumoId}:`, error);
+                                            enrichedInsumo.nombre_insumo = `Insumo #${insumoId.slice(-6)}`;
+                                        }
+                                    }
                                 }
-                                return insumo;
+                                
+                                return enrichedInsumo;
                             })
                         );
-
-                        return {
-                            ...solicitud,
-                            insumos: enrichedInsumos
-                        };
+                        
+                        enrichedSolicitud.insumos = enrichedInsumos;
                     }
-
-                    // Enriquecer activos con nombres reales
-                    if (solicitud.activos && Array.isArray(solicitud.activos)) {
-                        const enrichedActivos = await Promise.all(
-                            solicitud.activos.map(async (activo) => {
-                                if (activo.codigo_activo && typeof activo.codigo_activo === 'string') {
-                                    const activoCompleto = await this.getActivoFullData(activo.codigo_activo);
-                                    return {
-                                        ...activo,
-                                        nombre_activo: activoCompleto.nombre || activoCompleto.nombre_activo || 'Activo sin nombre'
-                                    };
-                                }
-                                return activo;
-                            })
-                        );
-
-                        return {
-                            ...solicitud,
-                            activos: enrichedActivos
-                        };
-                    }
-
-                    // Si ya es un objeto completo, devolver tal cual
-                    return solicitud;
+                    
+                    console.log(`✅ Solicitud ${index + 1} final enriquecida:`, enrichedSolicitud);
+                    return enrichedSolicitud;
                 })
             );
 
-            console.log('✅ Solicitudes enriquecidas:', enrichedSolicitudes);
+            console.log('✅ Todas las solicitudes enriquecidas:', enrichedSolicitudes);
             return enrichedSolicitudes;
         } catch (error) {
             console.error('Error enriqueciendo usuarios:', error);

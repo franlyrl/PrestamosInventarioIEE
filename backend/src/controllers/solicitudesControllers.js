@@ -29,13 +29,19 @@ exports.getSolicitudes = async (req, res) => {
         }
 
         // 2. LA RIQUEZA DE DATOS (El populate detallado del GET viejo)
+        console.log('🔍 Iniciando getSolicitudes con filtro:', filtro);
+        
         const ObtenerSolicitudes = await Solicitudes.find(filtro)
             // 1. Traemos todo del usuario (menos la contraseña por seguridad)
             .populate('usuario', 'id_usuario cedula nombre_completo correo_electronico tipo_rol estado')
             // 2. Traemos los detalles de los activos vinculados
             .populate('activos', 'marca modelo numActivo estado serie')
-            // 3. Traemos los detalles de los insumos (ojo con la ruta exacta en tu Schema)
-            .populate('insumos.id_insumo', 'NombProducto caracteristicas unidadMedida')
+            // 3. Traemos los detalles de los insumos (manejo especial para $oid)
+            .populate({
+                path: 'insumos.id_insumo',
+                model: 'Insumo',
+                select: 'NombProducto'
+            })
             // 4. Orden cronológico (lo más nuevo arriba)
             .sort({ createdAt: -1 })
             // 5. Rendimiento: Convierte de documento pesado de Mongoose a objeto JS simple
@@ -43,6 +49,10 @@ exports.getSolicitudes = async (req, res) => {
             // 6. Limpieza: Quitamos la versión interna de Mongo (__v)
             .select('-__v')
             .exec();
+
+        console.log('📡 Solicitudes obtenidas de DB (raw):', ObtenerSolicitudes);
+        console.log('📦 Insumos en primera solicitud:', ObtenerSolicitudes[0]?.insumos);
+        console.log('🔍 Estructura de insumos:', JSON.stringify(ObtenerSolicitudes[0]?.insumos, null, 2));
 
         // 3. MEJORA DE VISUALIZACIÓN: Ordenar historiales en la lista
         // Como es un array de solicitudes, usamos map para ordenar cada una
@@ -73,13 +83,40 @@ exports.getSolicitudes = async (req, res) => {
  */
 exports.createSolicitud = async (req, res) => {
     try {
+        console.log('🚀 Iniciando creación de solicitud...');
+        
         // 1. Obtenemos el ID del usuario del token (es el _id de MongoDB)
         const usuarioId = req.user.id;
+        console.log('👤 ID del usuario desde token:', usuarioId);
+        
         // --- DATOS DE LA SOLICITUD (Vienen del Formulario/Body) ---
         const { activos, insumos, fecha_entrega_esperada } = req.body;
+        console.log('📋 Datos recibidos en createSolicitud:', { 
+            activos, 
+            insumos, 
+            fecha_entrega_esperada,
+            bodyCompleto: req.body 
+        });
+        
+        // Validar que los datos lleguen correctamente
+        if (!insumos || !Array.isArray(insumos)) {
+            console.log('❌ Insumos no llegaron como array:', insumos);
+        } else {
+            console.log(`✅ Llegaron ${insumos.length} insumos`);
+            insumos.forEach((insumo, index) => {
+                console.log(`📦 Insumo ${index + 1}:`, insumo);
+            });
+        }
+        
+        if (!activos || !Array.isArray(activos)) {
+            console.log('❌ Activos no llegaron como array:', activos);
+        } else {
+            console.log(`✅ Llegaron ${activos.length} activos`);
+        }
 
         // 2. REVISIÓN DEL ESTADO USANDO EL _ID DE MONGODB
         const usuarioDB = await Usuarios.findById(usuarioId).select('estado');
+        console.log('🔍 Usuario encontrado en DB:', usuarioDB);
 
         if (!usuarioDB) {
             return res.status(404).json({ message: 'El usuario con ese ID no existe en el sistema.' });
@@ -100,6 +137,7 @@ exports.createSolicitud = async (req, res) => {
             usuario: usuarioId, // <--- Aquí usamos usuarioId directamente
             estado: { $in: ['pendiente', 'aprobada', 'entregado', 'penalizado'] }
         });
+        console.log('🔍 Solicitud activa encontrada:', solicitudActiva);
 
         if (solicitudActiva) {
             return res.status(403).json({
@@ -109,10 +147,46 @@ exports.createSolicitud = async (req, res) => {
         }
 
         // 4. CREACIÓN (Sincronizado con tu Schema 'usuario')
+        
+        // Procesar insumos para convertir $oid a string si es necesario
+        let insumosProcesados = [];
+        if (insumos && Array.isArray(insumos)) {
+            insumosProcesados = insumos.map(insumo => {
+                let insumoProcesado = { ...insumo };
+                
+                // Convertir id_insumo de objeto a string si viene como $oid
+                if (insumo.id_insumo && typeof insumo.id_insumo === 'object') {
+                    insumoProcesado.id_insumo = insumo.id_insumo.$oid || insumo.id_insumo._id || insumo.id_insumo.id;
+                    console.log('🔄 Convertido id_insumo de $oid a string:', insumoProcesado.id_insumo);
+                }
+                
+                return insumoProcesado;
+            });
+        }
+        
+        // Procesar activos de la misma manera
+        let activosProcesados = [];
+        if (activos && Array.isArray(activos)) {
+            activosProcesados = activos.map(activo => {
+                let activoProcesado = { ...activo };
+                
+                // Convertir referencias de objeto a string si es necesario
+                if (activo.codigo_activo && typeof activo.codigo_activo === 'object') {
+                    activoProcesado.codigo_activo = activo.codigo_activo.$oid || activo.codigo_activo._id || activo.codigo_activo.id;
+                    console.log('🔄 Convertido codigo_activo de $oid a string:', activoProcesado.codigo_activo);
+                }
+                
+                return activoProcesado;
+            });
+        }
+        
+        console.log('📝 Insumos procesados para guardar:', insumosProcesados);
+        console.log('🔧 Activos procesados para guardar:', activosProcesados);
+
         const nuevaSolicitud = new Solicitudes({
             usuario: usuarioId, // <--- Usamos usuarioId directamente
-            activos,
-            insumos,
+            activos: activosProcesados,
+            insumos: insumosProcesados,
             fecha_entrega_esperada,
             estado: 'pendiente',
             historico_estados: [{
@@ -122,7 +196,10 @@ exports.createSolicitud = async (req, res) => {
             }]
         });
 
+        console.log('📝 Nueva solicitud a guardar:', nuevaSolicitud);
+
         const solicitudGuardada = await nuevaSolicitud.save();
+        console.log('✅ Solicitud guardada en Atlas:', solicitudGuardada);
 
         return res.status(201).json({
             message: "¡Solicitud registrada con éxito!",
@@ -130,12 +207,70 @@ exports.createSolicitud = async (req, res) => {
         });
 
     } catch (error) {
+        console.error('❌ Error en createSolicitud:', error);
         return res.status(500).json({
             message: 'Error interno en la creación de solicitud',
             error: error.message
         });
     }
 };
+/**
+ * @route GET /api/solicitudes/estudiante/:id
+ * @desc Obtiene una solicitud específica para estudiantes (solo si les pertenece)
+ * @access Estudiantes y Docentes (solo sus propias solicitudes)
+ */
+exports.getSolicitudByIdForStudent = async (req, res) => {
+    try {
+        const SolicitudxId = await Solicitudes.findById(req.params.id)
+            .populate('usuario', 'nombre_completo correo_electronico')
+            .populate('activos', 'marca modelo numActivo')
+            .populate({
+                path: 'insumos.id_insumo',
+                model: 'Insumo',
+                select: 'NombProducto'
+            })
+            .lean()
+            .select('-__v')
+            .exec();
+
+        if (!SolicitudxId) {
+            return res.status(404).json({ message: 'Solicitud no encontrada' });
+        }
+
+        // Ordenamos el historial
+        if (SolicitudxId.historico_estados) {
+            SolicitudxId.historico_estados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+        }
+
+        // Verificación mejorada: el usuario debe ser el dueño de la solicitud
+        const solicitudUserId = SolicitudxId.usuario._id ? 
+            SolicitudxId.usuario._id.toString() : 
+            SolicitudxId.usuario.toString();
+        
+        const currentUserId = req.user.id || req.user._id;
+
+        console.log('🔍 Verificación de permisos:', {
+            solicitudUserId,
+            currentUserId,
+            userRole: req.user.role
+        });
+
+        if (solicitudUserId !== currentUserId) {
+            return res.status(403).json({ 
+                message: 'No tienes permiso para ver esta solicitud. Solo puedes ver tus propias solicitudes.' 
+            });
+        }
+
+        res.json(SolicitudxId);
+
+    } catch (error) {
+        res.status(500).json({ 
+            message: 'Error al obtener la solicitud', 
+            error: error.message 
+        });
+    }
+};
+
 /**
  * @route GET /api/solicitudes/:id
  * @desc Obtiene el detalle completo de una sola solicitud por su ID.
@@ -147,7 +282,11 @@ exports.getSolicitudById = async (req, res) => {
             // 1. Cambiamos 'estudiante' por 'usuario' (el nombre real del Schema)
             .populate('usuario', 'nombre_completo correo_electronico')
             .populate('activos', 'marca modelo numActivo')
-            .populate('insumos.id_insumo', 'NombProducto')
+            .populate({
+                path: 'insumos.id_insumo',
+                model: 'Insumo',
+                select: 'NombProducto'
+            })
             // Nota: Quitamos los populates del historial porque son datos simples, no IDs.
             .lean()
             .select('-__v')

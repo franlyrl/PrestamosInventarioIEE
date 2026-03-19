@@ -30,6 +30,13 @@ router.post('/', solicitudesControllers.createSolicitud);
 router.get('/', solicitudesControllers.getSolicitudes);
 router.get('/:id', solicitudesControllers.getSolicitudById);
 
+// 2.1. Visualización para Estudiantes (solo sus solicitudes)
+// Esta ruta permite a los estudiantes ver cualquier solicitud que les pertenezca
+router.get('/estudiante/:id', 
+    restrictTo('estudiante', 'docente'), 
+    solicitudesControllers.getSolicitudByIdForStudent
+);
+
 // 3. Gestión del Estudiante (Cancelar su propia boleta)
 // REGLA DE ORO: Solo si el estado es 'pendiente' y es el dueño.
 router.delete('/:id', solicitudesControllers.deleteSolicitud);

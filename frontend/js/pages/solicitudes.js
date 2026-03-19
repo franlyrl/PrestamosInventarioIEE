@@ -101,6 +101,19 @@ class SolicitudesController {
             console.log('📡 Respuesta de getMisSolicitudes:', response);
             this.solicitudes = response.data || response;
             console.log('✅ Solicitudes cargadas:', this.solicitudes.length, 'solicitudes');
+            
+            // Llamar a la función global que muestra las solicitudes
+            if (typeof mostrarSolicitudesReales === 'function') {
+                console.log('📋 Llamando a mostrarSolicitudesReales()...');
+                mostrarSolicitudesReales(this.solicitudes);
+                // Actualizar estadísticas
+                this.updateEstadisticas();
+            } else {
+                console.log('⚠️ mostrarSolicitudesReales() no disponible, usando renderSolicitudes()');
+                this.renderSolicitudes();
+                this.updateEstadisticas();
+            }
+            
             Utils.showLoading(false);
         } catch (error) {
             console.error('Error cargando solicitudes:', error);
