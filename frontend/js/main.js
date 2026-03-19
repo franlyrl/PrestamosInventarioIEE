@@ -309,6 +309,26 @@ const ApiService = {
         }
     },
 
+    // Crear activo
+    async createActivo(activoData) {
+        try {
+            const response = await Utils.authenticatedFetch(`${CONFIG.API_BASE_URL}/activos`, {
+                method: 'POST',
+                body: JSON.stringify(activoData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Error al crear activo');
+            }
+
+            return response.json();
+        } catch (error) {
+            Utils.handleApiError(error);
+            throw error;
+        }
+    },
+
     // Obtener solicitudes
     async getSolicitudes() {
         try {

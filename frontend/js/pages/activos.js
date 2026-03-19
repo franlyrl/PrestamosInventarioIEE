@@ -59,15 +59,30 @@ class ActivosController {
             limpiarBtn.addEventListener('click', () => this.limpiarFiltros());
         }
 
+        const canManageActivos = this.userHasActivosPermission();
+
         if (agregarBtn) {
-            agregarBtn.addEventListener('click', () => {
-                window.modalController?.showAgregarActivo();
-            });
+            if (!canManageActivos) {
+                agregarBtn.classList.add('hidden');
+            } else {
+                agregarBtn.addEventListener('click', () => {
+                    window.modalController?.showAgregarActivo();
+                });
+            }
         }
 
         if (exportarBtn) {
             exportarBtn.addEventListener('click', () => this.exportarDatos());
         }
+    }
+
+    userHasActivosPermission() {
+        const userData = localStorage.getItem('utn_user');
+        if (!userData) return false;
+
+        const user = JSON.parse(userData);
+        const rol = (user.rol || user.role || user.tipo_rol || '').toLowerCase();
+        return ['admin', 'administrador', 'administrativo'].includes(rol);
     }
 
     async cargarActivos() {

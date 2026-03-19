@@ -34,23 +34,23 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-2">Número de Activo *</label>
-                    <input type="number" id="numActivo" required class="input-field w-full" placeholder="Ej: 1001">
+                    <input type="number" id="numActivo" name="numActivo" required class="input-field w-full" placeholder="Ej: 1001">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-2">Número de Serie *</label>
-                    <input type="text" id="numSerie" required class="input-field w-full" placeholder="Ej: SN001234">
+                    <input type="text" id="numSerie" name="numSerie" required class="input-field w-full" placeholder="Ej: SN001234">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-2">Marca</label>
-                    <input type="text" id="marca" class="input-field w-full" placeholder="Ej: Fluke">
+                    <input type="text" id="marca" name="marca" class="input-field w-full" placeholder="Ej: Fluke">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-2">Modelo</label>
-                    <input type="text" id="modelo" class="input-field w-full" placeholder="Ej: 87V">
+                    <input type="text" id="modelo" name="modelo" class="input-field w-full" placeholder="Ej: 87V">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
-                    <select id="categoria" required class="input-field w-full">
+                    <select id="categoria" name="categoria" required class="input-field w-full">
                         <option value="">Seleccionar categoría</option>
                         <option value="Instrumentos">Instrumentos</option>
                         <option value="Herramientas">Herramientas</option>
@@ -60,7 +60,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-2">Estado *</label>
-                    <select id="estadoActivo" required class="input-field w-full">
+                    <select id="estadoActivo" name="estadoActivo" required class="input-field w-full">
                         <option value="disponible">Disponible</option>
                         <option value="prestado">Prestado</option>
                         <option value="mantenimiento">Mantenimiento</option>

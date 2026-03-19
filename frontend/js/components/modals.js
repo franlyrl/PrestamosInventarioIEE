@@ -116,8 +116,21 @@ class ModalController {
         }
     }
 
+    // Comprueba permiso de activo (roles administrativos)
+    userCanAddActivo() {
+        const userData = localStorage.getItem('utn_user');
+        if (!userData) return false;
+        const user = JSON.parse(userData);
+        const rol = (user.rol || user.role || user.tipo_rol || '').toLowerCase();
+        return ['admin', 'administrador', 'administrativo'].includes(rol);
+    }
+
     // Modal de agregar activo
     showAgregarActivo() {
+        if (!this.userCanAddActivo()) {
+            Utils.showToast('No tienes permiso para registrar activos', 'error');
+            return;
+        }
         this.showModal('agregarActivoModal');
     }
 
