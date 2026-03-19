@@ -969,18 +969,7 @@
             
             // Función para añadir al carrito
             function addToCart(itemName, itemType, itemData) {
-                // Verificar si ya existe en el carrito
-                const existingIndex = cart.findIndex(item => 
-                    item.type === itemType && 
-                    item.data._id === itemData._id
-                );
-                
-                if (existingIndex !== -1) {
-                    showToast('🛒 Este item ya está en el carrito', 'warning');
-                    return;
-                }
-                
-                // Añadir al carrito
+                // Siempre añadir como nuevo item (sin verificar duplicados)
                 cart.push({
                     name: itemName,
                     type: itemType,
@@ -1021,16 +1010,31 @@
                                 <p class="text-xs text-slate-500">${item.type === 'activos' ? 'Activo' : 'Insumo'}</p>
                             </div>
                         </div>
-                        <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <div class="flex items-center bg-white border border-slate-200 rounded-lg">
+                                <button onclick="decreaseQuantity(${index})" class="p-1 hover:bg-slate-100 rounded-l-lg transition-colors">
+                                    <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                                    </svg>
+                                </button>
+                                <span class="px-3 py-1 text-sm font-medium text-slate-700 min-w-[40px] text-center">${item.quantity}</span>
+                                <button onclick="increaseQuantity(${index})" class="p-1 hover:bg-slate-100 rounded-r-lg transition-colors">
+                                    <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        </div>
                     `;
                     cartItems.appendChild(itemElement);
                 });
                 
-                // Actualizar total
+                // Actualizar total (contar items individuales)
                 cartTotal.textContent = cart.length;
             }
             
@@ -1040,6 +1044,27 @@
                 cart.splice(index, 1);
                 updateCartUI();
                 showToast(`🗑️ ${removedItem.name} eliminado`, 'info');
+            }
+            
+            // Incrementar cantidad
+            function increaseQuantity(index) {
+                cart[index].quantity += 1;
+                updateCartUI();
+                const itemName = cart[index].name;
+                showToast(`➕ ${itemName} (${cart[index].quantity})`, 'success');
+            }
+            
+            // Decrementar cantidad
+            function decreaseQuantity(index) {
+                if (cart[index].quantity > 1) {
+                    cart[index].quantity -= 1;
+                    updateCartUI();
+                    const itemName = cart[index].name;
+                    showToast(`➖ ${itemName} (${cart[index].quantity})`, 'success');
+                } else {
+                    // Si la cantidad es 1, eliminar el item
+                    removeFromCart(index);
+                }
             }
             
             // Vaciar carrito
@@ -1052,6 +1077,18 @@
                 cart = [];
                 updateCartUI();
                 showToast('🗑️ Carrito vaciado', 'success');
+            }
+            
+            // Obtener items del carrito (para confirmarPedido)
+            function getCartItems() {
+                return cart.map(item => ({
+                    ...item.data,
+                    cantidad: item.quantity,
+                    _id: item.data._id,
+                    nombre_insumo: item.name,
+                    caracteristicas: item.data.caracteristicas || '',
+                    descripcion: item.data.descripcion || ''
+                }));
             }
             
             // Abrir modal del carrito
