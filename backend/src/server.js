@@ -1,5 +1,5 @@
-    const app = require('./app');
-    const connectDB = require('./config/db');
+const app = require('./app');
+const connectDB = require('./config/db');
 
 // 1. Primero configuramos el puerto
 const PORT = process.env.PORT || 4000;

@@ -14,25 +14,21 @@ app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Permite leer formularios
 app.use(morgan('dev'));
+
+// --- 2. RUTAS DE LA API ---
 app.use('/api/usuarios', require('./routes/usuariosRoutes'));
 app.use('/api/activos', require('./routes/activosRoutes'));
 app.use('/api/insumos', require('./routes/insumosRoutes'));
 app.use('/api/solicitudes', require('./routes/solicitudesRoutes'));
 app.use('/api/historial-usuarios', require('./routes/UsuariosHistorialRoutes'));
 app.use('/api/listaEspera', require('./routes/listaEsperaRoutes'));
-app.use('/api/kardex', require('./routes/kardexRoutes')); // Nueva ruta para Kardex
-// Aquí puedes agregar más rutas a medida que las vayas creando
+app.use('/api/kardex', require('./routes/kardexRoutes'));
+app.use('/api/estadisticas', require('./routes/estadisticasRoutes'));
 
-
-// --- 2. RUTAS PÚBLICAS Y PRUEBAS ---
+// --- 3. RUTAS PÚBLICAS Y PRUEBAS ---
 app.get('/', (req, res) => {
-    res.json({ message: 'API del Laboratorio funcionando ✅' });
+    res.json({ message: 'API del Laboratorio funcionando ' });
 });
-
-// --- 3. AQUÍ CONECTARÁS TUS ARCHIVOS DE RUTAS ---
-app.use('/api/usuarios', require('./routes/usuariosRoutes'));
-// app.use('/api/activos', require('./routes/activosRoutes'));
-// app.use('/api/solicitudes', require('./routes/solicitudRoutes'));
 
 // --- 4. MIDDLEWARE DE SALIDA (Manejo de errores) ---
 // ¡Importante! No pongas ninguna ruta después de esto, no funcionaría.
@@ -43,8 +39,8 @@ const PORT = process.env.PORT || 4000;
 // Solo hacemos el listen si este archivo es el principal
 if (require.main === module) {
     app.listen(PORT, () => {
-        console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-        console.log('👀 Monitoreando peticiones con Morgan...');
+        console.log(` Servidor corriendo en http://localhost:${PORT}`);
+        console.log(' Monitoreando peticiones con Morgan...');
     });
 }
 

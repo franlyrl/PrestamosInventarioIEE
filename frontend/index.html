@@ -45,113 +45,257 @@
                 <div id="dbIndicator" class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
                 <span id="dbStatus">Verificando conexión...</span>
             </div>
+        </div>
 
-            <!-- HEADER COMPONENT -->
-            <div id="header-component"></div>
+        <!-- HEADER COMPONENT -->
+        <div id="header-component"></div>
 
-            <!-- CONTENIDO PRINCIPAL -->
-            <main class="container py-6">
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="container py-6">
+            <!-- VISTA PARA ADMINISTRATIVOS Y ADMIN -->
+            <div id="vistaAdmin" class="hidden">
+                <!-- HEADER DE GESTIÓN -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <h1 class="text-2xl font-bold text-slate-800 mb-2">📋 Panel de Administración</h1>
+                    <p class="text-slate-600">Gestión completa de inventario y recursos del laboratorio</p>
+                </div>
+
+                <!-- BOTONES PRINCIPALES -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <!-- MÓDULO DE ACTIVOS -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="window.location.href='pages/activos.html'">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                                <span class="text-2xl">🔧</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-800">Gestión de Activos</h3>
+                                <p class="text-sm text-slate-600">Control de equipos y dispositivos</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center text-blue-600 font-medium">
+                            <span>Acceder →</span>
+                        </div>
+                    </div>
+
+                    <!-- MÓDULO DE INSUMOS -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="window.location.href='pages/insumos.html'">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                                <span class="text-2xl">🧩</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-800">Gestión de Insumos</h3>
+                                <p class="text-sm text-slate-600">Control de materiales y consumibles</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center text-green-600 font-medium">
+                            <span>Acceder →</span>
+                        </div>
+                    </div>
+
+                    <!-- AÑADIR ARTÍCULOS -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="abrirModalAgregarInsumo()">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                                <span class="text-2xl">➕</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-800">Añadir Artículo</h3>
+                                <p class="text-sm text-slate-600">Agregar nuevo insumo al inventario</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center text-purple-600 font-medium">
+                            <span>Añadir →</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA PARA ESTUDIANTES Y DOCENTES -->
+            <div id="vistaEstudiante" class="hidden">
+                <!-- HEADER DE ESTUDIANTE -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <h1 class="text-2xl font-bold text-slate-800 mb-2">📚 Panel de Estudiantes</h1>
+                    <p class="text-slate-600">Solicita equipos y materiales para tus proyectos</p>
+                </div>
+
                 <!-- NAVEGACIÓN POR TABS -->
-                <nav class="mb-6">
+                <nav id="navTabs" class="mb-6">
                     <div class="flex gap-2 bg-white rounded-xl p-1 shadow-sm">
                         <button class="tab-button flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition utn-blue text-white" data-type="activos">
                             🔧 Activos
                         </button>
                         <button class="tab-button flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-50" data-type="insumos">
-                            🔧 Insumos
+                            🧩 Insumos
+                        </button>
+                    </div>
+                </nav>
+
+                <!-- CONTROLES -->
+                <div id="controlesEstudiante" class="flex justify-between items-center mb-6">
+                    <div>
+                        <p class="text-sm text-slate-500">Solicita equipos y materiales para tus proyectos</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button id="refreshBtn" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                            🔄 Actualizar
                         </button>
                     </div>
                 </div>
-            </div>
 
-        <!-- CONTROLES -->
-        <div class="flex justify-between items-center mb-6">
-            <div>
-                <p class="text-sm text-slate-500">Solicita equipos y materiales para tus proyectos</p>
-            </div>
-            <div class="flex gap-3">
-                <button id="refreshBtn" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                    🔄 Actualizar
-                </button>
+                <!-- MÓDULO DE INSUMOS -->
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="window.location.href='pages/insumos.html'">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                            <span class="text-2xl">🧩</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">Gestión de Insumos</h3>
+                            <p class="text-sm text-slate-600">Control de materiales y consumibles</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center text-green-600 font-medium">
+                        <span>Acceder →</span>
+                    </div>
+                </div>
+
+                <!-- AÑADIR ARTÍCULOS -->
+                <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="abrirModalAgregarInsumo()">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                            <span class="text-2xl">➕</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">Añadir Artículo</h3>
+                            <p class="text-sm text-slate-600">Agregar nuevo insumo al inventario</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center text-purple-600 font-medium">
+                        <span>Añadir →</span>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- VISTA PARA ESTUDIANTES Y DOCENTES -->
+        <div id="vistaEstudiante" class="hidden">
+            <!-- HEADER DE ESTUDIANTE -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h1 class="text-2xl font-bold text-slate-800 mb-2">📚 Panel de Estudiantes</h1>
+                <p class="text-slate-600">Solicita equipos y materiales para tus proyectos</p>
+            </div>
+
+            <!-- NAVEGACIÓN POR TABS -->
+            <nav id="navTabs" class="mb-6">
+                <div class="flex gap-2 bg-white rounded-xl p-1 shadow-sm">
+                    <button class="tab-button flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition utn-blue text-white" data-type="activos">
+                        🔧 Activos
+                    </button>
+                    <button class="tab-button flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-50" data-type="insumos">
+                        🧩 Insumos
+                    </button>
+                </div>
+            </nav>
+
+            <!-- CONTROLES -->
+            <div id="controlesEstudiante" class="flex justify-between items-center mb-6">
+                <div>
+                    <p class="text-sm text-slate-500">Solicita equipos y materiales para tus proyectos</p>
+                </div>
+                <div class="flex gap-3">
+                    <button id="refreshBtn" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                        🔄 Actualizar
+                    </button>
+                </div>
+            </div>
             
-        <!-- GRID DE ITEMS -->
-        <div id="itemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <!-- Los items se cargarán aquí dinámicamente -->
+            <!-- GRID DE ITEMS -->
+            <div id="itemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Los items se cargarán aquí dinámicamente -->
+            </div>
         </div>
     </main>
-</div>
-</div>
 
-<!-- MODAL DE CONFIRMACIÓN -->
-<div id="confirmModal" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
-    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
-        <div class="p-6 text-center border-b border-slate-100">
-            <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl" id="modalIcon">🔬</div>
-            <h3 class="text-xl font-bold utn-text">Confirmar Solicitud</h3>
-            <p class="text-xs text-slate-400 mt-1">Se generará una boleta electrónica digital</p>
-        </div>
-        
-        <div class="bg-slate-50 p-4 rounded-2xl mb-6 text-[11px] space-y-3 border border-slate-100">
-            <div class="flex justify-between">
-                <span class="text-slate-400 font-bold uppercase">Elemento</span>
-                <span id="itemName" class="font-bold text-slate-700 text-right"></span>
-            </div>
-            <div class="flex justify-between">
-                <span class="text-slate-400 font-bold uppercase">Categoría</span>
-                <span id="itemCat" class="font-bold text-blue-600 text-right"></span>
-            </div>
-            <div class="flex justify-between border-t border-slate-200 pt-2">
-                <span class="text-slate-400 font-bold uppercase">Usuario</span>
-                <span id="itemUser" class="font-bold text-slate-700"></span>
-            </div>
-        </div>
-
-        <div class="flex gap-3 p-6">
-            <button onclick="closeModal()" class="flex-1 py-3 text-xs font-bold text-slate-400 hover:text-slate-600 uppercase transition">
-                Cancelar
-            </button>
-            <button onclick="confirmarPedido()" class="flex-1 py-3 text-xs font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition uppercase">
-                Enviar Boleta
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL DEL CARRITO DE SOLICITUDES -->
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.1/css/all.css" integrity="sha384-O8whS3fhG2OnA5Kas0Y9l3cfpmYjapjI0E4theH4iuMD+pLhbf6JI0jIMfYcK3yZ" crossorigin="anonymous">
-<div id="cartModal" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
-    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
-        <div class="p-6 border-b border-slate-100">
-            <div class="flex justify-between items-center">
-                <h2 class="text-xl font-bold text-slate-800">🛒 Carrito de Solicitudes</h2>
-                <button onclick="closeCartModal()" class="text-slate-400 hover:text-slate-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        
-        <div class="p-6">
-            <div id="cartItems" class="space-y-3 max-h-96 overflow-y-auto mb-6">
-                <!-- Los items del carrito se cargarán aquí -->
+    <!-- MODAL PARA AGREGAR INSUMO -->
+    <div id="modalAgregarInsumo" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
+            <div class="p-6 border-b border-slate-100">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-slate-800">➕ Agregar Nuevo Insumo</h2>
+                    <button onclick="cerrarModalAgregarInsumo()" class="text-slate-400 hover:text-slate-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
             
-            <div class="border-t border-slate-200 pt-4">
-                <div class="flex justify-between items-center mb-4">
-                    <span class="text-lg font-bold text-slate-800">Total de items:</span>
-                    <span id="cartTotal" class="text-2xl font-bold text-blue-600">0</span>
+            <form id="formAgregarInsumo" class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Nombre del Insumo *</label>
+                        <input type="text" id="nombreInsumo" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
+                        <select id="categoriaInsumo" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Selecciona una categoría</option>
+                            <option value="reactivos">Reactivos</option>
+                            <option value="material_laboratorio">Material de Laboratorio</option>
+                            <option value="consumibles">Consumibles</option>
+                            <option value="equipos_pequeños">Equipos Pequeños</option>
+                            <option value="seguridad">Seguridad</option>
+                            <option value="otros">Otros</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad *</label>
+                        <input type="number" id="cantidadInsumo" required min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Unidad de Medida *</label>
+                        <select id="unidadInsumo" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Selecciona unidad</option>
+                            <option value="unidades">Unidades</option>
+                            <option value="ml">Mililitros (ml)</option>
+                            <option value="l">Litros (l)</option>
+                            <option value="g">Gramos (g)</option>
+                            <option value="kg">Kilogramos (kg)</option>
+                            <option value="mg">Miligramos (mg)</option>
+                            <option value="cajas">Cajas</option>
+                            <option value="paquetes">Paquetes</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Stock Mínimo</label>
+                        <input type="number" id="stockMinimo" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Ubicación</label>
+                        <input type="text" id="ubicacionInsumo" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
                 </div>
                 
-                <div class="flex gap-3">
-                    <button onclick="clearCart()" class="flex-1 py-3 text-sm font-bold bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition">
-                        🗑️ Vaciar Carrito
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Descripción</label>
+                    <textarea id="descripcionInsumo" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+                
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="cerrarModalAgregarInsumo()" class="flex-1 py-3 text-sm font-bold bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition">
+                        Cancelar
                     </button>
-                    <button onclick="sendRequest()" class="flex-1 py-3 text-sm font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition">
-                        📤 Enviar Solicitud
-            </main>
+                    <button type="submit" class="flex-1 py-3 text-sm font-bold bg-purple-600 text-white rounded-xl hover:bg-purple-700 shadow-lg shadow-purple-100 transition">
+                        ➕ Agregar Insumo
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -358,6 +502,47 @@
                     updateUserInfo();
                     startTimeUpdates();
                     
+                    // 5. Inicializar vista según rol del usuario
+                    setTimeout(() => {
+                        const rol = currentUser.rol.toLowerCase();
+                        console.log('👤 Rol detectado:', rol);
+                        
+                        const vistaAdmin = document.getElementById('vistaAdmin');
+                        const vistaEstudiante = document.getElementById('vistaEstudiante');
+                        
+                        console.log('🔍 Elementos encontrados:', {
+                            vistaAdmin: vistaAdmin ? 'encontrado' : 'no encontrado',
+                            vistaEstudiante: vistaEstudiante ? 'encontrado' : 'no encontrado'
+                        });
+                        
+                        // Ocultar ambas vistas primero
+                        if (vistaAdmin) {
+                            vistaAdmin.classList.add('hidden');
+                            console.log('✅ vistaAdmin ocultada');
+                        }
+                        if (vistaEstudiante) {
+                            vistaEstudiante.classList.add('hidden');
+                            console.log('✅ vistaEstudiante ocultada');
+                        }
+                        
+                        // Mostrar vista según rol
+                        if (['administrativo', 'admin'].includes(rol)) {
+                            console.log('⚙️ Mostrando vista para administrativos/admin');
+                            if (vistaAdmin) {
+                                vistaAdmin.classList.remove('hidden');
+                                console.log('✅ vistaAdmin mostrada');
+                            }
+                        } else {
+                            console.log('📚 Mostrando vista para estudiantes/docentes');
+                            if (vistaEstudiante) {
+                                vistaEstudiante.classList.remove('hidden');
+                                console.log('✅ vistaEstudiante mostrada');
+                            }
+                            // Inicializar funcionalidad de estudiantes
+                            inicializarFuncionalidadEstudiante();
+                        }
+                    }, 100);
+                    
                     // Cargar datos iniciales
                     await loadInitialData();
                     
@@ -439,10 +624,53 @@
                 setInterval(updateDateTime, 60000); // Cada minuto
             }
 
+            // Función para inicializar funcionalidad de estudiantes
+            function inicializarFuncionalidadEstudiante() {
+                console.log('📚 Inicializando funcionalidad para estudiantes...');
+                
+                // Configurar tabs
+                document.querySelectorAll('.tab-button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const type = button.dataset.type;
+                        currentType = type;
+                        
+                        // Actualizar estilos de tabs
+                        document.querySelectorAll('.tab-button').forEach(btn => {
+                            btn.classList.remove('utn-blue', 'text-white');
+                            btn.classList.add('text-slate-600', 'hover:bg-slate-50');
+                        });
+                        button.classList.add('utn-blue', 'text-white');
+                        button.classList.remove('text-slate-600', 'hover:bg-slate-50');
+                        
+                        // Cargar datos según el tipo
+                        if (type === 'activos') {
+                            loadActivos();
+                        } else if (type === 'insumos') {
+                            loadInsumos();
+                        }
+                    });
+                });
+                
+                // Configurar botón de refresh
+                document.getElementById('refreshBtn')?.addEventListener('click', () => {
+                    if (currentType === 'activos') {
+                        loadActivos();
+                    } else if (currentType === 'insumos') {
+                        loadInsumos();
+                    } else {
+                        loadInitialData();
+                    }
+                });
+                
+                // Cargar datos iniciales
+                loadInitialData();
+            }
+
             // Función para cargar datos iniciales
             async function loadInitialData() {
-                // No cargar datos automáticamente, esperar a que el usuario haga click
-                const grid = document.getElementById('itemsGrid');
+                // Buscar el itemsGrid dentro de la vista de estudiantes
+                const vistaEstudiante = document.getElementById('vistaEstudiante');
+                const grid = vistaEstudiante ? vistaEstudiante.querySelector('#itemsGrid') : document.getElementById('itemsGrid');
                 
                 if (!grid) {
                     console.log('⚠️ itemsGrid no encontrado, omitiendo carga inicial');
@@ -463,7 +691,9 @@
             // Función para cargar activos
             async function loadActivos() {
                 const token = localStorage.getItem('utn_token');
-                const grid = document.getElementById('itemsGrid');
+                // Buscar el itemsGrid dentro de la vista de estudiantes
+                const vistaEstudiante = document.getElementById('vistaEstudiante');
+                const grid = vistaEstudiante ? vistaEstudiante.querySelector('#itemsGrid') : document.getElementById('itemsGrid');
                 
                 console.log('🔍 Iniciando carga de activos...');
                 console.log('🔑 Token disponible:', token ? 'Sí' : 'No');
@@ -569,10 +799,12 @@
             // Función para cargar insumos
             async function loadInsumos() {
                 const token = localStorage.getItem('utn_token');
+                // Buscar el itemsGrid dentro de la vista de estudiantes
+                const vistaEstudiante = document.getElementById('vistaEstudiante');
+                const grid = vistaEstudiante ? vistaEstudiante.querySelector('#itemsGrid') : document.getElementById('itemsGrid');
                 
                 try {
                     // Mostrar loading
-                    const grid = document.getElementById('itemsGrid');
                     grid.innerHTML = `
                         <div class="col-span-full text-center py-12">
                             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -839,6 +1071,65 @@
                     showToast(`❌ Error: ${error.message}`, 'error');
                 }
             }
+
+            // Funciones para el modal de agregar insumo
+            function abrirModalAgregarInsumo() {
+                const modal = document.getElementById('modalAgregarInsumo');
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100');
+                
+                // Limpiar formulario
+                document.getElementById('formAgregarInsumo').reset();
+            }
+
+            function cerrarModalAgregarInsumo() {
+                const modal = document.getElementById('modalAgregarInsumo');
+                modal.classList.remove('opacity-100');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+
+            // Manejar el envío del formulario
+            document.addEventListener('DOMContentLoaded', function() {
+                const form = document.getElementById('formAgregarInsumo');
+                if (form) {
+                    form.addEventListener('submit', async function(e) {
+                        e.preventDefault();
+                        
+                        const formData = {
+                            nombre: document.getElementById('nombreInsumo').value,
+                            categoria: document.getElementById('categoriaInsumo').value,
+                            cantidad: parseInt(document.getElementById('cantidadInsumo').value),
+                            unidad_medida: document.getElementById('unidadInsumo').value,
+                            stock_minimo: parseInt(document.getElementById('stockMinimo').value) || 0,
+                            ubicacion: document.getElementById('ubicacionInsumo').value,
+                            descripcion: document.getElementById('descripcionInsumo').value
+                        };
+
+                        try {
+                            const token = localStorage.getItem('utn_token');
+                            const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify(formData)
+                            });
+
+                            if (response.ok) {
+                                showToast('✅ Insumo agregado correctamente', 'success');
+                                cerrarModalAgregarInsumo();
+                            } else {
+                                const error = await response.json();
+                                showToast(`❌ Error: ${error.message}`, 'error');
+                            }
+                        } catch (error) {
+                            console.error('Error agregando insumo:', error);
+                            showToast('❌ Error al agregar insumo', 'error');
+                        }
+                    });
+                }
+            });
 
             // Inicialización
             document.addEventListener('DOMContentLoaded', async () => {

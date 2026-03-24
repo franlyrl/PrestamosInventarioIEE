@@ -18,8 +18,8 @@
   "homepage": "https://github.com/franlyrl/PrestamosInventarioIEE#readme",
   "dependencies": {
     "express": "^5.2.1",
+    "mongodb": "^7.1.0",
     "mongoose": "^9.3.0"
   },
-  "devDependencies": {},
   "description": ""
 }

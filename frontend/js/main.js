@@ -1,4 +1,3 @@
-// Configuración Principal
 const CONFIG = {
     API_BASE_URL: 'http://localhost:4000/api',
     ANIMATIONS: {
@@ -413,18 +412,18 @@ const ApiService = {
     async enrichUsersWithFullData(solicitudes) {
         try {
             console.log('🔄 Iniciando enriquecimiento de solicitudes:', solicitudes.length);
-            
+
             const enrichedSolicitudes = await Promise.all(
                 solicitudes.map(async (solicitud, index) => {
                     console.log(`🔄 Procesando solicitud ${index + 1}:`, solicitud);
-                    
+
                     let enrichedSolicitud = { ...solicitud };
-                    
+
                     // Si el usuario es un objeto con $oid, extraer el ID
                     if (solicitud.usuario && typeof solicitud.usuario === 'object') {
                         const usuarioId = solicitud.usuario.$oid || solicitud.usuario._id || solicitud.usuario.id;
                         console.log(`👤 Usuario ID extraído: ${usuarioId}`);
-                        
+
                         if (usuarioId) {
                             try {
                                 // Intentar obtener datos completos del usuario
@@ -444,22 +443,22 @@ const ApiService = {
                             }
                         }
                     }
-                    
+
                     // Enriquecer insumos con nombres reales
                     if (solicitud.insumos && Array.isArray(solicitud.insumos)) {
                         console.log(`📦 Procesando ${solicitud.insumos.length} insumos`);
-                        
+
                         const enrichedInsumos = await Promise.all(
                             solicitud.insumos.map(async (insumo, insumoIndex) => {
                                 console.log(`📦 Insumo ${insumoIndex + 1}:`, insumo);
-                                
+
                                 let enrichedInsumo = { ...insumo };
-                                
+
                                 // Si id_insumo es un objeto con $oid
                                 if (insumo.id_insumo && typeof insumo.id_insumo === 'object') {
                                     const insumoId = insumo.id_insumo.$oid || insumo.id_insumo._id || insumo.id_insumo.id;
                                     console.log(`📦 Insumo ID extraído: ${insumoId}`);
-                                    
+
                                     if (insumoId) {
                                         try {
                                             const insumoCompleto = await this.getInsumoFullData(insumoId);
@@ -471,14 +470,14 @@ const ApiService = {
                                         }
                                     }
                                 }
-                                
+
                                 return enrichedInsumo;
                             })
                         );
-                        
+
                         enrichedSolicitud.insumos = enrichedInsumos;
                     }
-                    
+
                     console.log(`✅ Solicitud ${index + 1} final enriquecida:`, enrichedSolicitud);
                     return enrichedSolicitud;
                 })
@@ -588,8 +587,16 @@ const ApiService = {
     }
 };
 
-// Exportar para uso global
-window.CONFIG = CONFIG;
-window.appState = appState;
-window.Utils = Utils;
-window.ApiService = ApiService;
+// Exportar para uso global - Evitar duplicación
+try {
+    if (typeof window !== 'undefined') {
+        if (!window.CONFIG) {
+            window.CONFIG = CONFIG;
+        }
+        window.appState = appState;
+        window.Utils = Utils;
+        window.ApiService = ApiService;
+    }
+} catch (error) {
+    console.warn('Error exportando variables globales:', error);
+}

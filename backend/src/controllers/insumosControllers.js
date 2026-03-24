@@ -27,7 +27,7 @@ exports.getInsumos = async (req, res) => {
 exports.createInsumo = async (req, res) => {
     try {
         // 1. FILTRO DE SEGURIDAD (Solo administrativos)
-        const rolesAutorizados = ['admin', 'administrador', 'Administrador'];
+        const rolesAutorizados = ['admin', 'administrador', 'Administrador', 'administrativo'];
 
         if (!req.user || !rolesAutorizados.includes(req.user.tipo_rol)) {
             return res.status(403).json({

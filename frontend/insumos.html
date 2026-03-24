@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTN - Gestión de Insumos</title>
+    <meta name="description" content="Módulo de gestión de insumos del laboratorio UTN">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="text-slate-800 bg-slate-50">
+    <!-- HEADER -->
+    <header class="bg-white shadow-sm border-b border-slate-200">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Breadcrumb de navegación -->
+                <nav class="flex items-center space-x-2 text-sm">
+                    <a href="index.html" class="text-blue-600 hover:text-blue-800 font-medium transition">
+                        ← Volver al Panel
+                    </a>
+                    <span class="text-slate-400">/</span>
+                    <span class="font-semibold text-slate-800">Gestión de Insumos</span>
+                </nav>
+                
+                <!-- Título -->
+                <div class="text-center">
+                    <h1 class="text-2xl font-bold text-slate-800">🧩 Gestión de Insumos</h1>
+                    <p class="text-slate-600">Control de materiales y consumibles del laboratorio</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- PANEL DE CONTROL -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-slate-800">Panel de Control</h2>
+                    <p class="text-sm text-slate-600">Gestiona el inventario de insumos del laboratorio</p>
+                </div>
+                
+                <!-- Botones de acción -->
+                <div class="flex gap-3">
+                    <button onclick="abrirModalAgregar()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m0 0h6m0 0v6h12m0 0l-4 4m0 0z"/>
+                        </svg>
+                        Agregar Insumo
+                    </button>
+                    
+                    <button onclick="actualizarLista()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v2M2 2h16M2 2v4m0 0h6m0 0v6h12m0 0z"/>
+                        </svg>
+                        Actualizar Lista
+                    </button>
+                </div>
+            </div>
+
+            <!-- Barra de búsqueda -->
+            <div class="mb-6">
+                <div class="relative">
+                    <input type="text" id="busquedaInsumo" placeholder="Buscar insumos..." 
+                           class="w-full px-4 py-2 pl-10 pr-10 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <svg class="absolute left-3 top-2.5 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-6 6l12 12"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- TABLA DE INSUMOS -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="px-6 py-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800">Insumos Disponibles</h3>
+                        <span class="text-sm text-slate-600" id="totalInsumos">Total: 0 insumos</span>
+                    </div>
+                    
+                    <!-- Tabla responsive -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Código</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nombre</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Categoría</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Stock</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Estado</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaInsumos" class="bg-white divide-y divide-slate-200">
+                                <!-- Los insumos se cargarán aquí dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL PARA AGREGAR/EDITAR INSUMO -->
+    <div id="modalInsumo" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-slate-800" id="tituloModalInsumo">Agregar Insumo</h3>
+                    <button onclick="cerrarModalInsumo()" class="text-slate-400 hover:text-slate-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <form id="formInsumo" class="space-y-4">
+                    <input type="hidden" id="idInsumo">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Código de Insumo</label>
+                            <input type="text" id="codigoInsumo" required
+                                   class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Ej: INS-001">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Nombre del Insumo</label>
+                            <input type="text" id="nombreInsumo" required
+                                   class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Ej: Resistencias 10k">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Categoría</label>
+                        <select id="categoriaInsumo" required
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Seleccionar categoría</option>
+                            <option value="electronicos">Electrónicos</option>
+                            <option value="herramientas">Herramientas</option>
+                            <option value="materiales">Materiales</option>
+                            <option value="consumibles">Consumibles</option>
+                            <option value="seguridad">Seguridad</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Stock Inicial</label>
+                        <input type="number" id="stockInsumo" required min="0"
+                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Cantidad inicial">
+                        </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Stock Mínimo (Alerta)</label>
+                        <input type="number" id="stockMinimo" required min="0"
+                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="0">
+                        </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Ubicación</label>
+                        <input type="text" id="ubicacionInsumo"
+                               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Ej: Laboratorio 101">
+                        </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Descripción</label>
+                        <textarea id="descripcionInsumo" rows="3"
+                                  class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  placeholder="Descripción detallada del insumo"></textarea>
+                    </div>
+                </form>
+                
+                <div class="flex gap-3 pt-4">
+                    <button onclick="cerrarModalInsumo()" class="flex-1 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
+                        Cancelar
+                    </button>
+                    <button onclick="guardarInsumo()" class="flex-1 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                        Guardar Insumo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST DE NOTIFICACIONES -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
+        <div class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
+            <span id="toastMsg">Operación Exitosa</span>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/app.js"></script>
+    <script src="js/insumos.js"></script>
+    
+    <script>
+        // Función para mostrar notificaciones
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            
+            toastMsg.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+        
+        // Funciones básicas
+        function abrirModalAgregar() {
+            document.getElementById('modalInsumo').classList.remove('opacity-0', 'pointer-events-none');
+            document.getElementById('tituloModalInsumo').textContent = 'Agregar Insumo';
+            document.getElementById('formInsumo').reset();
+            document.getElementById('idInsumo').value = '';
+        }
+        
+        function cerrarModalInsumo() {
+            document.getElementById('modalInsumo').classList.add('opacity-0', 'pointer-events-none');
+        }
+        
+        function actualizarLista() {
+            showToast('🔄 Actualizando lista de insumos...', 'info');
+            // Aquí se conectará con el backend para obtener la lista actualizada
+            setTimeout(() => {
+                cargarInsumos();
+                showToast('✅ Lista actualizada', 'success');
+            }, 1000);
+        }
+        
+        async function cargarInsumos() {
+            try {
+                console.log('📦 Cargando insumos...');
+                
+                const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    console.log('✅ Insumos cargados:', data);
+                    mostrarInsumos(data);
+                } else {
+                    console.error('❌ Error cargando insumos:', data);
+                    showToast('❌ Error al cargar insumos', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error en cargarInsumos:', error);
+                showToast('❌ Error de conexión', 'error');
+            }
+        }
+        
+        function mostrarInsumos(insumos) {
+            const tbody = document.getElementById('tablaInsumos');
+            const totalSpan = document.getElementById('totalInsumos');
+            
+            tbody.innerHTML = '';
+            
+            insumos.forEach(insumo => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-50 transition-colors';
+                
+                // Determinar clase de stock
+                let stockClass = 'text-green-600';
+                let stockText = 'Disponible';
+                if (insumo.stock_actual <= insumo.stock_minimo) {
+                    stockClass = 'text-red-600';
+                    stockText = 'Stock Bajo';
+                }
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 text-sm font-medium text-slate-900">${insumo.codigo_insumo}</td>
+                    <td class="px-6 py-4 text-sm">${insumo.nombre_insumo}</td>
+                    <td class="px-6 py-4 text-sm">${insumo.categoria}</td>
+                    <td class="px-6 py-4 text-sm font-medium ${stockClass}">${insumo.stock_actual}</td>
+                    <td class="px-6 py-4 text-sm">${stockText}</td>
+                    <td class="px-6 py-4 text-sm">
+                        <button onclick="editarInsumo('${insumo._id}')" class="text-blue-600 hover:text-blue-800 font-medium">Editar</button>
+                        <button onclick="eliminarInsumo('${insumo._id}')" class="text-red-600 hover:text-red-800 font-medium ml-2">Eliminar</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            totalSpan.textContent = `Total: ${insumos.length} insumos`;
+        }
+        
+        async function guardarInsumo() {
+            try {
+                const formData = {
+                    codigo_insumo: document.getElementById('codigoInsumo').value,
+                    nombre_insumo: document.getElementById('nombreInsumo').value,
+                    categoria: document.getElementById('categoriaInsumo').value,
+                    stock_inicial: parseInt(document.getElementById('stockInsumo').value),
+                    stock_minimo: parseInt(document.getElementById('stockMinimo').value),
+                    ubicacion: document.getElementById('ubicacionInsumo').value,
+                    descripcion: document.getElementById('descripcionInsumo').value
+                };
+                
+                console.log('💾 Guardando insumo:', formData);
+                
+                const id = document.getElementById('idInsumo').value;
+                const url = id ? 
+                    `${window.CONFIG.API_BASE_URL}/insumos/${id}` : 
+                    `${window.CONFIG.API_BASE_URL}/insumos`;
+                
+                const method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    console.log('✅ Insumo guardado:', data);
+                    showToast('✅ Insumo guardado exitosamente', 'success');
+                    cerrarModalInsumo();
+                    actualizarLista();
+                } else {
+                    console.error('❌ Error guardando insumo:', data);
+                    showToast('❌ Error al guardar insumo', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error en guardarInsumo:', error);
+                showToast('❌ Error de conexión', 'error');
+            }
+        }
+        
+        async function editarInsumo(id) {
+            try {
+                console.log('📝 Editando insumo:', id);
+                
+                const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos/${id}`);
+                const insumo = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('tituloModalInsumo').textContent = 'Editar Insumo';
+                    document.getElementById('idInsumo').value = insumo._id;
+                    document.getElementById('codigoInsumo').value = insumo.codigo_insumo;
+                    document.getElementById('nombreInsumo').value = insumo.nombre_insumo;
+                    document.getElementById('categoriaInsumo').value = insumo.categoria;
+                    document.getElementById('stockInsumo').value = insumo.stock_inicial;
+                    document.getElementById('stockMinimo').value = insumo.stock_minimo;
+                    document.getElementById('ubicacionInsumo').value = insumo.ubicacion;
+                    document.getElementById('descripcionInsumo').value = insumo.descripcion;
+                    
+                    abrirModalAgregar();
+                } else {
+                    console.error('❌ Error cargando insumo para editar:', data);
+                    showToast('❌ Error al cargar insumo', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error en editarInsumo:', error);
+                showToast('❌ Error de conexión', 'error');
+            }
+        }
+        
+        async function eliminarInsumo(id) {
+            if (confirm('¿Estás seguro de eliminar este insumo?')) {
+                try {
+                    console.log('🗑️ Eliminando insumo:', id);
+                    
+                    const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        console.log('✅ Insumo eliminado:', data);
+                        showToast('✅ Insumo eliminado exitosamente', 'success');
+                        actualizarLista();
+                    } else {
+                        console.error('❌ Error eliminando insumo:', data);
+                        showToast('❌ Error al eliminar insumo', 'error');
+                    }
+                } catch (error) {
+                    console.error('❌ Error en eliminarInsumo:', error);
+                    showToast('❌ Error de conexión', 'error');
+                }
+            }
+        }
+        
+        // Búsqueda en tiempo real
+        document.getElementById('busquedaInsumo').addEventListener('input', (e) => {
+            const termino = e.target.value.toLowerCase();
+            const filas = document.querySelectorAll('#tablaInsumos tr');
+            
+            filas.forEach(fila => {
+                const texto = fila.textContent.toLowerCase();
+                if (texto.includes(termino)) {
+                    fila.style.display = '';
+                } else {
+                    fila.style.display = 'none';
+                }
+            });
+        });
+        
+        // Cargar insumos al iniciar la página
+        document.addEventListener('DOMContentLoaded', cargarInsumos);
+    </script>
+</body>
+</html>

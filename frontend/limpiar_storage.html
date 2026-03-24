@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Limpiar Storage</title>
+</head>
+<body>
+    <h1>Limpiando localStorage...</h1>
+    <script>
+        // Limpiar completamente el localStorage
+        localStorage.clear();
+        
+        // Establecer valores de prueba para verificar
+        localStorage.setItem('test_limpieza', 'completado');
+        
+        // Verificar que se limpió
+        console.log('✅ localStorage limpiado');
+        console.log('📊 Contenido actual:', localStorage);
+        
+        // Redirigir al login
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 2000);
+    </script>
+</body>
+</html>

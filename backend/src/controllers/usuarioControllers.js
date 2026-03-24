@@ -14,9 +14,9 @@ exports.getUsuarios = async (req, res) => {
         res.json(usuarios);
 
     } catch (error) {
-    console.error("DEBUG ERROR:", error); // This shows the error in your terminal
-    res.status(500).json({ message: "Error al obtener los usuarios", error: error.message });
-}
+        console.error("DEBUG ERROR:", error); // This shows the error in your terminal
+        res.status(500).json({ message: "Error al obtener los usuarios", error: error.message });
+    }
 };
 
 /**
@@ -44,19 +44,19 @@ exports.createUsuario = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const passwordHasheada = await bcrypt.hash(contrasena, salt);
 
-            // 3. Crear el usuario (Solo pasamos el hash al modelo)
-            const nuevoUsuario = new Usuarios({
-                id_usuario: Date.now(), // Generamos un ID único basado en la marca de tiempo
-                cedula,
-                nombre_completo,
-                correo_electronico,
-                contrasena,        // La versión en texto (opcional si el modelo no es required)
-                // Guardamos en los dos campos que definiste en el Modelo:
-                hash_contraseña: passwordHasheada, // La versión encriptada (con tu regla de 8 chars)
-                codigo_barras,
-                tipo_rol,
-                estado: 'activo'
-            });
+        // 3. Crear el usuario (Solo pasamos el hash al modelo)
+        const nuevoUsuario = new Usuarios({
+            id_usuario: Date.now(), // Generamos un ID único basado en la marca de tiempo
+            cedula,
+            nombre_completo,
+            correo_electronico,
+            contrasena,        // La versión en texto (opcional si el modelo no es required)
+            // Guardamos en los dos campos que definiste en el Modelo:
+            hash_contraseña: passwordHasheada, // La versión encriptada (con tu regla de 8 chars)
+            codigo_barras,
+            tipo_rol,
+            estado: 'activo'
+        });
 
         await nuevoUsuario.save();
 
@@ -77,9 +77,9 @@ exports.createUsuario = async (req, res) => {
 exports.updateUsuario = async (req, res) => {
     try {
         const usuarioActualizado = await Usuarios.findByIdAndUpdate(
-            req.params.id, 
-            req.body, 
-            { new: true, runValidators: true } 
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
         ).select('-hash_contraseña');
 
         if (!usuarioActualizado) return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -102,7 +102,7 @@ exports.getPerfil = async (req, res) => {
     try {
         // 1. Verificamos si el middleware 'protect' realmente inyectó al usuario
         if (!req.user) {
-            return res.status(404).json({ 
+            return res.status(404).json({
                 ok: false,
                 message: 'Error: El middleware no cargó al usuario (req.user está vacío)',
                 debug: "Asegúrate de que el middleware tenga: req.user = usuarioActual; antes del next();"
@@ -125,10 +125,10 @@ exports.getPerfil = async (req, res) => {
 
     } catch (error) {
         // Por si ocurre un error inesperado de servidor
-        res.status(500).json({ 
+        res.status(500).json({
             ok: false,
-            message: 'Error interno en el servidor al obtener el perfil', 
-            error: error.message 
+            message: 'Error interno en el servidor al obtener el perfil',
+            error: error.message
         });
     }
 };
@@ -157,11 +157,11 @@ exports.sancionarUsuarioPorFalta = async (req, res) => {
         // 3. IMPACTO EN EL USUARIO (La sanción real)
         // Buscamos al dueño de esa solicitud y lo bloqueamos
         const usuarioSancionado = await Usuarios.findByIdAndUpdate(
-            solicitud.estudiante, 
-            { 
+            solicitud.estudiante,
+            {
                 estado: 'sancionado',
                 // Podemos agregar una nota en el perfil del usuario si tienes ese campo
-            }, 
+            },
             { new: true }
         );
 
@@ -169,7 +169,7 @@ exports.sancionarUsuarioPorFalta = async (req, res) => {
             return res.status(404).json({ message: 'La solicitud existe pero el usuario ya no está en el sistema.' });
         }
 
-        res.json({ 
+        res.json({
             message: `Acción completada: El usuario ${usuarioSancionado.nombre_completo} ha sido sancionado.`,
             detalle: `Solicitud marcada como 'penalizada'. El usuario no podrá realizar trámites hasta que se resuelva esta falta.`
         });
@@ -192,10 +192,10 @@ exports.sancionarUsuarioPorFalta = async (req, res) => {
 exports.inactivarUsuario = async (req, res) => {
     try {
         // 1. Verificación de permisos (Usamos req.user que viene del middleware protect)
-        const admin = req.user; 
+        const admin = req.user;
 
         if (!admin || !['admin', 'Administrador'].includes(admin.tipo_rol)) {
-            return res.status(403).json({ 
+            return res.status(403).json({
                 message: 'No tienes permisos para esta acción.',
                 debug: `Tu rol actual es: ${admin?.tipo_rol}` // Esto te ayudará a ver qué llega
             });
@@ -210,24 +210,24 @@ exports.inactivarUsuario = async (req, res) => {
         if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado' });
 
 
-       // 4. REGLA DE ORO ACTUALIZADA
+        // 4. REGLA DE ORO ACTUALIZADA
         // Revisamos el estado del usuario directamente y las solicitudes
         // A. Verificación por estado del Usuario
         if (usuario.estado === 'pendiente_devolucion' || usuario.estado === 'sancionado') {
-            return res.status(400).json({ 
-                message: `No se puede inactivar: El usuario está en estado '${usuario.estado}'.` 
+            return res.status(400).json({
+                message: `No se puede inactivar: El usuario está en estado '${usuario.estado}'.`
             });
         }
 
         // Y por seguridad, mantenemos el chequeo en Solicitudes por si acaso
         // B. Verificación de seguridad en Solicitudes
-        const tienePendientes = await Solicitudes.findOne({ 
-            estudiante: req.params.id, 
-            estado: { $in: ['aprobada', 'entregado', 'penalizado'] } 
+        const tienePendientes = await Solicitudes.findOne({
+            estudiante: req.params.id,
+            estado: { $in: ['aprobada', 'entregado', 'penalizado'] }
         });
         if (tienePendientes) {
-            return res.status(400).json({ 
-                message: 'No se puede inactivar: El usuario tiene solicitudes de préstamo activas o pendientes de devolución.' 
+            return res.status(400).json({
+                message: 'No se puede inactivar: El usuario tiene solicitudes de préstamo activas o pendientes de devolución.'
             });
         }
 
@@ -240,7 +240,7 @@ exports.inactivarUsuario = async (req, res) => {
         usuario.inactivo_desde = new Date(); // Para seguimiento de inactividad
         await usuario.save();
 
-        res.json({ 
+        res.json({
             message: `Usuario ${usuario.nombre_completo} inactivado correctamente.`,
             nota: 'Si el usuario regresa después de un año, deberá pasar por el proceso de reactivación y cambio de clave.'
         });
@@ -264,15 +264,43 @@ exports.inactivarUsuario = async (req, res) => {
  * }
  */
 
-      exports.loginUsuario = async (req, res) => {
+exports.loginUsuario = async (req, res) => {
     try {
         // 1. Recibimos los datos
         const { correo_electronico, contrasena } = req.body;
-        
+
+        console.log('🔍 Login attempt - Email recibido:', correo_electronico);
+        console.log('🔍 Email procesado (lowercase+trim):', correo_electronico.toLowerCase().trim());
+
         // 2. Buscamos al usuario
-        const usuario = await Usuarios.findOne({ 
-            correo_electronico: correo_electronico.toLowerCase().trim() 
+        const usuario = await Usuarios.findOne({
+            correo_electronico: correo_electronico.toLowerCase().trim()
         });
+
+        console.log('👤 Usuario encontrado:', !!usuario);
+        if (usuario) {
+            console.log('📋 Usuario details:', {
+                id: usuario._id,
+                email: `"${usuario.correo_electronico}"`, // Entre comillas para ver espacios
+                nombre: usuario.nombre_completo,
+                estado: usuario.estado,
+                carrera: usuario.carrera
+            });
+        } else {
+            console.log('❌ Usuario NO encontrado en la base de datos');
+
+            // Buscar usuarios similares para debug
+            const similares = await Usuarios.find({
+                correo_electronico: { $regex: correo_electronico.split('@')[0], $options: 'i' }
+            }).limit(3);
+            console.log('🔍 Usuarios similares encontrados:', similares.length);
+            similares.forEach(u => console.log('   -', `"${u.correo_electronico}"`)); // Entre comillas
+
+            // Mostrar todos los usuarios para debug
+            const todos = await Usuarios.find({}).limit(5);
+            console.log('📋 Primeros 5 usuarios en BD:');
+            todos.forEach(u => console.log('   -', `"${u.correo_electronico}"`));
+        }
 
         if (!usuario) {
             return res.status(401).json({ message: 'Credenciales inválidas (Usuario no encontrado)' });
@@ -280,14 +308,14 @@ exports.inactivarUsuario = async (req, res) => {
 
         // 3. COMPARACIÓN DE CONTRASEÑA (Solo una vez)
         const esValida = await bcrypt.compare(contrasena, usuario.hash_contraseña);
-        
+
         if (!esValida) {
             return res.status(401).json({ message: 'Credenciales inválidas (Contraseña incorrecta)' });
         }
-       
+
         // 4. Filtro de Carreras UTN
         const CARRERAS_AUTORIZADAS = [
-            'Ingeniería Electrónica', 'Ingeniería Eléctrica', 
+            'Ingeniería Electrónica', 'Ingeniería Eléctrica',
             'Ingeniería en Tecnologías de Información', 'Ingeniería en Producción Industrial',
             'N/A'
         ];
@@ -298,27 +326,27 @@ exports.inactivarUsuario = async (req, res) => {
 
         // --- 5. BLOQUEO DE ESTADO ---
         if (usuario.estado === 'inactivo') {
-            return res.status(403).json({ 
-                message: 'Tu cuenta está inactiva por falta de uso, contacta al administrador.' 
+            return res.status(403).json({
+                message: 'Tu cuenta está inactiva por falta de uso, contacta al administrador.'
             });
         }
 
         if (usuario.estado === 'sancionado') {
-            return res.status(403).json({ 
-                message: 'Tu cuenta se encuentra sancionada. No puedes acceder al sistema.' 
+            return res.status(403).json({
+                message: 'Tu cuenta se encuentra sancionada. No puedes acceder al sistema.'
             });
         }
 
         // 6. Generación de Token
         const token = generarToken(usuario._id, usuario.tipo_rol);
 
-        res.status(200).json({ 
-            token, 
-            usuario: { 
-                nombre: usuario.nombre_completo, 
-                rol: usuario.tipo_rol, 
+        res.status(200).json({
+            token,
+            usuario: {
+                nombre: usuario.nombre_completo,
+                rol: usuario.tipo_rol,
                 carrera: usuario.carrera,
-                estado: usuario.estado 
+                estado: usuario.estado
             }
         });
 
@@ -386,14 +414,14 @@ const usuarios = require('../models/usuarios');
 exports.searchUsuarios = async (req, res) => {
     try {
         const query = req.query.q;
-        
+
         // As seen in your logs, the payload has 'id'
-        const idLogueado = req.user?.id; 
+        const idLogueado = req.user?.id;
 
         if (!query) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 status: 'fail',
-                message: 'Please provide a search term.' 
+                message: 'Please provide a search term.'
             });
         }
 
@@ -412,7 +440,7 @@ exports.searchUsuarios = async (req, res) => {
 
         // Now 'Usuario' will be defined!
         const resultados = await Usuarios.find(filters)
-            .select('-hash_contraseña') 
+            .select('-hash_contraseña')
             .limit(10)
             .lean();
 
@@ -424,10 +452,10 @@ exports.searchUsuarios = async (req, res) => {
 
     } catch (error) {
         console.error('❌ Error in searchUsuarios:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             status: 'error',
-            message: 'Server Error', 
-            error: error.message 
+            message: 'Server Error',
+            error: error.message
         });
     }
 };
@@ -454,15 +482,15 @@ exports.cierreCuatrimestre = async (req, res) => {
         // 1. Buscamos a todos los estudiantes activos
         const resultado = await Usuarios.updateMany(
             { tipo_rol: 'estudiante' },
-            { 
-                estado: 'inactivo', 
+            {
+                estado: 'inactivo',
                 password: 'PENDIENTE_RESETEO', // O un hash temporal
                 comprobante_validado: false,
                 observaciones: 'Cuenta expirada por fin de cuatrimestre. Requiere nueva matrícula y contraseña.'
             }
         );
 
-        res.json({ 
+        res.json({
             message: 'Ciclo cerrado exitosamente.',
             usuarios_afectados: resultado.modifiedCount,
             instrucciones: 'Los usuarios deberán usar la opción "Olvidé mi contraseña" y subir su nuevo PDF para reactivarse.'
@@ -501,16 +529,16 @@ exports.limpiarUsuariosViejos = async (req, res) => {
         const idsParaEliminar = usuariosParaHistorial.map(u => u._id);
         const resultado = await Usuarios.deleteMany({ _id: { $in: idsParaEliminar } });
 
-        res.json({ 
+        res.json({
             message: 'Migración al historial completada con éxito.',
             usuarios_archivados: resultado.deletedCount,
             nota: 'Los datos ahora residen en la base de datos histórica y pueden ser recuperados.'
         });
 
     } catch (error) {
-        res.status(500).json({ 
-            message: 'Error al mover datos al histórico.', 
-            error: error.message 
+        res.status(500).json({
+            message: 'Error al mover datos al histórico.',
+            error: error.message
         });
     }
 };
