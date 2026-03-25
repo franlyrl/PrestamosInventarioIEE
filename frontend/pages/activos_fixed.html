@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activos - Sistema de Inventario</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header Component -->
+    <div id="header-component"></div>
+    
+    <!-- Contenido Principal -->
+    <main class="container py-6">
+        <div class="flex gap-6">
+            <!-- Sidebar Component -->
+            <div id="sidebar-component"></div>
+            
+            <!-- Main Content -->
+            <div class="flex-1">
+                <!-- Page Header -->
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold text-gray-900">Gestión de Activos</h1>
+                    <p class="text-gray-600">Administra el inventario de activos del laboratorio</p>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="mb-6 flex gap-3">
+                    <button id="agregarActivoBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-plus mr-2"></i>Agregar Activo
+                    </button>
+                    <button id="agregarMasivoBtn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-upload mr-2"></i>Carga Masiva
+                    </button>
+                    <button id="exportarBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                        <i class="fas fa-download mr-2"></i>Exportar
+                    </button>
+                </div>
+                
+                <!-- Search and Filters -->
+                <div class="bg-white rounded-lg shadow p-4 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <input type="text" id="buscarActivo" placeholder="Buscar activo..." 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <select id="filtroCategoria" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Todas las categorías</option>
+                                <option value="Instrumentos">Instrumentos</option>
+                                <option value="Herramientas">Herramientas</option>
+                                <option value="Equipos">Equipos</option>
+                                <option value="Medición">Medición</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select id="filtroEstado" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Todos los estados</option>
+                                <option value="disponible">Disponible</option>
+                                <option value="prestado">Prestado</option>
+                                <option value="mantenimiento">Mantenimiento</option>
+                                <option value="danado">Dañado</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button id="limpiarFiltros" class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                                <i class="fas fa-times mr-2"></i>Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Activos Grid -->
+                <div id="activosGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Los activos se cargarán dinámicamente aquí -->
+                </div>
+                
+                <!-- Loading State -->
+                <div id="loadingState" class="hidden text-center py-12">
+                    <i class="fas fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
+                    <p class="text-gray-600">Cargando activos...</p>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="emptyState" class="hidden text-center py-12">
+                    <i class="fas fa-box-open text-4xl text-gray-400 mb-4"></i>
+                    <p class="text-gray-600">No se encontraron activos</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Modal para Carga Masiva -->
+    <div id="modalCargaMasiva" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Carga Masiva de Activos</h2>
+                <button id="cerrarModalMasivo" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="border-b border-gray-200 mb-4">
+                <nav class="-mb-px flex space-x-8">
+                    <button class="tab-btn py-2 px-1 border-b-2 border-blue-500 text-blue-600" data-tab="archivo">
+                        <i class="fas fa-file-upload mr-2"></i>Archivo CSV/XLSX
+                    </button>
+                    <button class="tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="tabla">
+                        <i class="fas fa-table mr-2"></i>Tabla
+                    </button>
+                    <button class="tab-btn py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="manual">
+                        <i class="fas fa-keyboard mr-2"></i>Manual
+                    </button>
+                </nav>
+            </div>
+            
+            <!-- Tab Contents -->
+            <div id="tab-archivo" class="tab-content">
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                    <p class="text-gray-600 mb-4">Arrastra un archivo CSV o XLSX aquí, o haz clic para seleccionar</p>
+                    <input type="file" id="archivoMasivo" accept=".csv,.xlsx,.xls" class="hidden">
+                    <button id="seleccionarArchivo" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        Seleccionar Archivo
+                    </button>
+                    <div class="mt-4">
+                        <button id="descargarPlantilla" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-download mr-2"></i>Descargar Plantilla CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="tab-tabla" class="tab-content hidden">
+                <div class="overflow-x-auto">
+                    <table id="tabla-activos-masivos" class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Marca</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Modelo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-6 py-4"><input type="text" class="w-full px-2 py-1 border rounded"></td>
+                                <td class="px-6 py-4"><input type="text" class="w-full px-2 py-1 border rounded"></td>
+                                <td class="px-6 py-4"><input type="text" class="w-full px-2 py-1 border rounded"></td>
+                                <td class="px-6 py-4"><input type="text" class="w-full px-2 py-1 border rounded"></td>
+                                <td class="px-6 py-4">
+                                    <select class="w-full px-2 py-1 border rounded">
+                                        <option value="Instrumentos">Instrumentos</option>
+                                        <option value="Herramientas">Herramientas</option>
+                                        <option value="Equipos">Equipos</option>
+                                        <option value="Medición">Medición</option>
+                                    </select>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <select class="w-full px-2 py-1 border rounded">
+                                        <option value="disponible">Disponible</option>
+                                        <option value="prestado">Prestado</option>
+                                        <option value="mantenimiento">Mantenimiento</option>
+                                        <option value="danado">Dañado</option>
+                                    </select>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <button class="text-red-600 hover:text-red-800">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button id="agregarFila" class="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-plus mr-2"></i>Agregar Fila
+                    </button>
+                </div>
+            </div>
+            
+            <div id="tab-manual" class="tab-content hidden">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nombres (uno por línea)</label>
+                        <textarea id="nombres-manual" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Multímetro Digital&#10;Osciloscopio&#10;Generador de Funciones"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+                            <select id="categoria-manual" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                <option value="Instrumentos">Instrumentos</option>
+                                <option value="Herramientas">Herramientas</option>
+                                <option value="Equipos">Equipos</option>
+                                <option value="Medición">Medición</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                            <select id="estado-manual" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                                <option value="disponible">Disponible</option>
+                                <option value="prestado">Prestado</option>
+                                <option value="mantenimiento">Mantenimiento</option>
+                                <option value="danado">Dañado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Marca (opcional)</label>
+                            <input type="text" id="marca-manual" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Fluke">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Modelo (opcional)</label>
+                            <input type="text" id="modelo-manual" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="87V">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex justify-end gap-3 mt-6">
+                <button id="cancelarMasivo" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                    Cancelar
+                </button>
+                <button id="procesarMasivo" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                    <i class="fas fa-check mr-2"></i>Procesar
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-4 flex items-center space-x-3">
+            <div id="toastIcon"></div>
+            <p id="toastMsg" class="text-gray-800"></p>
+        </div>
+    </div>
+
+    <script>
+        // Configuración global
+        window.CONFIG = {
+            API_BASE_URL: 'http://localhost:4000/api'
+        };
+
+        // Estado global
+        let activos = [];
+        
+        // Función para mostrar notificaciones
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            // Configurar icono según el tipo
+            const icons = {
+                success: '<i class="fas fa-check-circle text-green-500 text-xl"></i>',
+                error: '<i class="fas fa-exclamation-circle text-red-500 text-xl"></i>',
+                warning: '<i class="fas fa-exclamation-triangle text-yellow-500 text-xl"></i>',
+                info: '<i class="fas fa-info-circle text-blue-500 text-xl"></i>'
+            };
+            
+            toastIcon.innerHTML = icons[type] || icons.info;
+            toastMsg.textContent = message;
+            
+            // Mostrar toast
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            
+            // Ocultar después de 3 segundos
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3000);
+        }
+
+        // Función para abrir modal masivo
+        function abrirModalMasivo() {
+            document.getElementById('modalCargaMasiva').classList.remove('hidden');
+        }
+
+        // Función para cerrar modal masivo
+        function cerrarModalMasivo() {
+            document.getElementById('modalCargaMasivo').classList.add('hidden');
+            // Limpiar archivo seleccionado
+            document.getElementById('archivoMasivo').value = '';
+        }
+
+        // Función para procesar archivo CSV
+        function procesarArchivoCSV(content) {
+            try {
+                const texto = content;
+                console.log('📄 Contenido del archivo:', texto.substring(0, 200));
+
+                // Dividir líneas y limpiar
+                const lineas = texto.split('\n')
+                    .map(linea => linea.trim())
+                    .filter(linea => linea && !linea.startsWith('Placa') && !linea.includes('Descripción'));
+
+                console.log('📄 Líneas encontradas:', lineas.length);
+                if (lineas.length > 0) {
+                    console.log('📄 Primera línea de datos:', lineas[0]);
+                }
+
+                // Parsear CSV
+                const activosArray = [];
+
+                for (let i = 0; i < lineas.length; i++) {
+                    const linea = lineas[i];
+                    console.log(`🔍 Procesando línea ${i + 1}:`, linea);
+                    
+                    // Determinar separador
+                    const tieneComa = linea.includes(',') && linea.split(',').length >= 6;
+                    const tienePuntoComa = linea.includes(';') && linea.split(';').length >= 6;
+                    const separador = tienePuntoComa ? ';' : (tieneComa ? ',' : ';');
+                    
+                    console.log(`📊 Usando separador: "${separador}"`);
+                    
+                    // Separar valores
+                    const valores = linea.split(separador).map(v => v.replace(/"/g, '').trim());
+                    console.log('📊 Valores parseados:', valores);
+                    
+                    if (valores.length >= 6 && valores[0] && valores[0] !== '') {
+                        // Mapeo de campos
+                        const codigo = valores[0];
+                        const nombre = valores[1];
+                        const marca = valores[2];
+                        const modelo = valores[3];
+                        const serie = valores[4];
+                        const fecha = valores[5];
+                        
+                        console.log('📋 Datos extraídos:', { nombre, codigo, marca, modelo, serie, fecha });
+                        
+                        // Inferir categoría
+                        const categoriasValidas = ['Instrumentos', 'Herramientas', 'Equipos', 'Medición'];
+                        let categoriaFinal = 'Equipos';
+                        
+                        const nombreLower = nombre.toLowerCase();
+                        if (nombreLower.includes('multímetro') || nombreLower.includes('osciloscopio') || 
+                            nombreLower.includes('generador') || nombreLower.includes('analizador') ||
+                            nombreLower.includes('medidor') || nombreLower.includes('voltímetro') ||
+                            nombreLower.includes('amperímetro') || nombreLower.includes('vatímetro')) {
+                            categoriaFinal = 'Instrumentos';
+                        } else if (nombreLower.includes('taladro') || nombreLower.includes('alicate') || 
+                                   nombreLower.includes('llave') || nombreLower.includes('destornillador') ||
+                                   nombreLower.includes('pinza') || nombreLower.includes('navaja')) {
+                            categoriaFinal = 'Herramientas';
+                        } else if (nombreLower.includes('transformador') || nombreLower.includes('fuente') ||
+                                   nombreLower.includes('variador') || nombreLower.includes('motor')) {
+                            categoriaFinal = 'Equipos';
+                        } else if (nombreLower.includes('cámara') || nombreLower.includes('sensor') ||
+                                   nombreLower.includes('medición') || nombreLower.includes('teléfono')) {
+                            categoriaFinal = 'Medición';
+                        }
+                        
+                        console.log(`🔄 Categoría inferida: ${categoriaFinal}`);
+                        
+                        // Extraer número del código
+                        let numActivo = 0;
+                        try {
+                            const numeros = codigo.match(/\d+/g);
+                            if (numeros && numeros.length > 0) {
+                                numActivo = parseInt(numeros[numeros.length - 1]) || 0;
+                            }
+                        } catch (e) {
+                            console.warn('⚠️ Error extrayendo número del código:', codigo, e);
+                            numActivo = 0;
+                        }
+                        
+                        if (categoriasValidas.includes(categoriaFinal)) {
+                            // Extraer número para numActivo
+                            let numActivoValue = 0;
+                            try {
+                                const numeros = codigo.match(/\d+/g);
+                                if (numeros && numeros.length > 0) {
+                                    numActivoValue = parseInt(numeros[numeros.length - 1]) || 0;
+                                }
+                            } catch (e) {
+                                console.warn('⚠️ Error extrayendo número del código:', codigo, e);
+                            }
+                            
+                            // Probar con estructura exacta del backend
+                            activosArray.push({
+                                id_activo: numActivoValue,        // 🔑 Campo correcto
+                                nombre_activo: nombre,           // 🔑 Campo correcto
+                                codigo_activo: codigo,           // 🔑 Campo correcto
+                                marca: marca === 'N/A' ? '' : marca,
+                                modelo: modelo === 'N/A' ? '' : modelo,
+                                categoria: categoriaFinal,
+                                estado_activo: 'disponible',    // 🔑 Campo correcto
+                                imagen_activo: ''                // 🔑 Campo correcto
+                            });
+                            console.log('✅ Activo válido agregado (estructura backend):', { id_activo: numActivoValue, nombre_activo: nombre.substring(0, 30) + '...' });
+                        } else {
+                            console.log('❌ Categoría inválida:', { categoria: categoriaFinal });
+                        }
+                    } else {
+                        console.log('❌ Línea inválida o vacía');
+                    }
+                }
+                
+                console.log(`📁 Total activos procesados: ${activosArray.length}`);
+                
+                if (activosArray.length > 0) {
+                    console.log('📤 Enviando activos al backend...');
+                    enviarActivosMasivos(activosArray);
+                } else {
+                    showToast('❌ No se encontraron activos válidos en el archivo', 'error');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error procesando archivo:', error);
+                showToast('❌ Error al procesar el archivo', 'error');
+            }
+        }
+
+        // Función para enviar activos masivos
+        async function enviarActivosMasivos(activosArray) {
+            try {
+                console.log('🧪 Probando con estructura exacta del backend...');
+                
+                // Probar con estructura exacta del backend
+                const activoBackend = {
+                    id_activo: 1001,              // 🔑 Campo correcto
+                    nombre_activo: 'Activo Prueba', // 🔑 Campo correcto
+                    codigo_activo: 'TEST-001',     // 🔑 Campo correcto
+                    marca: 'TEST',
+                    modelo: 'MODEL-01',
+                    categoria: 'Equipos',
+                    estado_activo: 'disponible',   // 🔑 Campo correcto
+                    imagen_activo: ''               // 🔑 Campo correcto
+                };
+                
+                // Probar con categorías válidas conocidas
+                const categoriasValidas = ['Instrumentos', 'Herramientas', 'Equipos', 'Medición'];
+                
+                for (let cat of categoriasValidas) {
+                    console.log(`🔍 Probando con categoría ${cat} (estructura backend)...`);
+                    const activoConCat = {
+                        ...activoBackend,
+                        categoria: cat
+                    };
+                    
+                    try {
+                        const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('utn_token')}` 
+                            },
+                            body: JSON.stringify(activoConCat)
+                        });
+                        
+                        console.log(`📡 Respuesta estructura backend (${cat}):`, response.status, response.statusText);
+                        
+                        if (response.ok) {
+                            console.log(`✅ Estructura backend con ${cat} funcionó! Enviando todos los activos...`);
+                            await enviarConEstructuraBackend(activosArray);
+                            return;
+                        } else {
+                            const error = await response.json();
+                            console.log(`❌ Estructura backend con ${cat} falló:`, error.message);
+                        }
+                    } catch (e) {
+                        console.log(`❌ Error estructura backend con ${cat}:`, e.message);
+                    }
+                }
+                
+                showToast('❌ Estructura backend no funcionó. Revisar API', 'error');
+                
+            } catch (error) {
+                console.error('❌ Error enviando activos masivos:', error);
+                showToast('❌ Error al enviar activos', 'error');
+            }
+        }
+        
+        async function enviarConEstructuraBackend(activosArray) {
+            console.log('� Enviando todos los activos con estructura backend...');
+            let enviados = 0;
+            
+            for (let i = 0; i < Math.min(10, activosArray.length); i++) {  // Primeros 10
+                try {
+                    const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('utn_token')}` 
+                        },
+                        body: JSON.stringify(activosArray[i])
+                    });
+                    
+                    if (response.ok) {
+                        enviados++;
+                        console.log(`✅ Activo ${i + 1} enviado (estructura backend)`);
+                    } else {
+                        const error = await response.json();
+                        console.error(`❌ Activo ${i + 1} falló:`, error.message);
+                        break;
+                    }
+                } catch (e) {
+                    console.error(`❌ Error enviando activo ${i + 1}:`, e.message);
+                    break;
+                }
+            }
+            
+            showToast(`✅ ${enviados} activos enviados (estructura backend)`, 'success');
+            
+            if (enviados > 0) {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            }
+        }
+        
+        async function enviarConFormData(activosArray) {
+            console.log('� Enviando con FormData...');
+            let enviados = 0;
+            
+            for (let i = 0; i < Math.min(5, activosArray.length); i++) {
+                try {
+                    const formData = new FormData();
+                    formData.append('numActivo', activosArray[i].numActivo);
+                    formData.append('numSerie', activosArray[i].numSerie);
+                    formData.append('marca', activosArray[i].marca);
+                    formData.append('modelo', activosArray[i].modelo);
+                    formData.append('categoria', activosArray[i].categoria);
+                    formData.append('estadoActivo', activosArray[i].estadoActivo);
+                    
+                    const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('utn_token')}`
+                        },
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        enviados++;
+                        console.log(`✅ Activo ${i + 1} enviado con FormData`);
+                    } else {
+                        const error = await response.json();
+                        console.error(`❌ Activo ${i + 1} falló:`, error.message);
+                        break;
+                    }
+                } catch (e) {
+                    console.error(`❌ Error enviando activo ${i + 1}:`, e.message);
+                    break;
+                }
+            }
+            
+            showToast(`✅ ${enviados} activos enviados (FormData)`, 'success');
+        }
+        
+        async function enviarConEstructuraCorrecta(activosArray, categoriaCorrecta) {
+            console.log('📤 Enviando con estructura correcta...');
+            let enviados = 0;
+            
+            for (let i = 0; i < Math.min(5, activosArray.length); i++) {
+                try {
+                    // Extraer número del código para numActivo
+                    let numActivoValue = 0;
+                    try {
+                        const numeros = activosArray[i].numActivo.toString().match(/\d+/g);
+                        if (numeros && numeros.length > 0) {
+                            numActivoValue = parseInt(numeros[numeros.length - 1]) || 0;
+                        }
+                    } catch (e) {
+                        console.warn('⚠️ Error extrayendo número:', activosArray[i].numActivo, e);
+                    }
+                    
+                    const activoCorrecto = {
+                        numActivo: numActivoValue,  // 🔑 Enviar como NÚMERO
+                        numSerie: activosArray[i].numSerie,
+                        marca: activosArray[i].marca,
+                        modelo: activosArray[i].modelo,
+                        categoria: categoriaCorrecta,
+                        estadoActivo: activosArray[i].estadoActivo,
+                        imagenUrl: '',
+                        caracteristicas: `Activo importado: ${activosArray[i].numActivo}`
+                    };
+                    
+                    console.log(`🔍 Enviando activo ${i + 1}:`, activoCorrecto);
+                    
+                    const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('utn_token')}` 
+                        },
+                        body: JSON.stringify(activoCorrecto)
+                    });
+                    
+                    if (response.ok) {
+                        enviados++;
+                        console.log(`✅ Activo ${i + 1} enviado con estructura correcta`);
+                    } else {
+                        const error = await response.json();
+                        console.error(`❌ Activo ${i + 1} falló:`, error.message);
+                        break;
+                    }
+                } catch (e) {
+                    console.error(`❌ Error enviando activo ${i + 1}:`, e.message);
+                    break;
+                }
+            }
+            
+            showToast(`✅ ${enviados} activos enviados (estructura correcta)`, 'success');
+        }
+        
+        // Función para enviar todos los activos (si el prueba funciona)
+        async function enviarTodosLosActivos(activosArray) {
+            try {
+                // Enviar en lotes de 50
+                const LOTE_TAMANO = 50;
+                let totalEnviados = 0;
+                
+                async function enviarLote(lote, indice) {
+                    try {
+                        console.log(`📦 Enviando lote ${indice + 1}/${Math.ceil(activosArray.length/LOTE_TAMANO)} (${lote.length} activos)`);
+                        
+                        const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('utn_token')}` 
+                            },
+                            body: JSON.stringify(lote)
+                        });
+                        
+                        console.log('📡 Respuesta HTTP:', response.status, response.statusText);
+                        
+                        if (response.ok) {
+                            const result = await response.json();
+                            totalEnviados += lote.length;
+                            console.log(`✅ Lote ${indice + 1} enviado correctamente: ${lote.length} activos`);
+                            
+                            // Enviar siguiente lote
+                            const siguienteIndice = indice + 1;
+                            if (siguienteIndice * LOTE_TAMANO < activosArray.length) {
+                                const siguienteLote = activosArray.slice(siguienteIndice * LOTE_TAMANO, (siguienteIndice + 1) * LOTE_TAMANO);
+                                await enviarLote(siguienteLote, siguienteIndice);
+                            } else {
+                                // Todos los lotes enviados
+                                console.log(`🎉 Todos los activos enviados: ${totalEnviados}/${activosArray.length}`);
+                                showToast(`✅ ${totalEnviados} activos agregados exitosamente`, 'success');
+                                cerrarModalMasivo();
+                                
+                                // Recargar la página
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 2000);
+                            }
+                        } else {
+                            const error = await response.json();
+                            console.error(`❌ Error en lote ${indice + 1}:`, error);
+                            showToast(`❌ Error en lote ${indice + 1}: ${error.message || 'Error al agregar activos'}`, 'error');
+                        }
+                    } catch (error) {
+                        console.error(`❌ Error enviando lote ${indice + 1}:`, error);
+                        showToast(`❌ Error de conexión en lote ${indice + 1}`, 'error');
+                    }
+                }
+                
+                // Iniciar envío
+                const primerLote = activosArray.slice(0, LOTE_TAMANO);
+                await enviarLote(primerLote, 0);
+                
+            } catch (error) {
+                console.error('❌ Error enviando todos los activos:', error);
+                showToast('❌ Error al enviar activos', 'error');
+            }
+        }
+
+        // Función para descargar plantilla
+        function descargarPlantilla() {
+            const csvContent = `Placa;Descripción;Marca;Modelo;Serie;Fecha de incorporación
+SP-INV-001;Multímetro Digital;Fluke;87V;SN001;01/01/2023
+SP-INV-002;Osciloscopio;Tektronix;TDS2024B;SN002;01/01/2023`;
+            
+            const blob = new Blob(['\ufeff' + csvContent], { 
+                type: 'text/csv;charset=utf-8;' 
+            });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'plantilla_activos.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            showToast('📥 Plantilla CSV descargada', 'success');
+        }
+
+        // Inicialización de event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Botones principales
+            document.getElementById('agregarMasivoBtn').addEventListener('click', abrirModalMasivo);
+            document.getElementById('cerrarModalMasivo').addEventListener('click', cerrarModalMasivo);
+            document.getElementById('cancelarMasivo').addEventListener('click', cerrarModalMasivo);
+            document.getElementById('descargarPlantilla').addEventListener('click', descargarPlantilla);
+            
+            // File input
+            document.getElementById('seleccionarArchivo').addEventListener('click', function() {
+                document.getElementById('archivoMasivo').click();
+            });
+            
+            document.getElementById('archivoMasivo').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                console.log('📄 Archivo seleccionado:', file.name, file.type);
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const content = event.target.result;
+                    
+                    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                        showToast('❌ Archivos XLSX no soportados. Use CSV', 'error');
+                    } else {
+                        procesarArchivoCSV(content);
+                    }
+                };
+                
+                reader.readAsText(file, 'UTF-8');
+            });
+            
+            // Tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabName = this.dataset.tab;
+                    
+                    // Actualizar botones
+                    document.querySelectorAll('.tab-btn').forEach(b => {
+                        b.classList.remove('border-blue-500', 'text-blue-600');
+                        b.classList.add('border-transparent', 'text-gray-500');
+                    });
+                    this.classList.remove('border-transparent', 'text-gray-500');
+                    this.classList.add('border-blue-500', 'text-blue-600');
+                    
+                    // Actualizar contenido
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

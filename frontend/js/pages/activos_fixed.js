@@ -18,8 +18,6 @@ class ActivosController {
     }
 
     setupEventListeners() {
-        console.log('🔧 Configurando event listeners...');
-
         // Búsqueda
         const busquedaInput = document.getElementById('busqueda-input');
         if (busquedaInput) {
@@ -54,14 +52,6 @@ class ActivosController {
         const agregarMasivoBtn = document.getElementById('agregar-masivo-btn');
         const exportarBtn = document.getElementById('exportar-btn');
 
-        console.log('🔍 Botones encontrados:', {
-            buscarBtn: !!buscarBtn,
-            limpiarBtn: !!limpiarBtn,
-            agregarBtn: !!agregarBtn,
-            agregarMasivoBtn: !!agregarMasivoBtn,
-            exportarBtn: !!exportarBtn
-        });
-
         if (buscarBtn) {
             buscarBtn.addEventListener('click', () => this.renderActivos());
         }
@@ -71,7 +61,6 @@ class ActivosController {
         }
 
         const canManageActivos = this.userHasActivosPermission();
-        console.log('👤 ¿Puede gestionar activos?', canManageActivos);
 
         if (agregarBtn) {
             if (!canManageActivos) {
@@ -88,7 +77,6 @@ class ActivosController {
                 agregarMasivoBtn.classList.add('hidden');
             } else {
                 agregarMasivoBtn.addEventListener('click', () => {
-                    console.log('📦 Click en botón agregar masivo');
                     window.abrirModalMasivo();
                 });
             }
@@ -243,111 +231,9 @@ class ActivosController {
                            text-white text-[10px] font-bold py-3 rounded-xl shadow-lg transition-all uppercase">
                     ${isAvailable ? 'Solicitar' : 'No disponible'}
                 </button>
-if (buscarBtn) {
-    buscarBtn.addEventListener('click', () => this.renderActivos());
-}
-
-if (limpiarBtn) {
-    limpiarBtn.addEventListener('click', () => this.limpiarFiltros());
-}
-
-const canManageActivos = this.userHasActivosPermission();
-
-if (agregarBtn) {
-    if (!canManageActivos) {
-        agregarBtn.classList.add('hidden');
-    } else {
-        agregarBtn.addEventListener('click', () => {
-            window.modalController?.showAgregarActivo();
-        });
-    }
-}
-
-if (agregarMasivoBtn) {
-    if (!canManageActivos) {
-        agregarMasivoBtn.classList.add('hidden');
-    } else {
-        agregarMasivoBtn.addEventListener('click', () => {
-            window.abrirModalMasivo();
-        });
-    }
-}
-
-if (exportarBtn) {
-    exportarBtn.addEventListener('click', () => this.exportarDatos());
-}
-
-userHasActivosPermission() {
-    const userData = localStorage.getItem('utn_user');
-    if (!userData) return false;
-
-    const user = JSON.parse(userData);
-    const rol = (user.rol || user.role || user.tipo_rol || '').toLowerCase();
-    return ['admin', 'administrador', 'administrativo'].includes(rol);
-}
-
-async cargarActivos() {
-    try {
-        Utils.showLoading(true);
-        const response = await ApiService.getActivos();
-        this.activos = response.data || response;
-        Utils.showLoading(false);
-    } catch (error) {
-        console.error('Error cargando activos:', error);
-        Utils.showToast('Error al cargar activos', 'error');
-        Utils.showLoading(false);
-    }
-}
-
-renderActivos() {
-    const grid = document.getElementById('activos-grid');
-    const emptyState = document.getElementById('empty-state');
-    const resultadosCount = document.getElementById('resultados-count');
-
-    if (!grid) return;
-
-    const activosFiltrados = this.filtrarActivos();
-
-    // Actualizar contador
-    if (resultadosCount) {
-        resultadosCount.textContent = activosFiltrados.length;
-    }
-
-    // Mostrar/ocultar empty state
-    if (emptyState) {
-        emptyState.classList.toggle('hidden', activosFiltrados.length > 0);
-    }
-
-    if (activosFiltrados.length === 0) {
-        grid.innerHTML = '';
-        return;
-    }
-
-    grid.innerHTML = activosFiltrados.map((activo, index) =>
-        this.createActivoCard(activo, index)
-    ).join('');
-}
-
-filtrarActivos() {
-    return this.activos.filter(activo => {
-        const coincideBusqueda = !this.filtros.busqueda ||
-            (activo.marca && activo.marca.toLowerCase().includes(this.filtros.busqueda.toLowerCase())) ||
-            (activo.modelo && activo.modelo.toLowerCase().includes(this.filtros.busqueda.toLowerCase())) ||
-            (activo.caracteristicas && activo.caracteristicas.toLowerCase().includes(this.filtros.busqueda.toLowerCase()));
-
-        const coincideCategoria = this.filtros.categoria === 'todas' ||
-            activo.categoria === this.filtros.categoria;
-
-        const coincideEstado = this.filtros.estado === 'todos' ||
-            activo.estado_activo === this.filtros.estado;
-
-        return coincideBusqueda && coincideCategoria && coincideEstado;
-    });
-}
-
             </div>
         </div>
-        `;
+    `;
     }
 
     async verDetalles(id) {
@@ -359,36 +245,35 @@ filtrarActivos() {
             title: 'Detalles del Activo',
             icon: this.getActivoIcon(activo),
             details: `
-            < div class="space-y-2" >
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">Nombre:</span>
-                        <span class="font-bold text-slate-700">${activo.nombre || 'N/A'}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">Código:</span>
-                        <span class="font-bold text-slate-700">${activo.numActivo || 'N/A'}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">Marca:</span>
-                        <span class="font-bold text-slate-700">${activo.marca || 'N/A'}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">Modelo:</span>
-                        <span class="font-bold text-slate-700">${activo.modelo || 'N/A'}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">Estado:</span>
-                        <span class="font-bold text-slate-700">${activo.estadoActivo || 'N/A'}</span>
-                    </div>
-                    ${activo.caracteristicas ? `
-                        <div class="border-t pt-2 mt-2">
-                            <span class="text-slate-400 font-bold">Características:</span>
-                            <p class="text-slate-700 mt-1">${activo.caracteristicas}</p>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400 font-bold">Nombre:</span>
+                            <span class="font-bold text-slate-700">${activo.nombre || 'N/A'}</span>
                         </div>
-                    ` : ''
-                }
-                </div >
-            `
+                        <div class="flex justify-between">
+                            <span class="text-slate-400 font-bold">Código:</span>
+                            <span class="font-bold text-slate-700">${activo.numActivo || 'N/A'}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400 font-bold">Marca:</span>
+                            <span class="font-bold text-slate-700">${activo.marca || 'N/A'}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400 font-bold">Modelo:</span>
+                            <span class="font-bold text-slate-700">${activo.modelo || 'N/A'}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400 font-bold">Estado:</span>
+                            <span class="font-bold text-slate-700">${activo.estadoActivo || 'N/A'}</span>
+                        </div>
+                        ${activo.caracteristicas ? `
+                            <div class="border-t pt-2 mt-2">
+                                <span class="text-slate-400 font-bold">Características:</span>
+                                <p class="text-slate-700 mt-1">${activo.caracteristicas}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                `
         });
     }
 
@@ -490,6 +375,7 @@ filtrarActivos() {
         console.log('Solicitando préstamo de activo:', activo);
         Utils.showToast('Función de préstamo en desarrollo', 'info');
     }
+}
 
 /**
  * Retorna un emoji representativo según la categoría
@@ -505,4 +391,3 @@ function getIconByCategory(categoria) {
 
 // Crear instancia global
 window.activosController = new ActivosController();
-console.log('✅ ActivosController creado y asignado a window');
