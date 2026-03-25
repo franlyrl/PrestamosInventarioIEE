@@ -4,12 +4,12 @@
         <div class="flex justify-between items-center py-4">
             <!-- Logo y Branding -->
             <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-white rounded-lg shadow-lg flex items-center justify-center transform hover:scale-105 transition-transform">
-                    <span class="font-black text-lg" style="color: #002e6e; font-weight: bold;">UTN</span>
+                <div class="w-10 h-10 bg-white rounded-lg shadow-lg flex items-center justify-center transform hover:scale-105 transition-transform overflow-hidden">
+                    <img src="../css/UTN.jpg" alt="UTN Logo" class="w-8 h-8 object-contain">
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight">Sistema de Laboratorio</h1>
-                    <p class="text-xs font-medium" style="color: #f78b08;">Gestión de Activos e Insumos</p>
+                    <h1 class="text-xl font-bold tracking-tight">SPIEE-SP</h1>
+                    <p class="text-xs font-medium" style="color: #f78b08;">Sistema de Prestamos y Inventario de Equipo Electrico y Electronico</p>
                 </div>
             </div>
             
@@ -134,6 +134,22 @@ function updateUserInfo() {
         const userMenuName = document.getElementById('userMenuName');
         const dropdownUserName = document.getElementById('dropdownUserName');
         const dropdownUserRole = document.getElementById('dropdownUserRole');
+        const cartBtn = document.getElementById('cartBtn');
+        
+        // Obtener el rol del usuario
+        const userRole = currentUser.rol || currentUser.rol_nombre || currentUser.tipo_rol || 'Estudiante';
+        console.log('🔍 Rol del usuario:', userRole);
+        
+        // Ocultar carrito solo para administradores
+        if (cartBtn) {
+            if (userRole === 'admin' || userRole === 'administrador') {
+                cartBtn.style.display = 'none';
+                console.log('🛒 Carrito oculto para administrador');
+            } else {
+                cartBtn.style.display = 'flex';
+                console.log('🛒 Carrito visible para estudiante/docente');
+            }
+        }
         
         // Usar el campo correcto de la base de datos (colección usuarios)
         const nombreCompleto = currentUser.nombre_completo || currentUser.nombre || 'Usuario';
@@ -154,13 +170,19 @@ function updateUserInfo() {
         }
         
         if (dropdownUserRole) {
-            dropdownUserRole.textContent = currentUser.rol || currentUser.rol_nombre || 'Estudiante';
-            console.log('✅ dropdownUserRole actualizado:', currentUser.rol || currentUser.rol_nombre || 'Estudiante');
+            dropdownUserRole.textContent = userRole;
+            console.log('✅ dropdownUserRole actualizado:', userRole);
         }
     } else {
         console.log('❌ No hay currentUser para actualizar');
     }
 }
 
-console.log('� Header cargado - updateUserInfo() disponible para ser llamada desde la página');
+console.log(' Header cargado - updateUserInfo() disponible para ser llamada desde la página');
+
+// Llamar automáticamente a updateUserInfo cuando se carga el header
+document.addEventListener('DOMContentLoaded', () => {
+    console.log(' Header DOM cargado, llamando a updateUserInfo()...');
+    updateUserInfo();
+});
 </script>

@@ -42,8 +42,6 @@
                                 <option value="todas">Todas las categorías</option>
                                 <option value="Instrumentos">Instrumentos</option>
                                 <option value="Herramientas">Herramientas</option>
-                                <option value="Equipos">Equipos</option>
-                                <option value="Medición">Medición</option>
                             </select>
                             <select id="estado-select" class="input-field w-32">
                                 <option value="todos">Todos</option>
@@ -235,8 +233,6 @@
                                     <option value="">Selecciona una categoría</option>
                                     <option value="Instrumentos">Instrumentos</option>
                                     <option value="Herramientas">Herramientas</option>
-                                    <option value="Equipos">Equipos</option>
-                                    <option value="Medición">Medición</option>
                                 </select>
                             </div>
                             <div>
@@ -282,6 +278,86 @@
         </div>
     </div>
     
+    <!-- Modal para Agregar Activo Individual -->
+    <div id="modalAgregarActivo" class="fixed inset-0 z-[300] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold flex items-center gap-2">
+                            🔧 Agregar Nuevo Activo
+                        </h2>
+                        <p class="text-blue-100 text-sm mt-1">Registra un nuevo equipo o herramienta</p>
+                    </div>
+                    <button onclick="cerrarModalAgregarActivo()" class="text-white/80 hover:text-white transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Formulario -->
+            <form id="formAgregarActivo" class="p-6 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Nombre del Activo *</label>
+                        <input type="text" id="nombreActivo" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: Osciloscopio Digital">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Código de Barras *</label>
+                        <input type="text" id="codigoBarras" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: ACT-001">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
+                        <select id="categoriaActivo" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Selecciona una categoría</option>
+                            <option value="Instrumentos">Instrumentos</option>
+                            <option value="Herramientas">Herramientas</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Estado *</label>
+                        <select id="estadoActivo" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Selecciona un estado</option>
+                            <option value="disponible">Disponible</option>
+                            <option value="prestado">Prestado</option>
+                            <option value="deteriorado">Deteriorado</option>
+                            <option value="dañado">Dañado</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Descripción</label>
+                    <textarea id="descripcionActivo" rows="3" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Describe las características y usos del activo..."></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Ubicación</label>
+                    <input type="text" id="ubicacionActivo" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: Laboratorio 101, Armario A">
+                </div>
+                
+                <!-- Botones -->
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
+                    <button type="button" onclick="cerrarModalAgregarActivo()" class="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Agregar Activo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <!-- Toast Component -->
     <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
         <div class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
@@ -306,6 +382,101 @@
                 activosControllerType: typeof window.activosController
             });
         }, 2000);
+    </script>
+    
+    <!-- Funciones para el modal de agregar activo -->
+    <script>
+        // Funciones para el modal de agregar activo
+        function abrirModalAgregarActivo() {
+            console.log('🔧 Abriendo modal para agregar activo...');
+            const modal = document.getElementById('modalAgregarActivo');
+            if (modal) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                document.getElementById('formAgregarActivo').reset();
+            }
+        }
+        
+        function cerrarModalAgregarActivo() {
+            console.log('🔧 Cerrando modal de agregar activo...');
+            const modal = document.getElementById('modalAgregarActivo');
+            if (modal) {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+        
+        // Configurar evento del formulario y botón
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('formAgregarActivo');
+            if (form) {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = {
+                        numActivo: Date.now(), // Número de activo único temporal
+                        numSerie: document.getElementById('codigoBarras').value, // Usar código de barras como número de serie
+                        estadoActivo: document.getElementById('estadoActivo').value.toLowerCase(), // Convertir a minúsculas
+                        marca: 'Generica', // Campo requerido, valor por defecto
+                        modelo: document.getElementById('nombreActivo').value, // Usar nombre como modelo
+                        categoria: document.getElementById('categoriaActivo').value, // Debe ser 'Instrumentos' o 'Herramientas'
+                        caracteristicas: document.getElementById('descripcionActivo').value || 'Sin características específicas',
+                        observaciones: document.getElementById('ubicacionActivo').value || 'Sin observaciones particulares'
+                    };
+
+                    try {
+                        const token = localStorage.getItem('utn_token');
+                        const userData = localStorage.getItem('utn_user');
+                        const currentUser = userData ? JSON.parse(userData) : null;
+                        
+                        console.log('👤 Usuario actual:', currentUser);
+                        console.log('🔑 Token disponible:', token ? 'Sí' : 'No');
+                        console.log('📋 Enviando datos:', formData);
+                        
+                        const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify(formData)
+                        });
+
+                        console.log('📡 Respuesta status:', response.status);
+                        console.log('📡 Respuesta headers:', response.headers);
+
+                        if (response.ok) {
+                            showToast('✅ Activo agregado correctamente', 'success');
+                            cerrarModalAgregarActivo();
+                            // Recargar la lista de activos usando la función manual
+                            cargarActivosManualmente();
+                        } else {
+                            const error = await response.json();
+                            console.error('❌ Error del backend:', error);
+                            showToast(`❌ Error: ${error.message || 'Permiso denegado'}`, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error agregando activo:', error);
+                        showToast('❌ Error al agregar activo', 'error');
+                    }
+                });
+            }
+            
+            // Configurar botón de agregar
+            const agregarBtn = document.getElementById('agregar-btn');
+            if (agregarBtn) {
+                agregarBtn.addEventListener('click', abrirModalAgregarActivo);
+                console.log('✅ Botón agregar-btn configurado');
+            } else {
+                console.log('❌ No se encontró el botón agregar-btn');
+            }
+        });
+        
+        // Cerrar modal al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            const modal = document.getElementById('modalAgregarActivo');
+            if (e.target === modal) {
+                cerrarModalAgregarActivo();
+            }
+        });
     </script>
     
     <!-- Carga del Header Component -->
@@ -388,6 +559,10 @@
             }
             
             console.log('✅ Sesión válida en activos.html, inicializando...');
+            
+            // Cargar activos inicialmente
+            console.log('🔄 Cargando activos iniciales...');
+            cargarActivosManualmente();
             
             // Inicializar página de activos
             if (window.activosController) {
@@ -617,8 +792,6 @@
                     <select class="w-full px-2 py-1 border border-slate-300 rounded" data-field="categoria">
                         <option value="Instrumentos">Instrumentos</option>
                         <option value="Herramientas">Herramientas</option>
-                        <option value="Equipos">Equipos</option>
-                        <option value="Medición">Medición</option>
                     </select>
                 </td>
                 <td class="border border-slate-200 px-2 py-1">
@@ -869,7 +1042,7 @@
                 console.log('🔄 Procesando datos combinados...');
                 
                 const activos = [];
-                const categoriasValidas = ['Instrumentos', 'Herramientas', 'Equipos', 'Medición'];
+                const categoriasValidas = ['Instrumentos', 'Herramientas']; // ✅ Solo categorías del modelo
                 const estadosValidos = ['disponible', 'prestado', 'mantenimiento'];
                 
                 console.log('🔄 Evaluando opciones de procesamiento...');
@@ -903,14 +1076,13 @@
                             
                             if (nombre && nombre.trim() && categoriasValidas.includes(categoria)) {
                                 activos.push({
-                                    id_activo: Date.now() + Math.random(),
-                                    nombre_activo: nombre.trim(),
-                                    codigo_activo: codigo.trim(),
+                                    numActivo: Date.now() + Math.random(),    // ✅ Campo correcto
+                                    numSerie: codigo.trim(),                  // ✅ Campo correcto
                                     marca: marca.trim(),
-                                    modelo: modelo.trim(),
+                                    modelo: nombre.trim(),                     // ✅ Usar nombre como modelo
                                     categoria: categoria.trim(),
-                                    estado_activo: estado.trim(),
-                                    imagen_activo: ''
+                                    estadoActivo: estado.trim(),              // ✅ Campo correcto
+                                    caracteristicas: `Activo de categoría ${categoria.trim()}` // ✅ Campo requerido
                                 });
                                 console.log('✅ Activo desde valores agregado');
                             }
@@ -935,14 +1107,13 @@
                             
                             if (nombre && nombre.trim() && categoriasValidas.includes(categoria)) {
                                 activos.push({
-                                    id_activo: Date.now() + Math.random(),
-                                    nombre_activo: nombre.trim(),
-                                    codigo_activo: codigo.trim(),
+                                    numActivo: Date.now() + Math.random(),    // ✅ Campo correcto
+                                    numSerie: codigo.trim(),                  // ✅ Campo correcto
                                     marca: marca.trim(),
-                                    modelo: modelo.trim(),
+                                    modelo: nombre.trim(),                     // ✅ Usar nombre como modelo
                                     categoria: categoria.trim(),
-                                    estado_activo: estado.trim(),
-                                    imagen_activo: ''
+                                    estadoActivo: estado.trim(),              // ✅ Campo correcto
+                                    caracteristicas: `Activo de categoría ${categoria.trim()}` // ✅ Campo requerido
                                 });
                                 console.log('✅ Activo desde strings agregado');
                             }
@@ -976,14 +1147,13 @@
                                 });
                                 
                                 activos.push({
-                                    id_activo: Date.now() + Math.random(),
-                                    nombre_activo: posibleNombre.trim(),
-                                    codigo_activo: posibleCodigo.trim(),
+                                    numActivo: Date.now() + Math.random(),    // ✅ Campo correcto
+                                    numSerie: posibleCodigo.trim(),            // ✅ Campo correcto
                                     marca: posibleMarca.trim(),
-                                    modelo: posibleModelo.trim(),
+                                    modelo: posibleNombre.trim(),              // ✅ Usar nombre como modelo
                                     categoria: item.trim(),
-                                    estado_activo: posibleEstado.trim() || 'disponible',
-                                    imagen_activo: ''
+                                    estadoActivo: posibleEstado.trim() || 'disponible', // ✅ Campo correcto
+                                    caracteristicas: `Activo de categoría ${item.trim()}` // ✅ Campo requerido
                                 });
                                 console.log('✅ Activo desde patrón agregado');
                             }
@@ -1074,35 +1244,18 @@
                         console.log('📋 Datos extraídos:', { nombre, codigo, marca, modelo, serie, fecha });
                         
                         // Asignar categoría según tipo de equipo
-                        const categoriasValidas = ['Instrumentos', 'Herramientas', 'Equipos', 'Medición'];
-                        let categoriaFinal = 'Equipos'; // Default
+                        const categoriasValidas = ['Instrumentos', 'Herramientas']; // ✅ Solo categorías del modelo
+                        let categoriaFinal = 'Instrumentos'; // Default
                         
                         // Inferir categoría del nombre/descripción
                         const nombreLower = nombre.toLowerCase();
-                        if (nombreLower.includes('multímetro') || nombreLower.includes('osciloscopio') || 
-                            nombreLower.includes('generador') || nombreLower.includes('analizador') ||
-                            nombreLower.includes('medidor') || nombreLower.includes('voltímetro') ||
-                            nombreLower.includes('amperímetro') || nombreLower.includes('vatímetro') ||
-                            nombreLower.includes('frecuencia') || nombreLower.includes('espectro') ||
-                            nombreLower.includes('vatímetro') || nombreLower.includes('watímetro')) {
-                            categoriaFinal = 'Instrumentos';
-                        } else if (nombreLower.includes('taladro') || nombreLower.includes('alicate') || 
-                                   nombreLower.includes('llave') || nombreLower.includes('destornillador') ||
-                                   nombreLower.includes('pinza') || nombreLower.includes('solder') ||
-                                   nombreLower.includes('herramienta') || nombreLower.includes('cutter') ||
-                                   nombreLower.includes('navaja')) {
+                        if (nombreLower.includes('soldador') || nombreLower.includes('taladro') || 
+                            nombreLower.includes('llave') || nombreLower.includes('destornillador') ||
+                            nombreLower.includes('sierra') || nombreLower.includes('lijadora') ||
+                            nombreLower.includes('pulidora') || nombreLower.includes('corta') ||
+                            nombreLower.includes('martillo') || nombreLower.includes('pinza') ||
+                            nombreLower.includes('herramienta') || nombreLower.includes('manual')) {
                             categoriaFinal = 'Herramientas';
-                        } else if (nombreLower.includes('transformador') || nombreLower.includes('fuente') ||
-                                   nombreLower.includes('variador') || nombreLower.includes('motor') ||
-                                   nombreLower.includes('compresor') || nombreLower.includes('bomba') ||
-                                   nombreLower.includes('equipo') || nombreLower.includes('máquina') ||
-                                   nombreLower.includes('arrancador') || nombreLower.includes('carga')) {
-                            categoriaFinal = 'Equipos';
-                        } else if (nombreLower.includes('cámara') || nombreLower.includes('sensor') ||
-                                   nombreLower.includes('medición') || nombreLower.includes('termómetro') ||
-                                   nombreLower.includes('teléfono') || nombreLower.includes('computadora') ||
-                                   nombreLower.includes('audífono') || nombreLower.includes('tarjeta')) {
-                            categoriaFinal = 'Medición';
                         }
                         
                         console.log(`🔄 Categoría inferida: ${categoriaFinal}`);
@@ -1133,19 +1286,18 @@
                             }
                             
                             activos.push({
-                                id_activo: numActivo,                    // 🔑 Campo correcto del backend
-                                nombre_activo: nombre || null,           // 🔑 null si está vacío
-                                codigo_activo: codigo || null,           // 🔑 null si está vacío
-                                marca: marca === 'N/A' || !marca ? null : marca,  // 🔑 null si es N/A o vacío
-                                modelo: modelo === 'N/A' || !modelo ? null : modelo,  // 🔑 null si es N/A o vacío
-                                categoria: categoriaFinal || null,       // 🔑 null si está vacío
-                                estado_activo: estadoFinal || null,      // 🔑 null si está vacío
-                                imagen_activo: null                      // 🔑 siempre null
+                                numActivo: numActivo,                        // ✅ Campo correcto
+                                numSerie: codigo || null,                    // ✅ Campo correcto
+                                marca: marca === 'N/A' || !marca ? null : marca,
+                                modelo: nombre || null,                       // ✅ Usar nombre como modelo
+                                categoria: categoriaFinal || null,
+                                estadoActivo: estadoFinal || null,            // ✅ Campo correcto
+                                caracteristicas: `Activo ${nombre || 'sin nombre'} - ${categoriaFinal || 'sin categoría'}` // ✅ Campo requerido
                             });
                             console.log('✅ Activo válido agregado (estructura backend):', { 
-                            id_activo: numActivo, 
-                            nombre_activo: (nombre || 'SIN NOMBRE').substring(0, 30) + '...' 
-                        });
+                                numActivo: numActivo, 
+                                modelo: (nombre || 'SIN NOMBRE').substring(0, 30) + '...' 
+                            });
                         } else {
                             console.log('❌ Categoría inválida:', { categoria: categoriaFinal });
                         }
@@ -1337,12 +1489,9 @@ Multímetro Digital,MULT-001,Fluke,87V,Instrumentos,disponible
 Osciloscopio,OSCI-002,Tektronix,TDS2024B,Instrumentos,disponible
 Generador de Funciones,GEN-003,Rigol,DG4062,Instrumentos,disponible
 Pinza Amperimétrica,PINZ-004,Fluke,376 FC,Instrumentos,disponible
-Fuente de Laboratorio,FUEN-005,BK Precision,1760,Equipos,disponible
 Soldador de Estaño,SOLD-006,Weller,WLC100,Herramientas,disponible
 Taladro Inalámbrico,TALA-007,DeWalt,DCD771,Herramientas,disponible
-Juego de Llaves,LLAV-008,Stanley,94-248,Herramientas,disponible
-Cámara Termográfica,CAME-009,FLIR,E8-XT,Medición,disponible
-Medidor de Distancia,MDIS-010,Bosch,GLM 50,Medición,disponible`;
+Juego de Llaves,LLAV-008,Stanley,94-248,Herramientas,disponible`;
             
             // Crear CSV con BOM UTF-8 para Excel
             const blob = new Blob(['\ufeff' + csvContent], { 
@@ -1386,14 +1535,13 @@ Medidor de Distancia,MDIS-010,Bosch,GLM 50,Medición,disponible`;
                     const inputs = fila.querySelectorAll('input, select');
                     if (inputs[0].value.trim()) {
                         activos.push({
-                            id_activo: Date.now() + Math.random(),
-                            nombre_activo: inputs[0].value,
-                            codigo_activo: inputs[1].value,
+                            numActivo: Date.now() + Math.random(),    // ✅ Campo correcto
+                            numSerie: inputs[1].value,                 // ✅ Campo correcto
                             marca: inputs[2].value,
-                            modelo: inputs[3].value,
+                            modelo: inputs[0].value,                    // ✅ Usar nombre como modelo
                             categoria: inputs[4].value,
-                            estado_activo: inputs[5].value,
-                            imagen_activo: ''
+                            estadoActivo: inputs[5].value,              // ✅ Campo correcto
+                            caracteristicas: `Activo ${inputs[0].value} - ${inputs[4].value}` // ✅ Campo requerido
                         });
                     }
                 });
@@ -1548,6 +1696,8 @@ Medidor de Distancia,MDIS-010,Bosch,GLM 50,Medición,disponible`;
                     return;
                 }
                 
+                console.log('🔑 Token encontrado, haciendo fetch a activos...');
+                
                 const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
                     method: 'GET',
                     headers: {
@@ -1556,24 +1706,35 @@ Medidor de Distancia,MDIS-010,Bosch,GLM 50,Medición,disponible`;
                     }
                 });
                 
+                console.log('📡 Respuesta status:', response.status);
+                
                 if (!response.ok) {
                     console.error('❌ Error cargando activos:', response.status);
                     return;
                 }
                 
-                const activos = await response.json();
-                console.log('✅ Activos cargados:', activos.length);
+                const responseData = await response.json();
+                console.log('✅ Respuesta completa:', responseData);
+                
+                // Extraer el array de activos de la respuesta
+                const activos = responseData.todosLosActivos || responseData.activos || [];
+                console.log('✅ Activos extraídos:', activos.length);
+                console.log('📋 Datos de activos:', activos);
                 
                 // Renderizar activos en el grid
                 const grid = document.getElementById('activos-grid');
+                console.log('🔍 Grid encontrado:', !!grid);
+                
                 if (!grid) {
                     console.error('❌ Grid de activos no encontrado');
                     return;
                 }
                 
+                console.log('🧹 Limpiando grid...');
                 grid.innerHTML = '';
                 
                 if (activos.length === 0) {
+                    console.log('📭 No hay activos, mostrando mensaje vacío');
                     grid.innerHTML = `
                         <div class="col-span-full text-center py-12">
                             <div class="text-6xl mb-4">🔧</div>
@@ -1582,7 +1743,9 @@ Medidor de Distancia,MDIS-010,Bosch,GLM 50,Medición,disponible`;
                         </div>
                     `;
                 } else {
+                    console.log('🎨 Renderizando', activos.length, 'activos...');
                     activos.forEach((activo, index) => {
+                        console.log(`🔧 Creando card para activo ${index + 1}:`, activo);
                         const card = crearActivoCard(activo, index);
                         grid.appendChild(card);
                     });
@@ -1592,12 +1755,13 @@ Medidor de Distancia,MDIS-010,Bosch,GLM 50,Medición,disponible`;
                 const contador = document.getElementById('resultados-count');
                 if (contador) {
                     contador.textContent = activos.length;
+                    console.log('🔢 Contador actualizado:', activos.length);
                 }
                 
-                console.log('✅ Activos renderizados correctamente');
+                console.log('✅ Carga de activos completada');
                 
             } catch (error) {
-                console.error('❌ Error cargando activos manualmente:', error);
+                console.error('❌ Error en cargarActivosManualmente:', error);
             }
         }
         
@@ -1605,21 +1769,19 @@ Medidor de Distancia,MDIS-010,Bosch,GLM 50,Medición,disponible`;
             const card = document.createElement('div');
             card.className = 'activo-card bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-slate-100';
             card.dataset.categoria = activo.categoria || '';
-            card.dataset.estado = activo.estado_activo || activo.estado || '';
+            card.dataset.estado = activo.estadoActivo || activo.estado || '';
             
             const categoriaIcon = {
                 'Instrumentos': '🔧',
-                'Herramientas': '🔨',
-                'Equipos': '⚡',
-                'Medición': '📊'
+                'Herramientas': '🔨'
             }[activo.categoria] || '📦';
             
             const estadoColor = {
                 'disponible': 'bg-green-100 text-green-700',
                 'prestado': 'bg-yellow-100 text-yellow-700',
-                'mantenimiento': 'bg-red-100 text-red-700',
-                'danado': 'bg-red-100 text-red-700'
-            }[activo.estado_activo || activo.estado] || 'bg-gray-100 text-gray-700';
+                'deteriorado': 'bg-red-100 text-red-700',
+                'dañado': 'bg-red-100 text-red-700'
+            }[activo.estadoActivo || activo.estado] || 'bg-gray-100 text-gray-700';
             
             card.innerHTML = `
                 <div class="flex items-start justify-between mb-4">
@@ -1627,20 +1789,21 @@ Medidor de Distancia,MDIS-010,Bosch,GLM 50,Medición,disponible`;
                         ${categoriaIcon}
                     </div>
                     <span class="px-2 py-1 rounded-full text-xs font-medium ${estadoColor}">
-                        ${activo.estado_activo || activo.estado || 'disponible'}
+                        ${activo.estadoActivo || activo.estado || 'disponible'}
                     </span>
                 </div>
                 <h3 class="font-bold text-slate-800 mb-2 line-clamp-2">
-                    ${activo.nombre_activo || activo.nombre || 'Sin nombre'}
+                    ${activo.modelo || activo.nombre_activo || 'Sin nombre'}
                 </h3>
                 <div class="space-y-1 text-sm text-slate-600">
-                    <p><strong>Código:</strong> ${activo.codigo_activo || activo.codigo || 'N/A'}</p>
+                    <p><strong>Número:</strong> ${activo.numActivo || 'N/A'}</p>
+                    <p><strong>Serie:</strong> ${activo.numSerie || 'N/A'}</p>
                     <p><strong>Marca:</strong> ${activo.marca || 'N/A'}</p>
                     <p><strong>Modelo:</strong> ${activo.modelo || 'N/A'}</p>
                     <p><strong>Categoría:</strong> ${activo.categoria || 'N/A'}</p>
                 </div>
                 <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
-                    <span class="text-xs text-slate-500">ID: ${activo.id_activo || activo.id || index}</span>
+                    <span class="text-xs text-slate-500">ID: ${activo._id || activo.id || index}</span>
                     <div class="flex gap-2">
                         <button class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                             Editar

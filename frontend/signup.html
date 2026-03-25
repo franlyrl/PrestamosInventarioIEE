@@ -13,42 +13,50 @@
 <body class="text-slate-800">
 
     <!-- PANTALLA DE REGISTRO -->
-    <div class="fixed inset-0 z-[200] bg-slate-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
-            <div class="utn-blue p-8 text-center text-white">
-                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                    <span class="utn-text font-black text-xl">UTN</span>
+    <div class="fixed inset-0 z-[200] bg-slate-50 flex items-center justify-center p-2">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-100 fade-in max-h-[95vh] overflow-y-auto">
+            <div class="utn-blue p-4 text-center text-white relative">
+                <!-- Botón de regreso -->
+                <button type="button" onclick="goToLogin()" class="absolute top-4 left-4 text-white/80 hover:text-white transition-colors flex items-center gap-1 text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Regresar
+                </button>
+                
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg overflow-hidden">
+                    <img src="css/UTN.jpg" alt="UTN Logo" class="w-8 h-8 object-contain">
                 </div>
-                <h2 class="text-2xl font-bold tracking-tight">Crear Cuenta</h2>
+                <h2 class="text-lg font-bold tracking-tight">Crear Cuenta</h2>
                 <p class="text-blue-200 text-xs mt-1 uppercase tracking-widest font-medium">Registro de Usuarios</p>
             </div>
             
-            <form id="signupForm" class="p-8 space-y-5">
+            <form id="signupForm" class="p-4 space-y-3">
                 <!-- Datos Personales -->
-                <div class="space-y-4">
+                <div class="space-y-3">
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Nombre Completo</label>
-                        <input type="text" id="nombreInput" placeholder="Juan Pérez" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
+                        <input type="text" id="nombreInput" placeholder="Juan Pérez" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
                     </div>
                     
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Cédula</label>
-                        <input type="text" id="cedulaInput" placeholder="604550123" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
+                        <input type="text" id="cedulaInput" placeholder="604550123" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
                     </div>
                     
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Correo Electrónico</label>
-                        <input type="email" id="emailInput" placeholder="juan.perez@utn.ac.cr" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
+                        <input type="email" id="emailInput" placeholder="juan.perez@utn.ac.cr" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
                     </div>
                     
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Código de Barras</label>
-                        <input type="text" id="codigoBarrasInput" placeholder="604550123" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
+                        <input type="text" id="codigoBarrasInput" placeholder="604550123" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
                     </div>
                     
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Rol</label>
-                        <select id="rolInput" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
+                        <select id="rolInput" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
                             <option value="">Seleccionar rol...</option>
                             <option value="estudiante">Estudiante</option>
                             <option value="docente">Docente</option>
@@ -58,7 +66,7 @@
                     
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Carrera (solo estudiantes)</label>
-                        <select id="carreraInput" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm">
+                        <select id="carreraInput" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm">
                             <option value="">Seleccionar carrera...</option>
                             <option value="Ingeniería Electrónica">Ingeniería Electrónica</option>
                             <option value="Ingeniería Eléctrica">Ingeniería Eléctrica</option>
@@ -70,12 +78,12 @@
                     
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Contraseña</label>
-                        <input type="password" id="passInput" placeholder="Mínimo 8 caracteres" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
+                        <input type="password" id="passInput" placeholder="Mínimo 8 caracteres" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
                     </div>
                     
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Confirmar Contraseña</label>
-                        <input type="password" id="confirmPassInput" placeholder="Repetir contraseña" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
+                        <input type="password" id="confirmPassInput" placeholder="Repetir contraseña" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
                     </div>
                 </div>
                 
