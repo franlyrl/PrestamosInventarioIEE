@@ -98,7 +98,7 @@ class InsumosController {
         if (!grid) return;
 
         const insumosFiltrados = this.filtrarInsumos();
-        
+
         // Actualizar contador
         if (resultadosCount) {
             resultadosCount.textContent = insumosFiltrados.length;
@@ -114,18 +114,18 @@ class InsumosController {
             return;
         }
 
-        grid.innerHTML = insumosFiltrados.map((insumo, index) => 
+        grid.innerHTML = insumosFiltrados.map((insumo, index) =>
             this.createInsumoCard(insumo, index)
         ).join('');
     }
 
     filtrarInsumos() {
         return this.insumos.filter(insumo => {
-            const coincideBusqueda = !this.filtros.busqueda || 
+            const coincideBusqueda = !this.filtros.busqueda ||
                 (insumo.NombProducto && insumo.NombProducto.toLowerCase().includes(this.filtros.busqueda.toLowerCase())) ||
                 (insumo.caracteristicas && insumo.caracteristicas.toLowerCase().includes(this.filtros.busqueda.toLowerCase()));
 
-            const coincideCategoria = this.filtros.categoria === 'todas' || 
+            const coincideCategoria = this.filtros.categoria === 'todas' ||
                 insumo.categoria === this.filtros.categoria;
 
             const coincideStock = this.checkStockFilter(insumo, this.filtros.stock);
@@ -136,14 +136,14 @@ class InsumosController {
 
     checkStockFilter(insumo, stockFilter) {
         const cantidad = insumo.cantidad || 0;
-        
+
         switch (stockFilter) {
             case 'con-stock':
                 return cantidad > 0;
             case 'sin-stock':
                 return cantidad === 0;
             case 'bajo-stock':
-                return cantidad > 0 && cantidad <= 10;
+                return cantidad > 0 && cantidad <= 5; // Cambiado de 10 a 5
             default:
                 return true;
         }
@@ -152,7 +152,7 @@ class InsumosController {
     createInsumoCard(insumo, index) {
         const stockClass = this.getStockClass(insumo.cantidad);
         const stockText = this.getStockText(insumo.cantidad);
-        
+
         return `
             <div class="insumo-card card p-5 fade-in" style="animation-delay: ${index * 50}ms">
                 <div class="insumo-stock ${stockClass}">
@@ -231,14 +231,14 @@ class InsumosController {
     getInsumoIcon(insumo) {
         const categoria = (insumo.categoria || '').toLowerCase();
         const nombre = (insumo.NombProducto || '').toLowerCase();
-        
+
         if (categoria.includes('analógico') || nombre.includes('diodo')) return '💊';
         if (categoria.includes('analógico') || nombre.includes('resistencia')) return '📏';
         if (categoria.includes('digital') || nombre.includes('microcontrolador')) return '🔲';
         if (categoria.includes('consumible') || nombre.includes('estaño')) return '🧵';
         if (categoria.includes('consumible') || nombre.includes('pasta')) return '🍯';
         if (categoria.includes('herramienta')) return '🔧';
-        
+
         return '📦';
     }
 
@@ -309,7 +309,7 @@ class InsumosController {
 
     exportarDatos() {
         const insumosFiltrados = this.filtrarInsumos();
-        
+
         if (insumosFiltrados.length === 0) {
             Utils.showToast('No hay datos para exportar', 'error');
             return;
