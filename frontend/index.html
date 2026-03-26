@@ -10,7 +10,7 @@
         <link rel="stylesheet" href="css/styles.css">
         <script src="https://cdn.tailwindcss.com"></script>
     </head>
-    <body class="text-slate-800">
+    <body class="text-slate-800 flex flex-col min-h-screen">
   <!-- * Estructura HTML para la aplicación de gestión de laboratorio de la UTN.
     * Incluye:
     * - Pantalla de verificación de autenticación
@@ -51,7 +51,7 @@
         <div id="header-component"></div>
 
         <!-- CONTENIDO PRINCIPAL -->
-        <main class="container py-6">
+        <main class="container py-6 flex-grow">
             <!-- VISTA PARA ADMINISTRATIVOS Y ADMIN -->
             <div id="vistaAdmin" class="hidden">
                 <!-- HEADER DE GESTIÓN -->
@@ -1497,4 +1497,83 @@
             });
         </script>
     </body>
-    </html>
+    
+    <!-- FOOTER COMPONENT -->
+    <div id="footer-component"></div>
+    
+    <!-- Carga del Footer Component -->
+    <script>
+        // Función para cargar el footer
+        async function loadFooter() {
+            console.log('🔄 Iniciando carga del footer...');
+            
+            try {
+                const footerElement = document.getElementById('footer-component');
+                if (!footerElement) {
+                    console.error('❌ Elemento footer-component no encontrado');
+                    return;
+                }
+                
+                console.log('📡 Haciendo fetch a components/footer.html...');
+                const footerResponse = await fetch('components/footer.html');
+                
+                if (!footerResponse.ok) {
+                    console.error('❌ Error en la respuesta:', footerResponse.status, footerResponse.statusText);
+                    throw new Error(`Error ${footerResponse.status}: ${footerResponse.statusText}`);
+                }
+                
+                const footerHtml = await footerResponse.text();
+                console.log('📄 Footer HTML recibido, longitud:', footerHtml.length);
+                console.log('📄 Preview del footer:', footerHtml.substring(0, 200) + '...');
+                
+                footerElement.innerHTML = footerHtml;
+                console.log('✅ Footer component cargado exitosamente');
+                
+                // Verificar que el footer se haya insertado
+                const footer = footerElement.querySelector('footer');
+                if (footer) {
+                    console.log('✅ Footer element encontrado en el DOM');
+                } else {
+                    console.error('❌ No se encontró el footer element después de insertar');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error cargando footer component:', error);
+                console.error('❌ Detalles del error:', error.message, error.stack);
+                
+                // Footer de respaldo si falla la carga
+                const footerElement = document.getElementById('footer-component');
+                if (footerElement) {
+                    footerElement.innerHTML = `
+                        <footer class="bg-slate-900 text-white py-4">
+                            <div class="container mx-auto px-6 text-center">
+                                <p class="text-sm text-slate-400">
+                                    &copy; 2024 Universidad Técnica Nacional - Sistema de Gestión de Laboratorio
+                                </p>
+                            </div>
+                        </footer>
+                    `;
+                    console.log('🔄 Footer de respaldo cargado');
+                }
+            }
+        }
+        
+        // Cargar footer cuando el DOM esté listo
+        console.log('🔧 Configurando carga del footer...');
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('📋 DOMContentLoaded - Iniciando carga del footer...');
+            loadFooter();
+        });
+        
+        // También intentar cargar después de un pequeño retraso por si el DOM ya está cargado
+        console.log('⏰ Configurando carga del footer con retraso...');
+        setTimeout(() => {
+            console.log('⏰ Timeout - Iniciando carga del footer...');
+            loadFooter();
+        }, 500);
+        
+        // Intentar cargar inmediatamente también
+        console.log('🚀 Intentando carga inmediata del footer...');
+        loadFooter();
+    </script>
+</html>
