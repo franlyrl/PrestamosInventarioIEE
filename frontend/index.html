@@ -40,11 +40,6 @@
                 para evitar que usuarios no autenticados vean el contenido aunque sea momentáneamente
                 -->
         <div id="mainApp" class="hidden">
-            <!-- INDICADOR DE CONEXIÓN -->
-            <div class="fixed top-4 right-4 z-[300] flex items-center gap-2 bg-white px-3 py-2 rounded-full shadow-md border border-slate-200 text-xs">
-                <div id="dbIndicator" class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
-                <span id="dbStatus">Verificando conexión...</span>
-            </div>
         </div>
 
         <!-- HEADER COMPONENT -->
@@ -111,78 +106,82 @@
                     </div>
                 </div>
             </div>
-
+            
             <!-- VISTA PARA ESTUDIANTES Y DOCENTES -->
             <div id="vistaEstudiante" class="hidden">
                 <!-- HEADER DE ESTUDIANTE -->
                 <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                    <h1 class="text-2xl font-bold text-slate-800 mb-2">📚 Panel de Estudiantes</h1>
-                    <p class="text-slate-600">Solicita equipos y materiales para tus proyectos</p>
-                </div>
+                    <h1 class="text-3xl font-bold text-slate-800 mb-2">Bienvenido(a) <span id="nombre_completo"></span>👋 </h1>
+                    <p class="text-slate-600">Al Sistema de Prestamos y Inventario de equipos Electronico y Tecnologico de la Sede del Pacìfico</p>
+                    <br>
 
-                <!-- NAVEGACIÓN POR TABS -->
-                <nav id="navTabs" class="mb-6">
-                    <div class="flex gap-2 bg-white rounded-xl p-1 shadow-sm">
-                        <button class="tab-button flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition utn-blue text-white" data-type="activos">
-                            🔧 Activos
-                        </button>
-                        <button class="tab-button flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-50" data-type="insumos">
-                            🧩 Insumos
-                        </button>
-                    </div>
-                </nav>
+                   
+                    <p> Por favor, lee las reglas antes de continuar </p>
+                    <ul class="list-disc list-inside text-slate-600">
+                        <li>Solo se puede pedir una vez el mismo artículo</li>
+                        <li>No se prestarán equipos que no estén en el inventario</li>
+                        <li>No se prestarán equipos que no estén disponibles</li>
+                    </ul>
 
-                <!-- CONTROLES -->
-                <div id="controlesEstudiante" class="flex justify-between items-center mb-6">
-                    <div>
-                        <p class="text-sm text-slate-500">Solicita equipos y materiales para tus proyectos</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <button id="refreshBtn" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                            🔄 Actualizar
+                </div>
+                     <!-- BUSCADOR UNIVERSAL -->
+                <section class="card p-4 mb-6">
+                    <div class="flex flex-wrap gap-4 items-center">
+                        <div class="flex-1 min-w-[200px]">
+                            <input type="text" id="busqueda-universal" placeholder="Buscar activos e insumos..." class="input-field w-full">
+                        </div>
+                        <select id="tipo-select" class="input-field w-48">
+                            <option value="todos">Todos los tipos</option>
+                            <option value="activo">🔧 Activos</option>
+                            <option value="insumo" data-type="insumos">🧩 Insumos</option>
+                        </select>
+                        <select id="categoria-select" class="input-field w-48">
+                            <option value="todas">Todas las categorías</option>
+                            <option value="Instrumentos">🔧 Instrumentos</option>
+                            <option value="Herramientas">🔨 Herramientas</option>
+                            <option value="Componentes Digitales">💻 Componentes Digitales</option>
+                            <option value="Componentes Analógicos">⚡ Componentes Analógicos</option>
+                        </select>
+                        <select id="estado-select" class="input-field w-32">
+                            <option value="todos">Todos</option>
+                            <option value="disponible">Disponible</option>
+                            <option value="con-stock">Con Stock</option>
+                            <option value="bajo-stock">Bajo Stock</option>
+                            <option value="sin-stock">Sin Stock</option>
+                        </select>
+                        <button id="limpiar-busqueda" class="btn btn-secondary">
+                            🔄 Limpiar
+                        </button>
+                        <button id="buscar-btn" class="btn btn-primary">
+                            🔍 Buscar
                         </button>
                     </div>
-                </div>
-                
-                <!-- GRID DE ITEMS -->
-                <div id="itemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <!-- Los items se cargarán aquí dinámicamente -->
+                </section>
+
+                <!-- RESULTADOS DE BÚSQUEDA -->
+                <div id="resultados-container" class="mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-slate-800">
+                            <span id="resultados-titulo">Todos los artículos</span>
+                            <span id="resultados-count" class="text-sm font-normal text-slate-500 ml-2">(0)</span>
+                        </h2>
+                        <div class="flex gap-2">
+                            <button id="refresh-btn" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                                🔄 Actualizar
+                            </button>
+                        </div>
+                    </div>
+                   
+                    <!-- GRID DE RESULTADOS -->
+                    <div id="itemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <!-- Los items se cargarán aquí dinámicamente -->
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- VISTA PARA ESTUDIANTES Y DOCENTES -->
-        <div id="vistaEstudiante" class="hidden">
-            <!-- HEADER DE ESTUDIANTE -->
-            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                <h1 class="text-2xl font-bold text-slate-800 mb-2">📚 Panel de Estudiantes</h1>
-                <p class="text-slate-600">Solicita equipos y materiales para tus proyectos</p>
-            </div>
+       
 
-            <!-- NAVEGACIÓN POR TABS -->
-            <nav id="navTabs" class="mb-6">
-                <div class="flex gap-2 bg-white rounded-xl p-1 shadow-sm">
-                    <button class="tab-button flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition utn-blue text-white" data-type="activos">
-                        🔧 Activos
-                    </button>
-                    <button class="tab-button flex-1 py-2.5 px-4 rounded-lg font-medium text-sm transition text-slate-600 hover:bg-slate-50" data-type="insumos">
-                        🧩 Insumos
-                    </button>
-                </div>
-            </nav>
-
-            <!-- CONTROLES -->
-            <div id="controlesEstudiante" class="flex justify-between items-center mb-6">
-                <div>
-                    <p class="text-sm text-slate-500">Solicita equipos y materiales para tus proyectos</p>
-                </div>
-                <div class="flex gap-3">
-                    <button id="refreshBtn" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                        🔄 Actualizar
-                    </button>
-                </div>
-            </div>
-            
             <!-- GRID DE ITEMS -->
             <div id="itemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <!-- Los items se cargarán aquí dinámicamente -->
@@ -422,7 +421,6 @@
                 // Simplemente asumimos que el servidor está corriendo si el backend está configurado
                 indicator.classList.remove('bg-yellow-500', 'bg-red-500', 'animate-pulse');
                 indicator.classList.add('bg-green-500');
-                status.textContent = 'Conectado a MongoDB';
                 dbConnected = true;
             }
 
@@ -1138,6 +1136,84 @@
                             if (typeof updateUserInfo === 'function') {
                                 console.log('🔄 Llamando a updateUserInfo() desde index.html...');
                                 updateUserInfo();
+                                
+                                // Configurar eventos del dropdown después de cargar el header
+                                setTimeout(() => {
+                                    console.log('🔧 Configurando eventos del dropdown...');
+                                    const userMenuBtn = document.getElementById('user-menu-btn');
+                                    const userDropdown = document.getElementById('user-dropdown');
+                                    
+                                    console.log('🔍 Elementos encontrados:', {
+                                        userMenuBtn: !!userMenuBtn,
+                                        userDropdown: !!userDropdown
+                                    });
+                                    
+                                    if (userMenuBtn && userDropdown) {
+                                        console.log('✅ Botón y dropdown encontrados');
+                                        
+                                        // Configurar menú según rol
+                                        const userData = localStorage.getItem('utn_user');
+                                        const currentUser = userData ? JSON.parse(userData) : null;
+                                        const userRole = currentUser?.rol || currentUser?.rol_nombre || currentUser?.tipo_rol || 'Estudiante';
+                                        
+                                        console.log('👤 Rol detectado:', userRole);
+                                        
+                                        const solicitudesMenuText = document.getElementById('solicitudes-menu-text');
+                                        const solicitudesMenuDesc = document.getElementById('solicitudes-menu-desc');
+                                        const reportesMenuItem = document.getElementById('reportes-menu-item');
+                                        
+                                        if (userRole === 'admin' || userRole === 'administrador' || userRole === 'administrativo') {
+                                            if (solicitudesMenuText) solicitudesMenuText.textContent = 'Solicitudes';
+                                            if (solicitudesMenuDesc) solicitudesMenuDesc.textContent = 'Gestionar todas las solicitudes';
+                                            if (reportesMenuItem) reportesMenuItem.classList.remove('hidden');
+                                            console.log('👨‍💼 Menú configurado para administrador');
+                                        } else {
+                                            if (solicitudesMenuText) solicitudesMenuText.textContent = 'Mis Solicitudes';
+                                            if (solicitudesMenuDesc) solicitudesMenuDesc.textContent = 'Historial completo';
+                                            if (reportesMenuItem) reportesMenuItem.classList.add('hidden');
+                                            console.log('👨‍🎓 Menú configurado para estudiante/docente');
+                                        }
+                                        
+                                        // Remover eventos anteriores para evitar conflictos
+                                        const newBtn = userMenuBtn.cloneNode(true);
+                                        userMenuBtn.parentNode.replaceChild(newBtn, userMenuBtn);
+                                        
+                                        // Evento click para abrir/cerrar menú
+                                        newBtn.addEventListener('click', (e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            console.log('🖱️ Click en botón de usuario - EVENTO DISPARADO');
+                                            
+                                            console.log('🔍 Estado actual del dropdown:', {
+                                                hidden: userDropdown.classList.contains('hidden'),
+                                                opacity: userDropdown.classList.contains('opacity-100')
+                                            });
+                                            
+                                            if (userDropdown.classList.contains('hidden')) {
+                                                userDropdown.classList.remove('hidden');
+                                                userDropdown.classList.add('opacity-100');
+                                                console.log('📂 Menú abierto - clases:', userDropdown.className);
+                                            } else {
+                                                userDropdown.classList.add('hidden');
+                                                userDropdown.classList.remove('opacity-100');
+                                                console.log('📁 Menú cerrado - clases:', userDropdown.className);
+                                            }
+                                        });
+                                        
+                                        // Cerrar menú al hacer clic fuera
+                                        document.addEventListener('click', (e) => {
+                                            if (!newBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                                                userDropdown.classList.add('hidden');
+                                                userDropdown.classList.remove('opacity-100');
+                                                console.log('📁 Menú cerrado por click fuera');
+                                            }
+                                        });
+                                        
+                                        console.log('✅ Eventos del dropdown configurados correctamente');
+                                    } else {
+                                        console.log('❌ No se encontraron elementos del dropdown');
+                                    }
+                                }, 1000); // Aumentado a 1 segundo para asegurar carga completa
                             } else {
                                 console.log('❌ updateUserInfo() no está disponible');
                             }

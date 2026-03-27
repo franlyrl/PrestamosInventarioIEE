@@ -19,7 +19,7 @@
                 <div class="relative">
                     <button id="cartBtn" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:scale-105">
                         🛒 Solicitudes
-                        <span id="cartCount" class="bg-white text-xs px-2 py-0.5 rounded-full font-bold text-color: #ffffff" style="color: #780909;">0</span>
+                        <span id="cartCount" class="bg-white text-xs px-2 py-0.5 rounded-full font-bold text-color: #ffffff" style="color: #000000;">0</span>
                     </button>
                 </div>
                 
@@ -54,16 +54,7 @@
                         
                         <!-- Opciones del Menú -->
                         <div class="py-2">
-                            <a href="/" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
-                                    <span style="color: #004a8c;">🏠</span>
-                                </div>
-                                <div>
-                                    <p class="font-medium">Inicio</p>
-                                    <p class="text-xs text-slate-500">Página principal</p>
-                                </div>
-                            </a>
-                            
+                            <!-- Mi Perfil - Siempre visible para todos los roles -->
                             <a href="/pages/perfil.html" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
                                 <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
                                     <span style="color: #004a8c;">👤</span>
@@ -74,23 +65,25 @@
                                 </div>
                             </a>
                             
-                            <a href="/pages/reportes.html" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                            <!-- Solicitudes - Nombre diferente según rol -->
+                            <a href="/pages/solicitudes.html" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
+                                    <span style="color: #004a8c;">📋</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium" id="solicitudes-menu-text">Mis Solicitudes</p>
+                                    <p class="text-xs text-slate-500" id="solicitudes-menu-desc">Historial completo</p>
+                                </div>
+                            </a>
+                            
+                            <!-- Reportes - Solo para administradores -->
+                            <a href="/pages/reportes.html" id="reportes-menu-item" class="hidden flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
                                 <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
                                     <span style="color: #004a8c;">📊</span>
                                 </div>
                                 <div>
                                     <p class="font-medium">Reportes</p>
                                     <p class="text-xs text-slate-500">Ver estadísticas</p>
-                                </div>
-                            </a>
-                            
-                            <a href="/pages/solicitudes.html" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
-                                    <span style="color: #004a8c;">📋</span>
-                                </div>
-                                <div>
-                                    <p class="font-medium">Mis Solicitudes</p>
-                                    <p class="text-xs text-slate-500">Historial completo</p>
                                 </div>
                             </a>
                         </div>
@@ -140,6 +133,51 @@ function updateUserInfo() {
         const userRole = currentUser.rol || currentUser.rol_nombre || currentUser.tipo_rol || 'Estudiante';
         console.log('🔍 Rol del usuario:', userRole);
         
+        // Configurar menú según rol
+        const solicitudesMenuText = document.getElementById('solicitudes-menu-text');
+        const solicitudesMenuDesc = document.getElementById('solicitudes-menu-desc');
+        const reportesMenuItem = document.getElementById('reportes-menu-item');
+        
+        console.log('🔍 Elementos del menú encontrados:', {
+            solicitudesMenuText: !!solicitudesMenuText,
+            solicitudesMenuDesc: !!solicitudesMenuDesc,
+            reportesMenuItem: !!reportesMenuItem
+        });
+        
+        if (userRole === 'admin' || userRole === 'administrador') {
+            // Para administradores
+            console.log('👨‍💼 Configurando menú para administrador...');
+            if (solicitudesMenuText) {
+                solicitudesMenuText.textContent = 'Solicitudes';
+                console.log('✅ Texto cambiado a "Solicitudes"');
+            }
+            if (solicitudesMenuDesc) {
+                solicitudesMenuDesc.textContent = 'Gestionar todas las solicitudes';
+                console.log('✅ Descripción cambiada para admin');
+            }
+            if (reportesMenuItem) {
+                reportesMenuItem.classList.remove('hidden');
+                console.log('✅ Reportes visible para admin');
+            }
+            console.log('👨‍💼 Menú configurado para administrador');
+        } else {
+            // Para estudiantes y docentes
+            console.log('👨‍🎓 Configurando menú para estudiante/docente...');
+            if (solicitudesMenuText) {
+                solicitudesMenuText.textContent = 'Mis Solicitudes';
+                console.log('✅ Texto cambiado a "Mis Solicitudes"');
+            }
+            if (solicitudesMenuDesc) {
+                solicitudesMenuDesc.textContent = 'Historial completo';
+                console.log('✅ Descripción cambiada para estudiante');
+            }
+            if (reportesMenuItem) {
+                reportesMenuItem.classList.add('hidden');
+                console.log('✅ Reportes oculto para estudiante');
+            }
+            console.log('👨‍🎓 Menú configurado para estudiante/docente');
+        }
+        
         // Ocultar carrito solo para administradores
         if (cartBtn) {
             if (userRole === 'admin' || userRole === 'administrador') {
@@ -178,11 +216,60 @@ function updateUserInfo() {
     }
 }
 
-console.log(' Header cargado - updateUserInfo() disponible para ser llamada desde la página');
+console.log('🔥 Header cargado - updateUserInfo() disponible para ser llamada desde la página');
 
-// Llamar automáticamente a updateUserInfo cuando se carga el header
+// Configurar evento del dropdown del usuario
 document.addEventListener('DOMContentLoaded', () => {
-    console.log(' Header DOM cargado, llamando a updateUserInfo()...');
+    console.log('🔥 Header DOM cargado, configurando eventos...');
+    
+    // Configurar botón del menú usuario
+    const userMenuBtn = document.getElementById('user-menu-btn');
+    const userDropdown = document.getElementById('user-dropdown');
+    
+    if (userMenuBtn && userDropdown) {
+        console.log('🔍 Botón y dropdown encontrados, configurando eventos...');
+        
+        // Abrir/cerrar menú al hacer clic
+        userMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            console.log('🖱️ Click en botón de usuario');
+            
+            if (userDropdown.classList.contains('hidden')) {
+                userDropdown.classList.remove('hidden');
+                userDropdown.classList.add('opacity-100');
+                console.log('📂 Menú abierto');
+            } else {
+                userDropdown.classList.add('hidden');
+                userDropdown.classList.remove('opacity-100');
+                console.log('📁 Menú cerrado');
+            }
+        });
+        
+        // Cerrar menú al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                userDropdown.classList.add('hidden');
+                userDropdown.classList.remove('opacity-100');
+                console.log('📁 Menú cerrado por click fuera');
+            }
+        });
+        
+        console.log('✅ Eventos del dropdown configurados');
+    } else {
+        console.log('❌ No se encontraron elementos del dropdown:', {
+            userMenuBtn: !!userMenuBtn,
+            userDropdown: !!userDropdown
+        });
+    }
+    
+    // Llamar a updateUserInfo
+    console.log('🔥 Llamando a updateUserInfo()...');
     updateUserInfo();
+    
+    // Forzar actualización después de 1 segundo por si acaso
+    setTimeout(() => {
+        console.log('🔥 Forzando segunda actualización del menú...');
+        updateUserInfo();
+    }, 1000);
 });
 </script>
