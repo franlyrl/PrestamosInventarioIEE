@@ -179,14 +179,6 @@
                 </div>
             </div>
         </div>
-
-       
-
-            <!-- GRID DE ITEMS -->
-            <div id="itemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <!-- Los items se cargarán aquí dinámicamente -->
-            </div>
-        </div>
     </main>
 
     <!-- MODAL PARA AGREGAR INSUMO -->
@@ -381,6 +373,38 @@
         <script src="js/auth.js"></script>
         <script src="js/dashboard.js"></script>
         <script src="js/modal.js"></script>
+        <script src="js/pages/index.js"></script>
+
+        <!-- Inicializar indexController -->
+        <script>
+            console.log('🔍 Verificando si indexController existe...');
+            console.log('window.indexController:', !!window.indexController);
+            
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('🚀 DOMContentLoaded - Inicializando indexController desde index.html...');
+                console.log('window.indexController disponible:', !!window.indexController);
+                
+                if (window.indexController) {
+                    console.log('✅ Llamando a window.indexController.initialize()...');
+                    window.indexController.initialize().then(() => {
+                        console.log('✅ indexController inicializado correctamente');
+                    }).catch(error => {
+                        console.error('❌ Error inicializando indexController:', error);
+                    });
+                } else {
+                    console.log('❌ indexController no encontrado en window');
+                }
+            });
+            
+            // También intentar después de un pequeño retraso
+            setTimeout(() => {
+                console.log('⏰ Timeout - Verificando indexController...');
+                if (window.indexController && !window.indexController.initialized) {
+                    console.log('🚀 Inicializando indexController desde timeout...');
+                    window.indexController.initialize();
+                }
+            }, 1000);
+        </script>
 
 
         <!-- Script de Verificación y Conexión -->
@@ -418,9 +442,16 @@
                 const indicator = document.getElementById('dbIndicator');
                 const status = document.getElementById('dbStatus');
                 
-                // Simplemente asumimos que el servidor está corriendo si el backend está configurado
-                indicator.classList.remove('bg-yellow-500', 'bg-red-500', 'animate-pulse');
-                indicator.classList.add('bg-green-500');
+                // Verificar que los elementos existan antes de usarlos
+                if (indicator) {
+                    indicator.classList.remove('bg-yellow-500', 'bg-red-500', 'animate-pulse');
+                    indicator.classList.add('bg-green-500');
+                }
+                
+                if (status) {
+                    status.textContent = 'Conectado';
+                }
+                
                 dbConnected = true;
             }
 
@@ -546,6 +577,13 @@
                     
                     // Actualizar nombre
                     const nombreCompleto = currentUser.nombre || currentUser.nombre_completo || 'Usuario';
+                    
+                    // Actualizar nombre en el header de bienvenida
+                    const nombreCompletoElement = document.getElementById('nombre_completo');
+                    if (nombreCompletoElement) {
+                        nombreCompletoElement.textContent = nombreCompleto;
+                        console.log('✅ Nombre completo actualizado en header:', nombreCompleto);
+                    }
                     
                     if (userInfo) {
                         userInfo.textContent = nombreCompleto;
@@ -1572,7 +1610,7 @@
                 }
             });
         </script>
-    </body>
+</body>
     
     <!-- FOOTER COMPONENT -->
     <div id="footer-component"></div>

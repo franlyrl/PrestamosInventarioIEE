@@ -35,7 +35,7 @@ class DashboardController {
     async loadInitialData() {
         try {
             this.showLoading(true);
-            
+
             // Cargar datos en paralelo
             const [activosResponse, insumosResponse] = await Promise.all([
                 ApiService.getActivos(),
@@ -47,7 +47,7 @@ class DashboardController {
 
             // Renderizar vista actual
             this.renderGrid();
-            
+
             Utils.showToast('Datos cargados exitosamente', 'success');
         } catch (error) {
             console.error('Error cargando datos:', error);
@@ -82,10 +82,13 @@ class DashboardController {
         if (!grid) return;
 
         const items = appState.data[this.currentType] || [];
-        
+
+        // Asegurarse que items sea un array
+        const itemsArray = Array.isArray(items) ? items : [];
+
         grid.innerHTML = '';
-        
-        if (items.length === 0) {
+
+        if (itemsArray.length === 0) {
             grid.innerHTML = `
                 <div class="col-span-full text-center py-12">
                     <div class="text-6xl mb-4">📦</div>
@@ -96,7 +99,7 @@ class DashboardController {
             return;
         }
 
-        items.forEach((item, index) => {
+        itemsArray.forEach((item, index) => {
             const isAvailable = this.checkAvailability(item);
             const card = this.createItemCard(item, isAvailable, index);
             grid.appendChild(card);
@@ -108,7 +111,7 @@ class DashboardController {
         card.className = 'card p-5 hover:border-blue-400 transition-all group fade-in';
         card.style.animationDelay = `${index * 50}ms`;
 
-        const stockBadge = isAvailable 
+        const stockBadge = isAvailable
             ? `<span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">Stock: ${item.cantidad || item.stock || 0}</span>`
             : `<span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-full">Agotado</span>`;
 
@@ -151,11 +154,10 @@ class DashboardController {
             
             <button 
                 onclick="dashboardController.selectItem('${item._id || item.id}')"
-                class="w-full py-2.5 rounded-xl font-bold text-xs transition-all ${
-                    isAvailable 
-                        ? 'utn-blue text-white hover:bg-blue-700 shadow-lg shadow-blue-100' 
-                        : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                }"
+                class="w-full py-2.5 rounded-xl font-bold text-xs transition-all ${isAvailable
+                ? 'utn-blue text-white hover:bg-blue-700 shadow-lg shadow-blue-100'
+                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+            }"
                 ${!isAvailable ? 'disabled' : ''}
             >
                 ${isAvailable ? 'Solicitar' : 'No disponible'}
@@ -168,12 +170,12 @@ class DashboardController {
     checkAvailability(item) {
         const stock = item.cantidad || item.stock || 0;
         const estado = item.estadoActivo || item.estado;
-        
+
         // Para activos, verificar estado
         if (this.currentType === 'activos') {
             return estado === 'disponible' || estado === 'Disponible';
         }
-        
+
         // Para insumos, verificar stock
         return stock > 0;
     }
@@ -181,7 +183,7 @@ class DashboardController {
     getItemIcon(item) {
         const category = (item.categoria || item.cat || '').toLowerCase();
         const name = (item.NombProducto || item.nombre || item.name || '').toLowerCase();
-        
+
         // Iconos por categoría
         if (category.includes('medición') || name.includes('multímetro')) return '🔬';
         if (category.includes('medición') || name.includes('osciloscopio')) return '📊';
@@ -190,7 +192,7 @@ class DashboardController {
         if (category.includes('electrónica') || name.includes('resistencia')) return '📏';
         if (category.includes('consumible') || name.includes('estaño')) return '🧵';
         if (category.includes('consumible') || name.includes('pasta')) return '🍯';
-        
+
         // Iconos por defecto
         return this.currentType === 'activos' ? '🔧' : '📦';
     }
@@ -210,8 +212,8 @@ class DashboardController {
 
     findItemById(itemId) {
         const items = appState.data[this.currentType] || [];
-        return items.find(item => 
-            (item._id && item._id === itemId) || 
+        return items.find(item =>
+            (item._id && item._id === itemId) ||
             (item.id && item.id === itemId)
         );
     }
@@ -226,7 +228,7 @@ class DashboardController {
             modalIcon.textContent = this.getItemIcon(item);
             itemName.textContent = item.NombProducto || item.nombre || item.name || 'Sin nombre';
             itemCat.textContent = item.categoria || item.cat || 'Sin categoría';
-            
+
             modal.classList.remove('opacity-0', 'pointer-events-none');
             modal.classList.add('opacity-100');
         }

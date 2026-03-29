@@ -1,15 +1,5 @@
-const CONFIG = {
-    API_BASE_URL: 'http://localhost:4000/api',
-    ANIMATIONS: {
-        FADE_IN: 400,
-        MODAL: 300,
-        TOAST: 500
-    },
-    STORAGE_KEYS: {
-        TOKEN: 'utn_token',
-        USER: 'utn_user'
-    }
-};
+// Usar CONFIG global ya definido en app.js
+// const CONFIG = { ... }; // Eliminado - ya existe en app.js
 
 // Estado de la Aplicación
 class AppState {
