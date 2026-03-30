@@ -179,6 +179,14 @@
                 </div>
             </div>
         </div>
+
+       
+
+            <!-- GRID DE ITEMS -->
+            <div id="itemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Los items se cargarán aquí dinámicamente -->
+            </div>
+        </div>
     </main>
 
     <!-- MODAL PARA AGREGAR INSUMO -->
@@ -373,7 +381,7 @@
         <script src="js/auth.js"></script>
         <script src="js/dashboard.js"></script>
         <script src="js/modal.js"></script>
-        <script src="js/pages/index.js"></script>
+        <script src="js/pages/index_final.js"></script>
 
         <!-- Inicializar indexController -->
         <script>
@@ -385,12 +393,8 @@
                 console.log('window.indexController disponible:', !!window.indexController);
                 
                 if (window.indexController) {
-                    console.log('✅ Llamando a window.indexController.initialize()...');
-                    window.indexController.initialize().then(() => {
-                        console.log('✅ indexController inicializado correctamente');
-                    }).catch(error => {
-                        console.error('❌ Error inicializando indexController:', error);
-                    });
+                    console.log('✅ IndexController ya está inicializado');
+                    window.indexController.initialized = true;
                 } else {
                     console.log('❌ indexController no encontrado en window');
                 }
@@ -400,8 +404,8 @@
             setTimeout(() => {
                 console.log('⏰ Timeout - Verificando indexController...');
                 if (window.indexController && !window.indexController.initialized) {
-                    console.log('🚀 Inicializando indexController desde timeout...');
-                    window.indexController.initialize();
+                    console.log('🚀 IndexController ya existe y está inicializado');
+                    window.indexController.initialized = true;
                 }
             }, 1000);
         </script>
