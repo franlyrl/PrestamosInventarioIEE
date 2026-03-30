@@ -1,16 +1,60 @@
     <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>UTN - Sistema de Gestión</title>
-        <meta name="description" content="Sistema de gestión de laboratorio UTN">
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTN - Sistema de Gestión</title>
+    <meta name="description" content="Sistema de gestión de laboratorio UTN">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* Estilos personalizados para las opciones del select */
+        .custom-select {
+            position: relative;
+        }
         
-        <!-- CSS -->
-        <link rel="stylesheet" href="css/styles.css">
-        <script src="https://cdn.tailwindcss.com"></script>
-    </head>
-    <body class="text-slate-800 flex flex-col min-h-screen">
+        .custom-select select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background: white;
+        }
+        
+        /* Para navegadores que soportan estilización limitada */
+        #categoria-select option {
+            font-weight: normal;
+        }
+        
+        #categoria-select option[value*="Insumos"] {
+            font-weight: 600;
+            color: #16a34a;
+        }
+        
+        #categoria-select option[value*="Activos"] {
+            font-weight: 600;
+            color: #2563eb;
+        }
+        
+        /* Alternativa con data attributes */
+        #categoria-select option[data-type="insumo"]::after {
+            content: " [Insumos]";
+            font-weight: 600;
+            font-size: 0.8em;
+            color: #16a34a;
+        }
+        
+        #categoria-select option[data-type="activo"]::after {
+            content: " [Activos]";
+            font-weight: 600;
+            font-size: 0.8em;
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen">
   <!-- * Estructura HTML para la aplicación de gestión de laboratorio de la UTN.
     * Incluye:
     * - Pantalla de verificación de autenticación
@@ -125,7 +169,7 @@
 
                 </div>
                      <!-- BUSCADOR UNIVERSAL -->
-                <section class="card p-4 mb-6">
+                <section class="card p-4 mb-6" style="position: relative; z-index: 9999;">
                     <div class="flex flex-wrap gap-4 items-center">
                         <div class="flex-1 min-w-[200px]">
                             <input type="text" id="busqueda-universal" placeholder="Buscar activos e insumos..." class="input-field w-full">
@@ -137,10 +181,10 @@
                         </select>
                         <select id="categoria-select" class="input-field w-48">
                             <option value="todas">Todas las categorías</option>
-                            <option value="Instrumentos">🔧 Instrumentos</option>
-                            <option value="Herramientas">🔨 Herramientas</option>
-                            <option value="Componentes Digitales">💻 Componentes Digitales</option>
-                            <option value="Componentes Analógicos">⚡ Componentes Analógicos</option>
+                            <option value="Instrumentos">Instrumentos   <a style="color: #000000 !important; font-weight: 900 !important; text-decoration: none !important;">[Insumos]</a></option>
+                            <option value="Herramientas"> Herramientas  <a style="color: #000000 !important; font-weight: 900 !important; text-decoration: none !important;">[Insumos]</a></option>
+                            <option value="Componentes Digitales">Componentes Digitales <a href="#" style="color: #001541 !important; font-weight: 900 !important; text-decoration: none !important;">[Activos]</a></option>
+                            <option value="Componentes Analógicos">Componentes Analógicos <a href="#" style="color: #00040e !important; font-weight: 900 !important; text-decoration: none !important;">[Activos]</a></option>
                         </select>
                         <select id="estado-select" class="input-field w-32">
                             <option value="todos">Todos</option>
