@@ -34,6 +34,9 @@ class IndexController {
         if (buscarBtn && limpiarBtn && busquedaInput) {
             console.log('✅ Elementos de filtros encontrados');
 
+            // Configurar filtros dinámicos
+            this.setupDynamicFilters();
+
             // Evento de búsqueda
             buscarBtn.addEventListener('click', () => {
                 console.log('🔎 Ejecutando búsqueda desde index.js...');
@@ -73,6 +76,106 @@ class IndexController {
         }
     }
 
+    // Configurar filtros dinámicos
+    setupDynamicFilters() {
+        const tipoSelect = document.getElementById('tipo-select');
+        const estadoSelect = document.getElementById('estado-select');
+        const categoriaSelect = document.getElementById('categoria-select');
+
+        /**
+         * Updates the Status dropdown based on selected Type
+         * @param {string} tipo - 'activo', 'insumo', or 'todos'
+         */
+        const updateEstadoOptions = (tipo) => {
+            // We save the current value to try and keep it if it exists in the new list
+            const currentVal = estadoSelect.value;
+
+            // Clear current options
+            estadoSelect.innerHTML = '<option value="todos">Todos</option>';
+
+            if (tipo === 'insumo') {
+                // Options for Insumos (Supplies)
+                const insumoOptions = [
+                    { value: 'con-stock', text: '📦 Con Stock' },
+                    { value: 'bajo-stock', text: '⚠️ Bajo Stock' },
+                    { value: 'sin-stock', text: '🚫 Sin Stock' }
+                ];
+                insumoOptions.forEach(opt => {
+                    const el = new Option(opt.text, opt.value);
+                    estadoSelect.add(el);
+                });
+                console.log("🔄 Filter set to Insumos: Showing Stock status");
+
+            } else if (tipo === 'activo') {
+                // Options for Activos (Assets)
+                const activoOptions = [
+                    { value: 'disponible', text: '✅ Disponible' },
+                    { value: 'prestado', text: '🤝 Prestado' },
+                    { value: 'mantenimiento', text: '🛠️ Mantenimiento' },
+                    { value: 'fuera-servicio', text: '✖️ Fuera de Servicio' }
+                ];
+                activoOptions.forEach(opt => {
+                    const el = new Option(opt.text, opt.value);
+                    estadoSelect.add(el);
+                });
+                console.log("🔄 Filter set to Activos: Showing Availability status");
+
+            } else {
+                // Universal Mode (All types)
+                // We combine them or show a generic list
+                const allOptions = [
+                    { value: 'disponible', text: 'Disponible / Con Stock' },
+                    { value: 'bajo-stock', text: 'Bajo Stock' },
+                    { value: 'sin-stock', text: 'Sin Stock / No disponible' }
+                ];
+                allOptions.forEach(opt => {
+                    const el = new Option(opt.text, opt.value);
+                    estadoSelect.add(el);
+                });
+            }
+
+            // Try to restore the previous value if it's still available
+            if ([...estadoSelect.options].some(o => o.value === currentVal)) {
+                estadoSelect.value = currentVal;
+            }
+        };
+
+        // Listen for changes in the Type selector
+        tipoSelect.addEventListener('change', (e) => {
+            const selectedType = e.target.value;
+            updateEstadoOptions(selectedType);
+
+            // Optional: Also filter Categories if you want
+            this.filterCategories(selectedType);
+        });
+
+        /**
+         * Optional: Filters categories to show only relevant ones
+         */
+        this.filterCategories = (tipo) => {
+            const categories = categoriaSelect.querySelectorAll('option');
+            categories.forEach(opt => {
+                if (opt.value === 'todas') return;
+
+                // Logic: Insumos usually are "Componentes", Activos are "Herramientas/Instrumentos"
+                if (tipo === 'insumo') {
+                    const isInsumoCat = opt.text.includes('Componentes') || opt.text.includes('Analógicos');
+                    opt.style.display = isInsumoCat ? 'block' : 'none';
+                } else if (tipo === 'activo') {
+                    const isActivoCat = opt.text.includes('Instrumentos') || opt.text.includes('Herramientas');
+                    opt.style.display = isActivoCat ? 'block' : 'none';
+                } else {
+                    opt.style.display = 'block';
+                }
+            });
+            categoriaSelect.value = 'todas';
+        };
+
+        // Initialize with current value
+        updateEstadoOptions(tipoSelect.value);
+        this.filterCategories(tipoSelect.value);
+    }
+
     // Cargar items para filtrar
     async cargarItemsParaFiltrar() {
         try {
@@ -103,9 +206,16 @@ class IndexController {
                 console.log('📦 Activos cargados (directos):', activos?.length || 'undefined');
                 console.log('📦 Insumos cargados (directos):', insumos?.length || 'undefined');
 
+                // Debug adicional para ver qué hay en activos
+                console.log('🔍 Debug activos response:', activosResponse.status, activosResponse.statusText);
+                console.log('🔍 Debug activos data:', activos);
+                console.log('🔍 Debug insumos response:', insumosResponse.status, insumosResponse.statusText);
+
                 // Asegurar que ambos sean arrays
                 const activosArray = Array.isArray(activos) ? activos : [];
                 const insumosArray = Array.isArray(insumos) ? insumos : [];
+
+                console.log('🔍 Debug arrays - Activos:', activosArray.length, 'Insumos:', insumosArray.length);
 
                 // Combinar datos y agregar tipo
                 const allRealItems = [
@@ -121,340 +231,360 @@ class IndexController {
                     console.log('✅ Usando datos reales DIRECTOS de la base de datos');
                 } else {
                     // Si no hay datos, usar datos de ejemplo
+                } else {
                     console.log('⚠️ No hay datos reales, usando datos de ejemplo...');
                     this.allItems = this.getDatosDeEjemplo();
                 }
 
             } else {
-                console.log('❌ Error en respuesta de API, usando datos de ejemplo...');
+                console.log('❌ Error en respuesta de API - Activos:', activosResponse.status, activosResponse.statusText);
+                console.log('❌ Error en respuesta de API - Insumos:', insumosResponse.status, insumosResponse.statusText);
+                console.log('❌ Usando datos de ejemplo...');
                 this.allItems = this.getDatosDeEjemplo();
+
+                this.filteredItems = [...this.allItems];
+                this.renderItemsDirectamente(this.allItems);
+                this.setupFiltrosDirectamente(this.allItems);
             }
-
-            console.log('📊 Datos finales desde index.js:', this.allItems.length);
-
-            // Mostrar todos los items inicialmente
-            this.filteredItems = [...this.allItems];
-            this.renderItemsDirectamente(this.allItems);
-            this.setupFiltrosDirectamente(this.allItems);
-
-        } catch (error) {
-            console.error('❌ Error cargando items desde index.js:', error);
-            console.log('🔄 Usando datos de ejemplo como fallback...');
-            this.allItems = this.getDatosDeEjemplo();
-
-            this.filteredItems = [...this.allItems];
-            this.renderItemsDirectamente(this.allItems);
-            this.setupFiltrosDirectamente(this.allItems);
         }
-    }
 
     // Método para obtener datos de ejemplo
     getDatosDeEjemplo() {
-        return [
-            // Activos de ejemplo
-            {
-                _id: 'act001',
-                codigo: 'ACT-001',
-                nombre: 'Multímetro Digital',
-                descripcion: 'Multímetro digital con medición de voltaje, corriente y resistencia',
-                categoria: 'Instrumentos de Medición',
-                cantidad: 5,
-                tipo: 'activo',
-                estado: 'disponible'
-            },
-            {
-                _id: 'act002',
-                codigo: 'ACT-002',
-                nombre: 'Osciloscopio',
-                descripcion: 'Osciloscopio de doble canal 100MHz',
-                categoria: 'Instrumentos de Medición',
-                cantidad: 2,
-                tipo: 'activo',
-                estado: 'disponible'
-            },
-            // Insumos de ejemplo
-            {
-                _id: 'ins001',
-                id_insumo: 'INS-001',
-                codigo: 'RES-001',
-                nombre: 'Resistencia 1kΩ',
-                NombProducto: 'Resistencia 1kΩ 1/4W',
-                descripcion: 'Resistencia carbón 1kΩ 1/4W 5%',
-                categoria: 'Componentes Digitales',
-                cantidad: 100,
-                tipo: 'insumo',
-                stock_actual: 100,
-                stock_minimo: 20
-            },
-            {
-                _id: 'ins002',
-                id_insumo: 'INS-002',
-                codigo: 'CAP-001',
-                nombre: 'Capacitor 100µF',
-                NombProducto: 'Capacitor electrolítico 100µF 16V',
-                descripcion: 'Capacitor electrolítico 100µF 16V',
-                categoria: 'Componentes Digitales',
-                cantidad: 0,
-                tipo: 'insumo',
-                stock_actual: 0,
-                stock_minimo: 10,
-                estado: 'activo'
-            },
-            {
-                _id: 'ins003',
-                id_insumo: 'INS-003',
-                codigo: 'LED-001',
-                nombre: 'LED Rojo 5mm',
-                NombProducto: 'LED rojo 5mm de alta luminosidad',
-                descripcion: 'LED rojo 5mm 20mA',
-                categoria: 'Componentes Digitales',
-                cantidad: 0,
-                tipo: 'insumo',
-                stock_actual: 0,
-                stock_minimo: 50,
-                estado: 'activo'
-            }
-        ];
-    }
-
-    // Renderizar items directamente
-    renderItemsDirectamente(items) {
-        this.allItems = items;
-        this.aplicarFiltrosDirectamente();
-    }
-
-    // Configurar filtros directamente
-    setupFiltrosDirectamente(items) {
-        this.allItems = items;
-
-        // Event listeners para filtros
-        document.getElementById('busqueda-universal')?.addEventListener('input', () => this.aplicarFiltrosDirectamente());
-        document.getElementById('tipo-select')?.addEventListener('change', () => this.aplicarFiltrosDirectamente());
-        document.getElementById('categoria-select')?.addEventListener('change', () => this.aplicarFiltrosDirectamente());
-        document.getElementById('estado-select')?.addEventListener('change', () => this.aplicarFiltrosDirectamente());
-
-        document.getElementById('limpiar-busqueda')?.addEventListener('click', () => this.limpiarFiltros());
-    }
-
-    // Aplicar filtros directamente
-    aplicarFiltrosDirectamente() {
-        console.log('🔍 Aplicando filtros directamente desde index.js...');
-
-        const busqueda = document.getElementById('busqueda-universal')?.value.toLowerCase() || '';
-        const tipo = document.getElementById('tipo-select')?.value || 'todos';
-        const categoria = document.getElementById('categoria-select')?.value || 'todas';
-        const estado = document.getElementById('estado-select')?.value || 'todos';
-
-        console.log('🔍 Criterios de filtro desde index.js:', { busqueda, tipo, categoria, estado });
-
-        // Si el filtro es sin-stock, hacer consulta directa a la API
-        if (estado === 'sin-stock') {
-            this.cargarItemsSinStock();
-            return;
+            return [
+                // Activos de ejemplo
+                {
+                    _id: 'act001',
+                    codigo: 'ACT-001',
+                    nombre: 'Multímetro Digital',
+                    descripcion: 'Multímetro digital con medición de voltaje, corriente y resistencia',
+                    categoria: 'Instrumentos de Medición',
+                    cantidad: 5,
+                    tipo: 'activo',
+                    estado: 'disponible'
+                },
+                {
+                    _id: 'act002',
+                    codigo: 'ACT-002',
+                    nombre: 'Osciloscopio',
+                    descripcion: 'Osciloscopio de doble canal 100MHz',
+                    categoria: 'Instrumentos de Medición',
+                    cantidad: 2,
+                    tipo: 'activo',
+                    estado: 'disponible'
+                },
+                {
+                    _id: 'act003',
+                    codigo: 'ACT-003',
+                    nombre: 'Protoboard',
+                    descripcion: 'Protoboard de 830 puntos',
+                    categoria: 'Componentes Digitales',
+                    cantidad: 8,
+                    tipo: 'activo',
+                    estado: 'disponible'
+                },
+                {
+                    _id: 'act004',
+                    codigo: 'ACT-004',
+                    nombre: 'Kit de Soldadura',
+                    descripcion: 'Kit de soldadura con estaño y flux',
+                    categoria: 'Herramientas',
+                    cantidad: 4,
+                    tipo: 'activo',
+                    estado: 'disponible'
+                },
+                {
+                    _id: 'act005',
+                    codigo: 'ACT-005',
+                    nombre: 'Fuente de Poder',
+                    descripcion: 'Fuente de poder regulable 0-30V DC',
+                    categoria: 'Fuentes de Poder',
+                    cantidad: 3,
+                    tipo: 'activo',
+                    estado: 'disponible'
+                },
+                // Insumos de ejemplo
+                {
+                    _id: 'ins001',
+                    id_insumo: 'INS-001',
+                    codigo: 'RES-001',
+                    nombre: 'Resistencia 1kΩ',
+                    NombProducto: 'Resistencia 1kΩ 1/4W',
+                    descripcion: 'Resistencia carbón 1kΩ 1/4W 5%',
+                    categoria: 'Componentes Digitales',
+                    cantidad: 100,
+                    tipo: 'insumo',
+                    stock_actual: 100,
+                    stock_minimo: 20
+                },
+                {
+                    _id: 'ins002',
+                    id_insumo: 'INS-002',
+                    codigo: 'CAP-001',
+                    nombre: 'Capacitor 100µF',
+                    NombProducto: 'Capacitor electrolítico 100µF 16V',
+                    descripcion: 'Capacitor electrolítico 100µF 16V',
+                    categoria: 'Componentes Digitales',
+                    cantidad: 0,
+                    tipo: 'insumo',
+                    stock_actual: 0,
+                    stock_minimo: 10,
+                    estado: 'activo'
+                },
+                {
+                    _id: 'ins003',
+                    id_insumo: 'INS-003',
+                    codigo: 'LED-001',
+                    nombre: 'LED Rojo 5mm',
+                    NombProducto: 'LED rojo 5mm de alta luminosidad',
+                    descripcion: 'LED rojo 5mm 20mA',
+                    categoria: 'Componentes Digitales',
+                    cantidad: 0,
+                    tipo: 'insumo',
+                    stock_actual: 0,
+                    stock_minimo: 50,
+                    estado: 'activo'
+                }
+            ];
         }
 
-        // Para los demás filtros, usar la lógica normal
-        this.filtrarItemsLocales(busqueda, tipo, categoria, estado);
-    }
+        // Renderizar items directamente
+        renderItemsDirectamente(items) {
+            this.allItems = items;
+            this.aplicarFiltrosDirectamente();
+        }
+
+        // Configurar filtros directamente
+        setupFiltrosDirectamente(items) {
+            this.allItems = items;
+
+            // Event listeners para filtros
+            document.getElementById('busqueda-universal')?.addEventListener('input', () => this.aplicarFiltrosDirectamente());
+            document.getElementById('tipo-select')?.addEventListener('change', () => this.aplicarFiltrosDirectamente());
+            document.getElementById('categoria-select')?.addEventListener('change', () => this.aplicarFiltrosDirectamente());
+            document.getElementById('estado-select')?.addEventListener('change', () => this.aplicarFiltrosDirectamente());
+
+            document.getElementById('limpiar-busqueda')?.addEventListener('click', () => this.limpiarFiltros());
+        }
+
+        // Aplicar filtros directamente
+        aplicarFiltrosDirectamente() {
+            console.log('🔍 Aplicando filtros directamente desde index.js...');
+
+            const busqueda = document.getElementById('busqueda-universal')?.value.toLowerCase() || '';
+            const tipo = document.getElementById('tipo-select')?.value || 'todos';
+            const categoria = document.getElementById('categoria-select')?.value || 'todas';
+            const estado = document.getElementById('estado-select')?.value || 'todos';
+
+            console.log('🔍 Criterios de filtro desde index.js:', { busqueda, tipo, categoria, estado });
+
+            // Si el filtro es sin-stock, hacer consulta directa a la API
+            if (estado === 'sin-stock') {
+                this.cargarItemsSinStock();
+                return;
+            }
+
+            // Para los demás filtros, usar la lógica normal
+            this.filtrarItemsLocales(busqueda, tipo, categoria, estado);
+        }
 
     // Cargar items sin stock directamente desde la API
     async cargarItemsSinStock() {
-        try {
-            console.log('🔍 Cargando items sin stock directamente desde API...');
+            try {
+                console.log('🔍 Cargando items sin stock directamente desde API...');
 
-            const token = localStorage.getItem('utn_token');
+                const token = localStorage.getItem('utn_token');
 
-            // Consultar insumos con cantidad = 0
-            const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos?cantidad=0`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                const insumosSinStock = await response.json();
-                console.log('📦 Insumos sin stock cargados:', insumosSinStock.length);
-
-                // Verificar qué datos retornó la API
-                console.log('📊 Muestra de datos retornados por API:', insumosSinStock.slice(0, 3).map(item => ({
-                    nombre: item.NombProducto || item.nombre,
-                    cantidad: item.cantidad,
-                    id: item.id_insumo
-                })));
-
-                // Verificar cuántos realmente tienen cantidad = 0
-                const realesSinStock = insumosSinStock.filter(item => item.cantidad === 0);
-                console.log('📊 Items que realmente tienen cantidad = 0:', realesSinStock.length);
-
-                // Si la API no filtró por cantidad, filtrar localmente
-                const itemsFiltrados = insumosSinStock.filter(item => {
-                    // Solo items con cantidad = 0
-                    if (item.cantidad !== 0) return false;
-
-                    // Aplicar filtros adicionales (búsqueda, tipo, categoría)
-                    const busqueda = document.getElementById('busqueda-universal')?.value.toLowerCase() || '';
-                    const tipo = document.getElementById('tipo-select')?.value || 'todos';
-                    const categoria = document.getElementById('categoria-select')?.value || 'todas';
-
-                    // Filtro de búsqueda
-                    if (busqueda && !item.nombre?.toLowerCase().includes(busqueda) &&
-                        !item.caracteristicas?.toLowerCase().includes(busqueda) &&
-                        !item.codigo?.toLowerCase().includes(busqueda) &&
-                        !item.NombProducto?.toLowerCase().includes(busqueda)) {
-                        return false;
+                // Consultar insumos con cantidad = 0
+                const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos?cantidad=0`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
                     }
-
-                    // Filtro de tipo
-                    if (tipo !== 'todos' && tipo !== 'insumo') return false;
-
-                    // Filtro de categoría
-                    if (categoria !== 'todas' && item.categoria !== categoria) return false;
-
-                    return true;
                 });
 
-                this.filteredItems = itemsFiltrados;
-                console.log('✅ Items sin stock filtrados (reales):', this.filteredItems.length);
-                this.mostrarItemsFiltrados();
+                if (response.ok) {
+                    const insumosSinStock = await response.json();
+                    console.log('📦 Insumos sin stock cargados:', insumosSinStock.length);
 
-            } else {
-                console.log('❌ Error cargando items sin stock, usando fallback...');
+                    // Verificar qué datos retornó la API
+                    console.log('📊 Muestra de datos retornados por API:', insumosSinStock.slice(0, 3).map(item => ({
+                        nombre: item.NombProducto || item.nombre,
+                        cantidad: item.cantidad,
+                        id: item.id_insumo
+                    })));
+
+                    // Verificar cuántos realmente tienen cantidad = 0
+                    const realesSinStock = insumosSinStock.filter(item => item.cantidad === 0);
+                    console.log('📊 Items que realmente tienen cantidad = 0:', realesSinStock.length);
+
+                    // Si la API no filtró por cantidad, filtrar localmente
+                    const itemsFiltrados = insumosSinStock.filter(item => {
+                        // Solo items con cantidad = 0
+                        if (item.cantidad !== 0) return false;
+
+                        // Aplicar filtros adicionales (búsqueda, tipo, categoría)
+                        const busqueda = document.getElementById('busqueda-universal')?.value.toLowerCase() || '';
+                        const tipo = document.getElementById('tipo-select')?.value || 'todos';
+                        const categoria = document.getElementById('categoria-select')?.value || 'todas';
+
+                        // Filtro de búsqueda
+                        if (busqueda && !item.nombre?.toLowerCase().includes(busqueda) &&
+                            !item.caracteristicas?.toLowerCase().includes(busqueda) &&
+                            !item.codigo?.toLowerCase().includes(busqueda) &&
+                            !item.NombProducto?.toLowerCase().includes(busqueda)) {
+                            return false;
+                        }
+
+                        // Filtro de tipo
+                        if (tipo !== 'todos' && tipo !== 'insumo') return false;
+
+                        // Filtro de categoría
+                        if (categoria !== 'todas' && item.categoria !== categoria) return false;
+
+                        return true;
+                    });
+
+                    this.filteredItems = itemsFiltrados;
+                    console.log('✅ Items sin stock filtrados (reales):', this.filteredItems.length);
+                    this.mostrarItemsFiltrados();
+
+                } else {
+                    console.log('❌ Error cargando items sin stock, usando fallback...');
+                    this.filtrarItemsLocales('', 'insumo', 'todas', 'sin-stock');
+                }
+
+            } catch (error) {
+                console.error('❌ Error en consulta directa de sin stock:', error);
+                console.log('🔄 Usando filtro local como fallback...');
                 this.filtrarItemsLocales('', 'insumo', 'todas', 'sin-stock');
             }
-
-        } catch (error) {
-            console.error('❌ Error en consulta directa de sin stock:', error);
-            console.log('🔄 Usando filtro local como fallback...');
-            this.filtrarItemsLocales('', 'insumo', 'todas', 'sin-stock');
-        }
-    }
-
-    // Filtrar items localmente (método original)
-    filtrarItemsLocales(busqueda, tipo, categoria, estado) {
-        console.log('🔍 Filtrando items localmente...');
-
-        this.filteredItems = this.allItems.filter(item => {
-            // Excluir items eliminados
-            if (item.estado === 'eliminado') return false;
-
-            // Filtro de búsqueda
-            if (busqueda && !item.nombre?.toLowerCase().includes(busqueda) &&
-                !item.descripcion?.toLowerCase().includes(busqueda) &&
-                !item.codigo?.toLowerCase().includes(busqueda) &&
-                !item.NombProducto?.toLowerCase().includes(busqueda)) {
-                return false;
-            }
-
-            // Filtro de tipo
-            if (tipo !== 'todos') {
-                if (tipo === 'activo' && item.tipo !== 'activo') return false;
-                if (tipo === 'insumo' && item.tipo !== 'insumo') return false;
-            }
-
-            // Filtro de categoría
-            if (categoria !== 'todas' && item.categoria !== categoria) {
-                return false;
-            }
-
-            // Filtro de estado
-            if (estado !== 'todos') {
-                const itemCantidad = item.cantidad || 0;
-                const itemStockActual = item.stock_actual !== undefined ? item.stock_actual : item.cantidad || 0;
-
-                if (estado === 'disponible' && itemStockActual <= 0) return false;
-                if (estado === 'con-stock' && itemStockActual <= 0) return false;
-                if (estado === 'bajo-stock' && !(itemStockActual > 0 && itemStockActual <= 5)) return false;
-                if (estado === 'sin-stock' && itemStockActual !== 0) return false;
-            }
-
-            return true;
-        });
-
-        console.log('✅ Items filtrados desde index.js:', this.filteredItems.length);
-        this.mostrarItemsFiltrados();
-    }
-
-    // Mostrar items filtrados
-    mostrarItemsFiltrados() {
-        const itemsGrid = document.getElementById('itemsGrid');
-        const resultadosCount = document.getElementById('resultados-count');
-        const resultadosTitulo = document.getElementById('resultados-titulo');
-
-        if (!itemsGrid) {
-            console.log('❌ No se encontró itemsGrid desde index.js');
-            return;
         }
 
-        console.log('🎨 Renderizando items en el grid...', this.filteredItems.length);
+        // Filtrar items localmente (método original)
+        filtrarItemsLocales(busqueda, tipo, categoria, estado) {
+            console.log('🔍 Filtrando items localmente...');
 
-        // Actualizar contador
-        if (resultadosCount) {
-            resultadosCount.textContent = `(${this.filteredItems.length})`;
+            this.filteredItems = this.allItems.filter(item => {
+                // Excluir items eliminados
+                if (item.estado === 'eliminado') return false;
+
+                // Filtro de búsqueda
+                if (busqueda && !item.nombre?.toLowerCase().includes(busqueda) &&
+                    !item.descripcion?.toLowerCase().includes(busqueda) &&
+                    !item.codigo?.toLowerCase().includes(busqueda) &&
+                    !item.NombProducto?.toLowerCase().includes(busqueda)) {
+                    return false;
+                }
+
+                // Filtro de tipo
+                if (tipo !== 'todos') {
+                    if (tipo === 'activo' && item.tipo !== 'activo') return false;
+                    if (tipo === 'insumo' && item.tipo !== 'insumo') return false;
+                }
+
+                // Filtro de categoría
+                if (categoria !== 'todas' && item.categoria !== categoria) {
+                    return false;
+                }
+
+                // Filtro de estado
+                if (estado !== 'todos') {
+                    const itemCantidad = item.cantidad || 0;
+                    const itemStockActual = item.stock_actual !== undefined ? item.stock_actual : item.cantidad || 0;
+
+                    if (estado === 'disponible' && itemStockActual <= 0) return false;
+                    if (estado === 'con-stock' && itemStockActual <= 0) return false;
+                    if (estado === 'bajo-stock' && !(itemStockActual > 0 && itemStockActual <= 5)) return false;
+                    if (estado === 'sin-stock' && itemStockActual !== 0) return false;
+                }
+
+                return true;
+            });
+
+            console.log('✅ Items filtrados desde index.js:', this.filteredItems.length);
+            this.mostrarItemsFiltrados();
         }
 
-        // Actualizar título
-        if (resultadosTitulo) {
-            const busqueda = document.getElementById('busqueda-universal')?.value;
-            if (busqueda) {
-                resultadosTitulo.textContent = 'Resultados de búsqueda';
-            } else {
-                resultadosTitulo.textContent = 'Todos los artículos';
+        // Mostrar items filtrados
+        mostrarItemsFiltrados() {
+            const itemsGrid = document.getElementById('itemsGrid');
+            const resultadosCount = document.getElementById('resultados-count');
+            const resultadosTitulo = document.getElementById('resultados-titulo');
+
+            if (!itemsGrid) {
+                console.log('❌ No se encontró itemsGrid desde index.js');
+                return;
             }
-        }
 
-        // Limpiar grid
-        itemsGrid.innerHTML = '';
+            console.log('🎨 Renderizando items en el grid...', this.filteredItems.length);
 
-        // Mostrar items
-        if (this.filteredItems.length === 0) {
-            itemsGrid.innerHTML = `
+            // Actualizar contador
+            if (resultadosCount) {
+                resultadosCount.textContent = `(${this.filteredItems.length})`;
+            }
+
+            // Actualizar título
+            if (resultadosTitulo) {
+                const busqueda = document.getElementById('busqueda-universal')?.value;
+                if (busqueda) {
+                    resultadosTitulo.textContent = 'Resultados de búsqueda';
+                } else {
+                    resultadosTitulo.textContent = 'Todos los artículos';
+                }
+            }
+
+            // Limpiar grid
+            itemsGrid.innerHTML = '';
+
+            // Mostrar items
+            if (this.filteredItems.length === 0) {
+                itemsGrid.innerHTML = `
                 <div class="col-span-full text-center py-8">
                     <div class="text-slate-400 text-lg">🔍 No se encontraron resultados</div>
                     <div class="text-slate-500 text-sm mt-2">Intenta con otros criterios de búsqueda</div>
                 </div>
             `;
-        } else {
-            this.filteredItems.forEach((item, index) => {
-                const itemCard = this.crearItemCard(item);
-                itemCard.style.animationDelay = `${index * 50}ms`;
-                itemsGrid.appendChild(itemCard);
-            });
+            } else {
+                this.filteredItems.forEach((item, index) => {
+                    const itemCard = this.crearItemCard(item);
+                    itemCard.style.animationDelay = `${index * 50}ms`;
+                    itemsGrid.appendChild(itemCard);
+                });
+            }
+
+            console.log('✅ Items mostrados en el grid desde index.js:', this.filteredItems.length);
         }
 
-        console.log('✅ Items mostrados en el grid desde index.js:', this.filteredItems.length);
-    }
+        // Crear card para item (estilo insumos.html)
+        crearItemCard(item) {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group';
 
-    // Crear card para item (estilo insumos.html)
-    crearItemCard(item) {
-        const card = document.createElement('div');
-        card.className = 'bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group';
+            const tipoIcon = item.tipo === 'activo' ? '🔧' : '🧩';
+            const cantidad = item.cantidad || 0;
 
-        const tipoIcon = item.tipo === 'activo' ? '🔧' : '🧩';
-        const cantidad = item.cantidad || 0;
+            // Usar los mismos campos que insumos.html
+            const nombre = item.NombProducto || item.nombre || 'Sin nombre';
+            const id = item.id_insumo || item.codigo || 'N/A';
+            const caracteristicas = item.caracteristicas || item.descripcion || 'Sin descripción';
+            const categoria = item.categoria || 'N/A';
 
-        // Usar los mismos campos que insumos.html
-        const nombre = item.NombProducto || item.nombre || 'Sin nombre';
-        const id = item.id_insumo || item.codigo || 'N/A';
-        const caracteristicas = item.caracteristicas || item.descripcion || 'Sin descripción';
-        const categoria = item.categoria || 'N/A';
+            // Determinar clase de stock como en insumos.html
+            const getStockClass = (cantidad) => {
+                if (cantidad <= 0) return 'bg-red-100 text-red-600';
+                if (cantidad <= 5) return 'bg-yellow-100 text-yellow-600';
+                return 'bg-green-100 text-green-600';
+            };
 
-        // Determinar clase de stock como en insumos.html
-        const getStockClass = (cantidad) => {
-            if (cantidad <= 0) return 'bg-red-100 text-red-600';
-            if (cantidad <= 5) return 'bg-yellow-100 text-yellow-600';
-            return 'bg-green-100 text-green-600';
-        };
+            const getStockText = (cantidad) => {
+                if (cantidad <= 0) return 'SIN STOCK';
+                if (cantidad <= 5) return 'BAJO STOCK';
+                return 'CON STOCK';
+            };
 
-        const getStockText = (cantidad) => {
-            if (cantidad <= 0) return 'SIN STOCK';
-            if (cantidad <= 5) return 'BAJO STOCK';
-            return 'CON STOCK';
-        };
+            const stockClass = getStockClass(cantidad);
+            const stockBadgeText = getStockText(cantidad);
 
-        const stockClass = getStockClass(cantidad);
-        const stockBadgeText = getStockText(cantidad);
-
-        card.innerHTML = `
+            card.innerHTML = `
             <div class="relative h-32 bg-slate-100 overflow-hidden">
                 <img src="https://picsum.photos/seed/${item.tipo}-${id}/400/300.jpg" class="w-full h-full object-cover">
                 <div class="absolute top-2 right-2">
@@ -496,34 +626,34 @@ class IndexController {
             </div>
         `;
 
-        return card;
-    }
+            return card;
+        }
 
-    // Limpiar filtros
-    limpiarFiltros() {
-        console.log('🔄 Limpiando filtros desde index.js...');
-        document.getElementById('busqueda-universal').value = '';
-        document.getElementById('tipo-select').value = 'todos';
-        document.getElementById('categoria-select').value = 'todas';
-        document.getElementById('estado-select').value = 'todos';
+        // Limpiar filtros
+        limpiarFiltros() {
+            console.log('🔄 Limpiando filtros desde index.js...');
+            document.getElementById('busqueda-universal').value = '';
+            document.getElementById('tipo-select').value = 'todos';
+            document.getElementById('categoria-select').value = 'todas';
+            document.getElementById('estado-select').value = 'todos';
 
-        // Resetear items
-        this.filteredItems = [...this.allItems];
-        this.mostrarItemsFiltrados();
+            // Resetear items
+            this.filteredItems = [...this.allItems];
+            this.mostrarItemsFiltrados();
 
-        if (window.Utils) {
-            Utils.showToast('🔄 Filtros limpiados', 'success');
+            if (window.Utils) {
+                Utils.showToast('🔄 Filtros limpiados', 'success');
+            }
+        }
+
+        // Agregar al carrito
+        agregarAlCarrito(itemId) {
+            console.log('🛒 Agregando al carrito desde index.js:', itemId);
+            if (window.Utils) {
+                Utils.showToast('🛒 Agregado al carrito', 'success');
+            }
         }
     }
-
-    // Agregar al carrito
-    agregarAlCarrito(itemId) {
-        console.log('🛒 Agregando al carrito desde index.js:', itemId);
-        if (window.Utils) {
-            Utils.showToast('🛒 Agregado al carrito', 'success');
-        }
-    }
-}
 
 // Inicializar el controlador cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
@@ -603,7 +733,7 @@ this.setupFiltrosDirectamente(this.allItems);
     }
 
 // Método para obtener datos de ejemplo
-getDatosDeEjemplo() {
+function getDatosDeEjemplo() {
     return [
         // Activos de ejemplo
         {

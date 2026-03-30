@@ -52,15 +52,8 @@ class IndexController {
                 this.aplicarFiltrosDirectamente();
             });
 
-            // Cambio en selects
-            [tipoSelect, categoriaSelect, estadoSelect].forEach(select => {
-                if (select) {
-                    select.addEventListener('change', () => {
-                        console.log('🔄 Cambio en select desde index.js:', select.id);
-                        this.aplicarFiltrosDirectamente();
-                    });
-                }
-            });
+            // NO configurar event listeners aquí - se configuran en setupFiltrosDirectamente
+            console.log('� Event listeners se configurarán en setupFiltrosDirectamente');
 
             // Cargar datos iniciales
             this.cargarItemsParaFiltrar();
@@ -100,11 +93,17 @@ class IndexController {
                 let activos = await activosResponse.json();
                 let insumos = await insumosResponse.json();
 
-                console.log('📦 Activos cargados (directos):', activos?.length || 'undefined');
+                console.log('📦 Activos cargados (directos):', activos?.todosLosActivos?.length || 'undefined');
                 console.log('📦 Insumos cargados (directos):', insumos?.length || 'undefined');
 
+                // Debug detallado de la respuesta de activos
+                console.log('🔍 Debug activos response:', activosResponse.status, activosResponse.statusText);
+                console.log('🔍 Debug activos data:', activos);
+                console.log('🔍 Debug insumos response:', insumosResponse.status, insumosResponse.statusText);
+                console.log('🔍 Debug insumos data:', insumos);
+
                 // Asegurar que ambos sean arrays
-                const activosArray = Array.isArray(activos) ? activos : [];
+                const activosArray = Array.isArray(activos?.todosLosActivos) ? activos.todosLosActivos : [];
                 const insumosArray = Array.isArray(insumos) ? insumos : [];
 
                 // Combinar datos y agregar tipo
@@ -132,7 +131,7 @@ class IndexController {
 
             console.log('📊 Datos finales desde index.js:', this.allItems.length);
 
-            // Mostrar todos los items inicialmente
+            // Mostrar todos los items inicialmente SIN aplicar filtros
             this.filteredItems = [...this.allItems];
             this.renderItemsDirectamente(this.allItems);
             this.setupFiltrosDirectamente(this.allItems);
@@ -219,13 +218,28 @@ class IndexController {
 
     // Renderizar items directamente
     renderItemsDirectamente(items) {
+        console.log('🔧 renderItemsDirectamente llamado con:', items.length, 'items');
         this.allItems = items;
-        this.aplicarFiltrosDirectamente();
+        this.filteredItems = [...items];
+        console.log('🔧 filteredItems asignado:', this.filteredItems.length, 'items');
+        this.mostrarItemsFiltrados();
     }
 
     // Configurar filtros directamente
     setupFiltrosDirectamente(items) {
         this.allItems = items;
+
+        // Forzar que los selects muestren "todos" inicialmente ANTES de configurar eventos
+        console.log('🔧 Configurando selects iniciales...');
+        document.getElementById('tipo-select').value = 'todos';
+        document.getElementById('categoria-select').value = 'todas';
+        document.getElementById('estado-select').value = 'todos';
+
+        console.log('🔧 Valores después de forzar:', {
+            tipo: document.getElementById('tipo-select').value,
+            categoria: document.getElementById('categoria-select').value,
+            estado: document.getElementById('estado-select').value
+        });
 
         // Event listeners para filtros
         document.getElementById('busqueda-universal')?.addEventListener('input', () => this.aplicarFiltrosDirectamente());
@@ -234,6 +248,8 @@ class IndexController {
         document.getElementById('estado-select')?.addEventListener('change', () => this.aplicarFiltrosDirectamente());
 
         document.getElementById('limpiar-busqueda')?.addEventListener('click', () => this.limpiarFiltros());
+
+        console.log('🔧 Event listeners configurados');
     }
 
     // Aplicar filtros directamente
@@ -246,6 +262,11 @@ class IndexController {
         const estado = document.getElementById('estado-select')?.value || 'todos';
 
         console.log('🔍 Criterios de filtro desde index.js:', { busqueda, tipo, categoria, estado });
+        console.log('🔍 Valores directos de los selects:', {
+            tipoSelect: document.getElementById('tipo-select')?.value,
+            categoriaSelect: document.getElementById('categoria-select')?.value,
+            estadoSelect: document.getElementById('estado-select')?.value
+        });
 
         // Si el filtro es sin-stock, hacer consulta directa a la API
         if (estado === 'sin-stock') {
@@ -410,9 +431,17 @@ class IndexController {
 
     // Mostrar items filtrados
     mostrarItemsFiltrados() {
+        console.log('🎨 mostrarItemsFiltrados llamado - filteredItems:', this.filteredItems.length);
+
         const itemsGrid = document.getElementById('itemsGrid');
         const resultadosCount = document.getElementById('resultados-count');
         const resultadosTitulo = document.getElementById('resultados-titulo');
+
+        console.log('🎨 Elementos encontrados:', {
+            itemsGrid: !!itemsGrid,
+            resultadosCount: !!resultadosCount,
+            resultadosTitulo: !!resultadosTitulo
+        });
 
         if (!itemsGrid) {
             console.log('❌ No se encontró itemsGrid desde index.js');
@@ -426,13 +455,21 @@ class IndexController {
             resultadosCount.textContent = `(${this.filteredItems.length})`;
         }
 
-        // Actualizar título
+        // Calcular y mostrar suma total de cantidades
+        const sumaTotal = this.filteredItems.reduce((total, item) => {
+            const cantidad = item.cantidad !== undefined ? item.cantidad : (item.stock_actual || 0);
+            return total + cantidad;
+        }, 0);
+
+        console.log('📊 Suma total de cantidades:', sumaTotal);
+
+        // Mostrar suma total en el título si existe el elemento
         if (resultadosTitulo) {
             const busqueda = document.getElementById('busqueda-universal')?.value;
             if (busqueda) {
                 resultadosTitulo.textContent = 'Resultados de búsqueda';
             } else {
-                resultadosTitulo.textContent = 'Todos los artículos';
+                resultadosTitulo.textContent = `Todos los artículos (${this.filteredItems.length} items, ${sumaTotal} unidades)`;
             }
         }
 
@@ -467,14 +504,26 @@ class IndexController {
         const tipo = item.tipo || 'insumo';
         const tipoIcon = tipo === 'activo' ? '🔧' : '🧩';
 
-        // Usar cantidad para el badge (como insumos.html)
-        const cantidad = item.cantidad || 0;
+        // Usar cantidad con fallback para activos que pueden no tener este campo
+        const cantidad = item.cantidad !== undefined ? item.cantidad : (item.stock_actual || 0);
 
-        // Usar los mismos campos que insumos.html
-        const nombre = item.NombProducto || item.nombre || 'Sin nombre';
-        const id = item.id_insumo || item.codigo || 'N/A';
-        const caracteristicas = item.caracteristicas || item.descripcion || 'Sin descripción';
+        // Usar los campos correctos para activos e insumos
+        const nombre = item.nombre || item.NombProducto || item.modelo_activo || `${item.marca || ''} ${item.modelo || ''}`.trim() || 'Sin nombre';
+        const id = item.numActivo || item.codigo || item.id_insumo || 'N/A';
+        const caracteristicas = item.descripcion || item.caracteristicas || item.caracteristicas || 'Sin descripción';
         const categoria = item.categoria || 'N/A';
+
+        // Debug para ver los campos del item
+        if (item.tipo === 'activo') {
+            console.log('🔧 Debug activo:', {
+                _id: item._id,
+                nombre: item.nombre,
+                numActivo: item.numActivo,
+                cantidad: item.cantidad,
+                descripcion: item.descripcion,
+                categoria: item.categoria
+            });
+        }
 
         // Determinar clase de stock como en insumos.html (usando cantidad)
         const getStockClass = (cantidad) => {
@@ -517,6 +566,7 @@ class IndexController {
                     <div class="flex-1">
                         <h3 class="font-bold text-slate-800 text-sm line-clamp-1">${nombre}</h3>
                         <p class="text-[10px] text-slate-400">ID: ${id}</p>
+                        <p class="text-[10px] text-slate-400">Num: ${item.numActivo || item.codigo || 'N/A'}</p>
                     </div>
                     <span class="text-[10px] font-medium ${tipoClass} px-2 py-0.5 rounded">
                         ${tipo.toUpperCase()}
@@ -535,7 +585,7 @@ class IndexController {
                 </div>
                 
                 <div class="flex gap-2">
-                    <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-blue-800 transition-all duration-200" onclick="window.indexController.agregarAlCarrito('${item._id || item.id_insumo}')">
+                    <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-blue-800 transition-all duration-200" onclick="console.log('🛒 Click en solicitar:', '${item._id || item.id_insumo}'); alert('🛒 Solicitud de ${nombre} (${tipo}) - Función en desarrollo')">
                         🛒 Solicitar
                     </button>
                 </div>
@@ -557,85 +607,27 @@ class IndexController {
         this.filteredItems = [...this.allItems];
         this.mostrarItemsFiltrados();
 
+        return card;
+    }
+
+    // Limpiar filtros
+    limpiarFiltros() {
+        console.log('� Limpiando filtros desde index.js...');
+        document.getElementById('busqueda-universal').value = '';
+        document.getElementById('tipo-select').value = 'todos';
+        document.getElementById('categoria-select').value = 'todas';
+        document.getElementById('estado-select').value = 'todos';
+        document.getElementById('categoria-select').value = 'todas';
+        document.getElementById('estado-select').value = 'todos';
+
+        // Resetear items
+        this.filteredItems = [...this.allItems];
+        this.mostrarItemsFiltrados();
+
         if (window.Utils) {
             Utils.showToast('🔄 Filtros limpiados', 'success');
         }
     }
-
-    // Agregar al carrito
-    agregarAlCarrito(itemId) {
-        console.log('🛒 Agregando al carrito desde index.js:', itemId);
-
-        // Obtener el item del array de items
-        const item = this.allItems.find(item =>
-            (item._id === itemId) || (item.id_insumo === itemId)
-        );
-
-        if (!item) {
-            console.log('❌ Item no encontrado:', itemId);
-            if (window.Utils) {
-                Utils.showToast('❌ Item no encontrado', 'error');
-            }
-            return;
-        }
-
-        // Usar el sistema de carrito existente (addToCart)
-        const nombre = item.nombre || item.NombProducto || 'Sin nombre';
-        const tipo = item.tipo || 'insumo';
-
-        // Llamar a la función addToCart del sistema existente
-        if (typeof addToCart === 'function') {
-            addToCart(nombre, tipo, item);
-            console.log('✅ Item agregado al carrito usando sistema existente:', nombre);
-        } else {
-            // Fallback: usar localStorage si addToCart no existe
-            console.log('⚠️ addToCart no encontrado, usando localStorage fallback');
-
-            let carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
-
-            const itemExistente = carrito.find(itemCarrito =>
-                (itemCarrito._id === itemId) || (itemCarrito.id_insumo === itemId)
-            );
-
-            if (itemExistente) {
-                console.log('⚠️ Item ya está en el carrito:', nombre);
-                if (window.Utils) {
-                    Utils.showToast('⚠️ El item ya está en el carrito', 'warning');
-                }
-                return;
-            }
-
-            const itemCarrito = {
-                ...item,
-                cantidad: 1,
-                fecha_agregado: new Date().toISOString()
-            };
-
-            carrito.push(itemCarrito);
-            localStorage.setItem('carrito', JSON.stringify(carrito));
-
-            console.log('✅ Item agregado al carrito (localStorage):', nombre);
-            console.log('📊 Total items en carrito:', carrito.length);
-
-            this.actualizarContadorCarrito();
-
-            if (window.Utils) {
-                Utils.showToast('✅ Agregado al carrito', 'success');
-            }
-        }
-    }
-
-    // Actualizar contador del carrito
-    actualizarContadorCarrito() {
-        const carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
-        const contador = document.querySelector('.cart-count');
-
-        if (contador) {
-            contador.textContent = carrito.length;
-            contador.style.display = carrito.length > 0 ? 'block' : 'none';
-        }
-    }
-}
 
 // Inicializar el controlador cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {

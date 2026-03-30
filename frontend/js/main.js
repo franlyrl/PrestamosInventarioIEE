@@ -580,8 +580,11 @@ const ApiService = {
 // Exportar para uso global - Evitar duplicación
 try {
     if (typeof window !== 'undefined') {
+        // Solo asignar si no existe CONFIG
         if (!window.CONFIG) {
-            window.CONFIG = CONFIG;
+            console.log('⚠️ CONFIG no encontrado en main.js, esperando que lo defina app.js');
+        } else {
+            console.log('✅ CONFIG ya existe en main.js');
         }
         window.appState = appState;
         window.Utils = Utils;
