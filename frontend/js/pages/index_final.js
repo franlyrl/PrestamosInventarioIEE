@@ -565,8 +565,74 @@ class IndexController {
     // Agregar al carrito
     agregarAlCarrito(itemId) {
         console.log('🛒 Agregando al carrito desde index.js:', itemId);
-        if (window.Utils) {
-            Utils.showToast('🛒 Agregado al carrito', 'success');
+
+        // Obtener el item del array de items
+        const item = this.allItems.find(item =>
+            (item._id === itemId) || (item.id_insumo === itemId)
+        );
+
+        if (!item) {
+            console.log('❌ Item no encontrado:', itemId);
+            if (window.Utils) {
+                Utils.showToast('❌ Item no encontrado', 'error');
+            }
+            return;
+        }
+
+        // Usar el sistema de carrito existente (addToCart)
+        const nombre = item.nombre || item.NombProducto || 'Sin nombre';
+        const tipo = item.tipo || 'insumo';
+
+        // Llamar a la función addToCart del sistema existente
+        if (typeof addToCart === 'function') {
+            addToCart(nombre, tipo, item);
+            console.log('✅ Item agregado al carrito usando sistema existente:', nombre);
+        } else {
+            // Fallback: usar localStorage si addToCart no existe
+            console.log('⚠️ addToCart no encontrado, usando localStorage fallback');
+
+            let carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+
+            const itemExistente = carrito.find(itemCarrito =>
+                (itemCarrito._id === itemId) || (itemCarrito.id_insumo === itemId)
+            );
+
+            if (itemExistente) {
+                console.log('⚠️ Item ya está en el carrito:', nombre);
+                if (window.Utils) {
+                    Utils.showToast('⚠️ El item ya está en el carrito', 'warning');
+                }
+                return;
+            }
+
+            const itemCarrito = {
+                ...item,
+                cantidad: 1,
+                fecha_agregado: new Date().toISOString()
+            };
+
+            carrito.push(itemCarrito);
+            localStorage.setItem('carrito', JSON.stringify(carrito));
+
+            console.log('✅ Item agregado al carrito (localStorage):', nombre);
+            console.log('📊 Total items en carrito:', carrito.length);
+
+            this.actualizarContadorCarrito();
+
+            if (window.Utils) {
+                Utils.showToast('✅ Agregado al carrito', 'success');
+            }
+        }
+    }
+
+    // Actualizar contador del carrito
+    actualizarContadorCarrito() {
+        const carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+        const contador = document.querySelector('.cart-count');
+
+        if (contador) {
+            contador.textContent = carrito.length;
+            contador.style.display = carrito.length > 0 ? 'block' : 'none';
         }
     }
 }
