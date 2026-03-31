@@ -54,4 +54,4 @@ listaEsperaSchema.index({ usuario: 1, insumo: 1, estado: 1 }, { unique: true });
 
 /** * Modelo 'ListaEspera' para gestionar la fila virtual de inventario.
  */
-module.exports = mongoose.model('ListaEspera', listaEsperaSchema);
+module.exports = mongoose.models.ListaEspera || mongoose.model('ListaEspera', listaEsperaSchema);

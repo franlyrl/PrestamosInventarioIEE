@@ -32,8 +32,8 @@ router.get('/:id', solicitudesControllers.getSolicitudById);
 
 // 2.1. Visualización para Estudiantes (solo sus solicitudes)
 // Esta ruta permite a los estudiantes ver cualquier solicitud que les pertenezca
-router.get('/estudiante/:id', 
-    restrictTo('estudiante', 'docente'), 
+router.get('/estudiante/:id',
+    restrictTo('estudiante', 'docente'),
     solicitudesControllers.getSolicitudByIdForStudent
 );
 
@@ -45,15 +45,15 @@ router.delete('/:id', solicitudesControllers.deleteSolicitud);
 // Estas rutas son para aprobar, rechazar o marcar devoluciones.
 
 // Para aprobaciones/rechazos iniciales y disparar el motor de inventario
-router.put('/admin-gestion/:id', 
-    restrictTo('admin', 'Administrador', 'administrativo'), 
+router.put('/admin-gestion/:id',
+    restrictTo('admin', 'Administrador', 'administrativo'),
     solicitudesControllers.gestionarEstadoAdmin
 );
 
 // Para cambios de estado generales (ej. marcar como 'entregado' cuando retiran el equipo)
-router.patch('/:id/estado', 
-    restrictTo('admin', 'Administrador', 'administrativo'), 
-    solicitudesControllers.actualizarEstadoSolicitud
+router.patch('/:id/estado',
+    restrictTo('admin', 'Administrador', 'administrativo'),
+    solicitudesControllers.gestionarEstadoAdmin
 );
 
 module.exports = router;

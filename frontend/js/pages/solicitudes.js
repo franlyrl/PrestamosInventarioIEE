@@ -20,6 +20,12 @@ class SolicitudesController {
         // this.renderSolicitudes();
         // this.updateEstadisticas();
         console.log('✅ SolicitudesController inicializado completamente');
+
+        // Forzar recarga de datos después de un breve momento
+        setTimeout(() => {
+            console.log('🔄 Recargando solicitudes por si acaso...');
+            this.cargarSolicitudes();
+        }, 1000);
     }
 
     setupEventListeners() {

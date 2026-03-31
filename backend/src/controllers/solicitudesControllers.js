@@ -313,7 +313,8 @@ exports.getSolicitudById = async (req, res) => {
         }
 
         // --- SECURITY CHECK ---
-        const isAdmin = ['admin', 'administrador'].includes(req.user.role);
+        const userRole = req.user.role || req.user.tipo_rol;
+        const isAdmin = ['admin', 'administrador', 'administrativo'].includes(userRole);
 
         // Usamos .usuario._id porque el populate lo convirtió en objeto
         const isOwner = SolicitudxId.usuario._id.toString() === req.user.id;
@@ -446,6 +447,10 @@ exports.deleteSolicitud = async (req, res) => {
 */
 exports.gestionarEstadoAdmin = async (req, res) => {
     try {
+        console.log('🔍 Iniciando gestión de estado admin...');
+        console.log('📥 Body recibido:', req.body);
+        console.log('🆔 ID recibido:', req.params.id);
+
         const { nuevoEstadoAdmin, observaciones } = req.body;
         const { id } = req.params;
 
