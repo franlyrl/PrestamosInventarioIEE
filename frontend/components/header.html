@@ -45,7 +45,7 @@
                     </button>
                     
                     <!-- Dropdown Menu Mejorado -->
-                    <div id="user-dropdown" class="hidden absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 transform transition-all duration-200">
+                    <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-[99999] transform transition-all duration-200" style="z-index: 99999 !important;">
                         <!-- Header del Dropdown -->
                         <div class="bg-gradient-to-r from-[#004a8c] to-[#0066cc] p-4 text-white">
                             <p class="text-sm font-semibold" id="dropdownUserName">Usuario</p>
@@ -245,10 +245,18 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             console.log('🖱️ Click en botón de usuario');
             
+            // Obtener posición del botón para posicionar el dropdown
+            const buttonRect = userMenuBtn.getBoundingClientRect();
+            const dropdownWidth = 224; // w-56 = 14rem = 224px
+            
             if (userDropdown.classList.contains('hidden')) {
+                // Posicionar dropdown dinámicamente
+                userDropdown.style.right = `${window.innerWidth - buttonRect.right}px`;
+                userDropdown.style.top = `${buttonRect.bottom + 8}px`; // 8px de separación
+                
                 userDropdown.classList.remove('hidden');
                 userDropdown.classList.add('opacity-100');
-                console.log('📂 Menú abierto');
+                console.log('📂 Menú abierto - posición calculada');
             } else {
                 userDropdown.classList.add('hidden');
                 userDropdown.classList.remove('opacity-100');
