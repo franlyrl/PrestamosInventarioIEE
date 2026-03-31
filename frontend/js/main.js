@@ -1,5 +1,14 @@
 // Usar CONFIG global ya definido en app.js
-// const CONFIG = { ... }; // Eliminado - ya existe en app.js
+const CONFIG = {
+    API_BASE_URL: 'http://localhost:4000/api',
+    STORAGE_KEYS: {
+        USER: 'utn_user',
+        TOKEN: 'utn_token'
+    },
+    ANIMATIONS: {
+        FADE_IN: 300
+    }
+};
 
 // Estado de la Aplicación
 class AppState {
@@ -346,37 +355,51 @@ const ApiService = {
             console.log('🔍 currentUser._id:', currentUser?._id);
             console.log('🔍 currentUser.id:', currentUser?.id);
 
-            // Intentar obtener el ID del usuario desde el token
-            let userId = currentUser?._id || currentUser?.id || currentUser?.uid;
+            // Verificar si es administrador
+            const isAdmin = currentUser && (
+                currentUser.rol === 'admin' ||
+                currentUser.rol === 'administrador' ||
+                currentUser.rol_nombre === 'admin' ||
+                currentUser.rol_nombre === 'administrador'
+            );
 
-            // Si no hay ID en localStorage, intentar extraer del token
-            if (!userId) {
-                const token = localStorage.getItem('utn_token');
-                if (token) {
-                    try {
-                        // Decodificar el token JWT (payload es la segunda parte)
-                        const payload = token.split('.')[1];
-                        const decoded = JSON.parse(atob(payload));
-                        userId = decoded.id || decoded._id || decoded.userId;
+            console.log('👑 ¿Es administrador?', isAdmin);
+
+            let userId = null;
+
+            // Extraer ID del usuario del token si no está disponible
+            if (!userId && currentUser && !isAdmin) {
+                try {
+                    const token = localStorage.getItem('utn_token');
+                    if (token) {
+                        const decoded = JSON.parse(atob(token.split('.')[1]));
+                        userId = decoded.userId || decoded.id || decoded.sub;
                         console.log('🔑 ID extraído del token:', userId);
-                    } catch (error) {
-                        console.error('Error al decodificar token:', error);
                     }
+                } catch (error) {
+                    console.error('Error al decodificar token:', error);
                 }
             }
 
             console.log('🔍 userId final a usar:', userId);
 
-            if (!userId) {
+            if (!userId && !isAdmin) {
                 console.error('No hay usuario o ID para cargar solicitudes');
                 return [];
             }
 
-            // Usar el endpoint general que existe y filtra automáticamente por rol
-            // El backend hace: if (!['admin', 'administrador'].includes(req.user.role)) { filtro = { usuario: req.user.id }; }
-            const url = `${CONFIG.API_BASE_URL}/solicitudes`;
-            console.log('🌐 URL construida:', url);
-            console.log('📋 Backend filtrará automáticamente según el rol del usuario');
+            let url;
+            if (isAdmin) {
+                // Para administradores: cargar TODAS las solicitudes del sistema
+                url = `${CONFIG.API_BASE_URL}/solicitudes`;
+                console.log('🌐 URL construida (admin):', url);
+                console.log('📋 Cargando TODAS las solicitudes para aprobación (modo administrador)');
+            } else {
+                // Para usuarios normales: cargar solo sus solicitudes
+                url = `${CONFIG.API_BASE_URL}/solicitudes/${userId}`;
+                console.log('🌐 URL construida (usuario):', url);
+                console.log('📋 Cargando solicitudes del usuario actual');
+            }
 
             const response = await Utils.authenticatedFetch(url);
 

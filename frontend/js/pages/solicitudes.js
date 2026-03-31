@@ -16,8 +16,9 @@ class SolicitudesController {
         console.log('🚀 Inicializando SolicitudesController...');
         await this.cargarSolicitudes();
         this.setupEventListeners();
-        this.renderSolicitudes();
-        this.updateEstadisticas();
+        // No renderizar aquí porque ya se renderiza en mostrarSolicitudesReales()
+        // this.renderSolicitudes();
+        // this.updateEstadisticas();
         console.log('✅ SolicitudesController inicializado completamente');
     }
 
@@ -96,12 +97,17 @@ class SolicitudesController {
     async cargarSolicitudes() {
         try {
             Utils.showLoading(true);
-            console.log('🔄 Cargando solicitudes del usuario actual...');
-            const response = await ApiService.getMisSolicitudes();
-            console.log('📡 Respuesta de getMisSolicitudes:', response);
+            console.log('🔄 Cargando solicitudes del sistema...');
+
+            // Cargar TODAS las solicitudes del sistema (para administradores)
+            const response = await ApiService.getSolicitudes();
+            console.log('📡 Respuesta de getSolicitudes:', response);
             this.solicitudes = response.data || response;
             console.log('✅ Solicitudes cargadas:', this.solicitudes.length, 'solicitudes');
-            
+
+            // Ocultar loading
+            Utils.showLoading(false);
+
             // Llamar a la función global que muestra las solicitudes
             if (typeof mostrarSolicitudesReales === 'function') {
                 console.log('📋 Llamando a mostrarSolicitudesReales()...');
@@ -113,8 +119,6 @@ class SolicitudesController {
                 this.renderSolicitudes();
                 this.updateEstadisticas();
             }
-            
-            Utils.showLoading(false);
         } catch (error) {
             console.error('Error cargando solicitudes:', error);
             Utils.showToast('Error al cargar solicitudes', 'error');

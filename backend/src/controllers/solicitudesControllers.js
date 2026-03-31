@@ -24,13 +24,24 @@ exports.getSolicitudes = async (req, res) => {
 
         // 1. EL ESCUDO DE PRIVACIDAD (Criterio: Solo veo lo mío si no soy admin)
         // Nota: Asegúrate de si en tu Schema el campo es 'usuario'
-        if (!['admin', 'administrador'].includes(req.user.role)) {
+        console.log('🔍 req.user completo:', JSON.stringify(req.user, null, 2));
+        console.log('🔍 req.user.role:', req.user.role);
+        console.log('🔍 req.user.tipo_rol:', req.user.tipo_rol);
+
+        // Verificar rol en ambos campos (role y tipo_rol)
+        const userRole = req.user.role || req.user.tipo_rol;
+        console.log('🔍 userRole final:', userRole);
+
+        if (!['admin', 'administrador', 'administrativo'].includes(userRole)) {
+            console.log('❌ Usuario no es admin, aplicando filtro por usuario:', req.user.id);
             filtro = { usuario: req.user.id };
+        } else {
+            console.log('✅ Usuario es admin, mostrando todas las solicitudes');
         }
 
         // 2. LA RIQUEZA DE DATOS (El populate detallado del GET viejo)
         console.log('🔍 Iniciando getSolicitudes con filtro:', filtro);
-        
+
         const ObtenerSolicitudes = await Solicitudes.find(filtro)
             // 1. Traemos todo del usuario (menos la contraseña por seguridad)
             .populate('usuario', 'id_usuario cedula nombre_completo correo_electronico tipo_rol estado')
@@ -84,20 +95,20 @@ exports.getSolicitudes = async (req, res) => {
 exports.createSolicitud = async (req, res) => {
     try {
         console.log('🚀 Iniciando creación de solicitud...');
-        
+
         // 1. Obtenemos el ID del usuario del token (es el _id de MongoDB)
         const usuarioId = req.user.id;
         console.log('👤 ID del usuario desde token:', usuarioId);
-        
+
         // --- DATOS DE LA SOLICITUD (Vienen del Formulario/Body) ---
         const { activos, insumos, fecha_entrega_esperada } = req.body;
-        console.log('📋 Datos recibidos en createSolicitud:', { 
-            activos, 
-            insumos, 
+        console.log('📋 Datos recibidos en createSolicitud:', {
+            activos,
+            insumos,
             fecha_entrega_esperada,
-            bodyCompleto: req.body 
+            bodyCompleto: req.body
         });
-        
+
         // Validar que los datos lleguen correctamente
         if (!insumos || !Array.isArray(insumos)) {
             console.log('❌ Insumos no llegaron como array:', insumos);
@@ -107,7 +118,7 @@ exports.createSolicitud = async (req, res) => {
                 console.log(`📦 Insumo ${index + 1}:`, insumo);
             });
         }
-        
+
         if (!activos || !Array.isArray(activos)) {
             console.log('❌ Activos no llegaron como array:', activos);
         } else {
@@ -147,39 +158,39 @@ exports.createSolicitud = async (req, res) => {
         }
 
         // 4. CREACIÓN (Sincronizado con tu Schema 'usuario')
-        
+
         // Procesar insumos para convertir $oid a string si es necesario
         let insumosProcesados = [];
         if (insumos && Array.isArray(insumos)) {
             insumosProcesados = insumos.map(insumo => {
                 let insumoProcesado = { ...insumo };
-                
+
                 // Convertir id_insumo de objeto a string si viene como $oid
                 if (insumo.id_insumo && typeof insumo.id_insumo === 'object') {
                     insumoProcesado.id_insumo = insumo.id_insumo.$oid || insumo.id_insumo._id || insumo.id_insumo.id;
                     console.log('🔄 Convertido id_insumo de $oid a string:', insumoProcesado.id_insumo);
                 }
-                
+
                 return insumoProcesado;
             });
         }
-        
+
         // Procesar activos de la misma manera
         let activosProcesados = [];
         if (activos && Array.isArray(activos)) {
             activosProcesados = activos.map(activo => {
                 let activoProcesado = { ...activo };
-                
+
                 // Convertir referencias de objeto a string si es necesario
                 if (activo.codigo_activo && typeof activo.codigo_activo === 'object') {
                     activoProcesado.codigo_activo = activo.codigo_activo.$oid || activo.codigo_activo._id || activo.codigo_activo.id;
                     console.log('🔄 Convertido codigo_activo de $oid a string:', activoProcesado.codigo_activo);
                 }
-                
+
                 return activoProcesado;
             });
         }
-        
+
         console.log('📝 Insumos procesados para guardar:', insumosProcesados);
         console.log('🔧 Activos procesados para guardar:', activosProcesados);
 
@@ -243,10 +254,10 @@ exports.getSolicitudByIdForStudent = async (req, res) => {
         }
 
         // Verificación mejorada: el usuario debe ser el dueño de la solicitud
-        const solicitudUserId = SolicitudxId.usuario._id ? 
-            SolicitudxId.usuario._id.toString() : 
+        const solicitudUserId = SolicitudxId.usuario._id ?
+            SolicitudxId.usuario._id.toString() :
             SolicitudxId.usuario.toString();
-        
+
         const currentUserId = req.user.id || req.user._id;
 
         console.log('🔍 Verificación de permisos:', {
@@ -256,17 +267,17 @@ exports.getSolicitudByIdForStudent = async (req, res) => {
         });
 
         if (solicitudUserId !== currentUserId) {
-            return res.status(403).json({ 
-                message: 'No tienes permiso para ver esta solicitud. Solo puedes ver tus propias solicitudes.' 
+            return res.status(403).json({
+                message: 'No tienes permiso para ver esta solicitud. Solo puedes ver tus propias solicitudes.'
             });
         }
 
         res.json(SolicitudxId);
 
     } catch (error) {
-        res.status(500).json({ 
-            message: 'Error al obtener la solicitud', 
-            error: error.message 
+        res.status(500).json({
+            message: 'Error al obtener la solicitud',
+            error: error.message
         });
     }
 };

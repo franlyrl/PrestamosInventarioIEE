@@ -125,8 +125,8 @@
 
             <div
               class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-              <!-- Campo de búsqueda por ID -->
-              <div class="md:col-span-2 lg:col-span-2">
+              <!-- Campo de búsqueda por ID - Solo para administradores -->
+              <div id="busqueda-id-container" class="md:col-span-2 lg:col-span-2 hidden">
                 <label class="block text-sm font-medium text-slate-700 mb-2">
                   🔍 Búsqueda por ID de Solicitud
                 </label>
@@ -163,7 +163,7 @@
               <select
                 id="estado-select"
                 class="px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
-                <option value="todos">🎯 Todos los estados</option>
+                <option value="todos" selected>🎯 Todos los estados</option>
                 <option value="pendiente">⏳ Pendiente</option>
                 <option value="aprobada">✅ Aprobada</option>
                 <option value="rechazada">❌ Rechazada</option>
@@ -450,16 +450,19 @@
             // Mostrar/ocultar filtros según el rol
             const isAdmin = rol.toLowerCase().includes('admin') || rol.toLowerCase().includes('administrador');
             const busquedaContainer = document.getElementById('busqueda-container');
+            const busquedaIdContainer = document.getElementById('busqueda-id-container');
             const fechaContainers = document.querySelectorAll('.fecha-container');
             
             if (isAdmin) {
               // Mostrar todos los filtros para administradores
               if (busquedaContainer) busquedaContainer.classList.remove('hidden');
+              if (busquedaIdContainer) busquedaIdContainer.classList.remove('hidden');
               fechaContainers.forEach(container => container.classList.remove('hidden'));
               console.log('✅ Modo administrador: todos los filtros visibles');
             } else {
               // Ocultar búsqueda y fechas para docentes/estudiantes
               if (busquedaContainer) busquedaContainer.classList.add('hidden');
+              if (busquedaIdContainer) busquedaIdContainer.classList.add('hidden');
               fechaContainers.forEach(container => container.classList.add('hidden'));
               console.log('✅ Modo usuario normal: solo filtro de estado visible');
             }
@@ -493,16 +496,16 @@
             });
           }
           
-          // IMPORTANTE: Llamar a updateUserInfo() después de cargar el header
-          if (typeof updateUserInfo === 'function') {
-            console.log('🔄 Llamando a updateUserInfo() desde solicitudes.html...');
-            // Pequeño retraso para asegurar que el DOM esté listo
-            setTimeout(() => {
-              updateUserInfo();
-            }, 100);
-          } else {
-            console.log('❌ updateUserInfo() no está disponible');
-          }
+          // La información del usuario ya se actualizó arriba, no es necesario llamar a updateUserInfo()
+          // if (typeof updateUserInfo === 'function') {
+          //   console.log('🔄 Llamando a updateUserInfo() desde solicitudes.html...');
+          //   // Pequeño retraso para asegurar que el DOM esté listo
+          //   setTimeout(() => {
+          //     updateUserInfo();
+          //   }, 100);
+          // } else {
+          //   console.log('❌ updateUserInfo() no está disponible');
+          // }
           
           // Configurar botones de acción
           configurarBotonesAccion();
@@ -527,6 +530,137 @@
         if (imprimirBtn) {
           imprimirBtn.addEventListener("click", abrirVistaImpresion);
         }
+
+        // Configurar filtro de estado
+        const estadoSelect = document.getElementById("estado-select");
+        if (estadoSelect) {
+          estadoSelect.addEventListener("change", () => {
+            console.log("🔄 Filtro de estado cambiado a:", estadoSelect.value);
+            filtrarSolicitudesPorEstado();
+          });
+        }
+
+        // Configurar filtro de búsqueda
+        const busquedaInput = document.getElementById("busqueda-input");
+        if (busquedaInput) {
+          busquedaInput.addEventListener("input", () => {
+            console.log("🔍 Búsqueda cambiada a:", busquedaInput.value);
+            filtrarSolicitudesPorEstado();
+          });
+        }
+
+        // Configurar filtros de fecha
+        const fechaDesde = document.getElementById("fecha-desde");
+        const fechaHasta = document.getElementById("fecha-hasta");
+        if (fechaDesde) {
+          fechaDesde.addEventListener("change", () => {
+            console.log("📅 Fecha desde cambiada a:", fechaDesde.value);
+            filtrarSolicitudesPorEstado();
+          });
+        }
+        if (fechaHasta) {
+          fechaHasta.addEventListener("change", () => {
+            console.log("📅 Fecha hasta cambiada a:", fechaHasta.value);
+            filtrarSolicitudesPorEstado();
+          });
+        }
+      }
+
+      // Función para filtrar solicitudes por estado y otros criterios
+      function filtrarSolicitudesPorEstado() {
+        const estadoSelect = document.getElementById("estado-select");
+        const busquedaInput = document.getElementById("busqueda-input");
+        const fechaDesde = document.getElementById("fecha-desde");
+        const fechaHasta = document.getElementById("fecha-hasta");
+        
+        const estadoFiltro = estadoSelect ? estadoSelect.value : "todos";
+        const busquedaFiltro = busquedaInput ? busquedaInput.value.toLowerCase() : "";
+        const fechaDesdeFiltro = fechaDesde ? fechaDesde.value : "";
+        const fechaHastaFiltro = fechaHasta ? fechaHasta.value : "";
+
+        console.log("🔍 Aplicando filtros:", {
+          estado: estadoFiltro,
+          busqueda: busquedaFiltro,
+          fechaDesde: fechaDesdeFiltro,
+          fechaHasta: fechaHastaFiltro
+        });
+
+        // Obtener todas las filas de la tabla
+        const filas = document.querySelectorAll("#solicitudes-tbody tr");
+        
+        let filasVisibles = 0;
+        
+        filas.forEach(fila => {
+          let mostrarFila = true;
+          
+          // Filtrar por estado
+          if (estadoFiltro !== "todos") {
+            const estadoElement = fila.querySelector("td:nth-child(5) span");
+            if (estadoElement) {
+              const estadoTexto = estadoElement.textContent.toLowerCase();
+              if (estadoFiltro === "pendiente" && !estadoTexto.includes("pendiente")) {
+                mostrarFila = false;
+              } else if (estadoFiltro === "aprobada" && !estadoTexto.includes("aprobada")) {
+                mostrarFila = false;
+              } else if (estadoFiltro === "rechazada" && !estadoTexto.includes("rechazada")) {
+                mostrarFila = false;
+              } else if (estadoFiltro === "entregado" && !estadoTexto.includes("entregado")) {
+                mostrarFila = false;
+              } else if (estadoFiltro === "devuelto" && !estadoTexto.includes("devuelto")) {
+                mostrarFila = false;
+              }
+            }
+          }
+          
+          // Filtrar por búsqueda
+          if (busquedaFiltro && mostrarFila) {
+            const textoFila = fila.textContent.toLowerCase();
+            if (!textoFila.includes(busquedaFiltro)) {
+              mostrarFila = false;
+            }
+          }
+          
+          // Filtrar por fechas
+          if ((fechaDesdeFiltro || fechaHastaFiltro) && mostrarFila) {
+            const fechaCelda = fila.querySelector("td:nth-child(4)");
+            if (fechaCelda) {
+              const fechaTexto = fechaCelda.textContent.trim();
+              // Convertir fecha del formato dd/mm/yyyy a yyyy-mm-dd para comparar
+              const partes = fechaTexto.split('/');
+              if (partes.length === 3) {
+                const fechaSolicitud = new Date(`${partes[2]}-${partes[1]}-${partes[0]}`);
+                
+                if (fechaDesdeFiltro) {
+                  const fechaDesde = new Date(fechaDesdeFiltro);
+                  if (fechaSolicitud < fechaDesde) {
+                    mostrarFila = false;
+                  }
+                }
+                
+                if (fechaHastaFiltro) {
+                  const fechaHasta = new Date(fechaHastaFiltro);
+                  if (fechaSolicitud > fechaHasta) {
+                    mostrarFila = false;
+                  }
+                }
+              }
+            }
+          }
+          
+          // Mostrar u ocultar la fila
+          fila.style.display = mostrarFila ? "" : "none";
+          if (mostrarFila) {
+            filasVisibles++;
+          }
+        });
+        
+        // Actualizar contador de resultados
+        const resultadosCount = document.getElementById("resultados-count");
+        if (resultadosCount) {
+          resultadosCount.textContent = filasVisibles;
+        }
+        
+        console.log(`✅ Filtrado completado: ${filasVisibles} solicitudes visibles`);
       }
 
       // Función para exportar reporte a CSV
@@ -773,13 +907,18 @@
       // Función para mostrar solicitudes reales
       function mostrarSolicitudesReales(solicitudes) {
         const tbody = document.getElementById("solicitudes-tbody");
-        if (!tbody) return;
+        if (!tbody) {
+          console.log("❌ No se encontró el tbody con id 'solicitudes-tbody'");
+          return;
+        }
 
         console.log("🎨 Mostrando solicitudes reales:", solicitudes);
         console.log("🔍 Estructura de la primera solicitud:", solicitudes[0]);
+        console.log("📊 Total de solicitudes a mostrar:", solicitudes.length);
 
         // Limpiar tabla primero
         tbody.innerHTML = "";
+        console.log("🧹 Tabla limpiada");
 
         // Procesar cada solicitud
         const solicitudesProcesadas = solicitudes.map((sol) => {
@@ -1042,6 +1181,23 @@
         // Actualizar contadores
         actualizarContadores(solicitudes);
         console.log("✅ Solicitudes mostradas y contadores actualizados");
+
+        // Verificar si el filtro está ocultando las filas
+        setTimeout(() => {
+          const filas = document.querySelectorAll("#solicitudes-tbody tr");
+          console.log("🔍 Verificando visibilidad de filas:");
+          filas.forEach((fila, index) => {
+            const display = window.getComputedStyle(fila).display;
+            console.log(`📄 Fila ${index + 1}: display="${display}", visibility="${window.getComputedStyle(fila).visibility}"`);
+          });
+          
+          // Forzar mostrar todas las filas
+          filas.forEach(fila => {
+            fila.style.display = "";
+            fila.style.visibility = "visible";
+          });
+          console.log("🔧 Forzando visibilidad de todas las filas");
+        }, 100);
 
         // Mostrar insumos detallados en la nueva sección
         mostrarInsumosDetallados(solicitudes);
@@ -1848,7 +2004,7 @@
         try {
           // Llamada al backend para actualizar estado
           const response = await fetch(
-            `${window.CONFIG.API_BASE_URL}/solicitudes/${id}`,
+            `http://localhost:4000/api/solicitudes/${id}/estado`,
             {
               method: "PATCH",
               headers: {
