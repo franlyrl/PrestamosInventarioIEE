@@ -39,7 +39,7 @@ class SolicitudesController {
         }
 
         // Estado
-        const estadoSelect = document.getElementById('estado-select');
+        const estadoSelect = document.getElementById('estado-filter');
         if (estadoSelect) {
             estadoSelect.addEventListener('change', (e) => {
                 this.filtros.estado = e.target.value;
@@ -125,6 +125,10 @@ class SolicitudesController {
                 this.renderSolicitudes();
                 this.updateEstadisticas();
             }
+
+            // Siempre llamar a renderSolicitudes para asegurar que la tabla se muestre
+            console.log('🔄 Forzando renderSolicitudes()...');
+            this.renderSolicitudes();
         } catch (error) {
             console.error('Error cargando solicitudes:', error);
             Utils.showToast('Error al cargar solicitudes', 'error');
@@ -133,13 +137,16 @@ class SolicitudesController {
     }
 
     renderSolicitudes() {
+        console.log('🔄 renderSolicitudes() llamado');
         const tbody = document.getElementById('solicitudes-tbody');
         const emptyState = document.getElementById('empty-state');
         const resultadosCount = document.getElementById('resultados-count');
 
+        console.log('🔍 tbody encontrado:', tbody);
         if (!tbody) return;
 
         const solicitudesFiltradas = this.filtrarSolicitudes();
+        console.log('📊 Solicitudes filtradas:', solicitudesFiltradas.length);
 
         // Actualizar contador
         if (resultadosCount) {
@@ -152,13 +159,38 @@ class SolicitudesController {
         }
 
         if (solicitudesFiltradas.length === 0) {
-            tbody.innerHTML = '';
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-8">
+                        <div class="text-slate-400">
+                            <div class="text-4xl mb-2">📋</div>
+                            <div class="text-lg font-medium mb-1">
+                                ${this.filtros.estado === 'todos'
+                    ? 'No hay solicitudes encontradas'
+                    : `No hay solicitudes con estado "${this.filtros.estado}"`
+                }
+                            </div>
+                            <div class="text-sm">
+                                ${this.filtros.estado === 'todos'
+                    ? 'Intenta ajustar los filtros de búsqueda'
+                    : `No existen solicitudes en estado ${this.filtros.estado}`
+                }
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
             return;
         }
 
         tbody.innerHTML = solicitudesFiltradas.map(solicitud =>
             this.createSolicitudRow(solicitud)
         ).join('');
+
+        // Mostrar insumos detallados también
+        if (typeof mostrarInsumosDetallados === 'function') {
+            mostrarInsumosDetallados(solicitudesFiltradas);
+        }
 
         // Actualizar paginación
         this.updatePaginacion();
@@ -190,19 +222,38 @@ class SolicitudesController {
         const fechaHasta = this.filtros.fechaHasta ? new Date(this.filtros.fechaHasta) : null;
 
         if (fechaDesde && solicitudDate < fechaDesde) return false;
-        if (fechaHasta && solicitudDate > fechaHasta.addDays(1)) return false;
+        if (fechaHasta && solicitudDate > new Date(fechaHasta.getTime() + 24 * 60 * 60 * 1000)) return false;
 
         return true;
     }
 
     createSolicitudRow(solicitud) {
-        const estadoClass = this.getEstadoClass(solicitud.estado);
+        // Usar formatearEstado del HTML para el diseño que te gusta
+        const estadoFormateado = typeof formatearEstado === 'function'
+            ? formatearEstado(solicitud.estado)
+            : `<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">${solicitud.estado || 'pendiente'}</span>`;
+
         const elementos = this.getElementosInfo(solicitud);
 
         // Obtener información del usuario desde la solicitud
-        // En MongoDB el campo es nombre_completo
-        const usuarioNombre = solicitud.nombre_completo || solicitud.usuario_nombre || 'Usuario';
-        const usuarioEmail = solicitud.correo_electronico || solicitud.usuario_correo || '';
+        // Usar los datos del populate del backend
+        const usuarioNombre = solicitud.usuario?.nombre_completo ||
+            solicitud.nombre_completo ||
+            solicitud.usuario_nombre ||
+            'Usuario no encontrado';
+
+        const usuarioEmail = solicitud.usuario?.correo_electronico ||
+            solicitud.correo_electronico ||
+            solicitud.usuario_correo ||
+            'N/A';
+
+        const usuarioCedula = solicitud.usuario?.cedula ||
+            solicitud.cedula ||
+            'N/A';
+
+        const usuarioRol = solicitud.usuario?.tipo_rol ||
+            solicitud.tipo_rol ||
+            'N/A';
 
         return `
             <tr>
@@ -210,9 +261,13 @@ class SolicitudesController {
                     <span class="font-medium">#${solicitud._id?.slice(-6) || 'N/A'}</span>
                 </td>
                 <td class="px-4 py-3">
-                    <div>
-                        <p class="font-medium">${usuarioNombre}</p>
-                        <p class="text-xs text-slate-500">${usuarioEmail}</p>
+                    <div class="text-sm">
+                        <div class="font-medium text-slate-900">${usuarioNombre}</div>
+                        <div class="text-xs text-slate-500">${usuarioEmail}</div>
+                        <div class="text-xs text-slate-400 mt-1">
+                            <span class="bg-slate-100 px-2 py-0.5 rounded">👤 ${usuarioRol}</span>
+                            ${usuarioCedula !== 'N/A' ? `<span class="ml-1 bg-blue-50 px-2 py-0.5 rounded">🆔 ${usuarioCedula}</span>` : ''}
+                        </div>
                     </div>
                 </td>
                 <td class="px-4 py-3">
@@ -220,17 +275,63 @@ class SolicitudesController {
                         ${elementos.map(el => `
                             <div class="flex items-center gap-1 mb-1">
                                 <span>${el.icono}</span>
-                                <span>${el.nombre}</span>
+                                <span class="font-medium">${el.nombre}</span>
                                 <span class="text-xs text-slate-500">x${el.cantidad}</span>
+                                ${el.detalles ? `<span class="text-xs text-slate-400 italic">(${el.detalles})</span>` : ''}
                             </div>
                         `).join('') || '<span class="text-slate-400">Sin elementos</span>'}
+                        
+                        ${elementos.length > 0 ? `
+                            <div class="text-xs text-slate-500 mt-1 bg-slate-50 px-2 py-1 rounded">
+                                Total: ${elementos.length} elemento(s) - ${elementos.reduce((sum, el) => sum + el.cantidad, 0)} unidades
+                            </div>
+                        ` : ''}
                     </div>
                 </td>
                 <td class="px-4 py-3">
-                    <span class="text-sm">${Utils.formatDate(solicitud.createdAt)}</span>
+                    <span class="text-sm">${new Date(solicitud.createdAt).toLocaleDateString()}</span>
                 </td>
                 <td class="px-4 py-3">
-                    <span class="estado-badge ${estadoClass}">${solicitud.estado || 'pendiente'}</span>
+                    ${estadoFormateado}
+                </td>
+                <td class="px-4 py-3 text-sm">
+                    <div class="relative">
+                        <button onclick="toggleMenu('${solicitud._id}')" class="group relative inline-flex items-center justify-center p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-all duration-200 shadow-sm hover:shadow-md">
+                            <div class="flex flex-col space-y-1">
+                                <div class="w-1 h-1 rounded-full bg-current transition-transform group-hover:scale-125"></div>
+                                <div class="w-1 h-1 rounded-full bg-current transition-transform group-hover:scale-125"></div>
+                                <div class="w-1 h-1 rounded-full bg-current transition-transform group-hover:scale-125"></div>
+                            </div>
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div id="menu-${solicitud._id}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
+                            <div class="py-1">
+                                <button onclick="verSolicitud('${solicitud._id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
+                                    👁️ Ver detalles
+                                </button>
+                                <button onclick="editarSolicitud('${solicitud._id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
+                                    ✏️ Editar
+                                </button>
+                                <div class="border-t border-slate-200 my-1"></div>
+                                <a href="#" onclick="aprobarSolicitud('${solicitud._id}'); return false;" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
+                                    ✅ Aprobar
+                                </a>
+                                <button onclick="rechazarSolicitud('${solicitud._id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-2">
+                                    ❌ Rechazar
+                                </button>
+                                <button onclick="entregarSolicitud('${solicitud._id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
+                                    📦 Entregar
+                                </button>
+                                <button onclick="devolverSolicitud('${solicitud._id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
+                                    🔄 Devolver
+                                </button>
+                                <div class="border-t border-slate-200 my-1"></div>
+                                <button onclick="eliminarSolicitud('${solicitud._id}')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                                    🗑️ Eliminar    
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </td>
             </tr>
         `;
@@ -239,22 +340,31 @@ class SolicitudesController {
     getElementosInfo(solicitud) {
         const elementos = [];
 
+        // Procesar activos
         if (solicitud.activos && solicitud.activos.length > 0) {
             solicitud.activos.forEach(activo => {
                 elementos.push({
                     icono: '🔧',
-                    nombre: activo.nombre || 'Activo',
-                    cantidad: 1
+                    nombre: activo.nombre || activo.marca || 'Activo',
+                    cantidad: 1,
+                    detalles: activo.modelo || ''
                 });
             });
         }
 
+        // Procesar insumos con más detalles
         if (solicitud.insumos && solicitud.insumos.length > 0) {
             solicitud.insumos.forEach(insumo => {
+                const nombreInsumo = insumo.id_insumo?.NombProducto ||
+                    insumo.descripcion ||
+                    insumo.caracteristicas ||
+                    'Insumo';
+
                 elementos.push({
-                    icono: '📦',
-                    nombre: insumo.nombreProducto || 'Insumo',
-                    cantidad: insumo.cantidad || 1
+                    icono: '',
+                    nombre: nombreInsumo,
+                    cantidad: insumo.cantidad || 1,
+                    detalles: insumo.caracteristicas || ''
                 });
             });
         }
@@ -390,7 +500,7 @@ class SolicitudesController {
 
         // Limpiar inputs
         const busquedaInput = document.getElementById('busqueda-input');
-        const estadoSelect = document.getElementById('estado-select');
+        const estadoSelect = document.getElementById('estado-filter');
         const fechaDesde = document.getElementById('fecha-desde');
         const fechaHasta = document.getElementById('fecha-hasta');
 

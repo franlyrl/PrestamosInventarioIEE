@@ -123,98 +123,70 @@
               </h2>
             </div>
 
-            <div
-              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-              <!-- Campo de búsqueda por ID - Solo para administradores -->
-              <div id="busqueda-id-container" class="md:col-span-2 lg:col-span-2 hidden">
-                <label class="block text-sm font-medium text-slate-700 mb-2">
-                  🔍 Búsqueda por ID de Solicitud
-                </label>
-                <div class="flex gap-2">
-                  <input 
-                    type="text" 
-                    id="busquedaId" 
-                    placeholder="Ej: 69bc5814e5ee553b103bd7e7" 
-                    class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
-                  />
-                  <button 
-                    onclick="buscarPorId()" 
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 whitespace-nowrap"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    Buscar en BD
-                  </button>
-                </div>
-              </div>
-              
+            <div class="flex flex-wrap items-center gap-4 mb-4">
               <!-- Campo de búsqueda solo para administradores -->
               <div id="busqueda-container" class="relative hidden">
                 <input
                   type="text"
-                  id="busqueda-input"
-                  placeholder="Buscar por usuario, activo o insumo..."
-                  class="w-full px-4 py-3 pl-10 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" />
-                <div class="absolute left-3 top-3.5 text-slate-400">🔍</div>
+                  id="busqueda"
+                  placeholder="🔍 Buscar por nombre, cédula o ID..."
+                  class="w-64 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm" />
+                <div
+                  class="absolute right-3 top-2.5 text-slate-400 pointer-events-none">
+                  🔍
+                </div>
               </div>
 
-              <!-- Filtro de estado para todos -->
-              <div class="flex flex-wrap gap-3 items-center">
-                <div class="flex items-center gap-2">
-                  <label class="text-sm font-medium text-slate-700">Estado:</label>
-                  <select id="estado-select" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="todos">Todos los estados</option>
-                    <option value="pendiente">⏳ Pendiente</option>
-                    <option value="aprobada">✅ Aprobada</option>
-                    <option value="entregado">📦 Entregado</option>
-                    <option value="devuelto">🔄 Devuelto</option>
-                    <option value="rechazada">❌ Rechazada</option>
-                  </select>
+              <!-- Filtro de estado -->
+              <div class="relative">
+                <select id="estado-filter" class="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm appearance-none bg-white">
+                  <option value="todos">📋 Todos los estados</option>
+                  <option value="pendiente">⏳ Pendiente</option>
+                  <option value="aprobada">✅ Aprobada</option>
+                  <option value="rechazada">❌ Rechazada</option>
+                  <option value="entregado">📦 Entregado</option>
+                  <option value="devuelto">🔄 Devuelto</option>
+                </select>
+                <div class="absolute right-3 top-2.5 text-slate-400 pointer-events-none">
+                  ▼
                 </div>
-                
-                <!-- Botón de refrescar -->
-                <button id="btn-refrescar" class="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
-                  🔄 Refrescar
-                </button>
-                
-                <div class="flex items-center gap-2">
-                  <label class="text-sm font-medium text-slate-700">Fecha:</label>
-                  <input type="date" id="fecha-inicio" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                  <span class="text-slate-500">-</span>
-                  <input type="date" id="fecha-fin" class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                
-                <button id="limpiar-filtros" class="px-4 py-1.5 bg-slate-600 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors">
-                  🧹 Limpiar filtros
-                </button>
               </div>
 
               <!-- Filtros de fecha solo para administradores -->
               <div class="relative fecha-container hidden">
-                <input
-                  type="date"
-                  id="fecha-desde"
-                  class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" />
-                <div
-                  class="absolute right-3 top-3.5 text-slate-400 pointer-events-none">
-                  📅
+                <div class="flex items-center gap-2">
+                  <div class="relative">
+                    <input
+                      type="date"
+                      id="fecha-desde"
+                      class="w-40 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm" />
+                    <div
+                      class="absolute right-2 top-2 text-slate-400 pointer-events-none text-xs">
+                      📅
+                    </div>
+                  </div>
+                  <span class="text-slate-500">-</span>
+                  <div class="relative">
+                    <input
+                      type="date"
+                      id="fecha-hasta"
+                      class="w-40 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm" />
+                    <div
+                      class="absolute right-2 top-2 text-slate-400 pointer-events-none text-xs">
+                      📅
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div class="relative fecha-container hidden">
-                <input
-                  type="date"
-                  id="fecha-hasta"
-                  class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" />
-                <div
-                  class="absolute right-3 top-3.5 text-slate-400 pointer-events-none">
-                  📅
-                </div>
-              </div>
+              <!-- Botón de refrescar -->
+              <button id="btn-refrescar" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
+                🔄 Refrescar
+              </button>
             </div>
 
-            <div class="flex gap-3">
+            <!-- Botones de búsqueda y limpieza - Solo para estudiantes y docentes -->
+            <div id="botones-usuario" class="flex gap-3 hidden">
               <button
                 id="buscar-btn"
                 class="bg-gradient-to-r from-[#004a8c] to-[#0066cc] text-white px-6 py-3 rounded-lg font-medium hover:from-[#003d7a] hover:to-[#0052a3] transition-all duration-200 flex items-center gap-2 shadow-lg">
@@ -254,8 +226,15 @@
             </div>
           </section>
 
-          <!-- Tabla Principal Simplificada -->
-          <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+          <!-- Tabla Detallada de Insumos -->
+          <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mt-8">
+            <div class="bg-gradient-to-r from-green-600 to-green-700 text-white p-6">
+              <h2 class="text-xl font-bold flex items-center gap-2">
+                📦 Solicitudes y Detalles de Insumos
+              </h2>
+              <p class="text-green-100 text-sm mt-1">Vista completa de todas las solicitudes con acciones disponibles</p>
+            </div>
+            
             <div class="overflow-x-auto">
               <table class="w-full">
                 <thead class="bg-slate-50 border-b border-slate-200">
@@ -273,22 +252,13 @@
                 </tbody>
               </table>
             </div>
-          </section>
-
-          <!-- Tabla Detallada de Insumos (Alternativa) -->
-          <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mt-8">
-            <div class="bg-gradient-to-r from-green-600 to-green-700 text-white p-6">
-              <h2 class="text-xl font-bold flex items-center gap-2">
-                📦 Detalle Completo de Insumos
-              </h2>
-              <p class="text-green-100 text-sm mt-1">Vista detallada de todos los insumos solicitados</p>
-            </div>
             
             <div class="p-6">
               <div id="insumos-detallados" class="space-y-4">
                 <!-- Los insumos se mostrarán aquí -->
               </div>
             </div>
+            
           </section>
 
           <!-- Loading State -->
@@ -516,19 +486,22 @@
             const busquedaContainer = document.getElementById('busqueda-container');
             const busquedaIdContainer = document.getElementById('busqueda-id-container');
             const fechaContainers = document.querySelectorAll('.fecha-container');
+            const botonesUsuario = document.getElementById('botones-usuario');
             
             if (isAdmin) {
               // Mostrar todos los filtros para administradores
               if (busquedaContainer) busquedaContainer.classList.remove('hidden');
               if (busquedaIdContainer) busquedaIdContainer.classList.remove('hidden');
               fechaContainers.forEach(container => container.classList.remove('hidden'));
-              console.log('✅ Modo administrador: todos los filtros visibles');
+              if (botonesUsuario) botonesUsuario.classList.add('hidden'); // Ocultar botones de usuario
+              console.log('✅ Modo administrador: todos los filtros visibles, botones de usuario ocultos');
             } else {
               // Ocultar búsqueda y fechas para docentes/estudiantes
               if (busquedaContainer) busquedaContainer.classList.add('hidden');
               if (busquedaIdContainer) busquedaIdContainer.classList.add('hidden');
               fechaContainers.forEach(container => container.classList.add('hidden'));
-              console.log('✅ Modo usuario normal: solo filtro de estado visible');
+              if (botonesUsuario) botonesUsuario.classList.remove('hidden'); // Mostrar botones de usuario
+              console.log('✅ Modo usuario normal: solo filtro de estado visible, botones de usuario visibles');
             }
             
             console.log('✅ Información de usuario actualizada como en perfil.html');
@@ -968,25 +941,25 @@
         mostrarSolicitudesReales(datosBackend);
       }
 
-      // Función para mostrar solicitudes reales
+      // Función para mostrar solicitudes reales (solo controller)
       function mostrarSolicitudesReales(solicitudes) {
-        const tbody = document.getElementById("solicitudes-tbody");
-        if (!tbody) {
-          console.log("❌ No se encontró el tbody con id 'solicitudes-tbody'");
-          return;
-        }
+        console.log("🎯 Delegando al controller:", solicitudes.length, "solicitudes");
+        
+        // Actualizar contadores
+        actualizarContadores(solicitudes);
+        console.log("✅ Contadores actualizados");
 
-        console.log("🎨 Mostrando solicitudes reales:", solicitudes);
-        console.log("🔍 Estructura de la primera solicitud:", solicitudes[0]);
-        console.log("📊 Total de solicitudes a mostrar:", solicitudes.length);
+        // Mostrar insumos detallados
+        mostrarInsumosDetallados(solicitudes);
+        console.log("✅ Insumos detallados mostrados");
+      }
 
-        // Limpiar tabla primero
-        tbody.innerHTML = "";
-        console.log("🧹 Tabla limpiada");
-
+      
+      // Función para mostrar tabla completa (administrativos)
+      function mostrarTablaCompleta(solicitudes, tbody) {
         // Procesar cada solicitud
         const solicitudesProcesadas = solicitudes.map((sol) => {
-          console.log("🔍 Procesando solicitud:", sol);
+          console.log("🔍 Procesando solicitud completa:", sol);
 
           // Extraer información del usuario con más opciones
           let nombreUsuario = "Usuario desconocido";
@@ -1159,7 +1132,7 @@
             elementos: elementos, // ← Aquí está todo el HTML formateado
             fecha: fecha,
             estado: estadoFormateado,
-            datosCompletos: sol,
+            datosCompletos: sol, // ← Aquí está el fix: usar la solicitud original
           };
 
           console.log("✅ Solicitud procesada:", procesada);
@@ -1168,7 +1141,7 @@
 
         // Generar HTML de la tabla
         solicitudesProcesadas.forEach((sol, index) => {
-          console.log(`🔨 Procesando solicitud ${index + 1}:`, sol);
+          console.log(`🔨 Procesando solicitud completa ${index + 1}:`, sol);
 
           const row = document.createElement("tr");
           row.className = "hover:bg-slate-50 transition-colors";
@@ -1186,7 +1159,7 @@
                         ${sol.datosCompletos?.insumos?.length || 0} insumos
                       </span>
                       <p class="text-xs text-slate-500 mt-1">
-                        Total: ${this.calcularTotalInsumos(sol.datosCompletos?.insumos || [])} unidades
+                        Total: ${calcularTotalInsumos(sol.datosCompletos?.insumos || [])} unidades
                       </p>
                     </div>
                   </td>
@@ -1236,44 +1209,7 @@
           tbody.appendChild(row);
         });
 
-        // Verificación final
-        console.log("🔍 tbody después de agregar filas:", tbody);
-        console.log("🔍 Número de filas en tbody:", tbody.children.length);
-        console.log(
-          "🔍 innerHTML de tbody (primeros 200 chars):",
-          tbody.innerHTML.substring(0, 200) + "...",
-        );
-
-        // Actualizar contadores
-        actualizarContadores(solicitudes);
-        console.log("✅ Solicitudes mostradas y contadores actualizados");
-
-        // Verificar si el filtro está ocultando las filas
-        setTimeout(() => {
-          const filas = document.querySelectorAll("#solicitudes-tbody tr");
-          console.log("🔍 Verificando visibilidad de filas:");
-          filas.forEach((fila, index) => {
-            const display = window.getComputedStyle(fila).display;
-            console.log(`📄 Fila ${index + 1}: display="${display}", visibility="${window.getComputedStyle(fila).visibility}"`);
-          });
-          
-          // Forzar mostrar todas las filas
-          filas.forEach(fila => {
-            fila.style.display = "";
-            fila.style.visibility = "visible";
-          });
-          console.log("🔧 Forzando visibilidad de todas las filas");
-        }, 100);
-
-        // Mostrar insumos detallados en la nueva sección
-        mostrarInsumosDetallados(solicitudes);
-        console.log("✅ Insumos detallados mostrados");
-
-        console.log("✅ Solicitudes reales mostradas correctamente");
-        console.log(
-          "📊 Total de solicitudes mostradas:",
-          solicitudesProcesadas.length,
-        );
+        console.log("✅ Tabla completa generada con", solicitudesProcesadas.length, "filas");
       }
 
       // Función para formatear estado
@@ -2190,14 +2126,31 @@
           // Mostrar loading
           Utils.showLoading(true);
           
-          // Recargar datos del controller
+          // 1. Recargar datos del controller (sistema nuevo)
           if (window.solicitudesController) {
             await window.solicitudesController.cargarSolicitudes();
+            console.log('✅ Controller actualizado');
+          }
+          
+          // 2. Recargar datos directamente (sistema viejo)
+          const token = localStorage.getItem("utn_token");
+          const response = await fetch('http://localhost:4000/api/solicitudes', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log('📡 Datos frescos del backend:', data);
             
-            // Forzar recarga de los datos mostrados
-            if (typeof mostrarSolicitudesReales === 'function') {
-              console.log('🔄 Llamando a mostrarSolicitudesReales() con datos actualizados...');
-              mostrarSolicitudesReales(window.solicitudesController.solicitudes);
+            // 3. Actualizar solo UN sistema
+            if (window.solicitudesController) {
+              console.log('🔄 Actualizando sistema único...');
+              window.solicitudesController.solicitudes = Array.isArray(data) ? data : data.solicitudes || data.data || [];
+              if (typeof window.solicitudesController.renderSolicitudes === 'function') {
+                window.solicitudesController.renderSolicitudes();
+              }
             }
           }
           
