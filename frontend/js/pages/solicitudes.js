@@ -255,6 +255,14 @@ class SolicitudesController {
             solicitud.tipo_rol ||
             'N/A';
 
+        // Obtener rol del usuario actual para mostrar botones apropiados
+        const userData = localStorage.getItem('utn_user');
+        const currentUser = userData ? JSON.parse(userData) : null;
+        const currentUserRol = currentUser?.rol || currentUser?.tipo_rol || '';
+
+        // Generar botones según el rol
+        const botonesAcciones = this.generarBotonesAcciones(solicitud._id, currentUserRol);
+
         return `
             <tr>
                 <td class="px-4 py-3">
@@ -294,9 +302,9 @@ class SolicitudesController {
                 <td class="px-4 py-3">
                     ${estadoFormateado}
                 </td>
-                <td class="px-4 py-3 text-sm">
+                <td class="px-4 py-3 text-sm relative">
                     <div class="relative">
-                        <button onclick="toggleMenu('${solicitud._id}')" class="group relative inline-flex items-center justify-center p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-all duration-200 shadow-sm hover:shadow-md">
+                        <button onclick="toggleMenu('${solicitud._id}', event)" class="group relative inline-flex items-center justify-center p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-all duration-200 shadow-sm hover:shadow-md">
                             <div class="flex flex-col space-y-1">
                                 <div class="w-1 h-1 rounded-full bg-current transition-transform group-hover:scale-125"></div>
                                 <div class="w-1 h-1 rounded-full bg-current transition-transform group-hover:scale-125"></div>
@@ -304,37 +312,70 @@ class SolicitudesController {
                             </div>
                         </button>
                         <!-- Dropdown Menu -->
-                        <div id="menu-${solicitud._id}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
-                            <div class="py-1">
-                                <button onclick="verSolicitud('${solicitud._id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
-                                    👁️ Ver detalles
-                                </button>
-                                <button onclick="editarSolicitud('${solicitud._id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
-                                    ✏️ Editar
-                                </button>
-                                <div class="border-t border-slate-200 my-1"></div>
-                                <a href="#" onclick="aprobarSolicitud('${solicitud._id}'); return false;" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
-                                    ✅ Aprobar
-                                </a>
-                                <button onclick="rechazarSolicitud('${solicitud._id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-2">
-                                    ❌ Rechazar
-                                </button>
-                                <button onclick="entregarSolicitud('${solicitud._id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
-                                    📦 Entregar
-                                </button>
-                                <button onclick="devolverSolicitud('${solicitud._id}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
-                                    🔄 Devolver
-                                </button>
-                                <div class="border-t border-slate-200 my-1"></div>
-                                <button onclick="eliminarSolicitud('${solicitud._id}')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
-                                    🗑️ Eliminar    
-                                </button>
+                        <div id="menu-${solicitud._id}" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border border-slate-100" style="z-index: 999999;">
+                            <div class="px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</p>
+                            </div>
+                            <div class="py-2">
+                                ${botonesAcciones}
                             </div>
                         </div>
                     </div>
                 </td>
             </tr>
         `;
+    }
+
+    generarBotonesAcciones(solicitudId, userRol) {
+        // Roles administrativos: admin, administrador, administrativo
+        const rolesAdmin = ['admin', 'administrador', 'administrativo'];
+        const esAdmin = rolesAdmin.includes(userRol.toLowerCase());
+
+        if (esAdmin) {
+            // Botones para administradores (todos los botones)
+            return `
+                <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
+                    👁️ Ver detalles
+                </button>
+                <button onclick="editarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
+                    ✏️ Editar
+                </button>
+                <div class="border-t border-slate-200 my-1"></div>
+                <a href="#" onclick="aprobarSolicitud('${solicitudId}'); return false;" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
+                    ✅ Aprobar
+                </a>
+                <button onclick="rechazarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-2">
+                    ❌ Rechazar
+                </button>
+                <button onclick="entregarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
+                    📦 Entregar
+                </button>
+                <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
+                    🔄 Devolver
+                </button>
+                <div class="border-t border-slate-200 my-1"></div>
+                <button onclick="eliminarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                    🗑️ Eliminar    
+                </button>
+            `;
+        } else {
+            // Botones para estudiantes y docentes (solo los básicos)
+            return `
+                <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
+                    👁️ Ver detalles
+                </button>
+                <button onclick="editarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
+                    ✏️ Editar
+                </button>
+                <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
+                    🔄 Devolver
+                </button>
+                <div class="border-t border-slate-200 my-1"></div>
+                <button onclick="eliminarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                    🗑️ Eliminar    
+                </button>
+            `;
+        }
     }
 
     getElementosInfo(solicitud) {

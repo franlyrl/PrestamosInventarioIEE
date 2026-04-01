@@ -247,14 +247,14 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
-                <tbody id="solicitudes-tbody" class="bg-white divide-y divide-slate-100">
+                <tbody id="solicitudes-tbody" class="bg-white divide-y divide-slate-100" style="z-index: 1; position: relative;">
                   <!-- Las filas se generarán dinámicamente -->
                 </tbody>
               </table>
             </div>
             
             <div class="p-6">
-              <div id="insumos-detallados" class="space-y-4">
+              <div id="insumos-detallados" class="space-y-4" style="z-index: 1; position: relative;">
                 <!-- Los insumos se mostrarán aquí -->
               </div>
             </div>
@@ -1576,20 +1576,116 @@
       }
 
       // Función para alternar menús desplegables
-      function toggleMenu(id) {
-        console.log('🔄 Toggle menu:', id);
+      function toggleMenu(id, event) {
+        // Prevenir comportamiento por defecto si hay evento
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
         
-        // Cerrar todos los menús excepto el actual
+        // Cerrar todos los otros menús y resetear otros botones
         document.querySelectorAll('[id^="menu-"]').forEach(menu => {
           if (menu.id !== `menu-${id}`) {
             menu.classList.add('hidden');
+            // Resetear el botón correspondiente
+            const botonId = menu.id.replace('menu-', '');
+            const boton = document.querySelector(`button[onclick*="toggleMenu('${botonId}')"]`);
+            if (boton) {
+              boton.classList.remove('bg-slate-700', 'text-white', 'scale-110', 'shadow-lg');
+              boton.classList.add('bg-slate-50', 'text-slate-500');
+            }
           }
         });
         
         // Alternar el menú actual
         const menuActual = document.getElementById(`menu-${id}`);
+        const boton = event.currentTarget;
+        
         if (menuActual) {
-          menuActual.classList.toggle('hidden');
+          if (!menuActual.classList.contains('hidden')) {
+            // Cerrar menú y resetear botón
+            menuActual.classList.add('hidden');
+            boton.classList.remove('bg-slate-700', 'text-white', 'scale-110', 'shadow-lg');
+            boton.classList.add('bg-slate-50', 'text-slate-500');
+          } else {
+            // Verificar si el tbody es visible
+            const tbody = document.getElementById('solicitudes-tbody');
+            const tbodyRect = tbody ? tbody.getBoundingClientRect() : null;
+            
+            // Si el tbody no es visible o está fuera de pantalla, no mostrar el menú
+            if (!tbodyRect || tbodyRect.bottom < 0 || tbodyRect.top > window.innerHeight) {
+              // El tbody no está visible, no mostrar menú
+              return;
+            }
+            
+            // Abrir menú y extender botón
+            const rect = boton.getBoundingClientRect();
+            
+            // Obtener información de la solicitud
+            const fila = boton.closest('tr');
+            const celdaId = fila ? fila.querySelector('td:first-child') : null;
+            const solicitudId = celdaId ? celdaId.textContent.trim() : id;
+            
+            // Obtener información del usuario (segunda celda)
+            const celdaUsuario = fila ? fila.querySelector('td:nth-child(2)') : null;
+            const usuarioNombre = celdaUsuario ? celdaUsuario.textContent.trim() : 'Usuario';
+            
+            // Extender botón
+            boton.classList.remove('bg-slate-50', 'text-slate-500');
+            boton.classList.add('bg-slate-700', 'text-white', 'scale-110', 'shadow-lg');
+            
+            // Agregar encabezado con información de la solicitud y usuario
+            const encabezado = document.createElement('div');
+            encabezado.className = 'menu-header';
+            encabezado.style.cssText = `
+              background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+              color: white;
+              padding: 10px 12px;
+              font-size: 11px;
+              font-weight: 600;
+              border-radius: 6px 6px 0 0;
+              margin-bottom: 8px;
+              text-align: center;
+              position: relative;
+              z-index: 999999999999;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            `;
+            encabezado.innerHTML = `
+              <div style="font-size: 12px; font-weight: 700; margin-bottom: 2px;">Solicitud #${solicitudId}</div>
+              <div style="font-size: 10px; opacity: 0.9;">${usuarioNombre}</div>
+            `;
+            
+            // Limpiar encabezados anteriores y agregar el nuevo
+            const encabezadoAnterior = menuActual.querySelector('.menu-header');
+            if (encabezadoAnterior) {
+              encabezadoAnterior.remove();
+            }
+            menuActual.insertBefore(encabezado, menuActual.firstChild);
+            
+            // Posicionar el menú solo si el tbody está visible
+            menuActual.style.position = 'fixed';
+            menuActual.style.top = `${Math.max(tbodyRect.top + 50, 200)}px`;
+            menuActual.style.right = '255px';
+            menuActual.style.zIndex = '9999999999999';
+            menuActual.style.boxShadow = '0 15px 35px rgba(0,0,0,0.4)';
+            menuActual.style.border = '1px solid #3b82f6';
+            menuActual.style.borderRadius = '8px';
+            menuActual.classList.remove('hidden');
+            
+            // Agregar listener para cerrar menú si el tbody deja de ser visible (arriba o abajo)
+            const scrollListener = () => {
+              const newTbodyRect = tbody.getBoundingClientRect();
+              // Si el tbody está completamente fuera de la vista (arriba) O si llega al final (abajo)
+              if (newTbodyRect.bottom < 0 || newTbodyRect.top > window.innerHeight || newTbodyRect.bottom <= window.innerHeight) {
+                menuActual.classList.add('hidden');
+                boton.classList.remove('bg-slate-700', 'text-white', 'scale-110', 'shadow-lg');
+                boton.classList.add('bg-slate-50', 'text-slate-500');
+                window.removeEventListener('scroll', scrollListener);
+              }
+            };
+            
+            window.addEventListener('scroll', scrollListener);
+          }
         }
       }
 
