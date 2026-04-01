@@ -2116,8 +2116,80 @@
         console.log("✏️ Editar solicitud:", id);
         cerrarTodosLosMenus();
 
-        // Abrir modal de edición
-        mostrarModalEdicion(id);
+        // Obtener el rol del usuario actual
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const utnUser = JSON.parse(localStorage.getItem('utn_user') || '{}');
+        const rolUsuario = currentUser.rol || currentUser.rol_nombre || currentUser.tipo_rol || 
+                          utnUser.rol || utnUser.rol_nombre || utnUser.tipo_rol || '';
+        const rolText = rolUsuario.toLowerCase();
+
+        // Determinar si es estudiante o docente
+        const esEstudiante = rolText.includes('estudiante');
+        const esDocente = rolText.includes('docente') || rolText.includes('profesor') || rolText.includes('teacher');
+        const esAdmin = rolText.includes('admin') || rolText.includes('administrador');
+
+        // Buscar la solicitud actual para verificar su estado
+        // Obtener los datos desde la tabla DOM
+        const tbody = document.getElementById('solicitudes-tbody');
+        const filas = tbody.querySelectorAll('tr');
+        let solicitudActual = null;
+        
+        // Buscar la solicitud por ID en las filas de la tabla
+        for (let fila of filas) {
+          const celdaId = fila.querySelector('td:first-child');
+          if (celdaId) {
+            const textoCelda = celdaId.textContent.trim();
+            console.log('🔍 Buscando ID:', id, 'en celda:', textoCelda);
+            
+            // Quitar los puntos suspensivos
+            const textoLimpio = textoCelda.replace('...', '');
+            
+            // Comparar con múltiples formatos posibles
+            if (textoCelda === id || // Exacto
+                textoLimpio === id.substring(0, 8) || // Primeros 8 chars
+                textoLimpio === id.substring(id.length - 8) || // Últimos 8 chars
+                textoLimpio === id.substring(id.length - 6) || // Últimos 6 chars (#fb0221)
+                textoLimpio.includes(id.substring(0, 8)) || // Incluye primeros 8
+                textoLimpio.includes(id.substring(id.length - 6)) || // Incluye últimos 6
+                id.includes(textoLimpio)) { // ID contiene texto
+              console.log('✅ Solicitud encontrada en fila:', textoCelda);
+              
+              // Obtener el estado desde la celda de estado
+              const celdaEstado = fila.querySelector('td:nth-child(5)'); // Columna de estado
+              const estadoText = celdaEstado ? celdaEstado.textContent.trim().toLowerCase() : '';
+              
+              console.log('🔍 Estado encontrado:', estadoText);
+              console.log('🔍 ¿Está pendiente?:', estadoText.includes('pendiente'));
+              
+              solicitudActual = {
+                id: id,
+                estado: estadoText.includes('pendiente') ? 'pendiente' :
+                       estadoText.includes('aprobada') ? 'aprobada' :
+                       estadoText.includes('rechazada') ? 'rechazada' :
+                       estadoText.includes('entregado') ? 'entregado' :
+                       estadoText.includes('devuelto') ? 'devuelto' : 'pendiente'
+              };
+              break;
+            }
+          }
+        }
+        
+        if (solicitudActual) {
+          // Permitir edición solo si es estudiante/docente Y la solicitud está pendiente
+          if ((esEstudiante || esDocente) && solicitudActual.estado === 'pendiente') {
+            console.log('✅ Estudiante/Docente puede editar solicitud pendiente');
+            mostrarModalEdicion(id);
+          } else if (esAdmin) {
+            console.log('✅ Administrador puede editar cualquier solicitud');
+            mostrarModalEdicion(id);
+          } else {
+            console.log('❌ No se puede editar: solicitud ya procesada o sin permisos');
+            showToast('❌ Solo puedes editar solicitudes pendientes', 'error');
+          }
+        } else {
+          console.log('❌ Solicitud no encontrada');
+          showToast('❌ Solicitud no encontrada', 'error');
+        }
       }
 
       function mostrarModalEdicion(id) {
