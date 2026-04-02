@@ -497,8 +497,8 @@ class IndexController {
                 </div>
                 
                 <div class="flex gap-2">
-                    <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-blue-800 transition-all duration-200" onclick="console.log('🛒 Click en solicitar:', '${item._id || item.id_insumo}'); alert('🛒 Solicitud de ${nombre} (${tipo}) - Función en desarrollo')">
-                        🛒 Solicitar
+                    <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-blue-800 transition-all duration-200" onclick="event.stopPropagation(); addToCart('${nombre}', '${tipo}', ${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                        🛒 Añadir al Carrito
                     </button>
                 </div>
             </div>
@@ -507,6 +507,295 @@ class IndexController {
         return card;
     }
 }
+
+// ====== FUNCIONES DEL CARRITO ======
+// Estado del carrito
+let cart = [];
+
+// Función para mostrar notificaciones
+function showToast(message, type = 'success') {
+    if (window.Utils && window.Utils.showToast) {
+        window.Utils.showToast(message, type);
+    } else {
+        // Fallback si Utils no está disponible
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+
+        if (toast && toastMsg) {
+            toastMsg.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    }
+}
+
+// Función para añadir al carrito
+function addToCart(itemName, itemType, itemData) {
+    // Siempre añadir como nuevo item (sin verificar duplicados)
+    cart.push({
+        name: itemName,
+        type: itemType,
+        data: itemData,
+        quantity: 1
+    });
+
+    updateCartUI();
+    showToast(`🛒 ${itemName} añadido al carrito`, 'success');
+
+    // NO abrir el modal automáticamente - dejar que el usuario lo abra cuando quiera
+    // openCartModal();
+}
+
+// Actualizar UI del carrito
+function updateCartUI() {
+    const cartCount = document.getElementById('cartCount');
+    const cartItems = document.getElementById('cartItems');
+    const cartTotal = document.getElementById('cartTotal');
+
+    if (!cartCount || !cartItems || !cartTotal) {
+        console.log('❌ Elementos del carrito no encontrados');
+        return;
+    }
+
+    // Actualizar contador
+    cartCount.textContent = cart.length;
+
+    // Actualizar lista de items
+    cartItems.innerHTML = '';
+    cart.forEach((item, index) => {
+        const itemElement = document.createElement('div');
+        itemElement.className = 'flex items-center justify-between p-3 bg-slate-50 rounded-lg';
+        itemElement.innerHTML = `
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <span class="text-lg">${item.type === 'activos' ? '🔧' : '📦'}</span>
+                </div>
+                <div>
+                    <h4 class="font-medium text-sm text-slate-800">${item.name}</h4>
+                    <p class="text-xs text-slate-500">${item.type === 'activos' ? 'Activo' : 'Insumo'}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="flex items-center bg-white border border-slate-200 rounded-lg">
+                    <button onclick="decreaseQuantity(${index})" class="p-1 hover:bg-slate-100 rounded-l-lg transition-colors">
+                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                        </svg>
+                    </button>
+                    <span class="px-3 py-1 text-sm font-medium text-slate-700 min-w-[40px] text-center">${item.quantity}</span>
+                    <button onclick="increaseQuantity(${index})" class="p-1 hover:bg-slate-100 rounded-r-lg transition-colors">
+                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                    </button>
+                </div>
+                <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </button>
+            </div>
+        `;
+        cartItems.appendChild(itemElement);
+    });
+
+    // Actualizar total (contar items individuales)
+    cartTotal.textContent = cart.length;
+}
+
+// Eliminar del carrito
+function removeFromCart(index) {
+    const removedItem = cart[index];
+    cart.splice(index, 1);
+    updateCartUI();
+    showToast(`🗑️ ${removedItem.name} eliminado`, 'info');
+}
+
+// Incrementar cantidad
+function increaseQuantity(index) {
+    cart[index].quantity += 1;
+    updateCartUI();
+    const itemName = cart[index].name;
+    showToast(`➕ ${itemName} (${cart[index].quantity})`, 'success');
+}
+
+// Decrementar cantidad
+function decreaseQuantity(index) {
+    if (cart[index].quantity > 1) {
+        cart[index].quantity -= 1;
+        updateCartUI();
+        const itemName = cart[index].name;
+        showToast(`➖ ${itemName} (${cart[index].quantity})`, 'success');
+    } else {
+        // Si la cantidad es 1, eliminar el item
+        removeFromCart(index);
+    }
+}
+
+// Vaciar carrito
+function clearCart() {
+    if (cart.length === 0) {
+        showToast('🛒 El carrito ya está vacío', 'info');
+        return;
+    }
+
+    cart = [];
+    updateCartUI();
+    showToast('🗑️ Carrito vaciado', 'success');
+}
+
+// Obtener items del carrito (para sendRequest)
+function getCartItems() {
+    return cart.map(item => ({
+        ...item.data,
+        cantidad: item.quantity,
+        _id: item.data._id,
+        nombre_insumo: item.name,
+        caracteristicas: item.data.caracteristicas || '',
+        descripcion: item.data.descripcion || ''
+    }));
+}
+
+// Abrir modal del carrito
+function openCartModal() {
+    const modal = document.getElementById('cartModal');
+    if (modal) {
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        updateCartUI();
+    }
+}
+
+// Cerrar modal del carrito
+function closeCartModal() {
+    const modal = document.getElementById('cartModal');
+    if (modal) {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+    }
+}
+
+// Enviar solicitud
+async function sendRequest() {
+    if (cart.length === 0) {
+        showToast('🛒 El carrito está vacío', 'warning');
+        return;
+    }
+
+    try {
+        // Obtener usuario actual
+        const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
+
+        // Separar activos e insumos del carrito
+        const activos = cart.filter(item => item.type === 'activos').map(item => ({
+            codigo_activo: item.data.codigo_activo || item.data._id,
+            nombre: item.name,
+            marca: item.data.marca || '',
+            modelo: item.data.modelo || '',
+            numActivo: item.data.numActivo || ''
+        }));
+
+        const insumos = cart.filter(item => item.type === 'insumos').map(item => ({
+            id_insumo: item.data._id?.toString() || item.data.id_insumo?.toString() || '',
+            cantidad: item.data.cantidad || 1,
+            caracteristicas: item.data.caracteristicas || '',
+            descripcion: item.data.descripcion || ''
+        }));
+
+        // Preparar datos de la solicitud
+        const requestData = {
+            usuario_solicitante: user.nombre_completo || user.correo_electronico || 'Usuario',
+            correo_solicitante: user.correo_electronico || 'usuario@example.com',
+            activos: activos,
+            insumos: insumos,
+            estado: 'pendiente',
+            fecha_solicitud: new Date().toISOString(),
+            observaciones: `Solicitud generada desde el carrito con ${cart.length} items`
+        };
+
+        // Enviar a la API
+        console.log('📤 Enviando solicitud a:', `${window.CONFIG.API_BASE_URL}/solicitudes`);
+        console.log('📦 Datos enviados:', requestData);
+        console.log('🔑 Token disponible:', localStorage.getItem('utn_token') ? 'Sí' : 'No');
+
+        const response = await fetch(`${window.CONFIG.API_BASE_URL}/solicitudes`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('utn_token')}`
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        console.log('🌐 Respuesta del servidor:', response.status, response.statusText);
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log('✅ Solicitud creada:', result);
+            showToast(`📤 Solicitud enviada con éxito. ID: ${result._id || 'generada'}`, 'success');
+
+            // Vaciar carrito y cerrar modal
+            cart = [];
+            updateCartUI();
+            closeCartModal();
+
+            // Opcional: Redirigir a página de solicitudes
+            setTimeout(() => {
+                if (confirm('¿Ver tus solicitudes enviadas?')) {
+                    window.location.href = '../pages/solicitudes.html';
+                }
+            }, 1000);
+
+        } else {
+            // Obtener detalles del error
+            const errorData = await response.json().catch(() => ({}));
+            console.error('❌ Error del servidor:', {
+                status: response.status,
+                statusText: response.statusText,
+                data: errorData
+            });
+
+            // Mensaje específico para 403
+            if (response.status === 403) {
+                const errorMessage = errorData.message || errorData.error || 'No tienes permisos para crear solicitudes.';
+
+                // Si es por solicitud pendiente, mostrar mensaje específico
+                if (errorMessage.includes('pendiente') && errorData.folio) {
+                    const folio = errorData.folio;
+                    showToast(`⏳ Ya tienes una solicitud pendiente (Folio: ${folio}). Debes esperar a que se apruebe o rechace.`, 'warning');
+
+                    // Opcional: Preguntar si quiere ver sus solicitudes
+                    setTimeout(() => {
+                        if (confirm('¿Ver tus solicitudes para revisar el estado?')) {
+                            window.location.href = '../pages/solicitudes.html';
+                        }
+                    }, 1000);
+                    return;
+                }
+
+                throw new Error(errorMessage);
+            } else if (response.status === 401) {
+                throw new Error('Tu sesión ha expirado. Inicia sesión nuevamente.');
+            } else {
+                throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+            }
+        }
+
+    } catch (error) {
+        console.error('❌ Error enviando solicitud:', error);
+        showToast('❌ Error al enviar la solicitud', 'error');
+    }
+}
+
+// Cerrar modal al hacer click fuera
+document.addEventListener('click', (e) => {
+    const cartModal = document.getElementById('cartModal');
+    const cartBtn = document.getElementById('cartBtn');
+    if (cartModal && cartBtn && !cartModal.contains(e.target) && !cartBtn.contains(e.target)) {
+        closeCartModal();
+    }
+});
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {

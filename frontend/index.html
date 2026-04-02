@@ -1389,24 +1389,127 @@
                 }
             });
 
-            // ====== FUNCIONES DEL CARRITO ======
-            // Estado del carrito
-            let cart = [];
-            
-            // Función para añadir al carrito
-            function addToCart(itemName, itemType, itemData) {
-                // Siempre añadir como nuevo item (sin verificar duplicados)
-                cart.push({
-                    name: itemName,
-                    type: itemType,
-                    data: itemData,
-                    quantity: 1
+            // Función para verificar autenticación
+            async function checkAuthentication() {
+                console.log('🔍 Iniciando checkAuthentication...');
+                
+                const token = localStorage.getItem('utn_token');
+                const userData = localStorage.getItem('utn_user');
+                
+                console.log('🔍 Datos en localStorage:', {
+                    token: token ? 'existe' : 'no existe',
+                    userData: userData ? 'existe' : 'no existe'
                 });
                 
-                updateCartUI();
-                showToast(`🛒 ${itemName} añadido al carrito`, 'success');
+                if (!token || !userData) {
+                    console.log('🚫 No hay token o usuario, redirigiendo a login...');
+                    if (!window.location.pathname.includes('login.html')) {
+                        window.location.href = 'login.html';
+                    }
+                    return false;
+                }
+                
+                try {
+                    currentUser = JSON.parse(userData);
+                    console.log('👤 Usuario cargado:', currentUser);
+                    
+                    const loginPage = document.getElementById('loginPage');
+                    const mainApp = document.getElementById('mainApp');
+                    
+                    if (loginPage) loginPage.classList.add('hidden');
+                    if (mainApp) mainApp.classList.remove('hidden');
+                    
+                    updateUserInfo();
+                    startTimeUpdates();
+                    
+                    setTimeout(() => {
+                        const rol = currentUser.rol.toLowerCase();
+                        const vistaAdmin = document.getElementById('vistaAdmin');
+                        const vistaEstudiante = document.getElementById('vistaEstudiante');
+                        
+                        if (vistaAdmin) vistaAdmin.classList.add('hidden');
+                        if (vistaEstudiante) vistaEstudiante.classList.add('hidden');
+                        
+                        if (['administrativo', 'admin'].includes(rol)) {
+                            if (vistaAdmin) vistaAdmin.classList.remove('hidden');
+                        } else {
+                            if (vistaEstudiante) {
+                                vistaEstudiante.classList.remove('hidden');
+                                inicializarFuncionalidadEstudiante();
+                            }
+                        }
+                    }, 100);
+                    
+                    await loadInitialData();
+                    return true;
+                    
+                } catch (error) {
+                    console.error('❌ Error de autenticación:', error);
+                    if (!window.location.pathname.includes('login.html')) {
+                        localStorage.removeItem('utn_token');
+                        localStorage.removeItem('utn_user');
+                        window.location.href = 'login.html';
+                    }
+                    return false;
+                }
             }
-            
+
+            function updateUserInfo() {
+                if (currentUser) {
+                    const nombreCompleto = currentUser.nombre || currentUser.nombre_completo || 'Usuario';
+                    const nombreCompletoElement = document.getElementById('nombre_completo');
+                    if (nombreCompletoElement) {
+                        nombreCompletoElement.textContent = nombreCompleto;
+                    }
+                }
+            }
+
+            function startTimeUpdates() {
+                const updateDateTime = () => {
+                    const now = new Date();
+                    const dateTimeElement = document.getElementById('currentDateTime');
+                    if (dateTimeElement) {
+                        dateTimeElement.textContent = now.toLocaleString('es-CR', {
+                            weekday: 'short',
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    }
+                };
+                updateDateTime();
+                setInterval(updateDateTime, 60000);
+            }
+
+            function inicializarFuncionalidadEstudiante() {
+                console.log('📚 Inicializando funcionalidad para estudiantes...');
+                loadInitialData();
+            }
+
+            async function loadInitialData() {
+                const vistaEstudiante = document.getElementById('vistaEstudiante');
+                const grid = vistaEstudiante ? vistaEstudiante.querySelector('#itemsGrid') : document.getElementById('itemsGrid');
+                
+                if (grid) {
+                    grid.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <div class="text-4xl mb-4">🔧</div>
+                            <h3 class="text-lg font-medium text-slate-600 mb-2">Cargando...</h3>
+                            <p class="text-sm text-slate-400">Espera un momento...</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // Limpiar intervalo al salir
+            window.addEventListener('beforeunload', () => {
+                if (connectionCheckInterval) {
+                    clearInterval(connectionCheckInterval);
+                }
+            });
+
             // Actualizar UI del carrito
             function updateCartUI() {
                 const cartCount = document.getElementById('cartCount');
@@ -1620,8 +1723,7 @@
                         // Mensaje específico para 403
                         if (response.status === 403) {
                             const errorMessage = errorData.message || errorData.error || 'No tienes permisos para crear solicitudes.';
-                            
-                            // Si es por solicitud pendiente, mostrar mensaje específico
+ 　　　　　　　　　　　　　// Si es por solicitud pendiente, mostrar mensaje específico
                             if (errorMessage.includes('pendiente') && errorData.folio) {
                                 const folio = errorData.folio;
                                 showToast(`⏳ Ya tienes una solicitud pendiente (Folio: ${folio}). Debes esperar a que se apruebe o rechace.`, 'warning');
@@ -1634,8 +1736,7 @@
                                 }, 1000);
                                 return; // No lanzar error para que no se muestre el toast de error
                             }
-                            
-                            throw new Error(errorMessage);
+ 　　　　　　　　　　　　　throw new Error(errorMessage);
                         } else if (response.status === 401) {
                             throw new Error('Tu sesión ha expirado. Inicia sesión nuevamente.');
                         } else {
