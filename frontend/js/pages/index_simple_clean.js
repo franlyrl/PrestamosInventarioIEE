@@ -946,3 +946,21 @@ function crearSelectPersonalizadoCategorias() {
     // Insertar después del select original
     categoriaSelect.parentNode.insertBefore(customSelectContainer, categoriaSelect.nextSibling);
 }
+
+// Hacer las funciones del carrito disponibles globalmente
+// Usar try-catch para evitar errores si alguna función no existe
+try {
+    window.addToCart = addToCart;
+    window.updateCartUI = updateCartUI;
+    window.removeFromCart = removeFromCart;
+    window.increaseQuantity = increaseQuantity;
+    window.decreaseQuantity = decreaseQuantity;
+    window.clearCart = clearCart;
+    window.getCartItems = getCartItems;
+    window.openCartModal = openCartModal;
+    window.closeCartModal = closeCartModal;
+    window.sendRequest = sendRequest;
+    console.log('✅ Funciones del carrito disponibles globalmente');
+} catch (error) {
+    console.error('❌ Error al asignar funciones del carrito:', error);
+}
