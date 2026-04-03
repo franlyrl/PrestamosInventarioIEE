@@ -578,11 +578,20 @@
         }
 
         // Configurar filtro de búsqueda
-        const busquedaInput = document.getElementById("busqueda-input");
+        const busquedaInput = document.getElementById("busqueda");
         if (busquedaInput) {
+          // Buscar al escribir
           busquedaInput.addEventListener("input", () => {
             console.log("🔍 Búsqueda cambiada a:", busquedaInput.value);
             filtrarSolicitudesPorEstado();
+          });
+          
+          // Buscar al presionar Enter
+          busquedaInput.addEventListener("keypress", (event) => {
+            if (event.key === "Enter") {
+              console.log("🔍 Enter presionado, buscando:", busquedaInput.value);
+              filtrarSolicitudesPorEstado();
+            }
           });
         }
 
@@ -605,8 +614,8 @@
 
       // Función para filtrar solicitudes por estado y otros criterios
       function filtrarSolicitudesPorEstado() {
-        const estadoSelect = document.getElementById("estado-select");
-        const busquedaInput = document.getElementById("busqueda-input");
+        const estadoSelect = document.getElementById("estado-filter");
+        const busquedaInput = document.getElementById("busqueda");
         const fechaDesde = document.getElementById("fecha-desde");
         const fechaHasta = document.getElementById("fecha-hasta");
         
@@ -651,8 +660,14 @@
           
           // Filtrar por búsqueda
           if (busquedaFiltro && mostrarFila) {
-            const textoFila = fila.textContent.toLowerCase();
-            if (!textoFila.includes(busquedaFiltro)) {
+            // Buscar en TODO el texto de la fila (incluyendo datos ocultos)
+            const textoCompleto = fila.textContent.toLowerCase();
+            
+            console.log(`🔍 Buscando "${busquedaFiltro}" en texto completo:`, {
+              texto: textoCompleto.substring(0, 200) + "..."
+            });
+            
+            if (!textoCompleto.includes(busquedaFiltro)) {
               mostrarFila = false;
             }
           }
