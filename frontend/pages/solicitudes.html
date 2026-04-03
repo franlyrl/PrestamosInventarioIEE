@@ -941,17 +941,17 @@
         mostrarSolicitudesReales(datosBackend);
       }
 
-      // Función para mostrar solicitudes reales (solo controller)
+      // Función para mostrar solicitudes reales (SOLO CONTROLLER)
       function mostrarSolicitudesReales(solicitudes) {
-        console.log("🎯 Delegando al controller:", solicitudes.length, "solicitudes");
+        console.log("🎯 Delegando SOLO al controller:", solicitudes.length, "solicitudes");
+        console.log("🚫 NO usar sistema HTML antiguo - SOLO controller");
         
-        // Actualizar contadores
+        // SOLO actualizar contadores - NO mostrar insumos detallados aquí
         actualizarContadores(solicitudes);
         console.log("✅ Contadores actualizados");
-
-        // Mostrar insumos detallados
-        mostrarInsumosDetallados(solicitudes);
-        console.log("✅ Insumos detallados mostrados");
+        
+        // El controller se encarga de mostrar todo lo demás
+        console.log("✅ Controller manejará el renderizado completo");
       }
 
       
@@ -2410,6 +2410,12 @@
           if (observaciones) {
             body.observaciones = observaciones;
           }
+
+          // DEBUG: Mostrar exactamente lo que se envía
+          console.log("🔍 DEBUG - Body a enviar:", JSON.stringify(body, null, 2));
+          console.log("🔍 DEBUG - nuevoEstadoAdmin (tipo):", typeof nuevoEstado);
+          console.log("🔍 DEBUG - nuevoEstadoAdmin (valor):", nuevoEstado);
+          console.log("🔍 DEBUG - nuevoEstadoAdmin (length):", nuevoEstado.length);
 
           // Llamada al backend para actualizar estado
           console.log("📡 Enviando petición al backend...");

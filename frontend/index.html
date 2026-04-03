@@ -1637,8 +1637,17 @@
                     // Obtener usuario actual
                     const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
                     
-                    // Separar activos e insumos del carrito
-                    const activos = cart.filter(item => item.type === 'activos').map(item => ({
+                    console.log('🔍 === DEBUG FILTRADO ===');
+                    console.log('📊 Carrito completo:', cart);
+                    cart.forEach((item, index) => {
+                        console.log(`🔍 Item ${index}:`, {
+                            name: item.name,
+                            type: item.type,
+                            data: item.data
+                        });
+                    });
+                    
+                    const activos = cart.filter(item => item.type === 'activo').map(item => ({
                         codigo_activo: item.data.codigo_activo || item.data._id,
                         nombre: item.name,
                         marca: item.data.marca || '',
@@ -1646,12 +1655,15 @@
                         numActivo: item.data.numActivo || ''
                     }));
                     
-                    const insumos = cart.filter(item => item.type === 'insumos').map(item => ({
+                    const insumos = cart.filter(item => item.type === 'insumo').map(item => ({
                         id_insumo: item.data._id?.toString() || item.data.id_insumo?.toString() || '',
-                        cantidad: item.data.cantidad || 1,
+                        cantidad: item.quantity || 1,
                         caracteristicas: item.data.caracteristicas || '',
                         descripcion: item.data.descripcion || ''
                     }));
+                    
+                    console.log('✅ Activos filtrados:', activos);
+                    console.log('✅ Insumos filtrados:', insumos);
                     
                     // Preparar datos de la solicitud
                     const requestData = {
@@ -1707,12 +1719,11 @@
                         });
                         
                         // Mostrar detalles completos del error
-                        console.log('🔍 Detalles completos del error 403:', JSON.stringify(errorData, null, 2));
                         
                         // Mensaje específico para 403
                         if (response.status === 403) {
                             const errorMessage = errorData.message || errorData.error || 'No tienes permisos para crear solicitudes.';
- 　　　　　　　　　　　　　// Si es por solicitud pendiente, mostrar mensaje específico
+                            // Si es por solicitud pendiente, mostrar mensaje específico
                             if (errorMessage.includes('pendiente') && errorData.folio) {
                                 const folio = errorData.folio;
                                 showToast(`⏳ Ya tienes una solicitud pendiente (Folio: ${folio}). Debes esperar a que se apruebe o rechace.`, 'warning');
@@ -1725,7 +1736,7 @@
                                 }, 1000);
                                 return; // No lanzar error para que no se muestre el toast de error
                             }
- 　　　　　　　　　　　　　throw new Error(errorMessage);
+                            showToast(`❌ ${errorMessage}`, 'error');
                         } else if (response.status === 401) {
                             throw new Error('Tu sesión ha expirado. Inicia sesión nuevamente.');
                         } else {

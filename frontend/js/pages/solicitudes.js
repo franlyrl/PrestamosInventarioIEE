@@ -114,21 +114,13 @@ class SolicitudesController {
             // Ocultar loading
             Utils.showLoading(false);
 
-            // Llamar a la función global que muestra las solicitudes
-            if (typeof mostrarSolicitudesReales === 'function') {
-                console.log('📋 Llamando a mostrarSolicitudesReales()...');
-                mostrarSolicitudesReales(this.solicitudes);
-                // Actualizar estadísticas
-                this.updateEstadisticas();
-            } else {
-                console.log('⚠️ mostrarSolicitudesReales() no disponible, usando renderSolicitudes()');
-                this.renderSolicitudes();
-                this.updateEstadisticas();
-            }
-
-            // Siempre llamar a renderSolicitudes para asegurar que la tabla se muestre
-            console.log('🔄 Forzando renderSolicitudes()...');
+            // FORZAR SOLO renderSolicitudes() - NO usar sistema HTML antiguo
+            console.log('� USANDO ÚNICAMENTE renderSolicitudes() del controller');
             this.renderSolicitudes();
+            this.updateEstadisticas();
+
+            console.log('✅ Controller completó todo el renderizado');
+
         } catch (error) {
             console.error('Error cargando solicitudes:', error);
             Utils.showToast('Error al cargar solicitudes', 'error');
@@ -137,7 +129,7 @@ class SolicitudesController {
     }
 
     renderSolicitudes() {
-        console.log('🔄 renderSolicitudes() llamado');
+        console.log('🔄 renderSolicitudes() llamado - RENDERIZADO COMPLETO');
         const tbody = document.getElementById('solicitudes-tbody');
         const emptyState = document.getElementById('empty-state');
         const resultadosCount = document.getElementById('resultados-count');
@@ -153,10 +145,8 @@ class SolicitudesController {
             resultadosCount.textContent = solicitudesFiltradas.length;
         }
 
-        // Mostrar/ocultar empty state
-        if (emptyState) {
-            emptyState.classList.toggle('hidden', solicitudesFiltradas.length > 0);
-        }
+        // Limpiar tbody completamente
+        tbody.innerHTML = '';
 
         if (solicitudesFiltradas.length === 0) {
             tbody.innerHTML = `
@@ -180,17 +170,31 @@ class SolicitudesController {
                     </td>
                 </tr>
             `;
+            console.log('✅ Estado vacío mostrado');
             return;
         }
 
-        tbody.innerHTML = solicitudesFiltradas.map(solicitud =>
-            this.createSolicitudRow(solicitud)
-        ).join('');
+        // Renderizar TODAS las solicitudes con el formato completo del controller
+        console.log('🔨 Iniciando renderizado de solicitudes...');
 
-        // Mostrar insumos detallados también
-        if (typeof mostrarInsumosDetallados === 'function') {
-            mostrarInsumosDetallados(solicitudesFiltradas);
-        }
+        // Opción 1: Usar innerHTML directo (más simple y confiable)
+        const todasLasFilas = solicitudesFiltradas.map((solicitud, index) => {
+            const rowHTML = this.createSolicitudRow(solicitud);
+            console.log(`🔨 Creando fila ${index + 1}:`, solicitud._id?.slice(-6));
+            return rowHTML;
+        }).join('');
+
+        console.log('📊 Insertando HTML en tbody...');
+        tbody.innerHTML = todasLasFilas;
+
+        console.log('✅ HTML insertado, vérificando contenido...');
+        console.log('🔍 tbody.innerHTML (primeros 200 chars):', tbody.innerHTML.substring(0, 200));
+        console.log('🔍 Número de filas en tbody:', tbody.children.length);
+
+        console.log('✅ TODAS las solicitudes renderizadas con formato completo:', solicitudesFiltradas.length);
+
+        // NO mostrar insumos detallados - el controller ya muestra todo en la tabla
+        console.log('🚫 NO mostrar insumos detallados - todo está en la tabla principal');
 
         // Actualizar paginación
         this.updatePaginacion();
