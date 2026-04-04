@@ -1,45 +1,47 @@
 <!-- Header Component -->
 <header class="bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] text-white shadow-xl border-b border-[#004a8c]/20">
-    <div class="container">
+    <div class="container-fluid" style="max-width: 100%; padding: 0 2rem;">
         <div class="flex justify-between items-center py-4">
             <!-- Logo y Branding -->
-            <div class="flex items-center gap-4">
-                <a href="/index.html" class="block w-10 h-10 bg-white rounded-lg shadow-lg flex items-center justify-center transform hover:scale-105 transition-transform overflow-hidden hover:shadow-xl">
-                    <img src="../css/UTN.jpg" alt="UTN Logo - Inicio" class="w-8 h-8 object-contain">
+            <div class="flex items-center gap-6">
+                <a href="/index.html" class="block w-12 h-12 bg-white rounded-lg shadow-lg flex items-center justify-center transform hover:scale-105 transition-transform overflow-hidden hover:shadow-xl">
+                    <img src="../css/UTN.jpg" alt="UTN Logo - Inicio" class="w-10 h-10 object-contain">
                 </a>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight">SPIEE-SP</h1>
-                    <p class="text-xs font-bold-medium" style="color: #e6e3e0;">Sistema Prestamos de equipo ElectroTecno</p>
+                    <h1 class="text-2xl font-bold tracking-tight">SPIEE-SP</h1>
+                    <p class="text-sm font-bold-medium" style="color: #e6e3e0;">Sistema Prestamos de equipo ElectroTecno</p>
                 </div>
             </div>
             
-            <!-- Info de Usuario y Acciones -->
-            <div class="flex items-center gap-4">
+            <!-- Navegación Horizontal y Acciones -->
+            <div class="flex items-center gap-8">
                 <!-- Carrito de Solicitudes -->
                 <div class="relative">
-                    <button id="cartBtn" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:scale-105">
+                    <button id="cartBtn" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-6 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-3 hover:scale-105">
                         🛒 Solicitudes
-                        <span id="cartCount" class="bg-white text-xs px-2 py-0.5 rounded-full font-bold text-black">0</span>
+                        <span id="cartCount" class="bg-white text-xs px-3 py-1 rounded-full font-bold text-black">0</span>
                     </button>
                 </div>
                 
                 <!-- Info Usuario -->
-                <div class="text-right hidden md:block">
-                    <p class="text-sm font-semibold text-white" id="userInfo">Usuario</p>
-                    <p class="text-xs flex items-center gap-1" id="currentDateTime" style="color: #ffffff;">
-                        <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: #139d2c;"></span>
-                        Conectado
-                    </p>
+                <div class="hidden lg:flex items-center gap-6">
+                    <div class="text-right">
+                        <p class="text-base font-semibold text-white" id="userInfo">Usuario</p>
+                        <p class="text-sm flex items-center gap-2" id="currentDateTime" style="color: #ffffff;">
+                            <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: #139d2c;"></span>
+                            Conectado
+                        </p>
+                    </div>
                 </div>
                 
                 <!-- Menú Usuario -->
                 <div class="relative">
-                    <button id="user-menu-btn" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2 hover:scale-105">
-                        <div class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                    <button id="user-menu-btn" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-6 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-3 hover:scale-105">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                             👤
                         </div>
                         <span id="userMenuName">Usuario</span>
-                        <svg class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </button>

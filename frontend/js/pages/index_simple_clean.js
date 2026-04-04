@@ -688,17 +688,7 @@ async function sendRequest() {
         const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
 
         // Separar activos e insumos del carrito
-        console.log('🔍 === DEBUG FILTRADO ===');
-        console.log('📊 Carrito completo:', cart);
-        cart.forEach((item, index) => {
-            console.log(`🔍 Item ${index}:`, {
-                name: item.name,
-                type: item.type,
-                data: item.data
-            });
-        });
-
-        const activos = cart.filter(item => item.type === 'activo').map(item => ({
+        const activos = cart.filter(item => item.type === 'activos').map(item => ({
             codigo_activo: item.data.codigo_activo || item.data._id,
             nombre: item.name,
             marca: item.data.marca || '',
@@ -706,15 +696,12 @@ async function sendRequest() {
             numActivo: item.data.numActivo || ''
         }));
 
-        const insumos = cart.filter(item => item.type === 'insumo').map(item => ({
+        const insumos = cart.filter(item => item.type === 'insumos').map(item => ({
             id_insumo: item.data._id?.toString() || item.data.id_insumo?.toString() || '',
             cantidad: item.data.cantidad || 1,
             caracteristicas: item.data.caracteristicas || '',
             descripcion: item.data.descripcion || ''
         }));
-
-        console.log('✅ Activos filtrados:', activos);
-        console.log('✅ Insumos filtrados:', insumos);
 
         // Preparar datos de la solicitud
         const requestData = {
