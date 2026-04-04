@@ -1319,6 +1319,101 @@
                 modal.classList.add('opacity-0', 'pointer-events-none');
             }
 
+            function abrirModalAgregarArticulo() {
+                const modal = document.getElementById('modalAgregarInsumo');
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100');
+            }
+
+            function cerrarModalAgregarArticulo() {
+                const modal = document.getElementById('modalAgregarInsumo');
+                modal.classList.remove('opacity-100');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+
+            function abrirModalCargaMasiva() {
+                const modal = document.getElementById('modalAgregarMasivo');
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100');
+            }
+
+            function cerrarModalCargaMasiva() {
+                const modal = document.getElementById('modalAgregarMasivo');
+                modal.classList.remove('opacity-100');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+
+            function cerrarModalMasivo() {
+                const modal = document.getElementById('modalAgregarMasivo');
+                modal.classList.remove('opacity-100');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+
+            function mostrarTabMasivo(tabType) {
+                const tabArchivo = document.getElementById('tab-archivo');
+                const tabTabla = document.getElementById('tab-tabla');
+                const tabManual = document.getElementById('tab-manual');
+                const contenidoArchivo = document.getElementById('contenido-archivo');
+                const contenidoTabla = document.getElementById('contenido-tabla');
+                const contenidoManual = document.getElementById('contenido-manual');
+                
+                // Resetear todos los tabs
+                [tabArchivo, tabTabla, tabManual].forEach(tab => {
+                    if (tab) {
+                        tab.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                        tab.classList.add('text-slate-600');
+                    }
+                });
+                
+                // Ocultar todos los contenidos
+                [contenidoArchivo, contenidoTabla, contenidoManual].forEach(contenido => {
+                    if (contenido) {
+                        contenido.classList.add('hidden');
+                    }
+                });
+                
+                // Activar el tab seleccionado
+                switch(tabType) {
+                    case 'archivo':
+                        if (tabArchivo) {
+                            tabArchivo.classList.remove('text-slate-600');
+                            tabArchivo.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                        }
+                        if (contenidoArchivo) contenidoArchivo.classList.remove('hidden');
+                        break;
+                    case 'tabla':
+                        if (tabTabla) {
+                            tabTabla.classList.remove('text-slate-600');
+                            tabTabla.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                        }
+                        if (contenidoTabla) contenidoTabla.classList.remove('hidden');
+                        break;
+                    case 'manual':
+                        if (tabManual) {
+                            tabManual.classList.remove('text-slate-600');
+                            tabManual.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                        }
+                        if (contenidoManual) contenidoManual.classList.remove('hidden');
+                        break;
+                }
+            }
+
+            function mostrarTabManual() {
+                const tabManual = document.getElementById('tabManual');
+                const tabMasivo = document.getElementById('tabMasivo');
+                const contenidoManual = document.getElementById('contenidoManual');
+                const contenidoMasivo = document.getElementById('contenidoMasivo');
+                
+                if (tabManual && tabMasivo && contenidoManual && contenidoMasivo) {
+                    tabMasivo.classList.remove('bg-blue-600', 'text-white');
+                    tabMasivo.classList.add('bg-white', 'text-slate-600');
+                    tabManual.classList.remove('bg-white', 'text-slate-600');
+                    tabManual.classList.add('bg-blue-600', 'text-white');
+                    contenidoMasivo.classList.add('hidden');
+                    contenidoManual.classList.remove('hidden');
+                }
+            }
+
             // Manejar el envío del formulario
             document.addEventListener('DOMContentLoaded', function() {
                 const form = document.getElementById('formAgregarInsumo');
