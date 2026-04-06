@@ -1,7 +1,28 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  root: '.', // Raíz del proyecto
+  publicDir: 'public', // Directorio público
+  build: {
+    outDir: 'dist', // Directorio de salida
+  },
+  server: {
+    port: 5173, // Puerto específico
+    open: true, // Abrir navegador automáticamente
+    host: true, // Permitir conexiones externas
+    // 🔥 Configurar MIME types para archivos estáticos
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url && req.url.endsWith('.css')) {
+          res.setHeader('Content-Type', 'text/css');
+        } else if (req.url && req.url.endsWith('.js')) {
+          res.setHeader('Content-Type', 'application/javascript');
+        } else if (req.url && req.url.endsWith('.html')) {
+          res.setHeader('Content-Type', 'text/html');
+        }
+        next();
+      });
+    }
+  }
 })

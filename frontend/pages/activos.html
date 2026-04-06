@@ -1232,42 +1232,51 @@
                     
                     console.log('📊 Valores parseados:', valores);
                     
-                    if (valores.length >= 6 && valores[0] && valores[0] !== '') {
-                        // Mapeo correcto según tu CSV:
-                        // Placa;Descripción;Marca;Modelo;Serie;Fecha
-                        // 0      1           2      3      4      5
-                        const codigo = valores[0].replace(/"/g, '').trim();
-                        const nombre = valores[1].replace(/"/g, '').trim();
+                    if (valores.length >= 5) {
+                        // ✅ Mapeo CORRECTO según tu CSV:
+                        // Nombre,Código,Marca,Modelo,Categoría,Estado
+                        // 0      1       2      3      4         5
+                        const nombre = valores[0].replace(/"/g, '').trim();
+                        const codigo = valores[1].replace(/"/g, '').trim();
                         const marca = valores[2].replace(/"/g, '').trim();
                         const modelo = valores[3].replace(/"/g, '').trim();
-                        const serie = valores[4].replace(/"/g, '').trim();
-                        const fecha = valores[5] ? valores[5].replace(/"/g, '').trim() : '';
+                        const categoria = valores[4].replace(/"/g, '').trim();
+                        const estado = valores[5] ? valores[5].replace(/"/g, '').trim() : 'disponible';
                         
-                        console.log('📋 Datos extraídos:', { nombre, codigo, marca, modelo, serie, fecha });
+                        console.log('📋 Datos extraídos:', { nombre, codigo, marca, modelo, categoria, estado });
                         
                         // Asignar categoría según tipo de equipo
-                        const categoriasValidas = ['Instrumentos', 'Herramientas']; // ✅ Solo categorías del modelo
-                        let categoriaFinal = 'Instrumentos'; // Default
+                        const categoriasValidas = ['equipos', 'herramientas', 'instrumentos', 'mobiliario', 'material_laboratorio']; // ✅ Categorías del backend
+                        let categoriaFinal = 'equipos'; // Default
                         
-                        // Inferir categoría del nombre/descripción
-                        const nombreLower = nombre.toLowerCase();
-                        if (nombreLower.includes('soldador') || nombreLower.includes('taladro') || 
-                            nombreLower.includes('llave') || nombreLower.includes('destornillador') ||
-                            nombreLower.includes('sierra') || nombreLower.includes('lijadora') ||
-                            nombreLower.includes('pulidora') || nombreLower.includes('corta') ||
-                            nombreLower.includes('martillo') || nombreLower.includes('pinza') ||
-                            nombreLower.includes('herramienta') || nombreLower.includes('manual')) {
-                            categoriaFinal = 'Herramientas';
+                        // Usar categoría del CSV si es válida, sino inferir
+                        if (categoria && categoriasValidas.includes(categoria.toLowerCase())) {
+                            categoriaFinal = categoria.toLowerCase();
+                        } else {
+                            // Inferir categoría del nombre/descripción
+                            const nombreLower = nombre.toLowerCase();
+                            if (nombreLower.includes('soldador') || nombreLower.includes('taladro') || 
+                                nombreLower.includes('llave') || nombreLower.includes('destornillador') ||
+                                nombreLower.includes('sierra') || nombreLower.includes('lijadora') ||
+                                nombreLower.includes('pulidora') || nombreLower.includes('corta') ||
+                                nombreLower.includes('martillo') || nombreLower.includes('pinza') ||
+                                nombreLower.includes('herramienta') || nombreLower.includes('manual')) {
+                                categoriaFinal = 'herramientas';
+                            } else if (nombreLower.includes('multímetro') || nombreLower.includes('osciloscopio') || 
+                                       nombreLower.includes('generador') || nombreLower.includes('fuente') ||
+                                       nombreLower.includes('analizador') || nombreLower.includes('medidor')) {
+                                categoriaFinal = 'instrumentos';
+                            }
                         }
                         
                         console.log(`🔄 Categoría inferida: ${categoriaFinal}`);
                         
-                        // Estado por defecto
-                        const estadoFinal = 'disponible';
+                        // Estado desde CSV o por defecto
+                        const estadoFinal = estado || 'disponible';
                         
                         if (categoriasValidas.includes(categoriaFinal)) {
                             // Extraer número del código (eliminar prefijos como SP-INV-, 5 -, etc.)
-                            let numActivo = 0;
+                            let numActivo = codigo; // ✅ Mantener como string
                             try {
                                 // Limpiar el código eliminando prefijos comunes
                                 let codigoLimpio = codigo
@@ -1280,25 +1289,25 @@
                                 const numeros = codigoLimpio.match(/\d+/g);
                                 if (numeros && numeros.length > 0) {
                                     // Tomar el primer número encontrado (generalmente el más grande)
-                                    numActivo = parseInt(numeros[0]) || 0;
+                                    numActivo = numeros[0] || codigo; // ✅ Mantener como string
                                 }
                             } catch (e) {
                                 console.warn('⚠️ Error extrayendo número del código:', codigo, e);
-                                numActivo = 0;
+                                numActivo = codigo; // ✅ Mantener como string
                             }
                             
                             activos.push({
-                                numActivo: numActivo,                        // ✅ Campo correcto
-                                numSerie: codigo || null,                    // ✅ Campo correcto
+                                numActivo: codigo,                        // ✅ Código del CSV
+                                numSerie: codigo || null,                    // ✅ Usar código como serie
                                 marca: marca === 'N/A' || !marca ? null : marca,
-                                modelo: nombre || null,                       // ✅ Usar nombre como modelo
-                                categoria: categoriaFinal || null,
-                                estadoActivo: estadoFinal || null,            // ✅ Campo correcto
+                                modelo: modelo || null,                       // ✅ Modelo del CSV
+                                categoria: categoriaFinal || null,             // ✅ Categoría procesada
+                                estadoActivo: estadoFinal || null,            // ✅ Estado del CSV
                                 caracteristicas: `Activo ${nombre || 'sin nombre'} - ${categoriaFinal || 'sin categoría'}` // ✅ Campo requerido
                             });
                             console.log('✅ Activo válido agregado (estructura backend):', { 
-                                numActivo: numActivo, 
-                                modelo: (nombre || 'SIN NOMBRE').substring(0, 30) + '...' 
+                                numActivo: codigo, 
+                                modelo: (modelo || 'SIN MODELO').substring(0, 30) + '...' 
                             });
                         } else {
                             console.log('❌ Categoría inválida:', { categoria: categoriaFinal });

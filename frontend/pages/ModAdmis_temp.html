@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTN - Panel de Administración</title>
+    <meta name="description" content="Panel de administración del sistema de gestión de laboratorio UTN">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* Estilos personalizados para las opciones del select */
+        .custom-select {
+            position: relative;
+        }
+        
+        .custom-select select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background: white;
+        }
+        
+        /* Para navegadores que soportan estilización limitada */
+        #categoria-select option {
+            font-weight: normal;
+        }
+        
+        #categoria-select option[value*="Insumos"] {
+            font-weight: 600;
+            color: #16a34a;
+        }
+        
+        #categoria-select option[value*="Activos"] {
+            font-weight: 600;
+            color: #2563eb;
+        }
+        
+        /* Alternativa con data attributes */
+        #categoria-select option[data-type="insumo"]::after {
+            content: " [Insumos]";
+            font-weight: 600;
+            font-size: 0.8em;
+            color: #16a34a;
+        }
+        
+        #categoria-select option[data-type="activo"]::after {
+            content: " [Activos]";
+            font-weight: 600;
+            font-size: 0.8em;
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen">
+    <!-- 🔥 HEADER COMPONENT -->
+    <div id="header-component"></div>
+    
+    <!-- VERIFICACIÓN DE AUTENTICACIÓN -->
+    <div id="loginPage" class="fixed inset-0 z-[200] bg-slate-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-100 text-center p-8">
+            <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+            <h2 class="text-xl font-bold text-slate-800 mb-2">Verificando sesión...</h2>
+            <p class="text-sm text-slate-600">Validando tu autenticación</p>
+        </div>
+    </div>
+
+    <!-- APLICACIÓN PRINCIPAL -->
+    <div id="mainApp" class="hidden">
+        <div id="header-component"></div>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="container py-6 flex-grow">
+            <!-- VISTA PARA ADMINISTRATIVOS Y ADMIN -->
+            <div id="vistaAdmin" class="hidden">
+                <!-- HEADER DE GESTIÓN -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <h1 class="text-2xl font-bold text-slate-800 mb-2">📋 Panel de Administración</h1>
+                    <p class="text-slate-600">Gestión completa de inventario y recursos del laboratorio</p>
+                </div>
+
+                <!-- BOTONES PRINCIPALES -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <!-- MÓDULO DE ACTIVOS -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="window.location.href='activos.html'">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                                    <span class="text-2xl">🔧</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-800">Gestión de Activos</h3>
+                                    <p class="text-sm text-slate-600">Control de equipos y dispositivos</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center text-blue-600 font-medium">
+                                <span>Acceder →</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MÓDULO DE INSUMOS -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="window.location.href='insumos.html'">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                                    <span class="text-2xl">🧩</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-800">Gestión de Insumos</h3>
+                                    <p class="text-sm text-slate-600">Control de materiales y consumibles</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center text-green-600 font-medium">
+                                <span>Acceder →</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- AÑADIR ARTÍCULOS -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="abrirModalAgregarArticulo()">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                                    <span class="text-2xl">➕</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-800">Añadir Artículo</h3>
+                                    <p class="text-sm text-slate-600">Agregar nuevo artículo al inventario</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center text-purple-600 font-medium">
+                                <span>Añadir →</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CARGA MASIVA DE ARTÍCULOS -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="abrirModalCargaMasiva()">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                                    <span class="text-2xl">📊</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-800">Carga Masiva</h3>
+                                    <p class="text-sm text-slate-600">Agregar múltiples artículos a la vez</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center text-green-600 font-medium">
+                                <span>Cargar Múltiples →</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL PARA AGREGAR ARTÍCULO -->
+    <div id="modalAgregarInsumo" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-2 opacity-0 pointer-events-none transition-opacity">
+        <div class="bg-white w-full max-w-screen-xl rounded-lg shadow-lg overflow-hidden border border-slate-200 fade-in max-h-[80vh] overflow-y-auto">
+            <div class="p-2 border-b border-slate-200 bg-white">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-base font-semibold text-slate-900">➕ Agregar Nuevo Artículo</h2>
+                    <button onclick="cerrarModalAgregarArticulo()" class="text-slate-500 hover:text-slate-700 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="formAgregarInsumo" class="p-2">
+                <!-- Selector de tipo -->
+                <div class="mb-2 bg-gray-50 p-2 rounded border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-medium text-gray-700">Agregar Artículos</label>
+                        <div class="flex gap-1">
+                            <button type="button" onclick="agregarNuevoArticulo('insumo')" class="px-2 py-1 bg-green-600 text-white text-xs rounded border border-green-700 hover:bg-green-700 transition-colors flex items-center gap-1">
+                                <span>📦</span>
+                                <span>Agregar Insumo</span>
+                            </button>
+                            <button type="button" onclick="agregarNuevoArticulo('activo')" class="px-2 py-1 bg-blue-600 text-white text-xs rounded border border-blue-700 hover:bg-blue-700 transition-colors flex items-center gap-1">
+                                <span>🔧</span>
+                                <span>Agregar Activo</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contenedor de artículos -->
+                <div id="articulosContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-1 mb-2">
+                    <!-- Los artículos se agregarán aquí dinámicamente -->
+                </div>
+
+                <!-- Botones -->
+                <div class="flex gap-4 mt-2 p-2 bg-gray-50 rounded border border-gray-200">
+                    <button type="button" onclick="cerrarModalAgregarArticulo()" class="flex-1 py-1 text-xs font-medium bg-white text-gray-700 rounded border border-gray-300 hover:bg-gray-50 transition">
+                        Cancelar
+                    </button>
+                    <button type="button" onclick="enviarMultiplesArticulos()" class="flex-1 py-1 text-xs font-medium bg-purple-600 text-white rounded border border-purple-700 hover:bg-purple-700 transition">
+                        ➕ Agregar Artículos
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PARA AGREGAR MASIVO -->
+    <div id="modalAgregarMasivo" class="fixed inset-0 z-[900] bg-black/1000 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
+        <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-slate-100 sticky top-0 bg-white z-10">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-slate-800">📦 Agregar Artículos Masivamente</h2>
+                    <button onclick="cerrarModalMasivo()" class="text-slate-400 hover:text-slate-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tabs de opciones -->
+            <div class="border-b border-slate-100">
+                <div class="flex">
+                    <button onclick="mostrarTabMasivo('archivo')" id="tab-archivo" class="px-6 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600">
+                        📁 Cargar Archivo
+                    </button>
+                    <button onclick="mostrarTabMasivo('tabla')" id="tab-tabla" class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-blue-600">
+                        📊 Tabla de Datos
+                    </button>
+                    <button onclick="mostrarTabMasivo('manual')" id="tab-manual" class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-blue-600">
+                        ✏️ Ingreso Manual
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contenido de tabs -->
+            <div class="p-6">
+                <!-- Tab 1: Cargar Archivo -->
+                <div id="contenido-archivo" class="tab-content">
+                    <div class="text-center py-8">
+                        <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-3xl">📁</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-800 mb-2">Cargar archivo CSV o Excel</h3>
+                        <p class="text-slate-600 mb-6">Sube un archivo con columnas: nombre, categoria, cantidad, caracteristicas</p>
+                        
+                        <div class="max-w-md mx-auto">
+                            <input type="file" id="archivo-masivo" accept=".csv,.xlsx,.xls" class="hidden">
+                            <button onclick="document.getElementById('archivo-masivo').click()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition">
+                                📤 Seleccionar Archivo
+                            </button>
+                            <div id="archivo-seleccionado" class="mt-3 text-sm text-slate-600"></div>
+                        </div>
+                        
+                        <!-- Plantilla -->
+                        <div class="mt-6 p-4 bg-slate-50 rounded-lg">
+                            <p class="text-sm text-slate-600 mb-2">¿Necesitas una plantilla?</p>
+                            <button onclick="descargarPlantilla()" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                📥 Descargar Plantilla CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tab 2: Tabla de Datos -->
+                <div id="contenido-tabla" class="tab-content hidden">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800 mb-2">Tabla de Artículos</h3>
+                        <p class="text-slate-600">Agrega múltiples filas con los datos de los artículos</p>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full border border-slate-200 rounded-lg">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="border border-slate-200 px-4 py-2 text-left">Nombre</th>
+                                    <th class="border border-slate-200 px-4 py-2 text-left">Categoría</th>
+                                    <th class="border border-slate-200 px-4 py-2 text-left">Cantidad</th>
+                                    <th class="border border-slate-200 px-4 py-2 text-left">Características</th>
+                                    <th class="border border-slate-200 px-4 py-2">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-insumos-masivos">
+                                <!-- Filas se agregarán dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4 flex gap-2">
+                        <button onclick="agregarFilaTabla()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                            ➕ Agregar Fila
+                        </button>
+                        <button onclick="limpiarTabla()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                            🗑️ Limpiar Todo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Ingreso Manual -->
+                <div id="contenido-manual" class="tab-content hidden">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold text-slate-800 mb-2">Ingreso Manual Rápido</h3>
+                        <p class="text-slate-600">Ingresa los datos separados por comas o líneas</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Nombres (uno por línea)</label>
+                            <textarea id="nombres-manual" rows="6" class="w-full px-3 py-2 border border-slate-300 rounded-lg" placeholder="Resistencia 1k&#10;Capacitor 100uF&#10;LED rojo 5mm"></textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Categoría</label>
+                                <select id="categoria-manual" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                                    <option value="Componentes Digitales">Componentes Digitales</option>
+                                    <option value="Componentes Analógicos">Componentes Analógicos</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad</label>
+                                <input type="number" id="cantidad-manual" value="1" min="1" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Características</label>
+                                <input type="text" id="caracteristicas-manual" value="Componente electrónico" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <p class="text-sm text-blue-800">
+                                <strong>Ejemplo:</strong> Si ingresas "Resistencia 1k, Capacitor 100uF" y seleccionas "Componentes Analógicos", 
+                                se crearán 2 artículos con esa categoría, cantidad y características.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botones de acción -->
+            <div class="p-6 border-t border-slate-100">
+                <div class="flex gap-3">
+                    <button onclick="cerrarModalMasivo()" class="flex-1 py-3 text-sm font-bold bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition">
+                        Cancelar
+                    </button>
+                    <button onclick="procesarAgregadoMasivo()" class="flex-1 py-3 text-sm font-bold bg-green-600 text-white rounded-xl hover:bg-green-700 shadow-lg shadow-green-100 transition">
+                        📦 Agregar Artículos Masivamente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST DE NOTIFICACIONES -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
+        <div class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
+            <span id="toastMsg">Operación Exitosa</span>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="../js/app.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/modal.js"></script>
+    <script src="../js/pages/admin.js"></script>
+
+    <!-- Script de Verificación y Conexión -->
+    <script>
+        // Usar CONFIG global ya definido en js/main.js para evitar duplicación
+        console.log('✅ CONFIG global disponible:', window.CONFIG);
+        
+        // Estado de la aplicación
+        let currentUser = null;
+        let dbConnected = false;
+        let connectionCheckInterval;
+        let isInitialized = false; // Bandera para evitar múltiples inicializaciones
+
+        // Función para mostrar notificaciones - usar Utils si está disponible
+        function showToast(message, type = 'success') {
+            if (window.Utils && window.Utils.showToast) {
+                window.Utils.showToast(message, type);
+            } else {
+                // Fallback si Utils no está disponible
+                const toast = document.getElementById('toast');
+                const toastMsg = document.getElementById('toastMsg');
+                
+                toastMsg.textContent = message;
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                }, 3000);
+            }
+        }
+
+        // Función para verificar conexión a la base de datos
+        async function checkDBConnection() {
+            const indicator = document.getElementById('dbIndicator');
+            const status = document.getElementById('dbStatus');
+            
+            // Verificar que los elementos existan antes de usarlos
+            if (indicator) {
+                indicator.classList.remove('bg-yellow-500', 'bg-red-500', 'animate-pulse');
+                indicator.classList.add('bg-green-500');
+            }
+            
+            if (status) {
+                status.textContent = 'Conectado';
+            }
+            
+            dbConnected = true;
+        }
+
+        // Función para verificar autenticación
+        async function checkAuthentication() {
+            console.log('🔍 Iniciando checkAuthentication...');
+            
+            const token = localStorage.getItem('utn_token');
+            const userData = localStorage.getItem('utn_user');
+            
+            console.log('🔍 Datos en localStorage:', {
+                token: token ? 'existe' : 'no existe',
+                userData: userData ? 'existe' : 'no existe'
+            });
+            
+            if (!token || !userData) {
+                console.log('🚫 No hay token o usuario, redirigiendo a login...');
+                // Solo redirigir si NO estamos ya en login.html
+                if (!window.location.pathname.includes('login.html')) {
+                    window.location.href = '../login.html';
+                }
+                return false;
+            }
+            
+            try {
+                // Token válido, cargar datos del usuario
+                currentUser = JSON.parse(userData);
+                console.log('👤 Usuario cargado:', currentUser);
+                
+                // Verificar si es administrador
+                const rol = currentUser.rol.toLowerCase();
+                if (!['administrativo', 'admin', 'administrador'].includes(rol)) {
+                    console.log('🚫 Usuario no es administrador, redirigiendo...');
+                    showToast('❌ No tienes permisos de administrador', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'ModUsuarios.html';
+                    }, 2000);
+                    return false;
+                }
+                
+                // Ocultar pantalla de verificación
+                const loginPage = document.getElementById('loginPage');
+                const mainApp = document.getElementById('mainApp');
+                
+                console.log('🔍 Elementos DOM:', {
+                    loginPage: loginPage ? 'encontrado' : 'no encontrado',
+                    mainApp: mainApp ? 'encontrado' : 'no encontrado'
+                });
+                
+                if (loginPage) {
+                    loginPage.classList.add('hidden');
+                    console.log('✅ loginPage ocultado');
+                }
+                
+                if (mainApp) {
+                    mainApp.classList.remove('hidden');
+                    console.log('✅ mainApp mostrado');
+                }
+                
+                // Actualizar UI
+                updateUserInfo();
+                startTimeUpdates();
+                
+                // Mostrar vista de administrador
+                setTimeout(() => {
+                    const vistaAdmin = document.getElementById('vistaAdmin');
+                    
+                    console.log('🔍 Elementos encontrados:', {
+                        vistaAdmin: vistaAdmin ? 'encontrado' : 'no encontrado'
+                    });
+                    
+                    if (vistaAdmin) {
+                        vistaAdmin.classList.remove('hidden');
+                        console.log('✅ vistaAdmin mostrada');
+                    }
+                }, 100);
+                
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Error de autenticación:', error);
+                console.error('❌ Detalles del error:', error.message, error.stack);
+                
+                // Limpiar datos inválidos solo si no estamos en login.html
+                if (!window.location.pathname.includes('login.html')) {
+                    console.log('🧹 Limpiando datos inválidos y redirigiendo...');
+                    localStorage.removeItem('utn_token');
+                    localStorage.removeItem('utn_user');
+                    window.location.href = '../login.html';
+                }
+                return false;
+            }
+        }
+
+        // Función para actualizar información del usuario
+        function updateUserInfo() {
+            console.log(' Actualizando información del usuario:', currentUser);
+            
+            if (currentUser) {
+                const userInfo = document.getElementById('userInfo');
+                const userMenuName = document.getElementById('userMenuName');
+                const dropdownUserName = document.getElementById('dropdownUserName');
+                const dropdownUserRole = document.getElementById('dropdownUserRole');
+                
+                // Actualizar nombre
+                const nombreCompleto = currentUser.nombre || currentUser.nombre_completo || 'Usuario';
+                
+                if (userInfo) {
+                    userInfo.textContent = nombreCompleto;
+                    console.log(' Nombre completo actualizado en header:', nombreCompleto);
+                }
+                
+                if (userMenuName) {
+                    userMenuName.textContent = nombreCompleto;
+                    console.log(' Nombre completo actualizado en menú:', nombreCompleto);
+                }
+                
+                if (dropdownUserName) {
+                    dropdownUserName.textContent = nombreCompleto;
+                }
+                
+                if (dropdownUserRole) {
+                    dropdownUserRole.textContent = currentUser.rol || 'Administrador';
+                }
+            }
+        }
+
+        function startTimeUpdates() {
+            const updateDateTime = () => {
+                const now = new Date();
+                const dateTimeElement = document.getElementById('currentDateTime');
+                if (dateTimeElement) {
+                    dateTimeElement.textContent = now.toLocaleString('es-CR', {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                }
+            };
+            updateDateTime();
+            setInterval(updateDateTime, 60000);
+        }
+
+        // Funciones para modales
+        function abrirModalAgregarArticulo() {
+            const modal = document.getElementById('modalAgregarInsumo');
+            if (modal) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function cerrarModalAgregarArticulo() {
+            const modal = document.getElementById('modalAgregarInsumo');
+            if (modal) {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function abrirModalCargaMasiva() {
+            const modal = document.getElementById('modalAgregarMasivo');
+            if (modal) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function cerrarModalMasivo() {
+            const modal = document.getElementById('modalAgregarMasivo');
+            if (modal) {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        // Funciones para tabs del modal masivo
+        function mostrarTabMasivo(tab) {
+            // Ocultar todos los contenidos
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Quitar estilos activos de todos los tabs
+            document.querySelectorAll('[id^="tab-"]').forEach(tabBtn => {
+                tabBtn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                tabBtn.classList.add('text-slate-600');
+            });
+            
+            // Mostrar contenido seleccionado
+            const contenido = document.getElementById(`contenido-${tab}`);
+            if (contenido) {
+                contenido.classList.remove('hidden');
+            }
+            
+            // Activar tab seleccionado
+            const tabBtn = document.getElementById(`tab-${tab}`);
+            if (tabBtn) {
+                tabBtn.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                tabBtn.classList.remove('text-slate-600');
+            }
+        }
+
+        // Funciones de utilidad para los modales
+        function agregarNuevoArticulo(tipo) {
+            console.log(`➕ Agregando formulario para ${tipo}`);
+            // Aquí se puede agregar lógica para mostrar diferentes formularios según el tipo
+        }
+
+        function enviarMultiplesArticulos() {
+            console.log('📤 Enviando múltiples artículos...');
+            // Lógica para enviar los artículos agregados
+        }
+
+        function agregarFilaTabla() {
+            console.log('➕ Agregando fila a la tabla');
+            // Lógica para agregar una nueva fila a la tabla
+        }
+
+        function limpiarTabla() {
+            console.log('🗑️ Limpiando tabla');
+            // Lógica para limpiar todas las filas de la tabla
+        }
+
+        function descargarPlantilla() {
+            console.log('📥 Descargando plantilla CSV');
+            // Lógica para descargar una plantilla CSV
+        }
+
+        function procesarAgregadoMasivo() {
+            console.log('📦 Procesando agregado masivo');
+            // Lógica para procesar el agregado masivo de artículos
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Iniciando aplicación de administración...');
+            
+            // Evitar múltiples inicializaciones
+            if (isInitialized) {
+                console.log('⚠️ La aplicación ya fue inicializada, evitando doble inicialización');
+                return;
+            }
+            
+            try {
+                // Verificar autenticación primero
+                console.log('🔍 Verificando autenticación...');
+                const isAuthenticated = await checkAuthentication();
+                
+                console.log('📋 ¿Autenticado?', isAuthenticated);
+                
+                if (isAuthenticated) {
+                    // Marcar como inicializado
+                    isInitialized = true;
+                    
+                    // Cargar componentes
+                    console.log('🔧 Cargando componentes...');
+                    try {
+                        // Cargar header component
+                        const headerResponse = await fetch('../components/header.html');
+                        const headerHtml = await headerResponse.text();
+                        document.getElementById('header-component').innerHTML = headerHtml;
+                        console.log('✅ Header component cargado');
+                        
+                        // IMPORTANTE: Llamar a updateUserInfo() después de cargar el header
+                        if (typeof updateUserInfo === 'function') {
+                            console.log('🔄 Llamando a updateUserInfo()...');
+                            updateUserInfo();
+                            
+                            // Configurar eventos del dropdown después de cargar el header
+                            setTimeout(() => {
+                                console.log('🔧 Configurando eventos del dropdown...');
+                                const userMenuBtn = document.getElementById('user-menu-btn');
+                                const userDropdown = document.getElementById('user-dropdown');
+                                
+                                console.log('🔍 Elementos encontrados:', {
+                                    userMenuBtn: !!userMenuBtn,
+                                    userDropdown: !!userDropdown
+                                });
+                                
+                                if (userMenuBtn && userDropdown) {
+                                    console.log('✅ Botón y dropdown encontrados');
+                                    
+                                    // Configurar menú para administrador
+                                    const solicitudesMenuText = document.getElementById('solicitudes-menu-text');
+                                    const solicitudesMenuDesc = document.getElementById('solicitudes-menu-desc');
+                                    const reportesMenuItem = document.getElementById('reportes-menu-item');
+                                    
+                                    if (solicitudesMenuText) solicitudesMenuText.textContent = 'Solicitudes';
+                                    if (solicitudesMenuDesc) solicitudesMenuDesc.textContent = 'Gestionar todas las solicitudes';
+                                    if (reportesMenuItem) reportesMenuItem.classList.remove('hidden');
+                                    console.log('👨‍💼 Menú configurado para administrador');
+                                    
+                                    // Remover eventos anteriores para evitar conflictos
+                                    const newBtn = userMenuBtn.cloneNode(true);
+                                    userMenuBtn.parentNode.replaceChild(newBtn, userMenuBtn);
+                                    
+                                    // Evento click para abrir/cerrar menú
+                                    newBtn.addEventListener('click', (e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        console.log('🖱️ Click en botón de usuario - EVENTO DISPARADO');
+                                        
+                                        if (userDropdown.classList.contains('hidden')) {
+                                            userDropdown.classList.remove('hidden');
+                                            userDropdown.classList.add('opacity-100');
+                                            console.log('📂 Menú abierto');
+                                        } else {
+                                            userDropdown.classList.add('hidden');
+                                            userDropdown.classList.remove('opacity-100');
+                                            console.log('📁 Menú cerrado');
+                                        }
+                                    });
+                                    
+                                    // Cerrar menú al hacer clic fuera
+                                    document.addEventListener('click', (e) => {
+                                        if (!newBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+                                            userDropdown.classList.add('hidden');
+                                            userDropdown.classList.remove('opacity-100');
+                                            console.log('📁 Menú cerrado por click fuera');
+                                        }
+                                    });
+                                    
+                                    console.log('✅ Eventos del dropdown configurados correctamente');
+                                } else {
+                                    console.log('❌ No se encontraron elementos del dropdown');
+                                }
+                            }, 1000);
+                        } else {
+                            console.log('❌ updateUserInfo() no está disponible');
+                        }
+                    } catch (error) {
+                        console.error('❌ Error cargando header component:', error);
+                    }
+                    
+                    // Iniciar verificación de conexión a BD
+                    checkDBConnection();
+                    connectionCheckInterval = setInterval(checkDBConnection, window.CONFIG.DB_STATUS_CHECK_INTERVAL);
+                }
+            } catch (error) {
+                console.error('❌ Error inicializando aplicación:', error);
+                showToast('Error al iniciar la aplicación', 'error');
+            }
+        });
+
+        // Limpiar intervalo al salir
+        window.addEventListener('beforeunload', () => {
+            if (connectionCheckInterval) {
+                clearInterval(connectionCheckInterval);
+            }
+        });
+    </script>
+</body>
+</html>
