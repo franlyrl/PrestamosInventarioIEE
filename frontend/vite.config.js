@@ -10,7 +10,7 @@ export default defineConfig({
   server: {
     port: 5173, // Puerto específico
     open: true, // Abrir navegador automáticamente
-    host: true, // Permitir conexiones externas
+    host: '0.0.0.0', // Escuchar en todas las interfaces
     // 🔥 Configurar MIME types para archivos estáticos
     configureServer(server) {
       server.middlewares.use((req, res, next) => {

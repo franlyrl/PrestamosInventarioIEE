@@ -9,7 +9,12 @@ require('dotenv').config();
 const app = express();
 
 // --- 1. MIDDLEWARES DE ENTRADA (Configuración inicial) ---
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://192.168.0.9:3000', 'http://192.168.0.9:5173', 'https://192.168.0.9:3000', 'https://192.168.0.9:5173'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With'],
+    credentials: true
+}));
 app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Permite leer formularios
@@ -38,8 +43,9 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 4000;
 // Solo hacemos el listen si este archivo es el principal
 if (require.main === module) {
-    app.listen(PORT, () => {
-        console.log(` Servidor corriendo en http://localhost:${PORT}`);
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(` Servidor corriendo en http://0.0.0.0:${PORT}`);
+        console.log(` Acceso local: http://192.168.0.9:${PORT}`);
         console.log(' Monitoreando peticiones con Morgan...');
     });
 }

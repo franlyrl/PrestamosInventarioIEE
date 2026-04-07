@@ -1,102 +1,103 @@
 <!-- Header Component -->
 <header class="bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] text-white shadow-xl border-b border-[#004a8c]/20">
-    <div class="container-fluid" style="max-width: 100%; padding: 0 2rem;">
-        <div class="flex justify-between items-center py-4">
+    <div class="container mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-2 sm:py-3 md:py-4 gap-2 sm:gap-4">
             <!-- Logo y Branding -->
-            <div class="flex items-center gap-6">
-                <a href="../pages/ModAdmis.html" class="block w-12 h-12 bg-white rounded-lg shadow-lg flex items-center justify-center transform hover:scale-105 transition-transform overflow-hidden hover:shadow-xl">
-                    <img src="../css/UTN.jpg" alt="UTN Logo - Inicio" class="w-10 h-10 object-contain">
+            <div class="flex items-center gap-2 sm:gap-4 md:gap-6">
+                <a href="../pages/ModAdmis.html" class="block w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white rounded-lg shadow-lg flex items-center justify-center transform hover:scale-105 transition-transform overflow-hidden hover:shadow-xl">
+                    <img src="../css/UTN.jpg" alt="UTN Logo - Inicio" class="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 object-contain">
                 </a>
-                <div>
-                    <h1 class="text-2xl font-bold tracking-tight">SPIEE-SP</h1>
-                    <p class="text-sm font-bold-medium" style="color: #e6e3e0;">Sistema Prestamos de equipo ElectroTecno</p>
+                <div class="text-center sm:text-left">
+                    <h1 class="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold tracking-tight">SPIEE-SP</h1>
+                    <p class="text-[10px] sm:text-xs md:text-sm font-bold medium" style="color: #e6e3e0;">Sistema Prestamos de equipo ElectroTecno</p>
                 </div>
             </div>
             
-            <!-- Navegación Horizontal y Acciones -->
-            <div class="flex items-center gap-8">
+            <!-- Navegación y Acciones -->
+            <div class="flex items-center gap-1 sm:gap-2 md:gap-4">
                 <!-- Carrito de Solicitudes -->
                 <div class="relative">
-                    <button id="cartBtn" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-6 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-3 hover:scale-105">
-                        🛒 Solicitudes
-                        <span id="cartCount" class="bg-white text-xs px-3 py-1 rounded-full font-bold text-black">0</span>
+                    <button id="cartBtn" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs md:text-sm lg:text-base font-medium transition-all duration-200 flex items-center gap-0.5 sm:gap-1 md:gap-2 hover:scale-105">
+                        <span class="text-[10px] sm:text-xs md:text-sm lg:text-base">🛒</span>
+                        <span class="hidden md:inline text-xs sm:text-sm md:text-base">Solicitudes</span>
+                        <span id="cartCount" class="bg-white text-[10px] sm:text-xs md:text-sm px-1 sm:px-1.5 md:px-2 py-0.25 sm:py-0.5 rounded-full font-bold text-black">0</span>
                     </button>
                 </div>
                 
-                <!-- Info Usuario -->
-                <div class="hidden lg:flex items-center gap-6">
+                <!-- Info Usuario - Ocultar en móvil, mostrar en tablet/desktop -->
+                <div class="hidden md:flex items-center gap-1 sm:gap-2 md:gap-4">
                     <div class="text-right">
-                        <p class="text-base font-semibold text-white" id="userInfo">Usuario</p>
-                        <p class="text-sm flex items-center gap-2" id="currentDateTime" style="color: #ffffff;">
-                            <span class="w-2 h-2 rounded-full animate-pulse" style="background-color: #139d2c;"></span>
-                            Conectado
+                        <p class="text-[10px] sm:text-xs md:text-sm font-semibold text-white" id="userInfo">Usuario</p>
+                        <p class="text-[10px] sm:text-xs md:text-sm flex items-center gap-1" id="currentDateTime" style="color: #ffffff;">
+                            <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 md:w-2 md:h-2 rounded-full animate-pulse" style="background-color: #139d2c;"></span>
+                            <span class="hidden sm:inline">Conectado</span>
                         </p>
                     </div>
                 </div>
                 
                 <!-- Menú Usuario -->
                 <div class="relative">
-                    <button id="user-menu-btn" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-6 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-3 hover:scale-105">
-                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                            👤
+                    <button id="user-menu-btn" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs md:text-sm lg:text-base font-medium transition-all duration-200 flex items-center gap-0.5 sm:gap-1 md:gap-2 hover:scale-105">
+                        <div class="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 bg-white/20 rounded-full flex items-center justify-center">
+                            <span class="text-[10px] sm:text-xs md:text-sm lg:text-base">👤</span>
                         </div>
-                        <span id="userMenuName">Usuario</span>
-                        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <span id="userMenuName" class="hidden sm:inline text-[10px] sm:text-xs md:text-sm lg:text-base">Usuario</span>
+                        <svg class="w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </button>
                     
                     <!-- Dropdown Menu Mejorado -->
-                    <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-[99999] transform transition-all duration-200" style="z-index: 99999 !important;">
+                    <div id="user-dropdown" class="hidden absolute right-0 mt-1 sm:mt-2 w-36 sm:w-44 md:w-48 lg:w-56 bg-white rounded-lg sm:rounded-xl md:rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-[99999] transform transition-all duration-200 opacity-0" style="z-index: 99999 !important;">
                         <!-- Header del Dropdown -->
-                        <div class="bg-gradient-to-r from-[#004a8c] to-[#0066cc] p-4 text-white">
-                            <p class="text-sm font-semibold" id="dropdownUserName">Usuario</p>
-                            <p class="text-xs" id="dropdownUserRole">Cargando rol...</p>
+                        <div class="bg-gradient-to-r from-[#004a8c] to-[#0066cc] p-1.5 sm:p-2 md:p-3 lg:p-4 text-white">
+                            <p class="text-[10px] sm:text-xs md:text-sm lg:text-base font-semibold" id="dropdownUserName">Usuario</p>
+                            <p class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm" id="dropdownUserRole">Cargando rol...</p>
                         </div>
                         
                         <!-- Opciones del Menú -->
-                        <div class="py-2">
+                        <div class="py-1 sm:py-1.5 md:py-2">
                             <!-- Inicio - Para todos los roles -->
-                            <a href="../pages/ModAdmis.html" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
-                                    <span style="color: #004a8c;">🏠</span>
+                            <a href="../pages/ModAdmis.html" class="flex items-center gap-1 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-[10px] sm:text-xs md:text-sm lg:text-base text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                <div class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
+                                    <span style="color: #004a8c;" class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm">🏠</span>
                                 </div>
                                 <div>
-                                    <p class="font-medium">Inicio</p>
-                                    <p class="text-xs text-slate-500">Panel de Administración</p>
+                                    <p class="font-medium text-[10px] sm:text-xs md:text-sm lg:text-base">Inicio</p>
+                                    <p class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm text-slate-500 hidden sm:block">Panel de Administración</p>
                                 </div>
                             </a>
                             
                             <!-- Mi Perfil - Siempre visible para todos los roles -->
-                            <a href="../pages/perfil.html" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
-                                    <span style="color: #004a8c;">👤</span>
+                            <a href="../pages/perfil.html" class="flex items-center gap-1 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-[10px] sm:text-xs md:text-sm lg:text-base text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                <div class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
+                                    <span style="color: #004a8c;" class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm">👤</span>
                                 </div>
                                 <div>
-                                    <p class="font-medium">Mi Perfil</p>
-                                    <p class="text-xs text-slate-500">Gestionar cuenta</p>
+                                    <p class="font-medium text-[10px] sm:text-xs md:text-sm lg:text-base">Mi Perfil</p>
+                                    <p class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm text-slate-500 hidden sm:block">Gestionar cuenta</p>
                                 </div>
                             </a>
                             
                             <!-- Solicitudes - Nombre diferente según rol -->
-                            <a href="../pages/solicitudes.html" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
-                                    <span style="color: #004a8c;">📋</span>
+                            <a href="../pages/solicitudes.html" class="flex items-center gap-1 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-[10px] sm:text-xs md:text-sm lg:text-base text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                <div class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
+                                    <span style="color: #004a8c;" class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm">📋</span>
                                 </div>
                                 <div>
-                                    <p class="font-medium" id="solicitudes-menu-text">Mis Solicitudes</p>
-                                    <p class="text-xs text-slate-500" id="solicitudes-menu-desc">Historial completo</p>
+                                    <p class="font-medium text-[10px] sm:text-xs md:text-sm lg:text-base" id="solicitudes-menu-text">Mis Solicitudes</p>
+                                    <p class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm text-slate-500 hidden sm:block" id="solicitudes-menu-desc">Historial completo</p>
                                 </div>
                             </a>
                             
                             <!-- Reportes - Solo para administradores -->
-                            <a href="../pages/reportes.html" id="reportes-menu-item" class="hidden flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
-                                    <span style="color: #004a8c;">📊</span>
+                            <a href="../pages/reportes.html" id="reportes-menu-item" class="hidden flex items-center gap-1 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-[10px] sm:text-xs md:text-sm lg:text-base text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                <div class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
+                                    <span style="color: #004a8c;" class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm">📊</span>
                                 </div>
                                 <div>
-                                    <p class="font-medium">Reportes</p>
-                                    <p class="text-xs text-slate-500">Ver estadísticas</p>
+                                    <p class="font-medium text-[10px] sm:text-xs md:text-sm lg:text-base">Reportes</p>
+                                    <p class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm text-slate-500 hidden sm:block">Ver estadísticas</p>
                                 </div>
                             </a>
                         </div>
@@ -105,13 +106,13 @@
                         <div class="border-t border-slate-200"></div>
                         
                         <!-- Cerrar Sesión -->
-                        <button id="logoutBtn" class="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-red-100">
-                                <span style="color: #dc2626;">🚪</span>
+                        <button id="logoutBtn" class="flex items-center gap-1 sm:gap-2 md:gap-3 w-full px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-[10px] sm:text-xs md:text-sm lg:text-base text-red-600 hover:bg-red-50 transition-colors">
+                            <div class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center bg-red-100">
+                                <span style="color: #dc2626;" class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm">🚪</span>
                             </div>
                             <div class="text-left">
-                                <p class="font-medium">Cerrar Sesión</p>
-                                <p class="text-xs text-slate-500">Salir del sistema</p>
+                                <p class="font-medium text-[10px] sm:text-xs md:text-sm lg:text-base">Cerrar Sesión</p>
+                                <p class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm text-slate-500 hidden sm:block">Salir del sistema</p>
                             </div>
                         </button>
                     </div>
@@ -245,24 +246,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // Abrir/cerrar menú al hacer clic
         userMenuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            console.log('🖱️ Click en botón de usuario');
-            
-            // Obtener posición del botón para posicionar el dropdown
-            const buttonRect = userMenuBtn.getBoundingClientRect();
-            const dropdownWidth = 224; // w-56 = 14rem = 224px
+            console.log('?? Click en botón de usuario');
             
             if (userDropdown.classList.contains('hidden')) {
-                // Posicionar dropdown dinámicamente
-                userDropdown.style.right = `${window.innerWidth - buttonRect.right}px`;
-                userDropdown.style.top = `${buttonRect.bottom + 8}px`; // 8px de separación
-                
+                // Mostrar dropdown
                 userDropdown.classList.remove('hidden');
+                userDropdown.classList.remove('opacity-0');
                 userDropdown.classList.add('opacity-100');
-                console.log('📂 Menú abierto - posición calculada');
+                console.log('?? Menú abierto');
             } else {
+                // Ocultar dropdown
                 userDropdown.classList.add('hidden');
+                userDropdown.classList.add('opacity-0');
                 userDropdown.classList.remove('opacity-100');
-                console.log('📁 Menú cerrado');
+                console.log('?? Menú cerrado');
             }
         });
         

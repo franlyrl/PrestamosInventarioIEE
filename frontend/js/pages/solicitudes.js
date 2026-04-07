@@ -16,9 +16,10 @@ class SolicitudesController {
         console.log('🚀 Inicializando SolicitudesController...');
         await this.cargarSolicitudes();
         this.setupEventListeners();
-        // No renderizar aquí porque ya se renderiza en mostrarSolicitudesReales()
-        // this.renderSolicitudes();
-        // this.updateEstadisticas();
+
+        // Renderizar para actualizar contadores
+        this.renderSolicitudes();
+
         console.log('✅ SolicitudesController inicializado completamente');
 
         // Forzar recarga de datos después de un breve momento
@@ -130,6 +131,11 @@ class SolicitudesController {
 
     renderSolicitudes() {
         console.log('🔄 renderSolicitudes() llamado - RENDERIZADO COMPLETO');
+
+        // Detectar si es móvil o desktop
+        const isMobile = window.innerWidth < 1024;
+        console.log('📱 Dispositivo detectado:', isMobile ? 'Móvil' : 'Desktop');
+
         const tbody = document.getElementById('solicitudes-tbody');
         const emptyState = document.getElementById('empty-state');
         const resultadosCount = document.getElementById('resultados-count');
@@ -140,10 +146,90 @@ class SolicitudesController {
         const solicitudesFiltradas = this.filtrarSolicitudes();
         console.log('📊 Solicitudes filtradas:', solicitudesFiltradas.length);
 
-        // Actualizar contador
-        if (resultadosCount) {
-            resultadosCount.textContent = solicitudesFiltradas.length;
+        // Actualizar contadores - USAR MÉTODO DEL CONTROLLER
+        try {
+            this.updateEstadisticas();
+            console.log('✅ Contadores actualizados con updateEstadisticas()');
+        } catch (error) {
+            console.log('⚠️ updateEstadisticas() falló - intentando con actualizarContadores()');
+            if (typeof actualizarContadores === 'function') {
+                actualizarContadores(solicitudesFiltradas);
+                console.log('✅ Contadores actualizados con actualizarContadores()');
+            } else {
+                console.log('⚠️ actualizarContadores() no disponible - actualizando manualmente');
+                // Actualizar contador principal manualmente
+                if (resultadosCount) {
+                    resultadosCount.textContent = solicitudesFiltradas.length;
+                }
+            }
         }
+
+        // ACTUALIZACIÓN MANUAL DIRECTA DE CONTADORES MÓVILES
+        console.log('🔧 Actualizando contadores móviles directamente...');
+        const pendientes = solicitudesFiltradas.filter(s => s.estado === 'pendiente');
+        const aprobadas = solicitudesFiltradas.filter(s => s.estado === 'aprobada');
+        const entregadas = solicitudesFiltradas.filter(s => s.estado === 'entregado');
+        const devueltas = solicitudesFiltradas.filter(s => s.estado === 'devuelto');
+
+        console.log('📊 Contadores móviles:', {
+            pendientes: pendientes.length,
+            aprobadas: aprobadas.length,
+            entregadas: entregadas.length,
+            devueltas: devueltas.length
+        });
+
+        // ACTUALIZAR CONTADOR DE RESULTADOS MOSTRADOS
+        const resultadosCountEl = document.getElementById(isMobile ? 'resultados-count-mobile' : 'resultados-count');
+        if (resultadosCountEl) {
+            console.log('🔧 Actualizando resultados-count:', solicitudesFiltradas.length, 'para', isMobile ? 'mobile' : 'desktop');
+            resultadosCountEl.textContent = solicitudesFiltradas.length;
+        } else {
+            console.log('🔧 No se encontró el elemento resultados-count para', isMobile ? 'mobile' : 'desktop');
+        }
+
+        // VERIFICAR QUE LOS ELEMENTOS EXISTAN (USAR IDS DE MÓVIL)
+        const pendientesEl = document.getElementById('pendientes-count-mobile');
+        const aprobadasEl = document.getElementById('aprobadas-count-mobile');
+        const entregadasEl = document.getElementById('entregadas-count-mobile');
+        const devueltasEl = document.getElementById('devueltas-count-mobile');
+
+        console.log('🔍 Elementos móviles encontrados:', {
+            'pendientes-count-mobile': !!pendientesEl,
+            'aprobadas-count-mobile': !!aprobadasEl,
+            'entregadas-count-mobile': !!entregadasEl,
+            'devueltas-count-mobile': !!devueltasEl
+        });
+
+        // ACTUALIZAR CON VERIFICACIÓN
+        if (pendientesEl) {
+            pendientesEl.textContent = pendientes.length;
+            console.log('✅ pendientes-count-mobile actualizado:', pendientes.length);
+        } else {
+            console.error('❌ pendientes-count-mobile NO encontrado');
+        }
+
+        if (aprobadasEl) {
+            aprobadasEl.textContent = aprobadas.length;
+            console.log('✅ aprobadas-count-mobile actualizado:', aprobadas.length);
+        } else {
+            console.error('❌ aprobadas-count-mobile NO encontrado');
+        }
+
+        if (entregadasEl) {
+            entregadasEl.textContent = entregadas.length;
+            console.log('✅ entregadas-count-mobile actualizado:', entregadas.length);
+        } else {
+            console.error('❌ entregadas-count-mobile NO encontrado');
+        }
+
+        if (devueltasEl) {
+            devueltasEl.textContent = devueltas.length;
+            console.log('✅ devueltas-count-mobile actualizado:', devueltas.length);
+        } else {
+            console.error('❌ devueltas-count-mobile NO encontrado');
+        }
+
+        console.log('✅ Contadores móviles actualizados en el DOM');
 
         // Limpiar tbody completamente
         tbody.innerHTML = '';
@@ -174,12 +260,12 @@ class SolicitudesController {
             return;
         }
 
-        // Renderizar TODAS las solicitudes con el formato completo del controller
+        // Renderizar TODAS las solicitudes con formato responsive
         console.log('🔨 Iniciando renderizado de solicitudes...');
 
-        // Opción 1: Usar innerHTML directo (más simple y confiable)
+        // Usar innerHTML directo con formato responsive
         const todasLasFilas = solicitudesFiltradas.map((solicitud, index) => {
-            const rowHTML = this.createSolicitudRow(solicitud);
+            const rowHTML = this.createSolicitudRow(solicitud, isMobile);
             console.log(`🔨 Creando fila ${index + 1}:`, solicitud._id?.slice(-6));
             return rowHTML;
         }).join('');
@@ -191,7 +277,7 @@ class SolicitudesController {
         console.log('🔍 tbody.innerHTML (primeros 200 chars):', tbody.innerHTML.substring(0, 200));
         console.log('🔍 Número de filas en tbody:', tbody.children.length);
 
-        console.log('✅ TODAS las solicitudes renderizadas con formato completo:', solicitudesFiltradas.length);
+        console.log('✅ TODAS las solicitudes renderizadas con formato responsive:', solicitudesFiltradas.length);
 
         // NO mostrar insumos detallados - el controller ya muestra todo en la tabla
         console.log('🚫 NO mostrar insumos detallados - todo está en la tabla principal');
@@ -231,7 +317,41 @@ class SolicitudesController {
         return true;
     }
 
-    createSolicitudRow(solicitud) {
+    getEstadoIcon(estado) {
+        switch (estado) {
+            case 'pendiente':
+                return '⏳';
+            case 'aprobada':
+                return '✅';
+            case 'rechazada':
+                return '❌';
+            case 'entregado':
+                return '📦';
+            case 'devuelto':
+                return '🔄';
+            default:
+                return '...';
+        }
+    }
+
+    getEstadoMobile(estado) {
+        switch (estado) {
+            case 'pendiente':
+                return '⏳';
+            case 'aprobada':
+                return '✅';
+            case 'rechazada':
+                return '❌';
+            case 'entregado':
+                return '📦';
+            case 'devuelto':
+                return '🔄';
+            default:
+                return '...';
+        }
+    }
+
+    createSolicitudRow(solicitud, isMobile = false) {
         // Usar formatearEstado del HTML para el diseño que te gusta
         const estadoFormateado = typeof formatearEstado === 'function'
             ? formatearEstado(solicitud.estado)
@@ -264,121 +384,228 @@ class SolicitudesController {
         const currentUser = userData ? JSON.parse(userData) : null;
         const currentUserRol = currentUser?.rol || currentUser?.tipo_rol || '';
 
-        // Generar botones según el rol
-        const botonesAcciones = this.generarBotonesAcciones(solicitud._id, currentUserRol);
+        // Generar botones según el rol y dispositivo
+        const botonesAcciones = this.generarBotonesAcciones(solicitud._id, currentUserRol, isMobile);
 
-        return `
-            <tr>
-                <td class="px-4 py-3">
-                    <span class="font-medium">#${solicitud._id?.slice(-6) || 'N/A'}</span>
-                </td>
-                <td class="px-4 py-3">
-                    <div class="text-sm">
-                        <div class="font-medium text-slate-900">${usuarioNombre}</div>
-                        <div class="text-xs text-slate-500">${usuarioEmail}</div>
-                        <div class="text-xs text-slate-400 mt-1">
-                            <span class="bg-slate-100 px-2 py-0.5 rounded">👤 ${usuarioRol}</span>
-                            ${usuarioCedula !== 'N/A' ? `<span class="ml-1 bg-blue-50 px-2 py-0.5 rounded">🆔 ${usuarioCedula}</span>` : ''}
+        if (isMobile) {
+            // Versión móvil - ultra compacta
+            return `
+                <tr>
+                    <td class="px-0 py-0.5">
+                        <span class="font-medium text-[7px] text-slate-900">#${solicitud._id?.slice(-4) || 'N/A'}</span>
+                    </td>
+                    <td class="px-0 py-0.5">
+                        <div class="text-[6px]">
+                            <div class="font-medium text-slate-700 text-[6px]">${usuarioNombre}</div>
+                            ${usuarioEmail !== 'N/A' ? `<div class="text-[5px] text-slate-200">${usuarioEmail}</div>` : ''}
                         </div>
-                    </div>
-                </td>
-                <td class="px-4 py-3">
-                    <div class="text-sm">
-                        ${elementos.map(el => `
-                            <div class="flex items-center gap-1 mb-1">
-                                <span>${el.icono}</span>
-                                <span class="font-medium">${el.nombre}</span>
-                                <span class="text-xs text-slate-500">x${el.cantidad}</span>
-                                ${el.detalles ? `<span class="text-xs text-slate-400 italic">(${el.detalles})</span>` : ''}
+                    </td>
+                    <td class="px-0 py-0.5">
+                        <div class="text-[6px]">
+                            <div class="text-center">
+                                <span class="bg-green-100 text-green-700 px-1 py-0.5 rounded text-[5px] font-bold">
+                                    ${elementos.length} items
+                                </span>
                             </div>
-                        `).join('') || '<span class="text-slate-400">Sin elementos</span>'}
-                        
-                        ${elementos.length > 0 ? `
-                            <div class="text-xs text-slate-500 mt-1 bg-slate-50 px-2 py-1 rounded">
-                                Total: ${elementos.length} elemento(s) - ${elementos.reduce((sum, el) => sum + el.cantidad, 0)} unidades
-                            </div>
-                        ` : ''}
-                    </div>
-                </td>
-                <td class="px-4 py-3">
-                    <span class="text-sm">${new Date(solicitud.createdAt).toLocaleDateString()}</span>
-                </td>
-                <td class="px-4 py-3">
-                    ${estadoFormateado}
-                </td>
-                <td class="px-4 py-3 text-sm relative">
-                    <div class="relative">
-                        <button onclick="toggleMenu('${solicitud._id}', event)" class="group relative inline-flex items-center justify-center p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-all duration-200 shadow-sm hover:shadow-md">
-                            <div class="flex flex-col space-y-1">
-                                <div class="w-1 h-1 rounded-full bg-current transition-transform group-hover:scale-125"></div>
-                                <div class="w-1 h-1 rounded-full bg-current transition-transform group-hover:scale-125"></div>
-                                <div class="w-1 h-1 rounded-full bg-current transition-transform group-hover:scale-125"></div>
-                            </div>
-                        </button>
-                        <!-- Dropdown Menu -->
-                        <div id="menu-${solicitud._id}" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border border-slate-100" style="z-index: 999999;">
-                            <div class="px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
-                                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</p>
-                            </div>
-                            <div class="py-2">
-                                ${botonesAcciones}
+                            ${elementos.length > 0 ? `
+                                <div class="text-[5px] text-slate-200 mt-1">
+                                    Total: ${elementos.reduce((sum, el) => sum + el.cantidad, 0)} und
+                                </div>
+                            ` : ''}
+                        </div>
+                    </td>
+                    <td class="px-0 py-0.5">
+                        <span class="text-[6px] text-slate-500">${new Date(solicitud.createdAt).toLocaleDateString()}</span>
+                    </td>
+                    <td class="px-0 py-0.5">
+                        <div class="text-[6px] text-left">
+                            ${this.getEstadoMobile(solicitud.estado)}
+                        </div>
+                    </td>
+                    <td class="px-0 py-0.5 text-[4px] relative">
+                        <div class="relative">
+                            <button onclick="toggleMenu('${solicitud._id}', event)" class="group relative inline-flex items-left justify-center p-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-all duration-50">
+                                <div class="flex flex-col space-y-0.2">
+                                    <div class="w-0.2 h-0.5 rounded-full bg-current"></div>
+                                    <div class="w-0.2 h-0.5 rounded-full bg-current"></div>
+                                    <div class="w-0.5 h-0.5 rounded-full bg-current"></div>
+                                </div>
+                            </button>
+                            <!-- Dropdown Menu -->
+                            <div id="menu-${solicitud._id}" class="hidden absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-100" style="z-index: 999999;">
+                                <div class="px-0 py-1 border-b border-slate-500 bg-gradient-to-r from-slate-50 to-white">
+                                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Acciones</p>
+                                </div>
+                                <div class="py-1">
+                                    ${botonesAcciones}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </td>
-            </tr>
-        `;
+                    </td>
+                </tr>
+            `;
+        } else {
+            // Versión desktop - normal
+            return `
+                <tr>
+                    <td class="px-4 py-3">
+                        <span class="font-medium">#${solicitud._id?.slice(-6) || 'N/A'}</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="text-sm">
+                            <div class="font-medium text-slate-900">${usuarioNombre}</div>
+                            <div class="text-xs text-slate-500">${usuarioEmail}</div>
+                            <div class="text-xs text-slate-400 mt-1">
+                                <span class="bg-slate-100 px-2 py-0.5 rounded">👤 ${usuarioRol}</span>
+                                ${usuarioCedula !== 'N/A' ? `<span class="ml-1 bg-blue-50 px-2 py-0.5 rounded">🆔 ${usuarioCedula}</span>` : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="text-sm">
+                            ${elementos.map(el => `
+                                <div class="flex items-center gap-1 mb-1">
+                                    <span>${el.icono}</span>
+                                    <span class="font-medium">${el.nombre}</span>
+                                    <span class="text-xs text-slate-500">x${el.cantidad}</span>
+                                    ${el.detalles ? `<span class="text-xs text-slate-400 italic">(${el.detalles})</span>` : ''}
+                                </div>
+                            `).join('') || '<span class="text-slate-400">Sin elementos</span>'}
+                            
+                            ${elementos.length > 0 ? `
+                                <div class="text-xs text-slate-500 mt-1 bg-slate-50 px-2 py-1 rounded">
+                                    Total: ${elementos.length} elemento(s) - ${elementos.reduce((sum, el) => sum + el.cantidad, 0)} unidades
+                                </div>
+                            ` : ''}
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="text-sm">${new Date(solicitud.createdAt).toLocaleDateString()}</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        ${estadoFormateado}
+                    </td>
+                    <td class="px-4 py-3 text-sm relative">
+                        <div class="relative">
+                            <button onclick="toggleMenu('${solicitud._id}', event)" class="group relative inline-flex items-center justify-center p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-all duration-200 shadow-sm hover:shadow-md">
+                                <div class="flex flex-col space-y-1">
+                                    <div class="w-1 h-1 rounded-full bg-current transition-transform group-hover:scale-125"></div>
+                                    <div class="w-1 h-1 rounded-full bg-current transition-transform group-hover:scale-125"></div>
+                                    <div class="w-1 h-1 rounded-full bg-current transition-transform group-hover:scale-125"></div>
+                                </div>
+                            </button>
+                            <!-- Dropdown Menu -->
+                            <div id="menu-${solicitud._id}" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border border-slate-100" style="z-index: 999999;">
+                                <div class="px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</p>
+                                </div>
+                                <div class="py-2">
+                                    ${botonesAcciones}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
     }
 
-    generarBotonesAcciones(solicitudId, userRol) {
+    generarBotonesAcciones(solicitudId, userRol, isMobile = false) {
         // Roles administrativos: admin, administrador, administrativo
         const rolesAdmin = ['admin', 'administrador', 'administrativo'];
         const esAdmin = rolesAdmin.includes(userRol.toLowerCase());
 
-        if (esAdmin) {
-            // Botones para administradores (todos los botones)
-            return `
-                <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
-                    👁️ Ver detalles
-                </button>
-                <button onclick="editarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
-                    ✏️ Editar
-                </button>
-                <div class="border-t border-slate-200 my-1"></div>
-                <a href="#" onclick="aprobarSolicitud('${solicitudId}'); return false;" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
-                    ✅ Aprobar
-                </a>
-                <button onclick="rechazarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-2">
-                    ❌ Rechazar
-                </button>
-                <button onclick="entregarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
-                    📦 Entregar
-                </button>
-                <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
-                    🔄 Devolver
-                </button>
-                <div class="border-t border-slate-200 my-1"></div>
-                <button onclick="eliminarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
-                    🗑️ Eliminar    
-                </button>
-            `;
+        if (isMobile) {
+            // Versión móvil - botones compactos
+            if (esAdmin) {
+                // Botones para administradores (versión móvil)
+                return `
+                    <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
+                        👁️ Ver
+                    </button>
+                    <button onclick="editarSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
+                        ✏️ Editar
+                    </button>
+                    <div class="border-t my-1"></div>
+                    <a href="#" onclick="aprobarSolicitud('${solicitudId}'); return false;" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
+                        ✅ Aprobar
+                    </a>
+                    <button onclick="rechazarSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
+                        ❌ Rechazar
+                    </button>
+                    <button onclick="entregarSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
+                        📦 Entregar
+                    </button>
+                    <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
+                        🔄 Devolver
+                    </button>
+                    <div class="border-t my-1"></div>
+                    <button onclick="eliminarSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-red-50 text-red-600 flex items-center gap-1">
+                        🗑️ Eliminar
+                    </button>
+                `;
+            } else {
+                // Botones para usuarios no administrativos (versión móvil)
+                return `
+                    <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
+                        👁️ Ver
+                    </button>
+                    <button onclick="editarSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
+                        ✏️ Editar
+                    </button>
+                    <div class="border-t my-1"></div>
+                    <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
+                        🔄 Devolver
+                    </button>
+                `;
+            }
         } else {
-            // Botones para estudiantes y docentes (solo los básicos)
-            return `
-                <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
-                    👁️ Ver detalles
-                </button>
-                <button onclick="editarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
-                    ✏️ Editar
-                </button>
-                <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
-                    🔄 Devolver
-                </button>
-                <div class="border-t border-slate-200 my-1"></div>
-                <button onclick="eliminarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
-                    🗑️ Eliminar    
-                </button>
-            `;
+            // Versión desktop - botones normales
+            if (esAdmin) {
+                // Botones para administradores (todos los botones)
+                return `
+                    <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
+                        👁️ Ver detalles
+                    </button>
+                    <button onclick="editarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
+                        ✏️ Editar
+                    </button>
+                    <div class="border-t border-slate-200 my-1"></div>
+                    <a href="#" onclick="aprobarSolicitud('${solicitudId}'); return false;" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
+                        ✅ Aprobar
+                    </a>
+                    <button onclick="rechazarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-2">
+                        ❌ Rechazar
+                    </button>
+                    <button onclick="entregarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
+                        📦 Entregar
+                    </button>
+                    <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
+                        🔄 Devolver
+                    </button>
+                    <div class="border-t border-slate-200 my-1"></div>
+                    <button onclick="eliminarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                        🗑️ Eliminar    
+                    </button>
+                `;
+            } else {
+                // Botones para estudiantes y docentes (solo los básicos)
+                return `
+                    <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
+                        👁️ Ver detalles
+                    </button>
+                    <button onclick="editarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
+                        ✏️ Editar
+                    </button>
+                    <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
+                        🔄 Devolver
+                    </button>
+                    <div class="border-t border-slate-200 my-1"></div>
+                    <button onclick="eliminarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                        🗑️ Eliminar    
+                    </button>
+                `;
+            }
         }
     }
 
@@ -603,4 +830,27 @@ class SolicitudesController {
 }
 
 // Crear instancia global
+console.log('🔧 Creando instancia de SolicitudesController...');
 window.solicitudesController = new SolicitudesController();
+console.log('✅ SolicitudesController creado:', window.solicitudesController);
+
+// Inicializar automáticamente cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('🚀 DOM listo - Inicializando SolicitudesController...');
+    if (window.solicitudesController) {
+        window.solicitudesController.initialize();
+        console.log('✅ SolicitudesController inicializado');
+    } else {
+        console.error('❌ SolicitudesController no encontrado');
+    }
+});
+
+// También intentar inicializar inmediatamente por si el DOM ya está listo
+if (document.readyState === 'loading') {
+    console.log('📄 DOM todavía cargando...');
+} else {
+    console.log('📄 DOM ya listo - Inicializando ahora...');
+    if (window.solicitudesController) {
+        window.solicitudesController.initialize();
+    }
+}

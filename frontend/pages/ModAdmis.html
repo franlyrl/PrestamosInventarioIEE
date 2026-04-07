@@ -104,10 +104,10 @@
 
                 <!-- BOTONES PRINCIPALES -->
                 <!-- Sección de botones para acceder a diferentes módulos de gestión, cada uno con un diseño atractivo y claro -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-6">
                     <!-- MÓDULO DE ACTIVOS -->
                     <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="window.location.href='pages/activos.html'">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-col sm:flex-row items-center justify-between p-4 sm:p-6">
                             <div class="flex items-center">
                                 <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
                                     <span class="text-2xl">🔧</span>
@@ -126,7 +126,7 @@
                     <!-- MÓDULO DE INSUMOS -->
                     <!-- Este botón redirige a la página de gestión de insumos, donde se pueden controlar materiales y consumibles del laboratorio -->
                     <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="window.location.href='pages/insumos.html'">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-col sm:flex-row items-center justify-between p-4 sm:p-6">
                             <div class="flex items-center">
                                 <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
                                     <span class="text-2xl">🧩</span>
@@ -147,7 +147,7 @@
                     <!-- Este botón abre un modal para agregar un nuevo artículo al inventario, ya sea activo o insumo -- >
                     <-- El modal se diferencia según el tipo de artículo que se quiera agregar, permitiendo ingresar detalles específicos para cada categoría -->
                     <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="abrirModalAgregarArticulo()">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-col sm:flex-row items-center justify-between p-4 sm:p-6">
                             <div class="flex items-center">
                                 <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
                                     <span class="text-2xl">➕</span>
@@ -168,7 +168,7 @@
                     la incorporación de grandes cantidades de datos al sistema --
                     El modal incluye instrucciones claras sobre el formato del archivo y un ejemplo descargable para guiar al usuario en el proceso de carga -->
                     <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="abrirModalCargaMasiva()">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-col sm:flex-row items-center justify-between p-4 sm:p-6">
                             <div class="flex items-center">
                                 <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
                                     <span class="text-2xl">📊</span>
@@ -193,7 +193,7 @@
         y botones de acción para guardar o cancelar la operación. Además, se incluye una sección para agregar múltiples artículos a la vez,
         facilitando la gestión de inventario para los usuarios administrativos. -->
     <div id="modalAgregarInsumo" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-2 opacity-0 pointer-events-none transition-opacity">
-        <div class="bg-white w-full max-w-screen-xl rounded-lg shadow-lg overflow-hidden border border-slate-200 fade-in max-h-[80vh] overflow-y-auto">
+        <div class="bg-white w-full max-w-md sm:max-w-lg lg:max-w-xl rounded-lg shadow-lg overflow-hidden border border-slate-200 fade-in max-h-[90vh] overflow-y-auto">
             <div class="p-2 border-b border-slate-200 bg-white">
                 <div class="flex justify-between items-center">
                     <h2 class="text-base font-semibold text-slate-900">➕ Agregar Nuevo Artículo</h2>
@@ -210,7 +210,7 @@
                 <!-- Este selector permite elegir entre agregar un insumo o un activo,
                 con un diseño compacto y claro que facilita la selección del tipo de artículo a agregar -->
                 <div class="mb-2 bg-gray-50 p-2 rounded border border-gray-200">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-col sm:flex-row items-center justify-between p-4 sm:p-6">
                         <label class="text-xs font-medium text-gray-700">Agregar Artículos</label>
                         <div class="flex gap-1">
                             <button type="button" onclick="agregarNuevoArticulo('insumo')" class="px-2 py-1 bg-green-600 text-white text-xs rounded border border-green-700 hover:bg-green-700 transition-colors flex items-center gap-1">
@@ -226,14 +226,14 @@
                 </div>
                 
                 <!-- Contenedor ultra horizontal -->
-                <div id="articulosContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-1 mb-2">
+                <div id="articulosContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 mb-2">
                     <!-- Los artículos se agregarán aquí dinámicamente -->
                 </div>
 
                 <!-- Botones ultra compactos -->
                 <!-- Estos botones permiten cancelar la operación o enviar los artículos agregados, 
                 con un diseño compacto y claro que facilita la acción del usuario -->
-                <div class="flex gap-4 mt-2 p-2 bg-gray-50 rounded border border-gray-200">
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-2 p-2 bg-gray-50 rounded border border-gray-200">
                     <button type="button" onclick="cerrarModalAgregarArticulo()" class="flex-1 py-1 text-xs font-medium bg-white text-gray-700 rounded border border-gray-300 hover:bg-gray-50 transition">
                         Cancelar
                     </button>

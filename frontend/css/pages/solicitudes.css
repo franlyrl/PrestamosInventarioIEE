@@ -1,12 +1,126 @@
-/* Estilos específicos para la página de Solicitudes */
+/* Estilos para impresión responsiva */
+@media print {
+  .print-header {
+    page-break-after: avoid;
+    margin-bottom: 1rem;
+  }
+
+  .print-header h1 {
+    font-size: 1.5rem !important;
+    margin-bottom: 0.5rem;
+  }
+
+  .print-header p {
+    font-size: 0.875rem !important;
+    margin-bottom: 0.25rem;
+  }
+
+  .print-footer {
+    page-break-before: avoid;
+    margin-top: 2rem;
+  }
+
+  /* Forzar tabla responsiva en impresión */
+  table {
+    font-size: 0.75rem !important;
+    page-break-inside: avoid;
+  }
+
+  table th,
+  table td {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  table th {
+    background-color: #f8fafc !important;
+    font-weight: 600 !important;
+  }
+
+  /* Evitar cortes de página en filas */
+  table tr {
+    page-break-inside: avoid;
+  }
+
+  /* Ajustar badges de estado para impresión */
+  table td span {
+    background-color: transparent !important;
+    color: inherit !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 0.125rem 0.25rem !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+/* Estilos responsivos adicionales para vista de impresión */
+.print-content {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 640px) {
+  .print-content table {
+    font-size: 0.625rem;
+  }
+
+  .print-content table th,
+  .print-content table td {
+    padding: 0.125rem 0.25rem;
+    font-size: 0.625rem;
+  }
+
+  .print-header h1 {
+    font-size: 1.25rem !important;
+  }
+
+  .print-header p {
+    font-size: 0.75rem !important;
+  }
+}
 
 /* Menú Dropdown - Capa más alta de todo */
 [id^="menu-"] {
-  z-index: 100000000 !important;
-  position: fixed !important;
-  transform: none !important;
-  left: 1000px;
+  z-index: 999999 !important;
+  position: absolute !important;
+  right: 0 !important;
+  top: 100% !important;
+  margin-top: 0.5rem !important;
+  min-width: 11rem !important;
   will-change: transform !important;
+}
+
+/* Menú Dropdown responsivo */
+@media (max-width: 640px) {
+  [id^="menu-"] {
+    position: fixed !important;
+    right: 1rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    left: auto !important;
+    margin-top: 0 !important;
+    min-width: 10rem !important;
+    max-width: calc(100vw - 2rem) !important;
+    max-height: 70vh !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* Asegurar que el dropdown sea visible en móvil */
+[id^="menu-"] .py-1 {
+  padding: 0.25rem 0 !important;
+}
+
+[id^="menu-"] button {
+  font-size: 0.875rem !important;
+  padding: 0.5rem 0.75rem !important;
+}
+
+@media (max-width: 640px) {
+  [id^="menu-"] button {
+    font-size: 0.75rem !important;
+    padding: 0.375rem 0.5rem !important;
+  }
 }
 
 /* Tarjetas de solicitud - Por encima de insumos */
@@ -33,7 +147,7 @@
 
 .solicitudes-table th {
   background-color: var(--slate-50);
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.75rem;
   font-weight: 600;
   color: var(--slate-700);
   text-align: left;
@@ -43,10 +157,23 @@
   border-bottom: 1px solid var(--slate-200);
 }
 
+@media (min-width: 640px) {
+  .solicitudes-table th {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+  }
+}
+
 .solicitudes-table td {
-  padding: 1rem;
+  padding: 0.5rem 0.75rem;
   border-bottom: 1px solid var(--slate-200);
   vertical-align: middle;
+}
+
+@media (min-width: 640px) {
+  .solicitudes-table td {
+    padding: 0.75rem 1.5rem;
+  }
 }
 
 .solicitudes-table tr:hover {

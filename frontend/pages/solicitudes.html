@@ -22,239 +22,488 @@
       <div class="flex gap-6">
         <!-- Sidebar Component -->
         <div id="sidebar-component"></div>
-
+ 
         <!-- Contenido de Solicitudes -->
         <div class="flex-1">
           <!-- Header Mejorado -->
-          <header
-            class="mb-8 bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] rounded-2xl p-6 text-white shadow-xl">
-            <div class="flex justify-between items-start">
-              <div>
-                <h1 class="text-3xl font-bold mb-2 flex items-center gap-3">
-                  📋 Historial de Solicitudes
-                </h1>
-                <p class="text-blue-100 text-lg">
-                  Consulta y gestiona todas las solicitudes del laboratorio
-                </p>
+          <header class="hidden lg:block">
+            <div class="mb-8 bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] rounded-2xl p-4 sm:p-6 text-white shadow-xl">
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="w-full sm:w-auto">
+                  <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-2 flex items-center gap-3">
+                    📋 Historial de Solicitudes
+                  </h1>
+                  <p class="text-blue-100 text-sm sm:text-lg">
+                    Consulta y gestiona todas las solicitudes del laboratorio
+                  </p>
+                </div>
+                <div class="text-left sm:text-right sm:w-auto">
+                  <div class="text-2xl sm:text-3xl font-bold" id="total-solicitudes">0</div>
+                  <div class="text-blue-100 text-xs sm:text-sm">Total Solicitudes</div>
+                </div>
               </div>
-              <div class="text-right">
-                <div class="text-3xl font-bold" id="total-solicitudes">0</div>
-                <div class="text-blue-100 text-sm">Total Solicitudes</div>
+            </div>
+          </header>
+
+          <!-- Header para Móvil -->
+          <header class="block lg:hidden">
+            <div class="mb-2 bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] rounded-lg p-0.5 text-white shadow-lg max-w-[280px] ml-4">
+              <div class="flex flex-col items-left gap-0.5">
+                <div class="text-left">
+                  <h1 class="text-sm font-bold mb-0 flex items-left gap-1">
+                    📋 Solicitudes
+                  </h1>
+                  <p class="text-blue-100 text-xs">
+                    Consulta y gestiona
+                  </p>
+                </div>
+                <div class="text-left">
+                  <div class="text-base font-bold" id="total-solicitudes">0</div>
+                  <div class="text-blue-100 text-xs">Total</div>
+                </div>
               </div>
             </div>
           </header>
 
           <!-- Estadísticas Mejoradas -->
-          <section
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div
-              class="bg-gradient-to-br from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
+          <!-- Versión Desktop -->
+          <section class="hidden lg:block">
+            <div class="grid grid-cols-4 gap-4 mb-8">
               <div
-                class="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span class="text-2xl">⏳</span>
+                class="bg-gradient-to-br from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
+                <div
+                  class="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span class="text-2xl">⏳</span>
+                </div>
+                <h3
+                  class="text-2xl font-bold text-yellow-700"
+                  id="pendientes-count">
+                  0
+                </h3>
+                <p class="text-sm text-yellow-600 font-medium">Pendientes</p>
+                <div class="mt-2 text-xs text-yellow-500">
+                  En espera de revisión
+                </div>
               </div>
-              <h3
-                class="text-2xl font-bold text-yellow-700"
-                id="pendientes-count">
-                0
-              </h3>
-              <p class="text-sm text-yellow-600 font-medium">Pendientes</p>
-              <div class="mt-2 text-xs text-yellow-500">
-                En espera de revisión
+
+              <div
+                class="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
+                <div
+                  class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span class="text-2xl">✅</span>
+                </div>
+                <h3
+                  class="text-2xl font-bold text-green-700"
+                  id="aprobadas-count">
+                  0
+                </h3>
+                <p class="text-sm text-green-600 font-medium">Aprobadas</p>
+                <div class="mt-2 text-xs text-green-500">Listas para entrega</div>
+              </div>
+
+              <div
+                class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
+                <div
+                  class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span class="text-2xl">📦</span>
+                </div>
+                <h3
+                  class="text-2xl font-bold text-blue-700"
+                  id="entregadas-count">
+                  0
+                </h3>
+                <p class="text-sm text-blue-600 font-medium">Entregadas</p>
+                <div class="mt-2 text-xs text-blue-500">En uso actualmente</div>
+              </div>
+
+              <div
+                class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
+                <div
+                  class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span class="text-2xl">🔄</span>
+                </div>
+                <h3
+                  class="text-2xl font-bold text-purple-700"
+                  id="devueltas-count">
+                  0
+                </h3>
+                <p class="text-sm text-purple-600 font-medium">Devueltas</p>
+                <div class="mt-2 text-xs text-purple-500">Proceso completado</div>
               </div>
             </div>
+          </section>
 
-            <div
-              class="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
-              <div
-                class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span class="text-2xl">✅</span>
+          <!-- Versión Móvil -->
+          <section class="block lg:hidden px-1 mb-1 justify-center">
+            <div class="grid grid-cols-2 gap-0.5 max-w-[280px] ml-4">
+              
+              <div class="flex justify-between bg-yellow-50 border border-yellow-200 rounded p-1 shadow-sm">
+                <div class="flex items-center gap-0.5">
+                  <span class="text-[11px]">⏳</span>
+                  <span class="text-[8px] font-bold text-yellow-800 uppercase">Pendientes</span>
+                </div>
+                <span class="text-[9px] font-black text-yellow-700" id="pendientes-count-mobile">0</span>
               </div>
-              <h3
-                class="text-2xl font-bold text-green-700"
-                id="aprobadas-count">
-                0
-              </h3>
-              <p class="text-sm text-green-600 font-medium">Aprobadas</p>
-              <div class="mt-2 text-xs text-green-500">Listas para entrega</div>
-            </div>
 
-            <div
-              class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
-              <div
-                class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span class="text-2xl">📦</span>
+              <div class="flex justify-between bg-green-50 border border-green-200 rounded p-1 shadow-sm">
+                <div class="flex items-center gap-0.5">
+                  <span class="text-[11px]">✅</span>
+                  <span class="text-[8px] font-bold text-green-800 uppercase">Aprobadas</span>
+                </div>
+                <span class="text-[9px] font-black text-green-700" id="aprobadas-count-mobile">0</span>
               </div>
-              <h3
-                class="text-2xl font-bold text-blue-700"
-                id="entregadas-count">
-                0
-              </h3>
-              <p class="text-sm text-blue-600 font-medium">Entregadas</p>
-              <div class="mt-2 text-xs text-blue-500">En uso actualmente</div>
-            </div>
 
-            <div
-              class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
-              <div
-                class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span class="text-2xl">�</span>
+              <div class="flex justify-between bg-blue-50 border border-blue-200 rounded p-1 shadow-sm">
+                <div class="flex items-center gap-0.5">
+                  <span class="text-[11px]">📦</span>
+                  <span class="text-[8px] font-bold text-blue-800 uppercase">Entregadas</span>
+                </div>
+                <span class="text-[9px] font-black text-blue-700" id="entregadas-count-mobile">0</span>
               </div>
-              <h3
-                class="text-2xl font-bold text-purple-700"
-                id="devueltas-count">
-                0
-              </h3>
-              <p class="text-sm text-purple-600 font-medium">Devueltas</p>
-              <div class="mt-2 text-xs text-purple-500">Proceso completado</div>
+
+              <div class="flex justify-between bg-purple-50 border border-purple-200 rounded p-1 shadow-sm">
+                <div class="flex items-center gap-0.5">
+                  <span class="text-[10px]">🔄</span>
+                  <span class="text-[7px] font-bold text-purple-800 uppercase">Devueltas</span>
+                </div>
+                <span class="text-[9px] font-black text-purple-700" id="devueltas-count-mobile">0</span>
+              </div>
+
             </div>
           </section>
 
           <!-- Filtros y Búsqueda Mejorados -->
-          <section
-            class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 mb-8">
-            <div class="flex items-center mb-4">
-              <div
-                class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                <span style="color: #004a8c">🔍</span>
-              </div>
-              <h2 class="text-lg font-semibold text-slate-800">
-                Filtros de Búsqueda
-              </h2>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-4 mb-4">
-              <!-- Campo de búsqueda solo para administradores -->
-              <div id="busqueda-container" class="relative hidden">
-                <input
-                  type="text"
-                  id="busqueda"
-                  placeholder="🔍 Buscar por nombre, cédula o ID..."
-                  class="w-64 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm" />
-                <div
-                  class="absolute right-3 top-2.5 text-slate-400 pointer-events-none">
-                  🔍
+          <section class="hidden lg:block">
+            <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 mb-8">
+              <div class="flex items-center mb-4">
+                <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                  <span style="color: #004a8c">🔍</span>
                 </div>
+                <h2 class="text-lg font-semibold text-slate-800">
+                  Filtros de Búsqueda
+                </h2>
               </div>
 
-              <!-- Filtro de estado -->
-              <div class="relative">
-                <select id="estado-filter" class="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm appearance-none bg-white">
-                  <option value="todos">📋 Todos los estados</option>
-                  <option value="pendiente">⏳ Pendiente</option>
-                  <option value="aprobada">✅ Aprobada</option>
-                  <option value="rechazada">❌ Rechazada</option>
-                  <option value="entregado">📦 Entregado</option>
-                  <option value="devuelto">🔄 Devuelto</option>
-                </select>
-                <div class="absolute right-3 top-2.5 text-slate-400 pointer-events-none">
-                  ▼
-                </div>
-              </div>
-
-              <!-- Filtros de fecha solo para administradores -->
-              <div class="relative fecha-container hidden">
-                <div class="flex items-center gap-2">
-                  <div class="relative">
-                    <input
-                      type="date"
-                      id="fecha-desde"
-                      class="w-40 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm" />
-                    <div
-                      class="absolute right-2 top-2 text-slate-400 pointer-events-none text-xs">
-                      📅
-                    </div>
-                  </div>
-                  <span class="text-slate-500">-</span>
-                  <div class="relative">
-                    <input
-                      type="date"
-                      id="fecha-hasta"
-                      class="w-40 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm" />
-                    <div
-                      class="absolute right-2 top-2 text-slate-400 pointer-events-none text-xs">
-                      📅
-                    </div>
+              <div class="flex flex-wrap items-center gap-4 mb-4">
+                <!-- Campo de búsqueda solo para administradores -->
+                <div id="busqueda-container" class="relative hidden">
+                  <input
+                    type="text"
+                    id="busqueda"
+                    placeholder="🔍 Buscar por nombre, cédula o ID..."
+                    class="w-64 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm" />
+                  <div
+                    class="absolute right-3 top-2.5 text-slate-400 pointer-events-none">
+                    🔍
                   </div>
                 </div>
+
+                <!-- Filtro de estado -->
+                <div class="relative">
+                  <select id="estado-filter" class="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm appearance-none bg-white">
+                    <option value="todos">📋 Todos los estados</option>
+                    <option value="pendiente">⏳ Pendiente</option>
+                    <option value="aprobada">✅ Aprobada</option>
+                    <option value="rechazada">❌ Rechazada</option>
+                    <option value="entregado">📦 Entregado</option>
+                    <option value="devuelto">🔄 Devuelto</option>
+                  </select>
+                  <div class="absolute right-3 top-2.5 text-slate-400 pointer-events-none">
+                    ▼
+                  </div>
+                </div>
+
+                <!-- Filtros de fecha solo para administradores -->
+                <div class="relative fecha-container hidden">
+                  <div class="flex items-center gap-2">
+                    <div class="relative">
+                      <input
+                        type="date"
+                        id="fecha-desde"
+                        class="w-40 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm" />
+                      <div
+                        class="absolute right-2 top-2 text-slate-400 pointer-events-none text-xs">
+                        📅
+                      </div>
+                    </div>
+                    <span class="text-slate-500">-</span>
+                    <div class="relative">
+                      <input
+                        type="date"
+                        id="fecha-hasta"
+                        class="w-40 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm" />
+                      <div
+                        class="absolute right-2 top-2 text-slate-400 pointer-events-none text-xs">
+                        📅
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Botón de refrescar -->
+                <button id="btn-refrescar" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
+                  🔄 Refrescar
+                </button>
               </div>
 
-              <!-- Botón de refrescar -->
-              <button id="btn-refrescar" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2">
-                🔄 Refrescar
-              </button>
+              <!-- Botones de búsqueda y limpieza - Solo para estudiantes y docentes -->
+              <div id="botones-usuario" class="flex gap-3 hidden">
+                <button
+                  id="buscar-btn"
+                  class="bg-gradient-to-r from-[#004a8c] to-[#0066cc] text-white px-6 py-3 rounded-lg font-medium hover:from-[#003d7a] hover:to-[#0052a3] transition-all duration-200 flex items-center gap-2 shadow-lg">
+                  🔍 Buscar Solicitudes
+                </button>
+                <button
+                  id="limpiar-btn"
+                  class="bg-white border border-slate-300 text-slate-700 px-6 py-3 rounded-lg font-medium hover:bg-slate-50 transition-all duration-200 flex items-center gap-2">
+                  🔄 Limpiar Filtros
+                </button>
+              </div>
             </div>
+          </section>
 
-            <!-- Botones de búsqueda y limpieza - Solo para estudiantes y docentes -->
-            <div id="botones-usuario" class="flex gap-3 hidden">
-              <button
-                id="buscar-btn"
-                class="bg-gradient-to-r from-[#004a8c] to-[#0066cc] text-white px-6 py-3 rounded-lg font-medium hover:from-[#003d7a] hover:to-[#0052a3] transition-all duration-200 flex items-center gap-2 shadow-lg">
-                🔍 Buscar Solicitudes
-              </button>
-              <button
-                id="limpiar-btn"
-                class="bg-white border border-slate-300 text-slate-700 px-6 py-3 rounded-lg font-medium hover:bg-slate-50 transition-all duration-200 flex items-center gap-2">
-                🔄 Limpiar Filtros
-              </button>
+          <!-- Filtros y Búsqueda - Versión Móvil -->
+          <section class="block lg:hidden">
+            <div class="bg-white rounded-lg shadow border border-slate-200 p-1.5 mb-1.5 max-w-[280px] ml-4">
+              <div class="flex items-center mb-0.5">
+                <div class="w-4 h-4 bg-blue-100 rounded flex items-center justify-center mr-0.5">
+                  <span style="color: #004a8c; font-size: 8px;">🔍</span>
+                </div>
+                <h2 class="text-[10px] font-semibold text-slate-800">
+                  Filtros
+                </h2>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-0.5 mb-0.5">
+                <!-- Campo de búsqueda solo para administradores -->
+                <div id="busqueda-container" class="relative hidden">
+                  <input
+                    type="text"
+                    id="busqueda"
+                    placeholder="Buscar..."
+                    class="w-24 px-0.5 py-0.5 text-[10px] border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all" />
+                  <div
+                    class="absolute right-0.5 top-0.5 text-slate-400 pointer-events-none text-[8px]">
+                    🔍
+                  </div>
+                </div>
+
+                <!-- Filtro de estado -->
+                <div class="relative">
+                  <select id="estado-filter" class="px-0.5 py-0.5 text-[10px] border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all appearance-none bg-white">
+                    <option value="todos">Todos</option>
+                    <option value="pendiente">⏳ Pendiente</option>
+                    <option value="aprobada">✅ Aprobada</option>
+                    <option value="rechazada">❌ Rechazada</option>
+                    <option value="entregado">📦 Entregado</option>
+                    <option value="devuelto">🔄 Devuelto</option>
+                  </select>
+                  <div class="absolute right-0.5 top-0.5 text-slate-400 pointer-events-none text-[8px]">
+                    ▼
+                  </div>
+                </div>
+
+                <!-- Filtros de fecha solo para administradores -->
+                <div class="relative fecha-container hidden">
+                  <div class="flex items-center gap-0.5">
+                    <div class="relative">
+                      <input
+                        type="date"
+                        id="fecha-desde"
+                        class="w-20 px-0.5 py-0.5 text-[10px] border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all" />
+                      <div
+                        class="absolute right-0.5 top-0.5 text-slate-400 pointer-events-none text-[8px]">
+                        📅
+                      </div>
+                    </div>
+                    <span class="text-slate-500 text-[8px]">-</span>
+                    <div class="relative">
+                      <input
+                        type="date"
+                        id="fecha-hasta"
+                        class="w-20 px-0.5 py-0.5 text-[10px] border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all" />
+                      <div
+                        class="absolute right-0.5 top-0.5 text-slate-400 pointer-events-none text-[8px]">
+                        📅
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Botón de refrescar -->
+                <button id="btn-refrescar" class="px-1 py-0.5 bg-blue-600 text-white rounded text-[10px] font-medium hover:bg-blue-700 transition-colors flex items-center gap-0.5">
+                  🔄 Refrescar
+                </button>
+              </div>
+
+              <!-- Botones de búsqueda y limpieza - Solo para estudiantes y docentes -->
+              <div id="botones-usuario" class="flex gap-0.5 hidden">
+                <button
+                  id="buscar-btn"
+                  class="bg-gradient-to-r from-[#004a8c] to-[#0066cc] text-white px-1 py-0.5 rounded text-[10px] font-medium hover:from-[#003d7a] hover:to-[#0052a3] transition-all duration-200 flex items-center gap-0.5 shadow">
+                  🔍 Buscar
+                </button>
+                <button
+                  id="limpiar-btn"
+                  class="bg-white border border-slate-300 text-slate-700 px-1 py-0.5 rounded text-[10px] font-medium hover:bg-slate-50 transition-all duration-200 flex items-center gap-0.5">
+                  🔄 Limpiar
+                </button>
+              </div>
             </div>
           </section>
 
           <!-- Acciones Rápidas -->
-          <section
-            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-            <div class="flex gap-3">
-              <button
-                id="exportar-btn"
-                onclick="exportarReporte()"
-                class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg font-medium hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center gap-2 shadow-lg">
-                📥 Exportar Reporte
-              </button>
-              <button
-                id="imprimir-btn"
-                onclick="abrirVistaImpresion()"
-                class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-600 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 shadow-lg">
-                🖨️ Imprimir Lista
-              </button>
+          <section class="hidden lg:block">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div class="flex gap-3">
+                <button
+                  id="exportar-btn"
+                  onclick="exportarReporte()"
+                  class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center gap-2 shadow">
+                  📥 Exportar
+                </button>
+                <button
+                  id="imprimir-btn"
+                  onclick="abrirVistaImpresion()"
+                  class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-purple-600 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 shadow">
+                  🖨️ Imprimir
+                </button>
+              </div>
+              <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+                <span class="text-blue-700 text-sm font-medium">Mostrando </span>
+                <span class="text-blue-900 text-sm font-bold" id="resultados-count"
+                  >0</span
+                >
+                <span class="text-blue-700 text-sm font-medium"> solicitudes</span>
+              </div>
             </div>
-            <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
-              <span class="text-blue-700 font-medium">Mostrando </span>
-              <span class="text-blue-900 font-bold" id="resultados-count"
-                >0</span
-              >
-              <span class="text-blue-700 font-medium"> solicitudes</span>
+          </section>
+
+          <!-- Acciones Rápidas - Versión Móvil -->
+          <section class="block lg:hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 mb-1 max-w-[280px] ml-4">
+              <div class="flex gap-0.5">
+                <button
+                  id="exportar-btn"
+                  onclick="exportarReporte()"
+                  class="bg-gradient-to-r from-green-500 to-green-600 text-white px-1 py-0.5 rounded text-[10px] font-medium hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center gap-0.5 shadow">
+                  📥 Exportar
+                </button>
+                <button
+                  id="imprimir-btn"
+                  onclick="abrirVistaImpresion()"
+                  class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-1 py-0.5 rounded text-[10px] font-medium hover:from-purple-600 hover:to-purple-700 transition-all duration-200 flex items-center gap-0.5 shadow">
+                  🖨️ Imprimir
+                </button>
+              </div>
+              <div class="bg-blue-50 border border-blue-200 rounded px-0.5 py-0.5">
+                <span class="text-blue-700 text-[10px] font-medium">Mostrando </span>
+                <span class="text-blue-900 text-[10px] font-bold" id="resultados-count-mobile"
+                  >0</span
+                >
+                <span class="text-blue-700 text-[10px] font-medium"> solicitudes</span>
+              </div>
             </div>
           </section>
 
           <!-- Tabla Detallada de Insumos -->
           <section class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mt-8">
-            <div class="bg-gradient-to-r from-green-600 to-green-700 text-white p-6">
-              <h2 class="text-xl font-bold flex items-center gap-2">
-                📦 Solicitudes y Detalles de Insumos
+            <div class="bg-gradient-to-r from-green-600 to-green-700 text-white p-2 sm:p-3 md:p-4 lg:p-6">
+              <h2 class="text-sm sm:text-base md:text-lg lg:text-xl font-bold flex items-center gap-1 sm:gap-2">
+                📦 Solicitudes y Detalles
               </h2>
-              <p class="text-green-100 text-sm mt-1">Vista completa de todas las solicitudes con acciones disponibles</p>
+              <p class="text-green-100 text-[10px] sm:text-xs md:text-sm mt-0.5 sm:mt-1 hidden sm:block">Vista completa de todas las solicitudes</p>
             </div>
             
-            <div class="overflow-x-auto">
-              <table class="w-full">
-                <thead class="bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">ID</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Usuario</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Resumen</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Fecha</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Estado</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="solicitudes-tbody" class="bg-white divide-y divide-slate-100" style="z-index: 1; position: relative;">
-                  <!-- Las filas se generarán dinámicamente -->
-                </tbody>
-              </table>
+            <div class="overflow-x-auto lg:overflow-x-auto md:overflow-x-hidden">
+              <div class="lg:max-w-none lg:mx-0 max-w-[300px] ml-0">
+                <table class="w-full lg:w-full table-fixed">
+                  <thead class="bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                    <tr>
+                      <th class="px-0 sm:px-0.25 md:px-2 lg:px-2 py-0 sm:py-0.20 text-left text-[2px] sx:text-[5px] font-medium text-slate-300 uppercase tracking-tighter leading-none w-12">ID</th>
+                      <th class="px-0 sm:px-0.25 md:px-2 lg:px-3 py-0 sm:py-0.20 text-left text-[2px] xs:text-[5px] font-medium text-slate-300 uppercase tracking-tighter leading-none w-20">U</th>
+                      <th class="px-0 sm:px-0.25 md:px-2 lg:px-3 py-0 sm:py-0.20 text-left text-[2px] xs:text-[2px] font-medium text-slate-300 uppercase tracking-tighter leading-none w-24">I</th>
+                      <th class="px-0 sm:px-0.25 md:px-2 lg:px-3 py-0 sm:py-0.20 text-left text-[2px] sx:text-[2px] font-medium text-slate-300 uppercase tracking-tighter leading-none w-16">D</th>
+                      <th class="px-0 sm:px-0.25 md:px-2 lg:px-3 py-0 sm:py-0.20 text-left text-[2px] sx:text-[2px] font-medium text-slate-300 uppercase tracking-tighter leading-none w-12">S</th>
+                      <th class="px-0 sm:px-0.25 md:px-2 lg:px-3 py-0 sm:py-0.20 text-left text-[2px] sx:text-[2px] font-medium text-slate-300 uppercase tracking-tighter leading-none w-6">.</th>
+                    </tr>
+                  </thead>
+                  <tbody id="solicitudes-tbody" class="bg-white lg:divide-y-0 lg:border-b lg:border-slate-200" style="z-index: 1; position: relative;">
+                    <!-- Las filas se generarán dinámicamente -->
+                    <style>
+                      #solicitudes-tbody td {
+                        padding: 0px !important;
+                        font-size: 1px !important;
+                        line-height: 1 !important;
+                        white-space: nowrap !important;
+                        overflow: hidden !important;
+                        text-overflow: ellipsis !important;
+                      }
+                      #solicitudes-tbody td:nth-child(5) {
+                        font-size: 0.05px !important;
+                        padding: 0px !important;
+                      }
+                      #solicitudes-tbody td:last-child {
+                        font-size: 0.01px !important;
+                        padding: 0px !important;
+                        min-width: 24px !important;
+                        width: 24px !important;
+                        text-align: center !important;
+                      }
+                      #solicitudes-tbody td:last-child * {
+                        font-size: 0.01px !important;
+                      }
+                      #solicitudes-tbody tr {
+                        height: auto !important;
+                      }
+                      @media (min-width: 250px) {
+                        #solicitudes-tbody td {
+                          font-size: 1px !important;
+                          padding: 0px !important;
+                        }
+                        #solicitudes-tbody td:nth-child(5) {
+                          font-size: 0.5px !important;
+                          padding: 0px !important;
+                        }
+                        #solicitudes-tbody td:last-child {
+                          font-size: 0.05px !important;
+                          padding: 0px !important;
+                          min-width: 24px !important;
+                          width: 24px !important;
+                          text-align: center !important;
+                        }
+                        #solicitudes-tbody td:last-child * {
+                          font-size: 0.05px !important;
+                        }
+                      }
+                      @media (min-width: 150px) {
+                        #solicitudes-tbody td {
+                          font-size: 8px !important;
+                          padding: 8px !important;
+                        }
+                        #solicitudes-tbody td:nth-child(5) {
+                          font-size: 2px !important;
+                          padding: 2px !important;
+                        }
+                        #solicitudes-tbody td:last-child {
+                          font-size: 4px !important;
+                          padding: 4px !important;
+                          min-width: 32px !important;
+                          width: 32px !important;
+                          text-align: center !important;
+                        }
+                        #solicitudes-tbody td:last-child * {
+                          font-size: 4px !important;
+                        }
+                      }
+                    </style>
+                  </tbody>
+                </table>
+              </div>
             </div>
             
-            <div class="p-6">
-              <div id="insumos-detallados" class="space-y-4" style="z-index: 1; position: relative;">
+            <div class="p-0 sm:p-0 md:p-6">
+              <div id="insumos-detallados" class="space-y-0 sm:space-y-0 md:space-y-4" style="z-index: 1; position: relative;">
                 <!-- Los insumos se mostrarán aquí -->
               </div>
             </div>
@@ -462,7 +711,7 @@
           const headerResponse = await fetch('../components/header.html');
           const headerHtml = await headerResponse.text();
           document.getElementById('header-component').innerHTML = headerHtml;
-          console.log('✅ Header component cargado en solicitudes.html');
+          console.log(' Header component cargado en solicitudes.html');
           
           // Actualizar información del usuario (exactamente como perfil.html)
           const userData = localStorage.getItem('utn_user');
@@ -836,7 +1085,7 @@
           // Verificar si CONFIG está disponible
           const apiUrl = window.CONFIG
             ? window.CONFIG.API_BASE_URL
-            : "http://localhost:4000/api";
+            : "http://192.168.0.9:4000/api";
           let fullUrl = `${apiUrl}/solicitudes/usuario/${currentUser._id || currentUser.id}`;
 
           console.log("🌐 URL final:", fullUrl);
@@ -1317,10 +1566,10 @@
         let apiUrl;
         if (['admin', 'administrador', 'administrativo'].includes(userRole.toLowerCase())) {
             // Admin usa la ruta general
-            apiUrl = `http://localhost:4000/api/solicitudes/${id}`;
+            apiUrl = `http://192.168.0.9:4000/api/solicitudes/${id}`;
         } else {
             // Estudiantes y docentes usan la ruta específica
-            apiUrl = `http://localhost:4000/api/solicitudes/estudiante/${id}`;
+            apiUrl = `http://192.168.0.9:4000/api/solicitudes/estudiante/${id}`;
         }
         
         console.log(`🌐 Usando ruta para ${userRole}: ${apiUrl}`);
@@ -2435,7 +2684,7 @@
           // Llamada al backend para actualizar estado
           console.log("📡 Enviando petición al backend...");
           const response = await fetch(
-            `http://localhost:4000/api/solicitudes/${id}/estado`,
+            `http://192.168.0.9:4000/api/solicitudes/${id}/estado`,
             {
               method: "PATCH",
               headers: {
@@ -2488,7 +2737,7 @@
           
           // 2. Recargar datos directamente (sistema viejo)
           const token = localStorage.getItem("utn_token");
-          const response = await fetch('http://localhost:4000/api/solicitudes', {
+          const response = await fetch('http://192.168.0.9:4000/api/solicitudes', {
             headers: {
               Authorization: `Bearer ${token}`,
             },
