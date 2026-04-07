@@ -106,7 +106,7 @@
                 <!-- Sección de botones para acceder a diferentes módulos de gestión, cada uno con un diseño atractivo y claro -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-6">
                     <!-- MÓDULO DE ACTIVOS -->
-                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="window.location.href='pages/activos.html'">
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="window.location.href='activos.html'">
                         <div class="flex flex-col sm:flex-row items-center justify-between p-4 sm:p-6">
                             <div class="flex items-center">
                                 <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
@@ -118,14 +118,14 @@
                                 </div>
                             </div>
                             <div class="flex items-center text-blue-600 font-medium">
-                                <span>Acceder →</span>
+                                <span>Acceder</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- MÓDULO DE INSUMOS -->
                     <!-- Este botón redirige a la página de gestión de insumos, donde se pueden controlar materiales y consumibles del laboratorio -->
-                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="window.location.href='pages/insumos.html'">
+                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border border-slate-100" onclick="window.location.href='insumos.html'">
                         <div class="flex flex-col sm:flex-row items-center justify-between p-4 sm:p-6">
                             <div class="flex items-center">
                                 <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
@@ -137,7 +137,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center text-green-600 font-medium">
-                                <span>Acceder →</span>
+                                <span>Acceder</span>
                             </div>
                         </div>
                     </div>
@@ -595,6 +595,96 @@
         <script src="../js/auth.js"></script>
         <script src="../js/modal.js"></script>
         <script src="../js/pages/admin.js"></script>
+
+        <!-- Verificación de rol -->
+        <script>
+            // Protección contra bucles infinitos
+            if (window.location.search.includes('redirected=true')) {
+                console.log('Detectado bucle de redirección, deteniendo...');
+                // Limpiar el parámetro y continuar
+                const url = window.location.href.split('?')[0];
+                window.history.replaceState({}, '', url);
+            }
+            
+            // Verificar si el usuario es administrador
+            const userData = localStorage.getItem('utn_user');
+            const user = userData ? JSON.parse(userData) : null;
+            
+            if (user) {
+                const rol = user.rol ? user.rol.toLowerCase() : '';
+                console.log('Verificación de rol en ModAdmis.html:', rol);
+                
+                if (!rol.includes('administrador') && !rol.includes('admin')) {
+                    console.log('Usuario no es administrador, redirigiendo a ModUsuarios.html');
+                    window.location.href = 'ModUsuarios.html?redirected=true';
+                } else {
+                    console.log('Usuario es administrador, permitiendo acceso');
+                }
+            }
+        </script>
+
+        <!-- Función global para cerrar sesión -->
+        <script>
+            window.cerrarSesion = function() {
+                console.log('Cerrando sesión desde ModAdmis...');
+                
+                if (confirm('¿Estás seguro de que quieres cerrar tu sesión?')) {
+                    // Limpiar localStorage
+                    localStorage.removeItem('utn_token');
+                    localStorage.removeItem('utn_user');
+                    
+                    // Redirigir a login
+                    window.location.href = '../login.html';
+                }
+            };
+
+            // Función global para el menú
+            window.toggleUserMenu = function() {
+                console.log('toggleUserMenu() llamada desde ModAdmis.html');
+                
+                const userDropdown = document.getElementById('user-dropdown');
+                if (!userDropdown) {
+                    console.log('ERROR: No se encontró el dropdown');
+                    return;
+                }
+                
+                console.log('Estado actual del dropdown:', {
+                    hidden: userDropdown.classList.contains('hidden'),
+                    opacity: userDropdown.style.opacity || window.getComputedStyle(userDropdown).opacity,
+                    display: userDropdown.style.display || window.getComputedStyle(userDropdown).display,
+                    classes: userDropdown.className
+                });
+                
+                if (userDropdown.classList.contains('hidden')) {
+                    // Mostrar dropdown - anular el hidden con estilos inline
+                    userDropdown.classList.remove('hidden');
+                    userDropdown.classList.remove('opacity-0');
+                    userDropdown.classList.add('opacity-100');
+                    
+                    // Estilos inline para forzar visibilidad
+                    userDropdown.style.display = 'block';
+                    userDropdown.style.visibility = 'visible';
+                    userDropdown.style.opacity = '1';
+                    userDropdown.style.pointerEvents = 'auto';
+                    
+                    console.log('Menú abierto - estilos inline aplicados');
+                    console.log('Display final:', userDropdown.style.display);
+                } else {
+                    // Ocultar dropdown
+                    userDropdown.classList.add('hidden');
+                    userDropdown.classList.add('opacity-0');
+                    userDropdown.classList.remove('opacity-100');
+                    
+                    // Estilos inline para ocultar
+                    userDropdown.style.display = 'none';
+                    userDropdown.style.visibility = 'hidden';
+                    userDropdown.style.opacity = '0';
+                    userDropdown.style.pointerEvents = 'none';
+                    
+                    console.log('Menú cerrado');
+                }
+            };
+        </script>
 
         <!-- Inicializar indexController -->
         <script>

@@ -10,7 +10,7 @@ const app = express();
 
 // --- 1. MIDDLEWARES DE ENTRADA (Configuración inicial) ---
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://192.168.0.9:3000', 'http://192.168.0.9:5173', 'https://192.168.0.9:3000', 'https://192.168.0.9:5173'],
+    origin: ['http://localhost:3000', 'http://localhost:4000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:4000', 'http://127.0.0.1:5173', 'http://10.90.29.31:3000', 'http://10.90.29.31:4000', 'http://10.90.29.31:5173', 'http://192.168.0.9:3000', 'http://192.168.0.9:5173', 'https://192.168.0.9:3000', 'https://192.168.0.9:5173'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With'],
     credentials: true
@@ -45,7 +45,7 @@ const PORT = process.env.PORT || 4000;
 if (require.main === module) {
     app.listen(PORT, '0.0.0.0', () => {
         console.log(` Servidor corriendo en http://0.0.0.0:${PORT}`);
-        console.log(` Acceso local: http://192.168.0.9:${PORT}`);
+        console.log(` Acceso local: http://10.90.29.31:${PORT}`);
         console.log(' Monitoreando peticiones con Morgan...');
     });
 }

@@ -402,7 +402,70 @@
         <script src="../js/main.js"></script>
         <script src="../js/auth.js"></script>
         <script src="../js/modal.js"></script>
-        <script src="../js/pages/usuarios.js"></script>
+        <script src="../js/pages/usuarios.js" onerror="console.error('Error cargando usuarios.js')" onload="console.log('usuarios.js cargado correctamente')"></script>
+
+        <!-- Función global para cerrar sesión -->
+        <script>
+            window.cerrarSesion = function() {
+                console.log('Cerrando sesión desde ModUsuarios...');
+                
+                if (confirm('¿Estás seguro de que quieres cerrar tu sesión?')) {
+                    // Limpiar localStorage
+                    localStorage.removeItem('utn_token');
+                    localStorage.removeItem('utn_user');
+                    
+                    // Redirigir a login
+                    window.location.href = '../login.html';
+                }
+            };
+
+            // Función global para el menú
+            window.toggleUserMenu = function() {
+                console.log('toggleUserMenu() llamada desde ModUsuarios.html');
+                
+                const userDropdown = document.getElementById('user-dropdown');
+                if (!userDropdown) {
+                    console.log('ERROR: No se encontró el dropdown');
+                    return;
+                }
+                
+                console.log('Estado actual del dropdown:', {
+                    hidden: userDropdown.classList.contains('hidden'),
+                    opacity: userDropdown.style.opacity || window.getComputedStyle(userDropdown).opacity,
+                    display: userDropdown.style.display || window.getComputedStyle(userDropdown).display,
+                    classes: userDropdown.className
+                });
+                
+                if (userDropdown.classList.contains('hidden')) {
+                    // Mostrar dropdown - anular el hidden con estilos inline
+                    userDropdown.classList.remove('hidden');
+                    userDropdown.classList.remove('opacity-0');
+                    userDropdown.classList.add('opacity-100');
+                    
+                    // Estilos inline para forzar visibilidad
+                    userDropdown.style.display = 'block';
+                    userDropdown.style.visibility = 'visible';
+                    userDropdown.style.opacity = '1';
+                    userDropdown.style.pointerEvents = 'auto';
+                    
+                    console.log('Menú abierto - estilos inline aplicados');
+                    console.log('Display final:', userDropdown.style.display);
+                } else {
+                    // Ocultar dropdown
+                    userDropdown.classList.add('hidden');
+                    userDropdown.classList.add('opacity-0');
+                    userDropdown.classList.remove('opacity-100');
+                    
+                    // Estilos inline para ocultar
+                    userDropdown.style.display = 'none';
+                    userDropdown.style.visibility = 'hidden';
+                    userDropdown.style.opacity = '0';
+                    userDropdown.style.pointerEvents = 'none';
+                    
+                    console.log('Menú cerrado');
+                }
+            };
+        </script>
 
         <!-- Inicializar indexController -->
         <script>
