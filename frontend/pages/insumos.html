@@ -140,6 +140,14 @@
                 </div>
                 
                 <div class="mt-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Imagen del Insumo</label>
+                    <input type="file" id="imagenInsumoModal" accept="image/*" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                    <div id="imagenPreviewModal" class="mt-2 hidden">
+                        <img src="" alt="Vista previa" class="w-24 h-24 object-cover rounded-lg border border-slate-200">
+                    </div>
+                </div>
+                
+                <div class="mt-4">
                     <label class="block text-sm font-medium text-slate-700 mb-2">Características *</label>
                     <textarea id="descripcionInsumo" required rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Describe las características técnicas del insumo..."></textarea>
                 </div>
@@ -225,6 +233,7 @@
                         <table class="w-full border border-slate-200 rounded-lg">
                             <thead class="bg-slate-50">
                                 <tr>
+                                    <th class="border border-slate-200 px-4 py-2 text-left">Imagen</th>
                                     <th class="border border-slate-200 px-4 py-2 text-left">Nombre</th>
                                     <th class="border border-slate-200 px-4 py-2 text-left">Categoría</th>
                                     <th class="border border-slate-200 px-4 py-2 text-left">Cantidad</th>
@@ -261,7 +270,7 @@
                             <textarea id="nombres-manual" rows="6" class="w-full px-3 py-2 border border-slate-300 rounded-lg" placeholder="Resistencia 1k&#10;Capacitor 100uF&#10;LED rojo 5mm"></textarea>
                         </div>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-2">Categoría</label>
                                 <select id="categoria-manual" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
@@ -276,6 +285,13 @@
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-2">Características</label>
                                 <input type="text" id="caracteristicas-manual" value="Componente electrónico" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Imagen</label>
+                                <input type="file" id="imagen-manual" accept="image/*" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                                <div id="imagen-preview" class="mt-2 hidden">
+                                    <img src="" alt="Vista previa" class="w-20 h-20 object-cover rounded-lg">
+                                </div>
                             </div>
                         </div>
                         
@@ -320,6 +336,7 @@
     <script src="../js/components/sidebar.js"></script>
     <script src="../js/components/modals.js"></script>
     <script src="../js/pages/insumos.js"></script>
+    <script src="../js/pages/insumos-imagenes.js"></script>
     
     <!-- Funciones para el modal de agregar insumo -->
     <script>
@@ -369,9 +386,16 @@
         function agregarFilaTabla() {
             const tbody = document.getElementById('tabla-insumos-masivos');
             const filaIndex = tbody.children.length;
+            const uniqueId = Date.now() + Math.random();
             
             const fila = document.createElement('tr');
             fila.innerHTML = `
+                <td class="border border-slate-200 px-2 py-1">
+                    <input type="file" class="w-full px-2 py-1 border border-slate-300 rounded text-sm" data-field="imagen" accept="image/*" onchange="previewImagenTabla(this, ${uniqueId})">
+                    <div class="mt-1 hidden" id="preview-${uniqueId}">
+                        <img src="" alt="Vista previa" class="w-12 h-12 object-cover rounded border border-slate-200">
+                    </div>
+                </td>
                 <td class="border border-slate-200 px-2 py-1">
                     <input type="text" class="w-full px-2 py-1 border border-slate-300 rounded" placeholder="Nombre del insumo" data-field="nombre">
                 </td>
@@ -395,6 +419,41 @@
             `;
             
             tbody.appendChild(fila);
+        }
+
+        // Función para vista previa de imagen en tabla
+        function previewImagenTabla(input, uniqueId) {
+            console.log('🖼️ Preview imagen tabla llamada con:', { input, uniqueId });
+            
+            const previewDiv = document.getElementById(`preview-${uniqueId}`);
+            const previewImg = previewDiv?.querySelector('img');
+            
+            console.log('🖼️ Elementos encontrados:', {
+                previewDiv: previewDiv,
+                previewImg: previewImg,
+                files: input.files
+            });
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                console.log('📁 Archivo seleccionado:', file);
+                console.log('🔍 Tipo de archivo:', file.type);
+                
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        console.log('✅ Vista previa generada:', e.target.result);
+                        previewImg.src = e.target.result;
+                        previewDiv.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    console.log('❌ No es una imagen válida');
+                }
+            } else {
+                console.log('❌ No hay archivo seleccionado');
+                previewDiv.classList.add('hidden');
+            }
         }
 
         function eliminarFilaTabla(boton) {
@@ -624,19 +683,31 @@ Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplado
             } else if (tabName === 'tabla') {
                 // Procesar tabla
                 const filas = document.querySelectorAll('#tabla-insumos-masivos tr');
-                filas.forEach(fila => {
+                
+                // Procesar cada fila con su imagen
+                for (let i = 0; i < filas.length; i++) {
+                    const fila = filas[i];
                     const inputs = fila.querySelectorAll('input, select');
-                    if (inputs[0].value.trim()) {
+                    const imagenInput = fila.querySelector('input[type="file"]');
+                    
+                    if (inputs[1].value.trim()) { // inputs[1] es el nombre
+                        let imagenUrl = '';
+                        
+                        // Si hay imagen, subirla
+                        if (imagenInput && imagenInput.files[0]) {
+                            imagenUrl = await window.subirImagen(imagenInput.files[0]);
+                        }
+                        
                         insumos.push({
                             id_insumo: Date.now() + Math.random(),
-                            NombProducto: inputs[0].value,
-                            categoria: inputs[1].value,
-                            cantidad: parseInt(inputs[2].value) || 1,
-                            caracteristicas: inputs[3].value || 'Sin características',
-                            imagenUrl: ''
+                            NombProducto: inputs[1].value, // inputs[1] es el nombre (inputs[0] es imagen)
+                            categoria: inputs[2].value, // inputs[2] es categoría
+                            cantidad: parseInt(inputs[3].value) || 1, // inputs[3] es cantidad
+                            caracteristicas: inputs[4].value || 'Sin características', // inputs[4] es características
+                            imagenUrl: imagenUrl
                         });
                     }
-                });
+                }
             } else if (tabName === 'manual') {
                 // Procesar ingreso manual
                 const nombres = document.getElementById('nombres-manual').value.split('\n').filter(n => n.trim());
@@ -1441,10 +1512,26 @@ Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplado
                         </div>
                     `;
                 } else {
-                    grid.innerHTML = insumosFiltrados.map((insumo, index) => `
+                    grid.innerHTML = insumosFiltrados.map((insumo, index) => {
+                        // Construir URL de imagen
+                        let imageUrl = `https://picsum.photos/seed/insumo-${insumo.id_insumo}/400/300.jpg`;
+                        if (insumo.imagenUrl) {
+                            imageUrl = insumo.imagenUrl.startsWith('http') ? insumo.imagenUrl : `http://10.90.29.31:4000${insumo.imagenUrl}`;
+                        }
+                        
+                        console.log(`Insumo ${insumo.id_insumo}:`, {
+                            imagenUrl: insumo.imagenUrl,
+                            finalImageUrl: imageUrl,
+                            nombre: insumo.NombProducto
+                        });
+                        
+                        return `
                         <div class="bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group">
                             <div class="relative h-32 bg-slate-100 overflow-hidden">
-                                <img src="${insumo.imagenUrl || `https://picsum.photos/seed/insumo-${insumo.id_insumo}/400/300.jpg`}" class="w-full h-full object-cover">
+                                <img src="${imageUrl}" 
+                                     class="w-full h-full object-cover" 
+                                     onerror="this.src='https://picsum.photos/seed/insumo-${insumo.id_insumo}/400/300.jpg'"
+                                     alt="${insumo.NombProducto || 'Insumo'}">
                                 <div class="absolute top-2 right-2">
                                     <span class="px-2 py-1 text-[10px] font-bold uppercase rounded-full ${getStockClassDirecto(insumo.cantidad)}">
                                         ${getStockTextDirecto(insumo.cantidad)}
@@ -1455,20 +1542,13 @@ Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplado
                                 <div class="flex justify-between items-start mb-2">
                                     <div class="flex-1">
                                         <h3 class="font-bold text-slate-800 text-sm line-clamp-1">${insumo.NombProducto}</h3>
-                                        <p class="text-[10px] text-slate-400">ID: ${insumo.id_insumo}</p>
+                                        <p class="text-xs text-slate-500 mt-1">${insumo.categoria}</p>
                                     </div>
-                                    <span class="text-[10px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                                        INSUMO
+                                    <span class="text-xs font-bold px-2 py-1 rounded-full ${getStockClassDirecto(insumo.cantidad)}">
+                                        ${insumo.cantidad} unid.
                                     </span>
                                 </div>
-                                
-                                <div class="space-y-3 mb-4">
-                                    <div class="flex flex-col text-xs border-b border-slate-50 pb-1">
-                                        <span class="text-slate-400 font-semibold mb-1">Características:</span>
-                                        <span class="text-slate-700 leading-relaxed">${insumo.caracteristicas}</span>
-                                    </div>
-                                    <div class="flex justify-between items-center text-xs pt-1">
-                                        <span class="text-slate-400">Disponibles: <span class="text-slate-700 font-bold">${insumo.cantidad}</span></span>
+                                <p class="text-xs text-slate-600 line-clamp-2">${insumo.caracteristicas}</p>
                                         <span class="text-slate-700 font-medium">${insumo.categoria}</span>
                                     </div>
                                 </div>
@@ -1545,13 +1625,28 @@ Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplado
                 form.addEventListener('submit', async function(e) {
                     e.preventDefault();
                     
+                    // Obtener el archivo de imagen
+                    const imagenInput = document.getElementById('imagen-manual');
+                    const imagenModalInput = document.getElementById('imagenInsumoModal');
+                    const imagenFile = imagenInput?.files[0] || imagenModalInput?.files[0];
+                    
+                    let imagenUrl = '';
+                    if (imagenFile) {
+                        // Subir la imagen primero
+                        imagenUrl = await window.subirImagen(imagenFile);
+                        if (!imagenUrl) {
+                            showToast('❌ Error al subir la imagen', 'error');
+                            return;
+                        }
+                    }
+                    
                     const formData = {
                         id_insumo: Date.now(), // ID único temporal
                         NombProducto: document.getElementById('nombreInsumo').value,
                         caracteristicas: document.getElementById('descripcionInsumo').value || 'Sin características específicas',
                         categoria: document.getElementById('categoriaInsumo').value,
                         cantidad: parseInt(document.getElementById('cantidadInsumo').value),
-                        imagenUrl: '' // Opcional
+                        imagenUrl: imagenUrl // URL de la imagen subida
                     };
 
                     try {
@@ -1562,6 +1657,9 @@ Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplado
                         console.log('👤 Usuario actual:', currentUser);
                         console.log('🔑 Token disponible:', token ? 'Sí' : 'No');
                         console.log('📋 Enviando datos:', formData);
+                    console.log('🖼️ URL de imagen:', formData.imagenUrl);
+                    console.log('🔍 Verificando si la imagen existe:', formData.imagenUrl ? 'Sí' : 'No');
+                    console.log('📤 Enviando JSON completo:', JSON.stringify(formData, null, 2));
                         
                         const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`, {
                             method: 'POST',
@@ -1576,6 +1674,11 @@ Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplado
                         console.log('📡 Respuesta headers:', response.headers);
 
                         if (response.ok) {
+                            const responseData = await response.json();
+                            console.log('✅ Respuesta del servidor:', responseData);
+                            console.log('📋 Insumo guardado:', responseData.data);
+                            console.log('🖼️ URL de imagen guardada:', responseData.data?.imagenUrl);
+                            
                             showToast('✅ Insumo agregado correctamente', 'success');
                             cerrarModalAgregarInsumo();
                             // Recargar la lista de insumos

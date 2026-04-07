@@ -73,8 +73,16 @@ exports.createInsumo = async (req, res) => {
                     message: 'Error: El nombre, las características y la categoría son campos obligatorios ó categoría inválida.'
                 });
             }
+            
+            console.log('📋 Datos recibidos en backend:', datos);
+            console.log('🖼️ URL de imagen recibida:', datos.imagenUrl);
+            console.log('🔍 Tipo de imagenUrl:', typeof datos.imagenUrl);
+            
             const nuevoInsumo = new Insumos(datos);
             const insumoGuardado = await nuevoInsumo.save();
+            
+            console.log('✅ Insumo guardado en BD:', insumoGuardado);
+            console.log('🖼️ URL de imagen guardada:', insumoGuardado.imagenUrl);
 
             return res.status(201).json({
                 message: "Insumo registrado con éxito",

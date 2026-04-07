@@ -278,10 +278,6 @@ class SolicitudesController {
         console.log('🔍 Número de filas en tbody:', tbody.children.length);
 
         console.log('✅ TODAS las solicitudes renderizadas con formato responsive:', solicitudesFiltradas.length);
-
-        // NO mostrar insumos detallados - el controller ya muestra todo en la tabla
-        console.log('🚫 NO mostrar insumos detallados - todo está en la tabla principal');
-
         // Actualizar paginación
         this.updatePaginacion();
     }
@@ -515,6 +511,31 @@ class SolicitudesController {
         const rolesAdmin = ['admin', 'administrador', 'administrativo'];
         const esAdmin = rolesAdmin.includes(userRol.toLowerCase());
 
+        // Obtener usuario actual
+        const userData = localStorage.getItem('utn_user');
+        const currentUser = userData ? JSON.parse(userData) : null;
+        const currentUserId = currentUser?._id || currentUser?.id;
+
+        // Encontrar la solicitud actual para verificar estado y dueño
+        const solicitudActual = this.solicitudes.find(s => s._id === solicitudId);
+        const esMiSolicitud = solicitudActual && (
+            solicitudActual.usuario?._id === currentUserId || 
+            solicitudActual.usuario === currentUserId ||
+            solicitudActual.usuario_solicitante === currentUser?.nombre_completo
+        );
+
+        // Estados en los que se puede eliminar (pendiente, rechazado o aprobado)
+        const estadosPermitidosParaEliminar = ['pendiente', 'rechazada', 'aprobada'];
+        const puedeEliminar = esMiSolicitud && estadosPermitidosParaEliminar.includes(solicitudActual?.estado);
+
+        console.log('🔍 Verificar eliminación:', {
+            solicitudId,
+            esMiSolicitud,
+            estado: solicitudActual?.estado,
+            puedeEliminar,
+            currentUserId
+        });
+
         if (isMobile) {
             // Versión móvil - botones compactos
             if (esAdmin) {
@@ -546,7 +567,7 @@ class SolicitudesController {
                 `;
             } else {
                 // Botones para usuarios no administrativos (versión móvil)
-                return `
+                let botonesHTML = `
                     <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
                         👁️ Ver
                     </button>
@@ -558,6 +579,18 @@ class SolicitudesController {
                         🔄 Devolver
                     </button>
                 `;
+
+                // Añadir botón eliminar solo si es mi solicitud y está en estado permitido
+                if (puedeEliminar) {
+                    botonesHTML += `
+                        <div class="border-t my-1"></div>
+                        <button onclick="eliminarSolicitud(&quot;${solicitudId}&quot;)" class="w-full text-left px-2 py-1 text-xs hover:bg-red-50 text-red-600 flex items-center gap-1">
+                            🗑️ Eliminar mi solicitud
+                        </button>
+                    `;
+                }
+
+                return botonesHTML;
             }
         } else {
             // Versión desktop - botones normales
@@ -590,7 +623,7 @@ class SolicitudesController {
                 `;
             } else {
                 // Botones para estudiantes y docentes (solo los básicos)
-                return `
+                let botonesHTML = `
                     <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
                         👁️ Ver detalles
                     </button>
@@ -600,11 +633,33 @@ class SolicitudesController {
                     <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
                         🔄 Devolver
                     </button>
-                    <div class="border-t border-slate-200 my-1"></div>
-                    <button onclick="eliminarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
-                        🗑️ Eliminar    
-                    </button>
                 `;
+
+                // Añadir botón eliminar solo si es mi solicitud y está en estado permitido
+                console.log('🔍 Verificando botón eliminar para estudiante:', {
+                    puedeEliminar,
+                    esMiSolicitud,
+                    estado: solicitudActual?.estado,
+                    solicitudId
+                });
+                
+                if (puedeEliminar) {
+                    console.log('✅ Añadiendo botón eliminar para estudiante');
+                    botonesHTML += `
+                        <div class="border-t border-slate-200 my-1"></div>
+                        <button onclick="eliminarSolicitud(&quot;${solicitudId}&quot;)" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
+                            🗑️ Eliminar mi solicitud
+                        </button>
+                    `;
+                } else {
+                    console.log('❌ No se añade botón eliminar:', {
+                        puedeEliminar,
+                        esMiSolicitud,
+                        estado: solicitudActual?.estado
+                    });
+                }
+
+                return botonesHTML;
             }
         }
     }
@@ -612,35 +667,57 @@ class SolicitudesController {
     getElementosInfo(solicitud) {
         const elementos = [];
 
+        console.log('🔍 Procesando elementos de solicitud:', solicitud._id);
+        console.log('📦 Insumos:', solicitud.insumos);
+        console.log('🔧 Activos:', solicitud.activos);
+
         // Procesar activos
         if (solicitud.activos && solicitud.activos.length > 0) {
-            solicitud.activos.forEach(activo => {
+            solicitud.activos.forEach((activo, index) => {
+                console.log(`🔧 Procesando activo ${index + 1}:`, activo);
                 elementos.push({
                     icono: '🔧',
-                    nombre: activo.nombre || activo.marca || 'Activo',
+                    nombre: activo.nombre || activo.marca || activo.codigo_activo || 'Activo',
                     cantidad: 1,
-                    detalles: activo.modelo || ''
+                    detalles: activo.modelo || activo.descripcion || ''
                 });
             });
         }
 
         // Procesar insumos con más detalles
         if (solicitud.insumos && solicitud.insumos.length > 0) {
-            solicitud.insumos.forEach(insumo => {
-                const nombreInsumo = insumo.id_insumo?.NombProducto ||
-                    insumo.descripcion ||
-                    insumo.caracteristicas ||
-                    'Insumo';
+            solicitud.insumos.forEach((insumo, index) => {
+                console.log(`📦 Procesando insumo ${index + 1}:`, insumo);
+                
+                // Intentar obtener el nombre de múltiples formas
+                let nombreInsumo = 'Insumo';
+                
+                if (insumo.id_insumo) {
+                    // Si tiene populate
+                    nombreInsumo = insumo.id_insumo.NombProducto || 
+                                   insumo.id_insumo.nombre || 
+                                   insumo.id_insumo.descripcion ||
+                                   'Insumo';
+                } else {
+                    // Si no tiene populate, usar datos directos
+                    nombreInsumo = insumo.nombre || 
+                                   insumo.descripcion || 
+                                   insumo.caracteristicas ||
+                                   'Insumo';
+                }
+                
+                console.log(`📝 Nombre final del insumo: ${nombreInsumo}`);
 
                 elementos.push({
-                    icono: '',
+                    icono: '📦',
                     nombre: nombreInsumo,
                     cantidad: insumo.cantidad || 1,
-                    detalles: insumo.caracteristicas || ''
+                    detalles: insumo.caracteristicas || insumo.descripcion || ''
                 });
             });
         }
 
+        console.log('✅ Elementos procesados:', elementos);
         return elementos;
     }
 
@@ -810,7 +887,7 @@ class SolicitudesController {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `solicitudes_${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = `solicitudes_${Utils.formatDate(new Date())}.csv`;
         a.click();
         window.URL.revokeObjectURL(url);
 
@@ -828,6 +905,93 @@ class SolicitudesController {
         this.updateEstadisticas();
     }
 }
+
+// Función para eliminar solicitudes propias
+window.eliminarSolicitud = async function(solicitudId) {
+    console.log('🗑️ Iniciando eliminación de solicitud:', solicitudId);
+    
+    // Validar que el ID no sea undefined
+    if (!solicitudId || solicitudId === 'undefined') {
+        console.error('❌ ID de solicitud es undefined');
+        Utils.showToast('Error: ID de solicitud no válido', 'error');
+        return;
+    }
+    
+    // Verificación de seguridad
+    if (!confirm('¿Estás seguro de que quieres eliminar esta solicitud? Esta acción no se puede deshacer.')) {
+        console.log('❌ Eliminación cancelada por el usuario');
+        return;
+    }
+    
+    try {
+        // Obtener token de autenticación
+        const token = localStorage.getItem('utn_token');
+        if (!token) {
+            Utils.showToast('No tienes sesión activa', 'error');
+            return;
+        }
+        
+        console.log('🔍 Enviando solicitud de eliminación para ID:', solicitudId);
+        console.log('🔍 URL completa:', `${CONFIG.API_BASE_URL}/solicitudes/${solicitudId}`);
+        
+        // Enviar solicitud de eliminación al backend
+        const response = await fetch(`${CONFIG.API_BASE_URL}/solicitudes/${solicitudId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        console.log('📡 Respuesta del servidor:', response.status);
+        
+        if (!response.ok) {
+            const errorData = await response.text();
+            console.error('❌ Error al eliminar:', errorData);
+            Utils.showToast(`Error al eliminar: ${response.statusText}`, 'error');
+            return;
+        }
+        
+        const result = await response.json();
+        console.log('✅ Solicitud eliminada:', result);
+        
+        // Mostrar mensaje de éxito
+        Utils.showToast('Solicitud eliminada correctamente', 'success');
+        
+        // Recargar la lista de solicitudes
+        if (window.solicitudesManager) {
+            await window.solicitudesManager.loadSolicitudes();
+        } else {
+            // Si no está disponible, recargar la página
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+        
+    } catch (error) {
+        console.error('❌ Error en eliminación:', error);
+        Utils.showToast('Error al eliminar la solicitud', 'error');
+    }
+};
+
+// Función para toggle del menú de acciones
+window.toggleMenu = function(solicitudId, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Cerrar todos los demás menús primero
+    document.querySelectorAll('[id^="menu-"]').forEach(menu => {
+        if (menu.id !== `menu-${solicitudId}`) {
+            menu.classList.add('hidden');
+        }
+    });
+    
+    // Toggle el menú actual
+    const menuActual = document.getElementById(`menu-${solicitudId}`);
+    if (menuActual) {
+        menuActual.classList.toggle('hidden');
+    }
+};
 
 // Crear instancia global
 console.log('🔧 Creando instancia de SolicitudesController...');

@@ -400,5 +400,133 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('🔥 Forzando segunda actualización del menú...');
         updateUserInfo();
     }, 1000);
+    
+    // Configurar carrito después de que el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM cargado, configurando carrito del header...');
+    
+    const cartBtn = document.getElementById('cartBtn');
+    if (cartBtn) {
+        cartBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Clic en carrito del header - EVENTO DEL HEADER');
+            console.log('Buscando modal del carrito...');
+            
+            // Buscar el modal del carrito en la página
+            const cartModal = document.getElementById('cartModal');
+            console.log('Modal encontrado:', !!cartModal);
+            
+            if (cartModal) {
+                console.log('Modal encontrado, abriendo...');
+                console.log('Clases del modal antes:', cartModal.className);
+                
+                cartModal.classList.remove('opacity-0', 'pointer-events-none');
+                
+                console.log('Clases del modal después:', cartModal.className);
+                
+                // Actualizar UI del carrito
+                if (typeof updateCartUI === 'function') {
+                    console.log('Actualizando UI del carrito desde header...');
+                    updateCartUI();
+                }
+                
+                // Forzar que el modal esté visible
+                setTimeout(() => {
+                    cartModal.style.display = 'flex';
+                    cartModal.style.opacity = '1';
+                    cartModal.style.pointerEvents = 'auto';
+                    console.log('Modal forzado a ser visible');
+                }, 10);
+                
+            } else {
+                console.log('Modal del carrito no encontrado');
+            }
+        });
+        console.log('Evento del carrito configurado en header');
+    } else {
+        console.log('Botón del carrito no encontrado en header');
+    }
 });
+});
+
+// Función global para actualizar el carrito
+window.updateCartUI = function() {
+    const cartCount = document.getElementById('cartCount');
+    const cartItems = document.getElementById('cartItems');
+    const cartTotal = document.getElementById('cartTotal');
+    
+    // Obtener usuario actual y carrito personal con clave única
+    const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
+    const userId = user._id || user.correo_electronico || 'anonymous';
+    const cartKey = `cart_${btoa(userId)}`;
+    
+    let cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
+    
+    console.log('Header - Actualizando UI del carrito personal con clave:', cartKey);
+    console.log('Header - Artículos encontrados:', cart);
+    
+    // Actualizar contador (prioridad alta)
+    if (cartCount) {
+        cartCount.textContent = cart.length;
+        console.log('Contador actualizado a:', cart.length);
+    } else {
+        console.log('No se encontró el elemento cartCount');
+    }
+    
+    // Actualizar lista de items si existe el contenedor
+    if (cartItems) {
+        cartItems.innerHTML = '';
+        cart.forEach((item, index) => {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'flex items-center justify-between p-3 bg-slate-50 rounded-lg';
+            itemElement.innerHTML = `
+                <div class="flex items-center gap-3 flex-1">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <span class="text-lg">${item.type === 'activos' ? '📱' : '📦'}</span>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-medium text-sm text-slate-800">${item.name}</h4>
+                        <p class="text-xs text-slate-500">${item.type === 'activos' ? 'Activo' : 'Insumo'}</p>
+                        ${item.data.caracteristicas ? `<p class="text-xs text-slate-400 mt-1">${item.data.caracteristicas}</p>` : ''}
+                        ${item.data.descripcion ? `<p class="text-xs text-slate-400">${item.data.descripcion}</p>` : ''}
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-slate-600">Qty: ${item.quantity || 1}</span>
+                    <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            cartItems.appendChild(itemElement);
+        });
+    }
+};
+
+// Función global para eliminar del carrito
+window.removeFromCart = function(index) {
+    // Obtener usuario actual y carrito personal con clave única
+    const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
+    const userId = user._id || user.correo_electronico || 'anonymous';
+    const cartKey = `cart_${btoa(userId)}`;
+    
+    let cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
+    const removedItem = cart[index];
+    cart.splice(index, 1);
+    localStorage.setItem(cartKey, JSON.stringify(cart));
+    
+    console.log('Header - Artículo eliminado del carrito personal:', cartKey);
+    
+    if (typeof updateCartUI === 'function') {
+        updateCartUI();
+    }
+    
+    // Mostrar notificación si Utils está disponible
+    if (window.Utils && window.Utils.showToast) {
+        window.Utils.showToast(`Eliminado: ${removedItem.name}`, 'info');
+    }
+};
 </script>

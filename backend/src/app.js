@@ -20,6 +20,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Permite leer formularios
 app.use(morgan('dev'));
 
+// Middleware para servir archivos estáticos (imágenes subidas)
+app.use('/uploads', express.static('uploads'));
+
+// Crear directorio uploads si no existe
+const fs = require('fs');
+const path = require('path');
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // --- 2. RUTAS DE LA API ---
 app.use('/api/usuarios', require('./routes/usuariosRoutes'));
 app.use('/api/activos', require('./routes/activosRoutes'));
@@ -31,6 +42,46 @@ app.use('/api/kardex', require('./routes/kardexRoutes'));
 app.use('/api/estadisticas', require('./routes/estadisticasRoutes'));
 
 // --- 3. RUTAS PÚBLICAS Y PRUEBAS ---
+app.post('/api/upload', (req, res) => {
+    console.log('📤 Petición de subida de archivo recibida');
+    
+    // Usar multer para manejar la subida de archivos
+    const multer = require('multer');
+    const upload = multer({ 
+        dest: 'uploads/',
+        limits: {
+            fileSize: 5 * 1024 * 1024 // 5MB límite
+        }
+    }).single('imagen');
+    
+    upload(req, res, (err) => {
+        if (err) {
+            console.error('❌ Error al subir archivo:', err);
+            return res.status(500).json({ 
+                error: 'Error al subir archivo',
+                details: err.message 
+            });
+        }
+        
+        if (!req.file) {
+            return res.status(400).json({ 
+                error: 'No se proporcionó ningún archivo' 
+            });
+        }
+        
+        console.log('✅ Archivo subido:', req.file);
+        
+        // Construir URL pública del archivo
+        const imageUrl = `/uploads/${req.file.filename}`;
+        
+        res.json({ 
+            success: true,
+            imageUrl: imageUrl,
+            filename: req.file.filename
+        });
+    });
+});
+
 app.get('/', (req, res) => {
     res.json({ message: 'API del Laboratorio funcionando ' });
 });

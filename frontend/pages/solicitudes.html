@@ -1018,22 +1018,37 @@
         console.log("📥 Iniciando exportación de reporte...");
 
         // Obtener todas las filas de la tabla
-        const filas = document.querySelectorAll("#solicitudes-tbody tr");
 
-        // Si no hay filas, cargar desde backend primero
-        if (filas.length === 0) {
-          console.log("📝 Cargando datos desde backend para exportar...");
-          cargarSolicitudesDesdeBackend().then(() => {
-            setTimeout(() => {
-              exportarReporte();
-            }, 500);
-          });
-          return;
-        }
+  console.log(" Aplicando filtros:", {
+    estado: estadoFiltro,
+    busqueda: busquedaFiltro,
+    fechaDesde: fechaDesdeFiltro,
+    fechaHasta: fechaHastaFiltro
+  });
 
-        // Crear contenido CSV
-        let csvContent = "ID,Usuario,Elementos,Fecha,Estado\n";
-
+  // Obtener todas las filas de la tabla
+  const filas = document.querySelectorAll("#solicitudes-tbody tr");
+  
+  let filasVisibles = 0;
+  
+  filas.forEach(fila => {
+    let mostrarFila = true;
+    
+    // Filtrar por estado
+    if (estadoFiltro !== "todos") {
+      const estadoElement = fila.querySelector("td:nth-child(5) span");
+      if (estadoElement) {
+        const estadoTexto = estadoElement.textContent.toLowerCase();
+        if (estadoFiltro === "pendiente" && !estadoTexto.includes("pendiente")) {
+          mostrarFila = false;
+        } else if (estadoFiltro === "aprobada" && !estadoTexto.includes("aprobada")) {
+          mostrarFila = false;
+        } else if (estadoFiltro === "rechazada" && !estadoTexto.includes("rechazada")) {
+          mostrarFila = false;
+        } else if (estadoFiltro === "entregado" && !estadoTexto.includes("entregado")) {
+          mostrarFila = false;
+        } else if (estadoFiltro === "devuelto" && !estadoTexto.includes("devuelto")) {
+          mostrarFila = false;
         filas.forEach((fila) => {
           const celdas = fila.querySelectorAll("td");
           if (celdas.length >= 5) {
@@ -1135,7 +1150,7 @@
           const apiUrl = window.CONFIG
             ? window.CONFIG.API_BASE_URL
             : "http://192.168.0.9:4000/api";
-          let fullUrl = `${apiUrl}/solicitudes/usuario/${currentUser._id || currentUser.id}`;
+          let fullUrl = `${apiUrl}/solicitudes`;
 
           console.log("🌐 URL final:", fullUrl);
           console.log(
@@ -2830,23 +2845,6 @@
 
         const filas = document.querySelectorAll("#solicitudes-tbody tr");
         const printContent = document.getElementById("printContent");
-        const printModal = document.getElementById("printModal");
-
-        // Si no hay filas, cargar desde backend primero
-        if (filas.length === 0) {
-          console.log("📝 Cargando datos desde backend para imprimir...");
-          cargarSolicitudesDesdeBackend().then(() => {
-            setTimeout(() => {
-              abrirVistaImpresion();
-            }, 500);
-          });
-          return;
-        }
-
-        // Crear contenido para imprimir
-        const fechaActual = new Date().toLocaleDateString("es-ES");
-        let htmlContent = `
-                <div class="print-header text-center mb-6">
                     <h1 class="text-2xl font-bold text-slate-800 mb-2">📋 Reporte de Solicitudes</h1>
                     <p class="text-slate-600">Laboratorio UTN - Sistema de Gestión</p>
                     <p class="text-slate-500">Fecha: ${fechaActual}</p>

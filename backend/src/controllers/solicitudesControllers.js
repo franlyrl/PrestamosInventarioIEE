@@ -146,9 +146,9 @@ exports.createSolicitud = async (req, res) => {
         // Usamos el _id del usuario directamente
         const solicitudActiva = await Solicitudes.findOne({
             usuario: usuarioId, // <--- Aquí usamos usuarioId directamente
-            estado: { $in: ['pendiente', 'aprobada', 'entregado', 'penalizado'] }
+            estado: { $in: ['pendiente'] } // Solo bloquear si hay solicitudes pendientes
         });
-        console.log('🔍 Solicitud activa encontrada:', solicitudActiva);
+        console.log('Solicitud pendiente encontrada:', solicitudActiva);
 
         if (solicitudActiva) {
             return res.status(403).json({
