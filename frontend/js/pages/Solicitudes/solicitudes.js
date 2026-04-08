@@ -314,48 +314,81 @@ class SolicitudesController {
     }
 
     getEstadoIcon(estado) {
-        switch (estado) {
-            case 'pendiente':
-                return '⏳';
-            case 'aprobada':
-                return '✅';
-            case 'rechazada':
-                return '❌';
-            case 'entregado':
-                return '📦';
-            case 'devuelto':
-                return '🔄';
-            default:
-                return '...';
-        }
+        const iconos = {
+            'pendiente': '??',
+            'aprobada': '??',
+            'rechazada': '??',
+            'entregado': '??',
+            'devuelto': '??',
+            'cancelada': '??'
+        };
+        return iconos[estado] || '??';
     }
 
     getEstadoMobile(estado) {
-        switch (estado) {
-            case 'pendiente':
-                return '⏳';
-            case 'aprobada':
-                return '✅';
-            case 'rechazada':
-                return '❌';
-            case 'entregado':
-                return '📦';
-            case 'devuelto':
-                return '🔄';
-            default:
-                return '...';
-        }
+        const estados = {
+            'pendiente': { text: 'Pendiente', color: 'text-yellow-600', bg: 'bg-yellow-100' },
+            'aprobada': { text: 'Aprobada', color: 'text-green-600', bg: 'bg-green-100' },
+            'rechazada': { text: 'Rechazada', color: 'text-red-600', bg: 'bg-red-100' },
+            'entregado': { text: 'Entregado', color: 'text-blue-600', bg: 'bg-blue-100' },
+            'devuelto': { text: 'Devuelto', color: 'text-purple-600', bg: 'bg-purple-100' },
+            'cancelada': { text: 'Cancelada', color: 'text-gray-600', bg: 'bg-gray-100' }
+        };
+        return estados[estado] || { text: estado, color: 'text-gray-600', bg: 'bg-gray-100' };
     }
 
-    createSolicitudRow(solicitud, isMobile) {
+    getEstadoBadge(estado) {
+        const badges = {
+            'pendiente': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">?? Pendiente</span>',
+            'aprobada': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">?? Aprobada</span>',
+            'rechazada': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">?? Rechazada</span>',
+            'entregado': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">?? Entregado</span>',
+            'devuelto': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">?? Devuelto</span>',
+            'cancelada': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">?? Cancelada</span>'
+        };
+        return badges[estado] || `<span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">${estado}</span>`;
+    }
+
+    getElementosInfo(solicitud) {
+        const elementos = [];
+        
+        if (solicitud.insumos && solicitud.insumos.length > 0) {
+            solicitud.insumos.forEach(insumo => {
+                const nombre = insumo.id_insumo?.NombProducto || insumo.descripcion || 'Insumo';
+                const cantidad = insumo.cantidad || 1;
+                elementos.push({
+                    icono: '??',
+                    nombre: nombre,
+                    cantidad: cantidad,
+                    detalles: insumo.caracteristicas || ''
+                });
+            });
+        }
+        
+        if (solicitud.activos && solicitud.activos.length > 0) {
+            solicitud.activos.forEach(activo => {
+                elementos.push({
+                    icono: '??',
+                    nombre: activo.nombre || 'Activo',
+                    cantidad: 1,
+                    detalles: activo.descripcion || ''
+                });
+            });
+        }
+        
+        return elementos;
+    }
+
+    createSolicitudRow(solicitud) {
         const usuario = JSON.parse(localStorage.getItem('utn_user'));
-        const rol = usuario?.rol || usuario?.rol_nombre || 'estudiante';
-        const rolText = rol.toLowerCase();
+        const nombreUsuario = usuario?.nombre_completo || usuario?.nombre || 'Usuario';
+        const emailUsuario = usuario?.email || usuario?.correo_electronario || usuario?.correo || '';
+        const rolUsuario = usuario?.rol || usuario?.rol_nombre || '';
+        const rolText = rolUsuario.toLowerCase();
         
         const esEstudiante = rolText.includes('estudiante');
         const esDocente = rolText.includes('docente') || rolText.includes('profesor');
         
-        // Determinar colores según rol
         let rolColor = '#10b981'; // Verde para estudiantes
         let rolBgGradient = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
         let rolIcono = '??';
@@ -873,6 +906,58 @@ class SolicitudesController {
         await this.cargarSolicitudes();
         this.renderSolicitudes();
         this.updateEstadisticas();
+    }
+
+    getEstadoBadge(estado) {
+        const estados = {
+            'pendiente': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">?? Pendiente</span>',
+            'aprobada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">?? Aprobada</span>',
+            'rechazada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">?? Rechazada</span>',
+            'entregado': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">?? Entregado</span>',
+            'devuelto': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">?? Devuelto</span>',
+            'cancelada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">?? Cancelada</span>'
+        };
+        return estados[estado] || `<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">${estado}</span>`;
+    }
+
+    getElementosInfo(solicitud) {
+        const elementos = [];
+        let totalCantidad = 0;
+        
+        if (solicitud.insumos && solicitud.insumos.length > 0) {
+            solicitud.insumos.forEach(insumo => {
+                const nombre = insumo.id_insumo?.NombProducto || insumo.descripcion || 'Insumo';
+                const cantidad = insumo.cantidad || 1;
+                elementos.push(`${nombre} (${cantidad})`);
+                totalCantidad += cantidad;
+            });
+        }
+        
+        if (solicitud.activos && solicitud.activos.length > 0) {
+            solicitud.activos.forEach(activo => {
+                elementos.push(`${activo.nombre || 'Activo'}`);
+                totalCantidad += 1;
+            });
+        }
+        
+        if (elementos.length === 0) {
+            return '<span class="text-slate-400 italic">Sin elementos</span>';
+        }
+        
+        // Formato profesional: lista con total al final
+        const elementosHtml = elementos.map((elemento, index) => {
+            const esUltimo = index === elementos.length - 1;
+            return `<span class="text-slate-700">${elemento}${esUltimo ? '' : ', '}</span>`;
+        }).join('');
+        
+        return `
+            <div class="space-y-1">
+                <div class="text-sm">${elementosHtml}</div>
+                <div class="text-xs text-slate-500 font-medium">
+                    Total: ${totalCantidad} ${totalCantidad === 1 ? 'elemento' : 'elementos'}
+                </div>
+            </div>
+        `;
     }
 }
 
