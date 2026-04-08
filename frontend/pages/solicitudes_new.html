@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solicitudes - UTN Sistema de Gestión</title>
+    <meta
+      name="description"
+      content="Historial de solicitudes del laboratorio UTN" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/pages/solicitudes.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="text-slate-800">
+    <!-- Header Component -->
+    <div id="header-component"></div>
+
+    <!-- Contenido Principal -->
+    <main class="container py-6">
+      <div class="flex gap-6">
+        <!-- Sidebar Component -->
+        <div id="sidebar-component"></div>
+ 
+        <!-- Contenido de Solicitudes -->
+        <div class="flex-1">
+          <!-- Header Mejorado -->
+          <header class="hidden lg:block">
+            <div class="mb-8 bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] rounded-2xl p-4 sm:p-6 text-white shadow-xl">
+              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h1 class="text-2xl sm:text-3xl font-bold">📋 Mis Solicitudes</h1>
+                  <p class="text-slate-200 text-sm sm:text-base mt-1">Historial de solicitudes de artículos y activos</p>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="text-right">
+                    <p class="text-xs sm:text-sm text-slate-300">Total de solicitudes</p>
+                    <p class="text-2xl sm:text-3xl font-bold" id="total-solicitudes">0</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <!-- Filtros mejorados -->
+          <section class="mb-6 bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-slate-200">
+            <h2 class="text-lg font-semibold mb-4 text-slate-800 flex items-center gap-2">
+              <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011 1v1a1 1 0 012 0h3a1 1 0 011-1V5a1 1 0 01-1H4a1 1 0 00-1v4a1 1 0 001 1h3a1 1 0 011 0V5a1 1 0 01-1H4z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10l3 3m0 10l-3-3" />
+              </svg>
+              Filtros de Búsqueda
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div class="relative">
+                <label for="busqueda-input" class="block text-sm font-medium text-slate-700 mb-2">
+                  Buscar por nombre o ID
+                </label>
+                <div class="relative">
+                  <input
+                    type="text"
+                    id="busqueda-input"
+                    placeholder="Ej: Juan Pérez, SOL-001..."
+                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 pr-10"
+                  />
+                  <svg class="absolute right-3 top-2.5 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 11 14 0 0-11 14 0 0-11-14 0-7 7-11-14 0z" />
+                  </svg>
+                </div>
+              </div>
+
+              <div>
+                <label for="estado-select" class="block text-sm font-medium text-slate-700 mb-2">
+                  Estado
+                </label>
+                <select id="estado-select" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900">
+                  <option value="todos">Todos los estados</option>
+                  <option value="pendiente">⏳ Pendiente</option>
+                  <option value="aprobada">✅ Aprobada</option>
+                  <option value="rechazada">❌ Rechazada</option>
+                  <option value="entregado">📦 Entregado</option>
+                  <option value="devuelto">🔄 Devuelto</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="fecha-desde" class="block text-sm font-medium text-slate-700 mb-2">
+                  Fecha Desde
+                </label>
+                <input
+                  type="date"
+                  id="fecha-desde"
+                  class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label for="fecha-hasta" class="block text-sm font-medium text-slate-700 mb-2">
+                  Fecha Hasta
+                </label>
+                <input
+                  type="date"
+                  id="fecha-hasta"
+                  class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900"
+                />
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3 mt-4">
+              <button id="buscar-btn" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md hover:shadow-lg">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 11 14 0 0-11 14 0 0-11-14 0-7 7-11-14 0z" />
+                </svg>
+                Buscar
+              </button>
+              <button id="limpiar-filtros-btn" class="px-6 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium shadow-md hover:shadow-lg">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 01-2.828.0L7 16a2 2 0 01-2.828 0l-4.586 4.242A2 2 0 01-.364.0L2 18a2 2 0 01-2.828 0l8.586-8.242A2 2 0 01.364.0L18 6a2 2 0 002.828 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 8l4 4m0-6l-4 4" />
+                </svg>
+                Limpiar
+              </button>
+            </div>
+          </section>
+
+          <!-- Contadores móviles mejorados -->
+          <div class="lg:hidden mb-6 grid grid-cols-4 gap-4">
+            <div class="bg-white rounded-lg p-4 shadow-md border border-slate-200">
+              <div class="text-center">
+                <p class="text-2xl font-bold text-blue-600" id="pendientes-count-mobile">0</p>
+                <p class="text-xs text-slate-600 mt-1">Pendientes</p>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg p-4 shadow-md border border-slate-200">
+              <div class="text-center">
+                <p class="text-2xl font-bold text-green-600" id="aprobadas-count-mobile">0</p>
+                <p class="text-xs text-slate-600 mt-1">Aprobadas</p>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg p-4 shadow-md border border-slate-200">
+              <div class="text-center">
+                <p class="text-2xl font-bold text-purple-600" id="entregadas-count-mobile">0</p>
+                <p class="text-xs text-slate-600 mt-1">Entregadas</p>
+              </div>
+            </div>
+            <div class="bg-white rounded-lg p-4 shadow-md border border-slate-200">
+              <div class="text-center">
+                <p class="text-2xl font-bold text-orange-600" id="devueltas-count-mobile">0</p>
+                <p class="text-xs text-slate-600 mt-1">Devueltas</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabla de Solicitudes -->
+          <section class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
+                      ID
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
+                      Usuario
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
+                      Elementos Solicitados
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
+                      Fecha
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
+                      Estado
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="solicitudes-tbody" class="bg-white lg:divide-y-0 lg:border-b lg:border-slate-200" style="z-index: 1; position: relative;">
+                  <!-- Las filas se generarán dinámicamente -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Paginación mejorada -->
+          <div id="paginacion-container" class="mt-6 flex justify-center items-center gap-2">
+            <!-- La paginación se generará dinámicamente -->
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer Component -->
+    <div id="footer-component"></div>
+
+    <!-- JavaScript -->
+    <script src="../js/main.js"></script>
+    <script src="../js/components/header.js"></script>
+    <script src="../js/components/sidebar.js"></script>
+    <script src="../js/components/modals.js"></script>
+    <script src="../js/pages/solicitudes.js"></script>
+
+    <!-- Cargar componentes dinámicamente -->
+    <script>
+      // Cargar header
+      fetch('../components/header.html')
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('header-component').innerHTML = html;
+          console.log('✅ Header component cargado en solicitudes.html');
+        })
+        .catch(error => console.error('❌ Error cargando header:', error));
+
+      // Cargar footer
+      fetch('../components/footer.html')
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('footer-component').innerHTML = html;
+          console.log('✅ Footer component cargado en solicitudes.html');
+        })
+        .catch(error => console.error('❌ Error cargando footer:', error));
+    </script>
+  </body>
+</html>

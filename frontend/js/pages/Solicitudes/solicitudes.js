@@ -347,45 +347,111 @@ class SolicitudesController {
         }
     }
 
-    createSolicitudRow(solicitud, isMobile = false) {
-        // Usar formatearEstado del HTML para el diseño que te gusta
-        const estadoFormateado = typeof formatearEstado === 'function'
-            ? formatearEstado(solicitud.estado)
-            : `<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">${solicitud.estado || 'pendiente'}</span>`;
-
-        const elementos = this.getElementosInfo(solicitud);
-
-        // Obtener información del usuario desde la solicitud
-        // Usar los datos del populate del backend
-        const usuarioNombre = solicitud.usuario?.nombre_completo ||
-            solicitud.nombre_completo ||
-            solicitud.usuario_nombre ||
-            'Usuario no encontrado';
-
-        const usuarioEmail = solicitud.usuario?.correo_electronico ||
-            solicitud.correo_electronico ||
-            solicitud.usuario_correo ||
-            'N/A';
-
-        const usuarioCedula = solicitud.usuario?.cedula ||
-            solicitud.cedula ||
-            'N/A';
-
-        const usuarioRol = solicitud.usuario?.tipo_rol ||
-            solicitud.tipo_rol ||
-            'N/A';
-
-        // Obtener rol del usuario actual para mostrar botones apropiados
-        const userData = localStorage.getItem('utn_user');
-        const currentUser = userData ? JSON.parse(userData) : null;
-        const currentUserRol = currentUser?.rol || currentUser?.tipo_rol || '';
-
-        // Generar botones según el rol y dispositivo
-        const botonesAcciones = this.generarBotonesAcciones(solicitud._id, currentUserRol, isMobile);
+    createSolicitudRow(solicitud, isMobile) {
+        const usuario = JSON.parse(localStorage.getItem('utn_user'));
+        const rol = usuario?.rol || usuario?.rol_nombre || 'estudiante';
+        const rolText = rol.toLowerCase();
+        
+        const esEstudiante = rolText.includes('estudiante');
+        const esDocente = rolText.includes('docente') || rolText.includes('profesor');
+        
+        // Determinar colores según rol
+        let rolColor = '#10b981'; // Verde para estudiantes
+        let rolBgGradient = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        let rolIcono = '??';
+        
+        if (esDocente) {
+            rolColor = '#f59e0b'; // Naranja para docentes
+            rolBgGradient = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+            rolIcono = '??';
+        }
 
         if (isMobile) {
-            // Versión móvil - ultra compacta
+            // Versión móvil
             return `
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="p-4">
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-lg font-bold text-slate-800">#${solicitud._id?.slice(-6)}</span>
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium" style="background: ${rolBgGradient}; color: white;">
+                                            ${esEstudiante ? 'ESTUDIANTE' : 'DOCENTE'}
+                                        </span>
+                                    </div>
+                                    <div class="text-slate-600 font-medium">${solicitud.usuario?.nombre_completo || 'Usuario'}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-slate-500 text-sm">${new Date(solicitud.createdAt).toLocaleDateString()}</div>
+                                    <div class="mt-1">${this.getEstadoBadge(solicitud.estado)}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <div class="text-sm text-slate-700">
+                                    ${this.getElementosInfo(solicitud)}
+                                </div>
+                                
+                                <div class="flex justify-end">
+                                    <button 
+                                        onclick="window.solicitudesController.toggleMenu('${solicitud._id}')" 
+                                        class="p-2 rounded-lg transition-all duration-200 hover:scale-110"
+                                        style="background: ${rolBgGradient}; color: white; box-shadow: 0 2px 8px ${rolColor}40;">
+                                        ?
+                                    </button>
+                                    <div id="menu-${solicitud._id}" class="hidden absolute right-4 mt-2 w-48 bg-white rounded-lg shadow-lg border" style="border-color: ${rolColor}; z-index: 1000;">
+                                        ${this.createActionsForRole(solicitud, esEstudiante, esDocente, rolColor)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        } else {
+            // Versión desktop
+            return `
+                <tr class="hover:bg-slate-50 border-b">
+                    <td class="px-4 py-3 font-mono text-sm">#${solicitud._id?.slice(-6)}</td>
+                    <td class="px-4 py-3 font-medium">${solicitud.usuario?.nombre_completo || 'Usuario'}</td>
+                    <td class="px-4 py-3 text-sm">${this.getElementosInfo(solicitud)}</td>
+                    <td class="px-4 py-3 text-sm">${new Date(solicitud.createdAt).toLocaleDateString()}</td>
+                    <td class="px-4 py-3">${this.getEstadoBadge(solicitud.estado)}</td>
+                    <td class="px-4 py-3">
+                        <div class="relative">
+                            <button 
+                                onclick="window.solicitudesController.toggleMenu('${solicitud._id}')" 
+                                class="p-2 rounded-lg transition-all duration-200 hover:scale-110"
+                                style="background: ${rolBgGradient}; color: white; box-shadow: 0 2px 8px ${rolColor}40;">
+                                ?
+                            </button>
+                            <div id="menu-${solicitud._id}" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border-2" style="border-color: ${rolColor}; z-index: 1000;">
+                                <!-- Encabezado del menú -->
+                                <div class="menu-header" style="background: ${rolBgGradient}; color: white; padding: 12px; border-radius: 8px 8px 0 0;">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-lg">${rolIcono}</span>
+                                        <div>
+                                            <div class="font-bold text-xs">${esEstudiante ? 'ESTUDIANTE' : 'DOCENTE'}</div>
+                                            <div class="text-xs opacity-90">Solicitud #${solicitud._id?.slice(-6)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Acciones según rol y estado -->
+                                <div class="p-2">
+                                    ${this.createActionsForRole(solicitud, esEstudiante, esDocente, rolColor)}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+    if (isMobile) {
+        // Versión móvil - ultra compacta
+        return `
                 <tr>
                     <td class="px-0 py-0.5">
                         <span class="font-medium text-[7px] text-slate-900">#${solicitud._id?.slice(-4) || 'N/A'}</span>
@@ -437,105 +503,16 @@ class SolicitudesController {
                                 </div>
                             </div>
                         </div>
+                        <!-- DEBUG: Verificando z-index del menú móvil -->
+                        <script>console.log('🔍 Menú móvil creado con z-index: 999999 para solicitud:', '${solicitud._id}');</script>
                     </td>
                 </tr>
             `;
-        } else {
-            // Versión desktop - normal
-            return `
-                <tr>
-                    <td class="px-4 py-3">
-                        <span class="font-medium">#${solicitud._id?.slice(-6) || 'N/A'}</span>
-                    </td>
-                    <td class="px-4 py-3">
-                        <div class="text-sm">
-                            <div class="font-medium text-slate-900">${usuarioNombre}</div>
-                            <div class="text-xs text-slate-500">${usuarioEmail}</div>
-                            <div class="text-xs text-slate-400 mt-1">
-                                <span class="bg-slate-100 px-2 py-0.5 rounded">👤 ${usuarioRol}</span>
-                                ${usuarioCedula !== 'N/A' ? `<span class="ml-1 bg-blue-50 px-2 py-0.5 rounded">🆔 ${usuarioCedula}</span>` : ''}
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-4 py-3">
-                        <div class="text-sm">
-                            ${elementos.map(el => `
-                                <div class="flex items-center gap-1 mb-1">
-                                    <span>${el.icono}</span>
-                                    <span class="font-medium">${el.nombre}</span>
-                                    <span class="text-xs text-slate-500">x${el.cantidad}</span>
-                                    ${el.detalles ? `<span class="text-xs text-slate-400 italic">(${el.detalles})</span>` : ''}
-                                </div>
-                            `).join('') || '<span class="text-slate-400">Sin elementos</span>'}
-                            
-                            ${elementos.length > 0 ? `
-                                <div class="text-xs text-slate-500 mt-1 bg-slate-50 px-2 py-1 rounded">
-                                    Total: ${elementos.length} elemento(s) - ${elementos.reduce((sum, el) => sum + el.cantidad, 0)} unidades
-                                </div>
-                            ` : ''}
-                        </div>
-                    </td>
-                    <td class="px-4 py-3">
-                        <span class="text-sm">${new Date(solicitud.createdAt).toLocaleDateString()}</span>
-                    </td>
-                    <td class="px-4 py-3">
-                        ${estadoFormateado}
-                    </td>
-                    <td class="px-4 py-3 text-sm relative">
-                        <div class="relative">
-                            <button onclick="toggleMenu('${solicitud._id}', event)" class="group relative inline-flex items-center justify-center p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-all duration-200 shadow-sm hover:shadow-md">
-                                <div class="flex flex-col space-y-1">
-                                    <div class="w-1 h-1 rounded-full bg-current transition-transform group-hover:scale-125"></div>
-                                    <div class="w-1 h-1 rounded-full bg-current transition-transform group-hover:scale-125"></div>
-                                    <div class="w-1 h-1 rounded-full bg-current transition-transform group-hover:scale-125"></div>
-                                </div>
-                            </button>
-                            <!-- Dropdown Menu -->
-                            <div id="menu-${solicitud._id}" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border border-slate-100" style="z-index: 999999;">
-                                <div class="px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
-                                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Acciones</p>
-                                </div>
-                                <div class="py-2">
-                                    ${botonesAcciones}
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }
     }
 
+    // Lógica de desktop movida a Soli_DeskUs.js
     generarBotonesAcciones(solicitudId, userRol, isMobile = false) {
-        // Roles administrativos: admin, administrador, administrativo
-        const rolesAdmin = ['admin', 'administrador', 'administrativo'];
-        const esAdmin = rolesAdmin.includes(userRol.toLowerCase());
-
-        // Obtener usuario actual
-        const userData = localStorage.getItem('utn_user');
-        const currentUser = userData ? JSON.parse(userData) : null;
-        const currentUserId = currentUser?._id || currentUser?.id;
-
-        // Encontrar la solicitud actual para verificar estado y dueño
-        const solicitudActual = this.solicitudes.find(s => s._id === solicitudId);
-        const esMiSolicitud = solicitudActual && (
-            solicitudActual.usuario?._id === currentUserId || 
-            solicitudActual.usuario === currentUserId ||
-            solicitudActual.usuario_solicitante === currentUser?.nombre_completo
-        );
-
-        // Estados en los que se puede eliminar (pendiente, rechazado o aprobado)
-        const estadosPermitidosParaEliminar = ['pendiente', 'rechazada', 'aprobada'];
-        const puedeEliminar = esMiSolicitud && estadosPermitidosParaEliminar.includes(solicitudActual?.estado);
-
-        console.log('🔍 Verificar eliminación:', {
-            solicitudId,
-            esMiSolicitud,
-            estado: solicitudActual?.estado,
-            puedeEliminar,
-            currentUserId
-        });
-
+        // Solo móvil - desktop usa su propio controlador
         if (isMobile) {
             // Versión móvil - botones compactos
             if (esAdmin) {
@@ -571,10 +548,6 @@ class SolicitudesController {
                     <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
                         👁️ Ver
                     </button>
-                    <button onclick="editarSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                        ✏️ Editar
-                    </button>
-                    <div class="border-t my-1"></div>
                     <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
                         🔄 Devolver
                     </button>
@@ -626,9 +599,6 @@ class SolicitudesController {
                 let botonesHTML = `
                     <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
                         👁️ Ver detalles
-                    </button>
-                    <button onclick="editarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
-                        ✏️ Editar
                     </button>
                     <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
                         🔄 Devolver
@@ -991,6 +961,80 @@ window.toggleMenu = function(solicitudId, event) {
     if (menuActual) {
         menuActual.classList.toggle('hidden');
     }
+};
+
+// Función para ver detalles de una solicitud
+window.verSolicitud = function(solicitudId) {
+    console.log('👁️ Ver detalles de solicitud:', solicitudId);
+    
+    // Buscar la solicitud en los datos cargados
+    const solicitud = window.solicitudesController?.solicitudes?.find(s => s._id === solicitudId);
+    
+    if (!solicitud) {
+        Utils.showToast('Solicitud no encontrada', 'error');
+        return;
+    }
+    
+    // Crear modal con detalles
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-slate-800">📋 Detalles de Solicitud</h3>
+                <button onclick="this.closest('.fixed').remove()" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">ID Solicitud</label>
+                        <p class="text-slate-900 font-mono">#${solicitud._id?.slice(-6) || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Estado</label>
+                        <div class="mt-1">
+                            ${window.formatearEstado ? window.formatearEstado(solicitud.estado) : `<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">${solicitud.estado || 'pendiente'}</span>`}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Fecha</label>
+                        <p class="text-slate-900">${new Date(solicitud.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Usuario</label>
+                        <p class="text-slate-900">${solicitud.usuario?.nombre_completo || solicitud.usuario_solicitante || 'N/A'}</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
+                    <p class="text-slate-700 bg-slate-50 p-3 rounded">${solicitud.observaciones || 'Sin observaciones'}</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Artículos Solicitados</label>
+                    <div class="space-y-2">
+                        ${window.solicitudesController?.getElementosInfo(solicitud).map(el => `
+                            <div class="flex items-center gap-2 p-2 bg-slate-50 rounded">
+                                <span class="text-lg">${el.icono}</span>
+                                <div class="flex-1">
+                                    <p class="font-medium text-slate-900">${el.nombre}</p>
+                                    <p class="text-sm text-slate-600">Cantidad: ${el.cantidad}</p>
+                                    ${el.detalles ? `<p class="text-xs text-slate-500">${el.detalles}</p>` : ''}
+                                </div>
+                            </div>
+                        `).join('') || '<p class="text-slate-500">No hay artículos</p>'}
+                    </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
 };
 
 // Crear instancia global

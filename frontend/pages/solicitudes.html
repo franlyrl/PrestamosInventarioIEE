@@ -670,7 +670,8 @@
     <script src="../js/components/header.js"></script>
     <script src="../js/components/sidebar.js"></script>
     <script src="../js/components/modals.js"></script>
-    <script src="../js/pages/solicitudes.js"></script>
+    <script src="../js/pages/Solicitudes/solicitudes.js"></script>
+    <script src="../js/pages/Solicitudes/Soli_Clientes/Soli_DeskUs.js"></script>
 
     <!-- Función global para el menú -->
     <script>
@@ -1010,60 +1011,55 @@
           resultadosCount.textContent = filasVisibles;
         }
         
-        console.log(`✅ Filtrado completado: ${filasVisibles} solicitudes visibles`);
+        console.log(` Filtrado completado: ${filasVisibles} solicitudes visibles`);
       }
 
       // Función para exportar reporte a CSV
       function exportarReporte() {
-        console.log("📥 Iniciando exportación de reporte...");
+        console.log("Iniciando exportación de reporte...");
 
-        // Obtener todas las filas de la tabla
+        // Usar datos del controlador desktop si está disponible, sino buscar en DOM
+        let solicitudes = [];
+        
+        if (window.desktopUserController && window.desktopUserController.solicitudes) {
+          // Usar datos del controlador desktop
+          solicitudes = window.desktopUserController.solicitudes;
+          console.log("Usando datos de desktopUserController:", solicitudes.length);
+        } else if (window.solicitudesController && window.solicitudesController.solicitudes) {
+          // Usar datos del controller principal
+          solicitudes = window.solicitudesController.solicitudes;
+          console.log("Usando datos de solicitudesController:", solicitudes.length);
+        } else {
+          // Fallback: buscar en DOM
+          const filas = document.querySelectorAll("#solicitudes-tbody tr");
+          console.log("Fallback: usando datos del DOM:", filas.length);
+          
+          filas.forEach((fila) => {
+            const celdas = fila.querySelectorAll("td");
+            if (celdas.length >= 5) {
+              solicitudes.push({
+                _id: celdas[0].textContent.trim(),
+                usuario: { nombre_completo: celdas[1].textContent.trim() },
+                elementos: celdas[2].textContent.trim(),
+                createdAt: celdas[3].textContent.trim(),
+                estado: celdas[4].textContent.trim()
+              });
+            }
+          });
+        }
+        
+        let csvContent = "ID,Usuario,Elementos,Fecha,Estado\n";
+        
+        solicitudes.forEach((solicitud) => {
+          const id = solicitud._id?.slice(-6) || 'N/A';
+          const usuario = solicitud.usuario?.nombre_completo || 'Usuario';
+          const elementos = typeof solicitud.elementos === 'string' 
+            ? solicitud.elementos 
+            : window.desktopUserController?.getElementosInfo(solicitud)?.join('; ') || 'N/A';
+          const fecha = new Date(solicitud.createdAt).toLocaleDateString();
+          const estado = solicitud.estado || 'pendiente';
 
-  console.log(" Aplicando filtros:", {
-    estado: estadoFiltro,
-    busqueda: busquedaFiltro,
-    fechaDesde: fechaDesdeFiltro,
-    fechaHasta: fechaHastaFiltro
-  });
-
-  // Obtener todas las filas de la tabla
-  const filas = document.querySelectorAll("#solicitudes-tbody tr");
-  
-  let filasVisibles = 0;
-  
-  filas.forEach(fila => {
-    let mostrarFila = true;
-    
-    // Filtrar por estado
-    if (estadoFiltro !== "todos") {
-      const estadoElement = fila.querySelector("td:nth-child(5) span");
-      if (estadoElement) {
-        const estadoTexto = estadoElement.textContent.toLowerCase();
-        if (estadoFiltro === "pendiente" && !estadoTexto.includes("pendiente")) {
-          mostrarFila = false;
-        } else if (estadoFiltro === "aprobada" && !estadoTexto.includes("aprobada")) {
-          mostrarFila = false;
-        } else if (estadoFiltro === "rechazada" && !estadoTexto.includes("rechazada")) {
-          mostrarFila = false;
-        } else if (estadoFiltro === "entregado" && !estadoTexto.includes("entregado")) {
-          mostrarFila = false;
-        } else if (estadoFiltro === "devuelto" && !estadoTexto.includes("devuelto")) {
-          mostrarFila = false;
-        filas.forEach((fila) => {
-          const celdas = fila.querySelectorAll("td");
-          if (celdas.length >= 5) {
-            const id = celdas[0].textContent.trim();
-            const usuario = celdas[1].textContent.trim();
-            const elementos = celdas[2].textContent.trim();
-            const fecha = celdas[3].textContent.trim();
-            // Limpiar el estado para CSV (quitar HTML)
-            const estadoElement = celdas[4].querySelector("span");
-            const estado = estadoElement
-              ? estadoElement.textContent.trim()
-              : celdas[4].textContent.trim();
-
-            csvContent += `"${id}","${usuario}","${elementos}","${fecha}","${estado}"\n`;
-          }
+          csvContent += `"${id}","${usuario}","${elementos}","${fecha}","${estado}"\n`;
         });
 
         // Crear blob y descargar
@@ -1082,8 +1078,7 @@
         link.click();
         document.body.removeChild(link);
 
-        showToast("✅ Reporte exportado exitosamente", "success");
-        console.log("✅ Reporte exportado correctamente");
+        console.log("Reporte exportado exitosamente");
       }
 
       // Función para crear datos de ejemplo
@@ -1091,40 +1086,53 @@
         const tbody = document.getElementById("solicitudes-tbody");
         if (!tbody) return;
 
+        const ejemplos = [
+          {
+            id: "EJEMP001",
+            usuario: "Mathias Jimenez",
+            elementos: "Resistor SMD 4.7k",
+            fecha: "08/04/2026",
+            estado: '<span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pendiente</span>'
+          },
+          {
+            id: "EJEMP002", 
+            usuario: "Ana García",
+            elementos: "Capacitor 100nF",
+            fecha: "07/04/2026",
+            estado: '<span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Aprobada</span>'
+          }
+        ];
+
         tbody.innerHTML = ejemplos
           .map(
             (ejemplo) => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-6 py-4 text-sm font-medium text-slate-900">${ejemplo.id}</td>
-                    <td class="px-6 py-4 text-sm text-slate-700">${ejemplo.usuario}</td>
-                    <td class="px-6 py-4 text-sm text-slate-700">${ejemplo.elementos}</td>
-                    <td class="px-6 py-4 text-sm text-slate-700">${ejemplo.fecha}</td>
-                    <td class="px-6 py-4">${ejemplo.estado}</td>
-                    <td class="px-6 py-4 text-sm">
-                        <button class="text-blue-600 hover:text-blue-800 font-medium mr-3">Ver</button>
-                        <button class="text-green-600 hover:text-green-800 font-medium">Editar</button>
-                    </td>
-                </tr>
+              <tr class="hover:bg-slate-50 transition-colors">
+                <td class="px-6 py-4 text-sm font-medium text-slate-900">${ejemplo.id}</td>
+                <td class="px-6 py-4 text-sm text-slate-700">${ejemplo.usuario}</td>
+                <td class="px-6 py-4 text-sm text-slate-700">${ejemplo.elementos}</td>
+                <td class="px-6 py-4 text-sm text-slate-700">${ejemplo.fecha}</td>
+                <td class="px-6 py-4">${ejemplo.estado}</td>
+                <td class="px-6 py-4 text-sm">
+                  <button class="text-blue-600 hover:text-blue-800 font-medium mr-3">Ver</button>
+                  <button class="text-green-600 hover:text-green-800 font-medium">Editar</button>
+                </td>
+              </tr>
             `,
           )
           .join("");
 
         // Actualizar contadores
-        document.getElementById("resultados-count").textContent =
-          ejemplos.length;
-        document.getElementById("total-solicitudes").textContent =
-          ejemplos.length;
-        document.getElementById("pendientes-count").textContent = "1";
-        document.getElementById("aprobadas-count").textContent = "1";
-        document.getElementById("entregadas-count").textContent = "1";
-        document.getElementById("devueltas-count").textContent = "0";
+        const resultadosCount = document.getElementById("resultados-count");
+        if (resultadosCount) {
+          resultadosCount.textContent = ejemplos.length;
+        }
 
-        console.log("✅ Datos de ejemplo creados");
+        console.log("Datos de ejemplo cargados");
       }
 
       // Función para cargar solicitudes desde el backend
       async function cargarSolicitudesDesdeBackend() {
-        console.log("📡 Cargando solicitudes desde el backend...");
+        console.log(" Cargando solicitudes desde el backend...");
 
         const token = localStorage.getItem("utn_token");
         const userData = localStorage.getItem("utn_user");
@@ -2841,66 +2849,94 @@
 
       // Función para abrir vista de impresión
       function abrirVistaImpresion() {
-        console.log("🖨️ Abriendo vista de impresión...");
+        console.log("Abriendo vista de impresión...");
 
-        const filas = document.querySelectorAll("#solicitudes-tbody tr");
+        // Usar datos del controlador desktop si está disponible, sino buscar en DOM
+        let solicitudes = [];
+        
+        if (window.desktopUserController && window.desktopUserController.solicitudes) {
+          // Usar datos del controlador desktop
+          solicitudes = window.desktopUserController.solicitudes;
+          console.log("Usando datos de desktopUserController para impresión:", solicitudes.length);
+        } else if (window.solicitudesController && window.solicitudesController.solicitudes) {
+          // Usar datos del controller principal
+          solicitudes = window.solicitudesController.solicitudes;
+          console.log("Usando datos de solicitudesController para impresión:", solicitudes.length);
+        } else {
+          // Fallback: buscar en DOM
+          const filas = document.querySelectorAll("#solicitudes-tbody tr");
+          console.log("Fallback: usando datos del DOM para impresión:", filas.length);
+          
+          filas.forEach((fila) => {
+            const celdas = fila.querySelectorAll("td");
+            if (celdas.length >= 5) {
+              solicitudes.push({
+                _id: celdas[0].textContent.trim(),
+                usuario: { nombre_completo: celdas[1].textContent.trim() },
+                elementos: celdas[2].textContent.trim(),
+                createdAt: celdas[3].textContent.trim(),
+                estado: celdas[4].textContent.trim()
+              });
+            }
+          });
+        }
+
         const printContent = document.getElementById("printContent");
-                    <h1 class="text-2xl font-bold text-slate-800 mb-2">📋 Reporte de Solicitudes</h1>
-                    <p class="text-slate-600">Laboratorio UTN - Sistema de Gestión</p>
-                    <p class="text-slate-500">Fecha: ${fechaActual}</p>
-                </div>
-                
-                <table class="w-full border-collapse border border-slate-300">
-                    <thead>
-                        <tr class="bg-slate-100">
-                            <th class="border border-slate-300 px-4 py-2 text-left font-semibold">ID</th>
-                            <th class="border border-slate-300 px-4 py-2 text-left font-semibold">Usuario</th>
-                            <th class="border border-slate-300 px-4 py-2 text-left font-semibold">Elementos</th>
-                            <th class="border border-slate-300 px-4 py-2 text-left font-semibold">Fecha</th>
-                            <th class="border border-slate-300 px-4 py-2 text-left font-semibold">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+        const fechaActual = new Date().toLocaleDateString();
+        
+        let htmlContent = `
+          <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-slate-800 mb-2">Reporte de Solicitudes</h1>
+            <p class="text-slate-600">Laboratorio UTN - Sistema de Gestión</p>
+            <p class="text-slate-500">Fecha: ${fechaActual}</p>
+          </div>
+          
+          <table class="w-full border-collapse border border-slate-300">
+            <thead>
+              <tr class="bg-slate-100">
+                <th class="border border-slate-300 px-4 py-2 text-left font-semibold">ID</th>
+                <th class="border border-slate-300 px-4 py-2 text-left font-semibold">Usuario</th>
+                <th class="border border-slate-300 px-4 py-2 text-left font-semibold">Elementos</th>
+                <th class="border border-slate-300 px-4 py-2 text-left font-semibold">Fecha</th>
+                <th class="border border-slate-300 px-4 py-2 text-left font-semibold">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
 
-        filas.forEach((fila) => {
-          const celdas = fila.querySelectorAll("td");
-          if (celdas.length >= 5) {
-            const id = celdas[0].textContent.trim();
-            const usuario = celdas[1].textContent.trim();
-            const elementos = celdas[2].textContent.trim();
-            const fecha = celdas[3].textContent.trim();
-            // Limpiar el estado para imprimir (quitar HTML)
-            const estadoElement = celdas[4].querySelector("span");
-            const estado = estadoElement
-              ? estadoElement.textContent.trim()
-              : celdas[4].textContent.trim();
+        solicitudes.forEach((solicitud) => {
+          const id = solicitud._id?.slice(-6) || 'N/A';
+          const usuario = solicitud.usuario?.nombre_completo || 'Usuario';
+          const elementos = typeof solicitud.elementos === 'string' 
+            ? solicitud.elementos 
+            : window.desktopUserController?.getElementosInfo(solicitud)?.join('; ') || 'N/A';
+          const fecha = new Date(solicitud.createdAt).toLocaleDateString();
+          const estado = solicitud.estado || 'pendiente';
 
-            htmlContent += `
-                        <tr>
-                            <td class="border border-slate-300 px-4 py-2">${id}</td>
-                            <td class="border border-slate-300 px-4 py-2">${usuario}</td>
-                            <td class="border border-slate-300 px-4 py-2">${elementos}</td>
-                            <td class="border border-slate-300 px-4 py-2">${fecha}</td>
-                            <td class="border border-slate-300 px-4 py-2">${estado}</td>
-                        </tr>
-                    `;
-          }
+          htmlContent += `
+            <tr>
+              <td class="border border-slate-300 px-4 py-2">${id}</td>
+              <td class="border border-slate-300 px-4 py-2">${usuario}</td>
+              <td class="border border-slate-300 px-4 py-2">${elementos}</td>
+              <td class="border border-slate-300 px-4 py-2">${fecha}</td>
+              <td class="border border-slate-300 px-4 py-2">${estado}</td>
+            </tr>
+          `;
         });
 
         htmlContent += `
-                    </tbody>
-                </table>
-                
-                <div class="print-footer mt-8 text-center text-sm text-slate-500">
-                    <p>Generado el ${fechaActual} por el Sistema de Gestión de Laboratorio UTN</p>
-                </div>
-            `;
+            </tbody>
+          </table>
+          
+          <div class="print-footer mt-8 text-center text-sm text-slate-500">
+            <p>Generado el ${fechaActual} por el Sistema de Gestión de Laboratorio UTN</p>
+          </div>
+        `;
 
         printContent.innerHTML = htmlContent;
         printModal.classList.remove("hidden");
 
-        console.log("✅ Vista de impresión abierta");
+        console.log("Vista de impresión abierta");
       }
 
       // Función para cerrar modal de impresión
