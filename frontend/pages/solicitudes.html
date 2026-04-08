@@ -2958,5 +2958,23 @@
         }, 3000);
       }
     </script>
+    
+    <!-- Footer Component -->
+    <div id="footer-component"></div>
+    
+    <!-- Cargar componentes dinámicamente -->
+    <script>
+      // Cargar footer
+      (async function() {
+        try {
+          const footerResponse = await fetch('../components/footer.html');
+          const footerHtml = await footerResponse.text();
+          document.getElementById('footer-component').innerHTML = footerHtml;
+          console.log('✅ Footer component cargado en solicitudes.html');
+        } catch (error) {
+          console.error('❌ Error cargando footer:', error);
+        }
+      })();
+    </script>
   </body>
 </html>
