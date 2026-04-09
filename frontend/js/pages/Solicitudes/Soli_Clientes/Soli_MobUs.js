@@ -90,10 +90,18 @@ class MobileUserController {
             console.log('** Cargando solicitudes móviles...');
             
             // Verificar si el HTML ya cargó datos (usar los datos del HTML si existen)
+            console.log('** Verificando window.solicitudesData...');
+            console.log('** typeof window.solicitudesData:', typeof window.solicitudesData);
+            console.log('** window.solicitudesData existe:', typeof window.solicitudesData !== 'undefined');
+            console.log('** window.solicitudesData length:', window.solicitudesData?.length);
+            console.log('** window.solicitudesData contenido:', window.solicitudesData);
+            
             if (typeof window.solicitudesData !== 'undefined' && window.solicitudesData.length > 0) {
                 console.log('** Usando datos del HTML:', window.solicitudesData.length, 'solicitudes');
                 this.allSolicitudes = window.solicitudesData;
                 this.solicitudes = [...this.allSolicitudes];
+                console.log('** Solicitudes asignadas:', this.solicitudes.length);
+                console.log('** IDs de solicitudes:', this.solicitudes.map(s => s._id));
                 this.renderSolicitudes();
                 return;
             }
@@ -731,10 +739,783 @@ class MobileUserController {
 
     verDetalles(solicitudId) {
         console.log('** Ver detalles mobile:', solicitudId);
+        
+        // Buscar la solicitud completa
+        const solicitud = this.solicitudes.find(s => s._id === solicitudId);
+        if (!solicitud) {
+            console.error('** Solicitud no encontrada:', solicitudId);
+            return;
+        }
+        
+        console.log('** Solicitud encontrada para detalles:', solicitud);
+        
+        // Cerrar el menú de acciones
+        const menu = document.getElementById(`menu-${solicitudId}`);
+        if (menu) {
+            menu.classList.add('hidden');
+        }
+        
+        // Crear modal de detalles dinámicamente
+        const modalDetalles = this.crearModalDetalles(solicitud);
+        
+        if (modalDetalles) {
+            // Agregar el modal al body
+            document.body.appendChild(modalDetalles);
+            
+            // Mostrar el modal
+            modalDetalles.classList.remove('hidden');
+            modalDetalles.style.display = 'flex';
+            
+            // Bloquear scroll del body
+            document.body.style.overflow = 'hidden';
+            
+            console.log('** Modal de detalles abierto exitosamente');
+        } else {
+            console.error('** No se pudo crear modal de detalles');
+            alert('No se pudo mostrar los detalles de la solicitud');
+        }
     }
-
+    
+    crearModalDetalles(solicitud) {
+        console.log('** Creando modal de detalles para solicitud:', solicitud._id);
+        
+        try {
+            // Crear el contenedor principal del modal
+            const modalContainer = document.createElement('div');
+            modalContainer.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+            modalContainer.id = `modal-detalles-${solicitud._id}`;
+            
+            // Crear el contenido del modal
+            const modalContent = document.createElement('div');
+            modalContent.className = 'bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto';
+            
+            // Header del modal
+            const modalHeader = document.createElement('div');
+            modalHeader.className = 'flex items-center justify-between p-4 border-b bg-gray-50';
+            modalHeader.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Detalles de Solicitud</h3>
+                        <p class="text-sm text-gray-500">ID: ${solicitud._id}</p>
+                    </div>
+                </div>
+                <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            `;
+            
+            // Body del modal
+            const modalBody = document.createElement('div');
+            modalBody.className = 'p-6 space-y-6';
+            
+            // Información general
+            const infoGeneral = document.createElement('div');
+            infoGeneral.className = 'space-y-4';
+            infoGeneral.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                                <span class="text-sm font-medium text-gray-600">${(solicitud.usuario?.nombre_completo || 'N/A').charAt(0).toUpperCase()}</span>
+                            </div>
+                            <span class="text-sm font-medium text-gray-900">${solicitud.usuario?.nombre_completo || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${this.getEstadoColor(solicitud.estado)}">
+                            ${solicitud.estado || 'N/A'}
+                        </span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Solicitud</label>
+                        <p class="text-sm text-gray-900">${new Date(solicitud.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Préstamo</label>
+                        <p class="text-sm text-gray-900">${new Date(solicitud.fecha_prestamo).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    </div>
+                </div>
+            `;
+            
+            // Insumos
+            const insumosSection = document.createElement('div');
+            insumosSection.className = 'space-y-3';
+            insumosSection.innerHTML = `
+                <h4 class="text-lg font-medium text-gray-900 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                    Insumos (${solicitud.insumos?.length || 0})
+                </h4>
+                <div class="space-y-2">
+                    ${solicitud.insumos?.map((insumo, index) => `
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-900">${insumo.id_insumo?.NombProducto || 'Sin nombre'}</p>
+                                    <p class="text-sm text-gray-500">${insumo.caracteristicas || 'Sin características'}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium text-gray-900">x${insumo.cantidad || 1}</p>
+                                <p class="text-sm text-gray-500">unidades</p>
+                            </div>
+                        </div>
+                    `).join('') || '<p class="text-gray-500 text-center py-4">No hay insumos en esta solicitud</p>'}
+                </div>
+            `;
+            
+            // Activos (si existen)
+            let activosSection = '';
+            if (solicitud.activos && solicitud.activos.length > 0) {
+                activosSection = `
+                    <div class="space-y-3">
+                        <h4 class="text-lg font-medium text-gray-900 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            Activos (${solicitud.activos.length})
+                        </h4>
+                        <div class="space-y-2">
+                            ${solicitud.activos.map((activo, index) => `
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-900">${activo.id_activo?.nombreActivo || 'Sin nombre'}</p>
+                                            <p class="text-sm text-gray-500">${activo.caracteristicas || 'Sin características'}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-medium text-gray-900">x${activo.cantidad || 1}</p>
+                                        <p class="text-sm text-gray-500">unidades</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Historial de estados
+            const historialSection = document.createElement('div');
+            historialSection.className = 'space-y-3';
+            historialSection.innerHTML = `
+                <h4 class="text-lg font-medium text-gray-900 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Historial de Estados
+                </h4>
+                <div class="space-y-2">
+                    ${solicitud.historico_estados?.map((estado, index) => `
+                        <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <span class="text-xs font-medium text-blue-600">${index + 1}</span>
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900">${estado.estado}</p>
+                                <p class="text-sm text-gray-500">${estado.observacion || 'Sin observación'}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-gray-500">${new Date(estado.fecha).toLocaleDateString('es-ES')}</p>
+                                <p class="text-xs text-gray-500">${new Date(estado.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>
+                            </div>
+                        </div>
+                    `).join('') || '<p class="text-gray-500 text-center py-4">No hay historial de estados</p>'}
+                </div>
+            `;
+            
+            // Ensamblar el modal
+            modalBody.appendChild(infoGeneral);
+            modalBody.appendChild(insumosSection);
+            if (activosSection) {
+                modalBody.innerHTML += activosSection;
+            }
+            modalBody.appendChild(historialSection);
+            
+            // Footer del modal
+            const modalFooter = document.createElement('div');
+            modalFooter.className = 'flex justify-end space-x-3 p-4 border-t bg-gray-50';
+            modalFooter.innerHTML = `
+                <button onclick="this.closest('.fixed').remove()" 
+                        class="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors">
+                    Cerrar
+                </button>
+                <button onclick="window.mobileUserController.gestionarSolicitud('${solicitud._id}')" 
+                        class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md transition-colors">
+                    Editar Solicitud
+                </button>
+            `;
+            
+            // Ensamblar el modal completo
+            modalContent.appendChild(modalHeader);
+            modalContent.appendChild(modalBody);
+            modalContent.appendChild(modalFooter);
+            modalContainer.appendChild(modalContent);
+            
+            console.log('** Modal de detalles creado exitosamente');
+            return modalContainer;
+            
+        } catch (error) {
+            console.error('** Error creando modal de detalles:', error);
+            return null;
+        }
+    }
+    
+    getEstadoColor(estado) {
+        const colores = {
+            'pendiente': 'bg-yellow-100 text-yellow-800',
+            'aprobada': 'bg-green-100 text-green-800',
+            'rechazada': 'bg-red-100 text-red-800',
+            'entregado': 'bg-blue-100 text-blue-800',
+            'devuelto': 'bg-purple-100 text-purple-800',
+            'cancelada': 'bg-gray-100 text-gray-800'
+        };
+        return colores[estado] || 'bg-gray-100 text-gray-800';
+    }
+    
     gestionarSolicitud(solicitudId) {
         console.log('** Gestionar solicitud mobile:', solicitudId);
+        
+        // Buscar la solicitud completa
+        const solicitud = this.solicitudes.find(s => s._id === solicitudId);
+        if (!solicitud) {
+            console.error('** Solicitud no encontrada:', solicitudId);
+            return;
+        }
+        
+        console.log('** Solicitud encontrada para editar:', solicitud);
+        
+        // Cerrar el menú de acciones
+        const menu = document.getElementById(`menu-${solicitudId}`);
+        if (menu) {
+            menu.classList.add('hidden');
+        }
+        
+        // Buscar el modal de edición en la página actual
+        const modal = document.getElementById('editModal');
+        if (modal) {
+            console.log('** Abriendo modal de edición existente...');
+            
+            // Mostrar el modal
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            
+            // Bloquear scroll del body
+            document.body.style.overflow = 'hidden';
+            
+            // Cargar los datos de la solicitud en el modal
+            this.cargarSolicitudEnModal(solicitud);
+            
+            console.log('** Modal de edición abierto exitosamente');
+        } else {
+            console.error('** Modal de edición no encontrado en la página actual');
+            console.log('** Modales disponibles:', document.querySelectorAll('[id*="Modal"], [id*="modal"]'));
+            
+            // Intentar encontrar el modal correcto para edición
+            const posiblesModales = document.querySelectorAll('.modal, [class*="modal"], [id*="edit"], [id*="Modal"], [id*="component"]');
+            console.log('** Posibles modales encontrados:', posiblesModales.length);
+            
+            // Filtrar modales que no son para imprimir o rechazo
+            const modalesEdicion = Array.from(posiblesModales).filter(modal => {
+                const id = modal.id || '';
+                const classes = modal.className || '';
+                // Excluir modales de impresión y rechazo, pero incluir componentes
+                // Priorizar modals-component específicamente
+                return !id.includes('print') && 
+                       !id.includes('rechazo') && 
+                       !classes.includes('print') && 
+                       !classes.includes('rechazo') &&
+                       (id === 'modals-component' || id.includes('edit') || id.includes('Modal'));
+            });
+            
+            console.log('** Modales de edición filtrados:', modalesEdicion.length);
+            console.log('** IDs de modales de edición:', modalesEdicion.map(m => m.id));
+            
+            // Ordenar para que modals-component tenga prioridad
+            modalesEdicion.sort((a, b) => {
+                if (a.id === 'modals-component') return -1;
+                if (b.id === 'modals-component') return 1;
+                return 0;
+            });
+            
+            if (modalesEdicion.length > 0) {
+                const modalEdicion = modalesEdicion[0];
+                console.log('** Usando modal de edición:', modalEdicion.id);
+                
+                // Si es modals-component, buscar el modal de edición dentro
+                if (modalEdicion.id === 'modals-component') {
+                    console.log('** Buscando modal dentro de modals-component...');
+                    
+                    // Primero mostrar el contenido del contenedor para debug
+                    console.log('** Contenido de modals-component:', modalEdicion.innerHTML);
+                    console.log('** Hijos directos:', modalEdicion.children.length);
+                    console.log('** Todos los descendientes:', modalEdicion.querySelectorAll('*').length);
+                    
+                    // Buscar modales específicos dentro del componente con más patrones
+                    const modalesInternos = modalEdicion.querySelectorAll('[id*="Modal"], [class*="modal"], [id*="edit"], [id*="Edit"], [class*="edit"], [class*="Edit"], .modal, [role="dialog"], [data-modal]');
+                    console.log('** Modales internos encontrados:', modalesInternos.length);
+                    
+                    // Mostrar información de cada modal interno encontrado
+                    Array.from(modalesInternos).forEach((modal, index) => {
+                        console.log(`** Modal interno ${index + 1}:`, {
+                            id: modal.id,
+                            classes: modal.className,
+                            tag: modal.tagName,
+                            innerHTML: modal.innerHTML.substring(0, 100) + '...'
+                        });
+                    });
+                    
+                    // Si no hay modales específicos, intentar con cualquier elemento que podría ser un modal
+                    let modalEdicionInterno = null;
+                    
+                    if (modalesInternos.length > 0) {
+                        // Buscar específicamente el modal de edición
+                        modalEdicionInterno = Array.from(modalesInternos).find(modal => {
+                            const id = modal.id || '';
+                            const classes = modal.className || '';
+                            const tag = modal.tagName.toLowerCase();
+                            
+                            return id.includes('edit') || 
+                                   classes.includes('edit') ||
+                                   id.includes('Edit') ||
+                                   classes.includes('Edit') ||
+                                   id.includes('modal') ||
+                                   classes.includes('modal') ||
+                                   tag === 'dialog' ||
+                                   modal.getAttribute('role') === 'dialog';
+                        });
+                    }
+                    
+                    // Si todavía no hay, tomar el primer elemento que tenga contenido significativo
+                    if (!modalEdicionInterno && modalesInternos.length > 0) {
+                        modalEdicionInterno = Array.from(modalesInternos).find(modal => {
+                            const hasContent = modal.innerHTML && modal.innerHTML.trim().length > 50;
+                            const hasForm = modal.querySelector('form') || modal.querySelector('input') || modal.querySelector('button');
+                            return hasContent && hasForm;
+                        });
+                    }
+                    
+                    if (modalEdicionInterno) {
+                        console.log('** Modal de edición interno encontrado:', modalEdicionInterno.id);
+                        
+                        // Mostrar el modal interno
+                        modalEdicionInterno.classList.remove('hidden');
+                        modalEdicionInterno.style.display = 'flex';
+                        
+                        // También mostrar el contenedor
+                        modalEdicion.classList.remove('hidden');
+                        modalEdicion.style.display = 'flex';
+                        
+                        document.body.style.overflow = 'hidden';
+                        
+                        // Cargar los datos de la solicitud
+                        this.cargarSolicitudEnModal(solicitud);
+                        
+                        console.log('** Modal de edición interno abierto exitosamente');
+                    } else {
+                        console.log('** No se encontró modal de edición interno, intentando crear uno dinámicamente...');
+                        
+                        // Intentar crear un modal dinámicamente
+                        const modalDinamico = this.crearModalEdicionDinamico(solicitud);
+                        
+                        if (modalDinamico) {
+                            // Agregar el modal al contenedor
+                            modalEdicion.appendChild(modalDinamico);
+                            
+                            // Mostrar el contenedor
+                            modalEdicion.classList.remove('hidden');
+                            modalEdicion.style.display = 'flex';
+                            
+                            document.body.style.overflow = 'hidden';
+                            
+                            // Cargar los datos de la solicitud
+                            this.cargarSolicitudEnModal(solicitud);
+                            
+                            console.log('** Modal dinámico creado y abierto exitosamente');
+                        } else {
+                            console.log('** No se pudo crear modal dinámico, redirigiendo...');
+                            
+                            // Redirigir a la página de creación/edición
+                            const mensaje = `Solicitud #${solicitudId.slice(-6)}\n` +
+                                          `Estado: ${solicitud.estado}\n` +
+                                          `Insumos: ${solicitud.insumos?.length || 0}\n\n` +
+                                          `Redirigiendo a la página de edición...`;
+                            
+                            if (confirm(mensaje + '\n\n¿Desea continuar?')) {
+                                // Guardar la solicitud en localStorage para la página de edición
+                                localStorage.setItem('solicitud_a_editar', JSON.stringify(solicitud));
+                                localStorage.setItem('volver_a_solicitudes', 'true');
+                                
+                                // Redirigir a la página de inventario para edición
+                                window.location.href = '/ModUsuarios.html';
+                            } else {
+                                alert('Operación cancelada.');
+                            }
+                        }
+                    }
+                } else {
+                    // Mostrar el modal directamente
+                    modalEdicion.classList.remove('hidden');
+                    modalEdicion.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                    
+                    // Cargar los datos de la solicitud
+                    this.cargarSolicitudEnModal(solicitud);
+                }
+                
+                console.log('** Modal de edición abierto exitosamente');
+            } else {
+                console.log('** No se encontró modal de edición adecuado');
+                console.log('** Mostrando alerta informativa');
+                
+                // Mostrar una alerta con la información de la solicitud
+                const mensaje = `Solicitud #${solicitudId.slice(-6)}\n` +
+                              `Estado: ${solicitud.estado}\n` +
+                              `Insumos: ${solicitud.insumos?.length || 0}\n` +
+                              `Fecha: ${new Date(solicitud.createdAt).toLocaleDateString()}\n\n` +
+                              `Para editar esta solicitud, por favor use la versión desktop de la aplicación.`;
+                
+                alert(mensaje);
+            }
+        }
+    }
+    
+    crearModalEdicionDinamico(solicitud) {
+        console.log('** Creando modal dinámico para solicitud:', solicitud._id);
+        
+        try {
+            // Crear el contenedor principal del modal
+            const modalContainer = document.createElement('div');
+            modalContainer.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+            modalContainer.id = `modal-edicion-dinamico-${solicitud._id}`;
+            
+            // Crear el contenido del modal
+            const modalContent = document.createElement('div');
+            modalContent.className = 'bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto';
+            
+            // Header del modal
+            const modalHeader = document.createElement('div');
+            modalHeader.className = 'flex items-center justify-between p-4 border-b';
+            modalHeader.innerHTML = `
+                <h3 class="text-lg font-semibold text-gray-900">Editar Solicitud #${solicitud._id.slice(-6)}</h3>
+                <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            `;
+            
+            // Body del modal
+            const modalBody = document.createElement('div');
+            modalBody.className = 'p-4';
+            modalBody.innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+                        <input type="text" id="usuario-nombre" value="${solicitud.usuario?.nombre_completo || ''}" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" readonly>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                        <input type="text" value="${solicitud.estado}" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md" readonly>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Insumos (${solicitud.insumos?.length || 0})</label>
+                        <div class="max-h-40 overflow-y-auto border border-gray-200 rounded-md p-2">
+                            ${solicitud.insumos?.map((insumo, index) => `
+                                <div class="flex items-center justify-between py-1 px-2 border-b border-gray-100">
+                                    <span class="text-sm">${insumo.id_insumo?.NombProducto || 'Sin nombre'}</span>
+                                    <span class="text-sm text-gray-500">x${insumo.cantidad || 1}</span>
+                                </div>
+                            `).join('') || '<p class="text-gray-500">No hay insumos</p>'}
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-2 pt-4">
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md">
+                            Cancelar
+                        </button>
+                        <button onclick="window.mobileUserController.guardarCambiosSolicitud('${solicitud._id}')" 
+                                class="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md">
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Ensamblar el modal
+            modalContent.appendChild(modalHeader);
+            modalContent.appendChild(modalBody);
+            modalContainer.appendChild(modalContent);
+            
+            console.log('** Modal dinámico creado exitosamente');
+            return modalContainer;
+            
+        } catch (error) {
+            console.error('** Error creando modal dinámico:', error);
+            return null;
+        }
+    }
+    
+    guardarCambiosSolicitud(solicitudId) {
+        console.log('** Guardando cambios para solicitud:', solicitudId);
+        
+        // Cerrar el modal
+        const modal = document.querySelector(`#modal-edicion-dinamico-${solicitudId}`);
+        if (modal) {
+            modal.remove();
+        }
+        
+        // Restaurar scroll
+        document.body.style.overflow = '';
+        
+        alert('Función de guardar cambios en desarrollo. Los cambios se guardarán en una futura versión.');
+        
+        console.log('** Cambios guardados (simulado)');
+        
+        // Recargar los datos para reflejar cambios
+        this.recargarDatos();
+    }
+    
+    async recargarDatos() {
+        console.log('** Recargando datos para reflejar cambios...');
+        
+        // Limpiar datos actuales
+        this.allSolicitudes = [];
+        this.solicitudes = [];
+        
+        // Recargar desde el principio
+        await this.loadUserSolicitudes();
+        
+        console.log('** Datos recargados exitosamente');
+    }
+    
+    async eliminarSolicitud(solicitudId) {
+        console.log('** Cancelando solicitud:', solicitudId);
+        
+        // Confirmar con el usuario
+        const confirmacion = confirm('¿Estás seguro que deseas cancelar esta solicitud? Esta acción no se puede deshacer.');
+        
+        if (!confirmacion) {
+            console.log('** Cancelación cancelada por el usuario');
+            return;
+        }
+        
+        try {
+            // Buscar la solicitud
+            const solicitud = this.solicitudes.find(s => s._id === solicitudId);
+            if (!solicitud) {
+                console.error('** Solicitud no encontrada:', solicitudId);
+                alert('Solicitud no encontrada');
+                return;
+            }
+            
+            console.log('** Solicitud encontrada para cancelar:', solicitud);
+            
+            // Cambiar el estado a "cancelada"
+            await this.cambiarEstadoSolicitud(solicitudId, 'cancelada');
+            
+            console.log('** Solicitud cancelada exitosamente');
+            
+        } catch (error) {
+            console.error('** Error cancelando solicitud:', error);
+            alert('Error al cancelar la solicitud. Por favor, inténtalo de nuevo.');
+        }
+    }
+    
+    async cambiarEstadoSolicitud(solicitudId, nuevoEstado) {
+        console.log('** Cambiando estado de solicitud:', solicitudId, 'a', nuevoEstado);
+        
+        try {
+            // Obtener token
+            const token = localStorage.getItem('utn_token');
+            console.log('** Token encontrado:', !!token);
+            if (!token) {
+                throw new Error('No se encontró token de autenticación');
+            }
+            
+            // Probar diferentes endpoints y métodos
+            const endpoints = [
+                { url: `http://localhost:4000/api/solicitudes/${solicitudId}/estado`, method: 'PATCH' },
+                { url: `http://localhost:4000/api/solicitudes/${solicitudId}/estado`, method: 'PUT' },
+                { url: `http://localhost:4000/api/solicitudes/${solicitudId}`, method: 'PUT' },
+                { url: `http://localhost:4000/api/solicitudes/${solicitudId}`, method: 'PATCH' }
+            ];
+            
+            let exito = false;
+            let resultado = null;
+            
+            for (const endpoint of endpoints) {
+                try {
+                    console.log(`** Probando endpoint: ${endpoint.method} ${endpoint.url}`);
+                    console.log('** Body:', JSON.stringify({
+                        estado: nuevoEstado,
+                        observacion: `Estado cambiado a ${nuevoEstado} desde móvil`
+                    }));
+                    
+                    const response = await fetch(endpoint.url, {
+                        method: endpoint.method,
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            estado: nuevoEstado,
+                            observacion: `Estado cambiado a ${nuevoEstado} desde móvil`
+                        })
+                    });
+                    
+                    console.log(`** Respuesta de ${endpoint.method}:`, response.status, response.statusText);
+                    
+                    if (response.ok) {
+                        resultado = await response.json();
+                        console.log('** Estado cambiado exitosamente en backend:', resultado);
+                        exito = true;
+                        break;
+                    } else {
+                        const errorText = await response.text();
+                        console.log(`** Error en ${endpoint.method}:`, errorText);
+                    }
+                } catch (error) {
+                    console.log(`** Error intentando ${endpoint.method}:`, error.message);
+                }
+            }
+            
+            if (!exito) {
+                throw new Error('No se pudo cambiar el estado con ningún endpoint disponible');
+            }
+            
+            // Actualizar localmente también
+            const solicitud = this.solicitudes.find(s => s._id === solicitudId);
+            if (solicitud) {
+                solicitud.estado = nuevoEstado;
+                
+                // Agregar al historial
+                if (!solicitud.historico_estados) {
+                    solicitud.historico_estados = [];
+                }
+                
+                solicitud.historico_estados.push({
+                    estado: nuevoEstado,
+                    observacion: `Estado cambiado a ${nuevoEstado} desde móvil`,
+                    fecha: new Date().toISOString()
+                });
+                
+                console.log('** Estado actualizado localmente:', solicitud);
+            }
+            
+            // Recargar los datos para actualizar la vista
+            await this.recargarDatos();
+            
+            // Notificar al usuario
+            alert(`Solicitud ${solicitudId.slice(-6)} actualizada a estado: ${nuevoEstado}`);
+            
+        } catch (error) {
+            console.error('** Error cambiando estado:', error);
+            console.error('** Stack trace:', error.stack);
+            alert('Error al cambiar el estado de la solicitud: ' + error.message);
+        }
+    }
+    
+    crearModalDetalles(solicitud) {
+        console.log('** Cargando solicitud en modal:', solicitud);
+        
+        // Cargar los datos del usuario
+        const userData = JSON.parse(localStorage.getItem('utn_user'));
+        
+        // ...
+        // Llenar el formulario con los datos de la solicitud
+        const form = document.getElementById('editForm');
+        if (form) {
+            // Si hay un campo de usuario, llenarlo
+            const usuarioField = form.querySelector('#usuario_nombre');
+            if (usuarioField && userData) {
+                usuarioField.value = userData.nombre_completo || userData.nombre || '';
+            }
+            
+            // Cargar los insumos
+            if (solicitud.insumos && solicitud.insumos.length > 0) {
+                console.log('** Cargando insumos:', solicitud.insumos);
+                
+                // Limpiar el carrito actual
+                if (window.carritoSolicitudes) {
+                    window.carritoSolicitudes = [];
+                }
+                
+                // Agregar cada insumo al carrito
+                solicitud.insumos.forEach(insumo => {
+                    const itemCarrito = {
+                        id: insumo.id_insumo?._id || insumo._id,
+                        nombre: insumo.id_insumo?.NombProducto || insumo.nombre || 'Sin nombre',
+                        cantidad: insumo.cantidad || 1,
+                        caracteristicas: insumo.caracteristicas || '',
+                        tipo: 'insumo'
+                    };
+                    
+                    if (window.carritoSolicitudes) {
+                        window.carritoSolicitudes.push(itemCarrito);
+                    }
+                });
+                
+                console.log('** Carrito actualizado:', window.carritoSolicitudes);
+                
+                // Actualizar la visualización del carrito
+                if (window.actualizarCarritoVisual) {
+                    window.actualizarCarritoVisual();
+                }
+            }
+            
+            // Cargar los activos si existen
+            if (solicitud.activos && solicitud.activos.length > 0) {
+                console.log('** Cargando activos:', solicitud.activos);
+                
+                solicitud.activos.forEach(activo => {
+                    const itemCarrito = {
+                        id: activo.id_activo?._id || activo._id,
+                        nombre: activo.id_activo?.nombreActivo || activo.nombre || 'Sin nombre',
+                        cantidad: activo.cantidad || 1,
+                        caracteristicas: activo.caracteristicas || '',
+                        tipo: 'activo'
+                    };
+                    
+                    if (window.carritoSolicitudes) {
+                        window.carritoSolicitudes.push(itemCarrito);
+                    }
+                });
+                
+                if (window.actualizarCarritoVisual) {
+                    window.actualizarCarritoVisual();
+                }
+            }
+        }
+        
+        console.log('** Solicitud cargada en modal exitosamente');
     }
 
     toggleMenu(solicitudId) {
