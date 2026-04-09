@@ -56,8 +56,8 @@ class MobileUserController {
             mobileContainer.style.display = 'block';
             mobileContainer.classList.remove('hidden');
             console.log('** Contenedor mobile visible y activo');
-        }
-        
+        }         
+         
         this.setupEventListeners();
         this.loadUserSolicitudes();
     }
@@ -278,11 +278,50 @@ class MobileUserController {
             return;
         }
 
-        console.log('** Creando tarjetas móviles...');
-        container.innerHTML = solicitudesFiltradas.map(solicitud => 
-            this.createSolicitudCard(solicitud)
-        ).join('');
+        console.log('** Renderizando solicitudes móviles...');
+        console.log('** Solicitudes filtradas:', solicitudesFiltradas);
+        console.log('** Solicitudes a renderizar:', solicitudesFiltradas.length);
+        console.log('** IDs de solicitudes:', solicitudesFiltradas.map(s => s._id));
+        console.log('** Estructura de la primera solicitud:', solicitudesFiltradas[0]);
+        
+        if (solicitudesFiltradas.length === 0) {
+            console.log('** No hay solicitudes para mostrar');
+            container.innerHTML = `
+                <div class="bg-white rounded-lg shadow-md border border-slate-200 p-6 text-center">
+                    <div class="text-6xl mb-4">??</div>
+                    <h3 class="text-xl font-semibold text-slate-700 mb-2">
+                        No hay solicitudes encontradas
+                    </h3>
+                    <p class="text-slate-500">
+                        Intenta ajustar los filtros de búsqueda
+                    </p>
+                </div>
+            `;
+            return;
+        }
+
+        // Crear tarjetas individuales
+        console.log('** Iniciando creación de tarjetas...');
+        const tarjetasHTML = solicitudesFiltradas.map((solicitud, index) => {
+            console.log(`** Creando tarjeta ${index + 1}/${solicitudesFiltradas.length} para solicitud:`, solicitud._id);
+            console.log(`** Datos de solicitud ${index + 1}:`, solicitud);
+            const tarjetaHTML = this.createSolicitudCard(solicitud);
+            console.log(`** HTML generado para tarjeta ${index + 1}:`, tarjetaHTML.substring(0, 200) + '...');
+            return tarjetaHTML;
+        }).join('');
+        
+        console.log('** HTML completo generado:', tarjetasHTML.substring(0, 500) + '...');
+        container.innerHTML = tarjetasHTML;
         console.log('** Tarjetas móviles renderizadas:', solicitudesFiltradas.length);
+        
+        // Verificar que los botones existan
+        setTimeout(() => {
+            const botones = document.querySelectorAll('[id^="menu-btn-"]');
+            console.log('** Botones encontrados:', botones.length);
+            botones.forEach((btn, index) => {
+                console.log(`** Botón ${index + 1}:`, btn.id);
+            });
+        }, 100);
         
         // Actualizar contador de resultados móviles
         const contadorMobile = document.getElementById('resultados-count-mobile');
@@ -354,10 +393,11 @@ class MobileUserController {
                     <div class="flex justify-end mt-2 sm:mt-3">
                         <div class="relative">
                             <button 
+                                id="menu-btn-${solicitud._id}"
                                 onclick="window.mobileUserController.toggleMenu('${solicitud._id}')" 
                                 class="p-1.5 sm:p-2 rounded-lg transition-all duration-200 hover:scale-110"
                                 style="background: ${rolBgGradient}; color: black; box-shadow: 0 2px 8px ${rolColor}40;">
-                                <span class="text-sm sm:text-base">?</span>
+                                <span class="text-sm sm:text-base">??</span>
                             </button>
                             <div id="menu-${solicitud._id}" class="hidden absolute right-0 sm:right-4 mt-1 sm:mt-2 w-44 sm:w-48 bg-white rounded-lg shadow-lg border" style="border-color: #000000; z-index: 1000;">
                                 <div class="p-1.5 sm:p-2">
@@ -528,7 +568,6 @@ class MobileUserController {
                 console.log(`** Elemento ${id} actualizado:`, valor);
                 
                 // Forzar reflow para asegurar visibilidad
-                elemento.style.display = 'none';
                 elemento.offsetHeight; // Forzar reflow
                 elemento.style.display = '';
                 
@@ -685,22 +724,114 @@ class MobileUserController {
     }
 
     toggleMenu(solicitudId) {
+        console.log('** TOGGLE MENU INICIADO para solicitud:', solicitudId);
+        
         const menu = document.getElementById(`menu-${solicitudId}`);
+        console.log('** Menú encontrado:', !!menu, menu?.id);
+        
         const allMenus = document.querySelectorAll('[id^="menu-"]');
-
+        console.log('** Total menús encontrados:', allMenus.length);
+        
+        // Verificar estado de los botones ANTES de hacer nada
+        const allButtonsBefore = document.querySelectorAll('#mobile-solicitudes-container button[id^="menu-btn-"]');
+        console.log('** BOTONES ANTES - Total:', allButtonsBefore.length);
+        allButtonsBefore.forEach((btn, index) => {
+            console.log(`** Botón ${index + 1} ANTES:`, {
+                id: btn.id,
+                visible: window.getComputedStyle(btn).visibility,
+                opacity: window.getComputedStyle(btn).opacity,
+                display: window.getComputedStyle(btn).display,
+                pointerEvents: window.getComputedStyle(btn).pointerEvents,
+                zIndex: window.getComputedStyle(btn).zIndex,
+                classes: btn.className
+            });
+        });
+        
         allMenus.forEach(m => {
             if (m.id !== `menu-${solicitudId}`) {
+                console.log('** Cerrando menú:', m.id);
                 m.classList.add('hidden');
             }
         });
 
+        const wasHidden = menu.classList.contains('hidden');
+        console.log('** Menú estaba hidden antes?', wasHidden);
+        
         menu.classList.toggle('hidden');
+        const isHiddenNow = menu.classList.contains('hidden');
+        console.log('** Menú está hidden después?', isHiddenNow);
+        
+        // Verificar estado de los botones DESPUÉS del toggle
+        setTimeout(() => {
+            const allButtonsAfter = document.querySelectorAll('#mobile-solicitudes-container button[id^="menu-btn-"]');
+            console.log('** BOTONES DESPUÉS - Total:', allButtonsAfter.length);
+            allButtonsAfter.forEach((btn, index) => {
+                console.log(`** Botón ${index + 1} DESPUÉS:`, {
+                    id: btn.id,
+                    visible: window.getComputedStyle(btn).visibility,
+                    opacity: window.getComputedStyle(btn).opacity,
+                    display: window.getComputedStyle(btn).display,
+                    pointerEvents: window.getComputedStyle(btn).pointerEvents,
+                    zIndex: window.getComputedStyle(btn).zIndex,
+                    classes: btn.className
+                });
+                
+                // CORRECCIÓN: Forzar que los botones siempre sean visibles
+                if (btn.classList.contains('hidden')) {
+                    console.log('** REMOVIENDO CLASE HIDDEN DEL BOTÓN:', btn.id);
+                    btn.classList.remove('hidden');
+                }
+                if (btn.style.display === 'none' || window.getComputedStyle(btn).display === 'none') {
+                    console.log('** FORZANDO DISPLAY BLOCK DEL BOTÓN:', btn.id);
+                    btn.style.display = 'block';
+                    btn.style.setProperty('display', 'block', 'important');
+                }
+            });
+        }, 100);
+        
+        console.log('** TOGGLE MENU COMPLETADO para solicitud:', solicitudId);
     }
 }
 
 // Inicializar directamente sin esperar a solicitudesController
 document.addEventListener('DOMContentLoaded', () => {
     console.log('** DOM listo - Inicializando MobileUserController directamente...');
+    
+    // Agregar MutationObserver para detectar qué modifica los botones
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                const target = mutation.target;
+                if (target.id && target.id.startsWith('menu-btn-')) {
+                    console.log('** MUTACIÓN DETECTADA EN BOTÓN:', target.id);
+                    console.log('** Clases antes:', mutation.oldValue);
+                    console.log('** Clases después:', target.className);
+                    console.log('** Stack trace para encontrar quién lo modificó:', new Error().stack);
+                    
+                    // Corregir automáticamente
+                    if (target.classList.contains('hidden')) {
+                        console.log('** CORRECCIÓN AUTOMÁTICA: Removiendo hidden del botón', target.id);
+                        target.classList.remove('hidden');
+                        target.style.display = 'block';
+                        target.style.setProperty('display', 'block', 'important');
+                    }
+                }
+            }
+        });
+    });
+    
+    // Observar cambios en los botones
+    setTimeout(() => {
+        const buttons = document.querySelectorAll('#mobile-solicitudes-container button[id^="menu-btn-"]');
+        buttons.forEach(btn => {
+            observer.observe(btn, {
+                attributes: true,
+                attributeFilter: ['class'],
+                attributeOldValue: true
+            });
+        });
+        console.log('** Observer instalado en', buttons.length, 'botones');
+    }, 1000);
     
     const style = document.createElement('style');
     style.textContent = `
@@ -709,6 +840,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 min-height: calc(100vh - 200px) !important;
                 max-height: calc(100vh - 200px) !important;
                 overflow-y: auto !important;
+            }
+            
+            /* Asegurar que los botones de acciones estén siempre visibles */
+            #mobile-solicitudes-container button[id^="menu-btn-"] {
+                position: relative !important;
+                z-index: 1000 !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+            }
+            
+            /* Menús desplegables */
+            #mobile-solicitudes-container [id^="menu-"] {
+                position: absolute !important;
+                z-index: 1001 !important;
+            }
+            
+            /* Asegurar que los botones no se oculten nunca */
+            #mobile-solicitudes-container button[id^="menu-btn-"]:hover {
+                visibility: visible !important;
+                opacity: 1 !important;
             }
         }
     `;
