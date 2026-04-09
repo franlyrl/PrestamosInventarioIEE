@@ -45,7 +45,7 @@ this.loadUserSolicitudes();
 
 setupContainer() {
 // Buscar tbody principal o crear uno si no existe
-this.tbody = document.getElementById('solicitudes-tbody') || 
+this.tbody = document.getElementById('solicitudes-tbody-desktop') || 
 document.getElementById('solicitudes-tbody-desktop') ||
 document.querySelector('tbody[id*="solicitudes"]');
 if (!this.tbody) {
@@ -128,7 +128,7 @@ console.log('Campos disponibles:', Object.keys(currentUser));
 // Usar la misma URL que solicitudes.html
 const token = localStorage.getItem('utn_token');
 console.log('Token disponible:', !!token);
-// URL principal corregida para localhost
+// Usar la misma URL que móvil
 const apiUrl = 'http://localhost:4000/api/solicitudes';
 console.log('URL completa:', apiUrl);
 const response = await fetch(apiUrl, {
@@ -152,23 +152,14 @@ const data = await response.json();
 console.log('Datos recibidos del API:', data);
 console.log('Tipo de datos recibidos:', typeof data);
 console.log('¿Es array?', Array.isArray(data));
-// Extraer el array de solicitudes
-let todasLasSolicitudes = Array.isArray(data) ? data : (data.solicitudes || data.data || []);
-console.log('Total de solicitudes en BD:', todasLasSolicitudes.length);
-// Filtrar por usuario actual (como lo hace solicitudes.html)
-const nombreUsuario = currentUser.nombre_completo || currentUser.nombre || '';
-const emailUsuario = currentUser.email || currentUser.correo_electronico || currentUser.correo || '';
-console.log('Filtrando por usuario:', { nombreUsuario, emailUsuario });
-this.solicitudes = todasLasSolicitudes.filter(solicitud => {
-// Verificar si la solicitud pertenece al usuario actual
-const solicitudUsuario = solicitud.usuario?.nombre_completo || solicitud.usuario?.nombre || '';
-const solicitudEmail = solicitud.usuario?.email || solicitud.usuario?.correo_electronico || solicitud.usuario?.correo || '';
-return solicitudUsuario === nombreUsuario || solicitudEmail === emailUsuario;
-});
-console.log('Solicitudes filtradas para este usuario:', this.solicitudes.length);
-if (this.solicitudes.length > 0) {
-console.log('Primer solicitud encontrada:', this.solicitudes[0]);
-}
+console.log('Longitud del array:', data.length);
+console.log('IDs de solicitudes recibidas:', data.map(s => s._id));
+console.log('Estados de solicitudes recibidas:', data.map(s => s.estado));
+// Usar los datos directamente como el móvil
+this.solicitudes = Array.isArray(data) ? data : (data.solicitudes || data.data || []);
+this.allSolicitudes = [...this.solicitudes];
+console.log('Solicitudes cargadas en desktop:', this.solicitudes.length);
+console.log('Primera solicitud:', this.solicitudes[0]);
 } catch (error) {
 console.error('Error cargando solicitudes desde API:', error);
 this.showError('Error al cargar las solicitudes: ' + error.message);
@@ -373,24 +364,58 @@ const esDocente = rolText.includes('docente') || rolText.includes('profesor');
     }
 
     updateStatistics() {
+        console.log('** Desktop: Actualizando estadísticas...');
+        console.log('** Desktop: Solicitudes disponibles:', this.solicitudes);
+        console.log('** Desktop: Estados en solicitudes:', this.solicitudes.map(s => s.estado));
+        
         const stats = {
             pendientes: this.solicitudes.filter(s => s.estado === 'pendiente').length,
             aprobadas: this.solicitudes.filter(s => s.estado === 'aprobada').length,
             entregadas: this.solicitudes.filter(s => s.estado === 'entregado').length,
             devueltas: this.solicitudes.filter(s => s.estado === 'devuelto').length
         };
+        
+        // Agregar rechazadas también
+        stats.rechazadas = this.solicitudes.filter(s => s.estado === 'rechazada').length;
+
+        console.log('** Desktop: Estadísticas calculadas:', stats);
 
         // Actualizar contadores desktop
         const pendientesCount = document.getElementById('pendientes-count');
         const aprobadasCount = document.getElementById('aprobadas-count');
+        const rechazadasCount = document.getElementById('rechazadas-count');
         const entregadasCount = document.getElementById('entregadas-count');
         const devueltasCount = document.getElementById('devueltas-count');
         const totalCount = document.getElementById('total-solicitudes');
 
-        if (pendientesCount) pendientesCount.textContent = stats.pendientes;
-        if (aprobadasCount) aprobadasCount.textContent = stats.aprobadas;
-        if (entregadasCount) entregadasCount.textContent = stats.entregadas;
-        if (devueltasCount) devueltasCount.textContent = stats.devueltas;
+        console.log('** Desktop: Elementos encontrados:', {
+            pendientesCount: !!pendientesCount,
+            aprobadasCount: !!aprobadasCount,
+            rechazadasCount: !!rechazadasCount,
+            entregadasCount: !!entregadasCount,
+            devueltasCount: !!devueltasCount
+        });
+
+        if (pendientesCount) {
+            pendientesCount.textContent = stats.pendientes;
+            console.log('** Desktop: Pendientes actualizado:', stats.pendientes);
+        }
+        if (aprobadasCount) {
+            aprobadasCount.textContent = stats.aprobadas;
+            console.log('** Desktop: Aprobadas actualizado:', stats.aprobadas);
+        }
+        if (rechazadasCount) {
+            rechazadasCount.textContent = stats.rechazadas;
+            console.log('** Desktop: Rechazadas actualizado:', stats.rechazadas);
+        }
+        if (entregadasCount) {
+            entregadasCount.textContent = stats.entregadas;
+            console.log('** Desktop: Entregadas actualizado:', stats.entregadas);
+        }
+        if (devueltasCount) {
+            devueltasCount.textContent = stats.devueltas;
+            console.log('** Desktop: Devueltas actualizado:', stats.devueltas);
+        }
         if (totalCount) totalCount.textContent = this.solicitudes.length;
 
         // Actualizar contadores mobile
@@ -403,6 +428,8 @@ const esDocente = rolText.includes('docente') || rolText.includes('profesor');
         if (aprobadasMobile) aprobadasMobile.textContent = stats.aprobadas;
         if (entregadasMobile) entregadasMobile.textContent = stats.entregadas;
         if (devueltasMobile) devueltasMobile.textContent = stats.devueltas;
+
+        console.log('** Desktop: Estadísticas actualizadas correctamente');
     }
 
     applyFilters() {
@@ -765,65 +792,66 @@ const esDocente = rolText.includes('docente') || rolText.includes('profesor');
 }
 
 // Hacer disponible globalmente
-window.desktopUserController = new DesktopUserController();
+// window.desktopUserController = new DesktopUserController();
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Soli_DeskUs.js: DOM listo, verificando condiciones...');
+    console.log('** DOM listo - Verificando si se debe inicializar DesktopUserController...');
     
-    // Esperar a que solicitudes.js esté cargado
+    // Verificar ancho de pantalla ANTES de inicializar
+    const isDesktop = window.innerWidth >= 1024;
+    console.log('** Ancho de pantalla:', window.innerWidth, 'Desktop:', isDesktop);
+    
+    if (!isDesktop) {
+        console.log('** No es desktop - DesktopUserController NO se inicializará');
+        return; // No inicializar en móvil/tablet
+    }
+    
+    console.log('** Es desktop - Inicializando DesktopUserController...');
+    
+    // Verificar usuario
+    const userData = localStorage.getItem('utn_user');
+    console.log('** Datos de usuario encontrados:', !!userData);
+    
+    if (!userData) {
+        console.log('** No hay datos de usuario, saliendo');
+        return;
+    }
+    
+    const currentUser = JSON.parse(userData);
+    const rol = currentUser?.rol || currentUser?.rol_nombre || '';
+    const rolText = rol.toLowerCase();
+    
+    console.log('** Rol del usuario:', rol, 'Texto:', rolText);
+    
+    // Verificar si es administrador
+    const esAdmin = rolText.includes('admin') || rolText.includes('administrador');
+    console.log('** Es administrador:', esAdmin);
+    
+    if (esAdmin) {
+        console.log('** Usuario es administrador, no se inicia controlador desktop');
+        return;
+    }
+    
+    console.log('** Todas las condiciones cumplidas, controlador desktop listo');
+    
+    // Solo ahora inicializar el controlador desktop
+    if (!window.desktopUserController) {
+        window.desktopUserController = new DesktopUserController();
+    }
+    
+    // Forzar renderizado después de cargar
     setTimeout(() => {
-        console.log('Soli_DeskUs.js: Iniciando verificación...');
+        console.log('Soli_DeskUs.js: Verificando si se cargaron datos...');
+        console.log('Soli_DeskUs.js: Solicitudes cargadas:', window.desktopUserController.solicitudes.length);
         
-        // Verificar ancho de pantalla
-        const isDesktop = window.innerWidth >= 768;
-        console.log('Soli_DeskUs.js: Ancho de pantalla:', window.innerWidth, 'Desktop:', isDesktop);
-        
-        if (!isDesktop) {
-            console.log('Soli_DeskUs.js: No es desktop, saliendo');
-            return;
+        if (window.desktopUserController.solicitudes.length === 0) {
+            console.log('Soli_DeskUs.js: No se cargaron datos, renderizando estado vacío...');
         }
         
-        // Verificar usuario
-        const userData = localStorage.getItem('utn_user');
-        console.log('Soli_DeskUs.js: Datos de usuario encontrados:', !!userData);
-        
-        if (!userData) {
-            console.log('Soli_DeskUs.js: No hay datos de usuario, saliendo');
-            return;
-        }
-        
-        const currentUser = JSON.parse(userData);
-        const rol = currentUser?.rol || currentUser?.rol_nombre || '';
-        const rolText = rol.toLowerCase();
-        
-        console.log('Soli_DeskUs.js: Rol del usuario:', rol, 'Texto:', rolText);
-        
-        // Verificar si es administrador
-        const esAdmin = rolText.includes('admin') || rolText.includes('administrador');
-        console.log('Soli_DeskUs.js: Es administrador:', esAdmin);
-        
-        if (esAdmin) {
-            console.log('Soli_DeskUs.js: Usuario es administrador, no se inicia controlador desktop');
-            return;
-        }
-        
-        console.log('Soli_DeskUs.js: Todas las condiciones cumplidas, iniciando controlador desktop...');
-        
-        // Forzar renderizado después de cargar
-        setTimeout(() => {
-            console.log('Soli_DeskUs.js: Verificando si se cargaron datos...');
-            console.log('Soli_DeskUs.js: Solicitudes cargadas:', window.desktopUserController.solicitudes.length);
-            
-            if (window.desktopUserController.solicitudes.length === 0) {
-                console.log('Soli_DeskUs.js: No se cargaron datos, renderizando estado vacío...');
-            }
-            
-            window.desktopUserController.renderSolicitudes();
-            console.log('Soli_DeskUs.js: Renderizado completado');
-        }, 1000); // Dar más tiempo para la carga del API
-        
-        console.log('Soli_DeskUs.js: DesktopUserController inicializado completamente');
-        
-    }, 500); // Mayor retraso para asegurar que todo esté cargado
+        window.desktopUserController.renderSolicitudes();
+        console.log('Soli_DeskUs.js: Renderizado completado');
+    }, 1000); // Dar más tiempo para la carga del API
+    
+    console.log('Soli_DeskUs.js: DesktopUserController inicializado completamente');
 });

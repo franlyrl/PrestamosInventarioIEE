@@ -1,0 +1,755 @@
+// Controlador móvil para solicitudes
+class MobileUserController {
+    constructor() {
+        this.solicitudes = [];
+        this.allSolicitudes = [];
+        this.filters = {
+            busqueda: '',
+            estado: 'todos',
+            fechaDesde: '',
+            fechaHasta: ''
+        };
+        this.currentPage = 1;
+        this.itemsPerPage = 5;
+    }
+
+    init() {
+        console.log('** Inicializando MobileUserController...');
+        
+        if (window.innerWidth >= 1024) {
+            console.log('** No es mobile/tablet, saliendo...');
+            return;
+        }
+
+        const userData = localStorage.getItem('utn_user');
+        if (!userData) {
+            console.log('** No hay datos de usuario');
+            return;
+        }
+
+        const currentUser = JSON.parse(userData);
+        const rol = currentUser?.rol || currentUser?.rol_nombre || '';
+        const rolText = rol.toLowerCase();
+        
+        if (rolText.includes('admin') || rolText.includes('administrador')) {
+            console.log('** Usuario es administrador, no se inicia controlador mobile');
+            return;
+        }
+
+        console.log('** Usuario válido, tomando control completo del DOM...');
+        
+        const tableContainer = document.querySelector('.overflow-x-auto');
+        const tbody = document.getElementById('solicitudes-tbody');
+        const mobileContainer = document.getElementById('mobile-solicitudes-container');
+        
+        if (tableContainer) {
+            tableContainer.style.display = 'none';
+            console.log('** Tabla desktop completamente oculta');
+        }
+        
+        if (tbody) {
+            tbody.style.display = 'none';
+            console.log('** Tbody desktop oculto');
+        }
+        
+        if (mobileContainer) {
+            mobileContainer.style.display = 'block';
+            mobileContainer.classList.remove('hidden');
+            console.log('** Contenedor mobile visible y activo');
+        }
+        
+        this.setupEventListeners();
+        this.loadUserSolicitudes();
+    }
+
+    setupEventListeners() {
+        const busquedaInput = document.getElementById('busqueda-input');
+        if (busquedaInput) {
+            busquedaInput.addEventListener('input', (e) => {
+                this.filters.busqueda = e.target.value;
+                this.applyFilters();
+            });
+        }
+
+        const estadoSelect = document.getElementById('estado-filter');
+        if (estadoSelect) {
+            estadoSelect.addEventListener('change', (e) => {
+                this.filters.estado = e.target.value;
+                this.applyFilters();
+            });
+        }
+
+        const limpiarBtn = document.getElementById('clear-filters-btn');
+        if (limpiarBtn) {
+            limpiarBtn.addEventListener('click', () => this.limpiarFiltros());
+        }
+    }
+
+    async loadUserSolicitudes() {
+        try {
+            console.log('** Cargando solicitudes móviles...');
+            
+            // Verificar si el HTML ya cargó datos (usar los datos del HTML si existen)
+            if (typeof window.solicitudesData !== 'undefined' && window.solicitudesData.length > 0) {
+                console.log('** Usando datos del HTML:', window.solicitudesData.length, 'solicitudes');
+                this.allSolicitudes = window.solicitudesData;
+                this.solicitudes = [...this.allSolicitudes];
+                this.renderSolicitudes();
+                return;
+            }
+            
+            // Si no hay datos del HTML, cargar desde API
+            console.log('** No hay datos del HTML, cargando desde API...');
+            
+            // Revisar todo el localStorage para encontrar el token
+            console.log('** Todo el localStorage:', {...localStorage});
+            
+            const userData = localStorage.getItem('utn_user');
+            console.log('** userData de utn_user:', userData);
+            
+            let currentUser = null;
+            let token = null;
+            
+            // Intentar parsear userData
+            if (userData) {
+                try {
+                    currentUser = JSON.parse(userData);
+                    console.log('** Usuario parseado:', currentUser);
+                } catch (parseError) {
+                    console.error('** Error parseando userData:', parseError);
+                }
+            }
+            
+            // Buscar token en todas partes posibles (usar las mismas que desktop)
+            token = currentUser?.token || 
+                    localStorage.getItem('utn_token') ||  // Usar el mismo que desktop
+                    localStorage.getItem('token') || 
+                    localStorage.getItem('authToken') ||
+                    localStorage.getItem('jwt') ||
+                    localStorage.getItem('access_token');
+                    
+            console.log('** Token encontrado:', token ? 'SÍ' : 'NO');
+            console.log('** Valor del token:', token);
+
+            if (!token) {
+                console.error('** No se encontró token, usando datos de prueba');
+                const datosDePrueba = [
+                    {
+                        _id: 'test001',
+                        usuario: { nombre_completo: 'Mathias Jimenez', nombre: 'Mathias' },
+                        estado: 'pendiente',
+                        createdAt: new Date().toISOString(),
+                        insumos: [
+                            { nombre: 'Resistor SMD 0805 4.7kOhm', cantidad: 1 },
+                            { nombre: 'Capacitor Cerámico 100nF', cantidad: 2 }
+                        ]
+                    },
+                    {
+                        _id: 'test002', 
+                        usuario: { nombre_completo: 'Ana García', nombre: 'Ana' },
+                        estado: 'aprobada',
+                        createdAt: new Date(Date.now() - 86400000).toISOString(),
+                        insumos: [
+                            { nombre: 'LED Rojo 5mm', cantidad: 10 }
+                        ]
+                    },
+                    {
+                        _id: 'test003',
+                        usuario: { nombre_completo: 'Carlos López', nombre: 'Carlos' },
+                        estado: 'rechazada',
+                        createdAt: new Date(Date.now() - 172800000).toISOString(),
+                        insumos: [
+                            { nombre: 'Microcontrolador Arduino Uno', cantidad: 1 }
+                        ]
+                    },
+                    {
+                        _id: 'test004',
+                        usuario: { nombre_completo: 'Laura Martínez', nombre: 'Laura' },
+                        estado: 'entregado',
+                        createdAt: new Date(Date.now() - 259200000).toISOString(),
+                        insumos: [
+                            { nombre: 'Protoboard 830 puntos', cantidad: 2 }
+                        ]
+                    }
+                ];
+
+                this.allSolicitudes = datosDePrueba;
+                this.solicitudes = [...this.allSolicitudes];
+                this.renderSolicitudes();
+                return;
+            }
+
+            // Si hay token, usar la API real (misma que desktop)
+            try {
+                // Usar la misma URL que desktop
+                const apiUrl = 'http://localhost:4000/api/solicitudes';
+                console.log('** URL API:', apiUrl);
+                
+                const response = await fetch(apiUrl, {
+                    headers: token ? {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    } : {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                console.log('** Datos recibidos de API:', data);
+                console.log('** Tipo de datos recibidos:', typeof data);
+                console.log('** ¿Es array?', Array.isArray(data));
+                console.log('** Longitud del array:', data.length);
+                console.log('** IDs de solicitudes recibidas:', data.map(s => s._id));
+                console.log('** Estados de solicitudes recibidas:', data.map(s => s.estado));
+                
+                this.allSolicitudes = Array.isArray(data) ? data : (data.solicitudes || data.data || []);
+                this.solicitudes = [...this.allSolicitudes];
+                
+                console.log('** Solicitudes cargadas en móvil:', this.solicitudes.length);
+                console.log('** Primera solicitud:', this.solicitudes[0]);
+                
+                this.renderSolicitudes();
+                return;
+            } catch (apiError) {
+                console.error('** Error en API, intentando endpoint público:', apiError);
+                
+                // Intentar endpoint público sin autenticación
+                try {
+                    const publicResponse = await fetch('/api/solicitudes');
+                    if (publicResponse.ok) {
+                        const publicData = await publicResponse.json();
+                        console.log('** Datos recibidos de API pública:', publicData);
+                        this.allSolicitudes = Array.isArray(publicData) ? publicData : (publicData.solicitudes || publicData.data || []);
+                        this.solicitudes = [...this.allSolicitudes];
+                        this.renderSolicitudes();
+                        return;
+                    }
+                } catch (publicError) {
+                    console.error('** Error en API pública:', publicError);
+                }
+                
+                // Si todo falla, usar datos de prueba
+                console.log('** Todas las APIs fallaron, usando datos de prueba');
+                const datosDePrueba = [
+                    {
+                        _id: 'test001',
+                        usuario: { nombre_completo: 'Mathias Jimenez', nombre: 'Mathias' },
+                        estado: 'pendiente',
+                        createdAt: new Date().toISOString(),
+                        insumos: [
+                            { nombre: 'Resistor SMD 0805 4.7kOhm', cantidad: 1 },
+                            { nombre: 'Capacitor Cerámico 100nF', cantidad: 2 }
+                        ]
+                    }
+                ];
+                this.allSolicitudes = datosDePrueba;
+                this.solicitudes = [...this.allSolicitudes];
+                this.renderSolicitudes();
+            }
+            
+        } catch (error) {
+            console.error('** Error cargando solicitudes móviles:', error);
+        }
+    }
+
+    renderSolicitudes() {
+        console.log('** renderSolicitudes() llamado en móvil...');
+        const container = document.getElementById('mobile-solicitudes-container');
+        if (!container) {
+            console.error('** No se encontró contenedor mobile');
+            return;
+        }
+
+        const solicitudesFiltradas = this.getFilteredSolicitudes();
+        console.log('** Solicitudes filtradas para renderizar:', solicitudesFiltradas.length);
+        
+        if (solicitudesFiltradas.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-8">
+                    <div class="text-6xl mb-4">**</div>
+                    <h3 class="text-xl font-semibold text-slate-700 mb-2">No tienes solicitudes</h3>
+                    <p class="text-sm text-slate-500">Crea tu primera solicitud para comenzar</p>
+                </div>
+            `;
+            return;
+        }
+
+        console.log('** Creando tarjetas móviles...');
+        container.innerHTML = solicitudesFiltradas.map(solicitud => 
+            this.createSolicitudCard(solicitud)
+        ).join('');
+        console.log('** Tarjetas móviles renderizadas:', solicitudesFiltradas.length);
+        
+        // Actualizar contador de resultados móviles
+        const contadorMobile = document.getElementById('resultados-count-mobile');
+        if (contadorMobile) {
+            contadorMobile.textContent = solicitudesFiltradas.length;
+            console.log('** Contador móvil actualizado:', solicitudesFiltradas.length);
+        }
+        
+        // Actualizar contador de desktop también si existe
+        const contadorDesktop = document.getElementById('resultados-count');
+        if (contadorDesktop) {
+            contadorDesktop.textContent = solicitudesFiltradas.length;
+        }
+        
+        // Actualizar totales por estado
+        this.actualizarTotalesPorEstado();
+    }
+
+    createSolicitudCard(solicitud) {
+        console.log('** Creando tarjeta para solicitud:', solicitud);
+        console.log('** Usuario en solicitud:', solicitud.usuario);
+        console.log('** Insumos:', solicitud.insumos);
+        console.log('** Activos:', solicitud.activos);
+        
+        const usuario = JSON.parse(localStorage.getItem('utn_user'));
+        const rol = usuario?.rol || usuario?.rol_nombre || '';
+        const rolText = rol.toLowerCase();
+        
+        const esEstudiante = rolText.includes('estudiante');
+        const esDocente = rolText.includes('docente') || rolText.includes('profesor');
+        
+        let rolColor = '#000000';
+        let rolBgGradient = 'linear-gradient(135deg, rgba(229, 220, 220, 0) 0%, rgba(132, 128, 128, 0) 100%)';
+        let rolIcono = '??';
+        
+        if (esDocente) {
+            rolColor = '#000000';
+            rolBgGradient = 'linear-gradient(135deg, rgba(0, 0, 0, 0) 0%, rgba(51, 51, 51, 0) 100%)';
+            rolIcono = '??';
+        }
+
+        const nombreUsuario = solicitud.usuario?.nombre_completo || solicitud.usuario?.nombre || 'Usuario sin nombre';
+        console.log('** Nombre de usuario a mostrar:', nombreUsuario);
+
+        return `
+            <div class="bg-white rounded-lg shadow-md border border-slate-200 p-3 sm:p-4 mb-3 sm:mb-4 hover:shadow-lg transition-shadow">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0 mb-3">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-base sm:text-lg">${rolIcono}</span>
+                            <div>
+                                <div class="font-bold text-xs sm:text-xs" style="color: #004a8c;">${esEstudiante ? 'ESTUDIANTE' : 'DOCENTE'}</div>
+                                <div class="text-xs sm:text-xs opacity-90">Solicitud #${solicitud._id?.slice(-6)}</div>
+                            </div>
+                        </div>
+                        <div class="text-slate-600 font-medium text-sm sm:text-base mt-1">${nombreUsuario}</div>
+                        <div class="text-right sm:text-left mt-2 sm:mt-0">
+                            <div class="text-slate-500 text-xs sm:text-sm">${new Date(solicitud.createdAt).toLocaleDateString()}</div>
+                            <div class="mt-1">${this.getEstadoBadge(solicitud.estado)}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-2 sm:space-y-3">
+                    <div class="text-xs sm:text-sm text-slate-700">
+                        ${this.getElementosInfo(solicitud)}
+                    </div>
+                    
+                    <div class="flex justify-end mt-2 sm:mt-3">
+                        <div class="relative">
+                            <button 
+                                onclick="window.mobileUserController.toggleMenu('${solicitud._id}')" 
+                                class="p-1.5 sm:p-2 rounded-lg transition-all duration-200 hover:scale-110"
+                                style="background: ${rolBgGradient}; color: black; box-shadow: 0 2px 8px ${rolColor}40;">
+                                <span class="text-sm sm:text-base">?</span>
+                            </button>
+                            <div id="menu-${solicitud._id}" class="hidden absolute right-0 sm:right-4 mt-1 sm:mt-2 w-44 sm:w-48 bg-white rounded-lg shadow-lg border" style="border-color: #000000; z-index: 1000;">
+                                <div class="p-1.5 sm:p-2">
+                                    ${this.createActionsForRole(solicitud, esEstudiante, esDocente, rolColor)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    createActionsForRole(solicitud, esEstudiante, esDocente, rolColor) {
+        const estado = solicitud.estado;
+        let actions = [];
+
+        actions.push(`
+            <button onclick="window.mobileUserController.verDetalles('${solicitud._id}')" 
+                class="w-full text-left px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-2"
+                style="color: #004a8c; hover: background-color: #004a8c15;">
+                <span class="text-xs sm:text-sm">??</span> Ver Detalles
+            </button>
+        `);
+
+        if (esEstudiante || esDocente) {
+            if (estado === 'pendiente') {
+                actions.push(`
+                    <button onclick="window.mobileUserController.gestionarSolicitud('${solicitud._id}')" 
+                        class="w-full text-left px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-2"
+                        style="color: #004a8c; hover: background-color: #004a8c15;">
+                        <span class="text-xs sm:text-sm">??</span> Editar Solicitud
+                    </button>
+                `);
+            }
+            if (estado === 'pendiente' || estado === 'aprobada') {
+                actions.push(`
+                    <button onclick="window.eliminarSolicitud('${solicitud._id}')" 
+                        class="w-full text-left px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-2"
+                        style="color: #004a8c; hover: background-color: #004a8c15;">
+                        <span style="opacity: 0.8;">×</span> Cancelar Solicitud
+                    </button>
+                `);
+            }
+        }
+        
+        return actions.join('');
+    }
+
+    getFilteredSolicitudes() {
+        console.log('** Filtros actuales:', this.filters);
+        console.log('** Estado del filtro:', this.filters.estado);
+        console.log('** Todas las solicitudes disponibles:', this.solicitudes);
+        
+        let filtradas = this.solicitudes;
+
+        if (this.filters.estado !== 'todos') {
+            filtradas = filtradas.filter(s => s.estado === this.filters.estado);
+            console.log(`** Filtrando por estado "${this.filters.estado}":`, filtradas.length);
+        } else {
+            console.log('** Mostrando todos los estados:', filtradas.length);
+        }
+
+        if (this.filters.busqueda) {
+            filtradas = filtradas.filter(s => {
+                const textoFila = `${s.usuario?.nombre_completo || ''} ${s._id || ''} ${this.getElementosInfo(solicitud) || ''}`.toLowerCase();
+                return textoFila.includes(this.filters.busqueda.toLowerCase());
+            });
+        }
+
+        console.log('** Solicitudes finales para mostrar:', filtradas.length);
+        return filtradas;
+    }
+
+    applyFilters() {
+        console.log('** Aplicando filtros en móvil...');
+        this.renderSolicitudes();
+        
+        // Actualizar contadores después de aplicar filtros
+        const solicitudesFiltradas = this.getFilteredSolicitudes();
+        const contadorMobile = document.getElementById('resultados-count-mobile');
+        if (contadorMobile) {
+            contadorMobile.textContent = solicitudesFiltradas.length;
+            console.log('** Contador móvil actualizado después de filtros:', solicitudesFiltradas.length);
+        }
+        
+        const contadorDesktop = document.getElementById('resultados-count');
+        if (contadorDesktop) {
+            contadorDesktop.textContent = solicitudesFiltradas.length;
+            console.log('** Contador desktop actualizado después de filtros:', solicitudesFiltradas.length);
+        }
+        
+        // Actualizar totales por estado
+        this.actualizarTotalesPorEstado();
+    }
+
+    limpiarFiltros() {
+        this.filters = {
+            busqueda: '',
+            estado: 'todos',
+            fechaDesde: '',
+            fechaHasta: ''
+        };
+        
+        const estadoFilter = document.getElementById('estado-filter');
+        if (estadoFilter) estadoFilter.value = 'todos';
+        
+        this.renderSolicitudes();
+    }
+
+    actualizarTotalesPorEstado() {
+        console.log('** Actualizando totales por estado...');
+        
+        // Calcular totales por estado (igual que desktop)
+        const stats = {
+            pendientes: this.solicitudes.filter(s => s.estado === 'pendiente').length,
+            aprobadas: this.solicitudes.filter(s => s.estado === 'aprobada').length,
+            rechazadas: this.solicitudes.filter(s => s.estado === 'rechazada').length,
+            entregadas: this.solicitudes.filter(s => s.estado === 'entregado').length,
+            devueltas: this.solicitudes.filter(s => s.estado === 'devuelto').length,
+            canceladas: this.solicitudes.filter(s => s.estado === 'cancelada').length
+        };
+
+        console.log('** Estadísticas calculadas:', stats);
+
+        // Actualizar contadores desktop (igual que desktop)
+        const pendientesCount = document.getElementById('pendientes-count');
+        const aprobadasCount = document.getElementById('aprobadas-count');
+        const rechazadasCount = document.getElementById('rechazadas-count');
+        const entregadasCount = document.getElementById('entregadas-count');
+        const devueltasCount = document.getElementById('devueltas-count');
+        const canceladasCount = document.getElementById('canceladas-count');
+
+        if (pendientesCount) pendientesCount.textContent = stats.pendientes;
+        if (aprobadasCount) aprobadasCount.textContent = stats.aprobadas;
+        if (rechazadasCount) rechazadasCount.textContent = stats.rechazadas;
+        if (entregadasCount) entregadasCount.textContent = stats.entregadas;
+        if (devueltasCount) devueltasCount.textContent = stats.devueltas;
+        if (canceladasCount) canceladasCount.textContent = stats.canceladas;
+
+        // Actualizar contadores mobile (igual que desktop)
+        const pendientesMobile = document.getElementById('pendientes-count-mobile');
+        const aprobadasMobile = document.getElementById('aprobadas-count-mobile');
+        const rechazadasMobile = document.getElementById('rechazadas-count-mobile');
+        const entregadasMobile = document.getElementById('entregadas-count-mobile');
+        const devueltasMobile = document.getElementById('devueltas-count-mobile');
+        const canceladasMobile = document.getElementById('canceladas-count-mobile');
+
+        if (pendientesMobile) pendientesMobile.textContent = stats.pendientes;
+        if (aprobadasMobile) aprobadasMobile.textContent = stats.aprobadas;
+        if (rechazadasMobile) rechazadasMobile.textContent = stats.rechazadas;
+        if (entregadasMobile) entregadasMobile.textContent = stats.entregadas;
+        if (devueltasMobile) devueltasMobile.textContent = stats.devueltas;
+        if (canceladasMobile) canceladasMobile.textContent = stats.canceladas;
+
+        console.log('** Contadores actualizados correctamente');
+    }
+    
+    actualizarElementoEstado(id, valor) {
+        console.log(`** Buscando elemento con id: ${id}`);
+        const elemento = document.getElementById(id);
+        console.log(`** Elemento encontrado:`, elemento);
+        
+        if (elemento) {
+            // Agregar retraso mayor para asegurar visibilidad
+            setTimeout(() => {
+                elemento.textContent = valor;
+                console.log(`** Elemento ${id} actualizado:`, valor);
+                
+                // Forzar reflow para asegurar visibilidad
+                elemento.style.display = 'none';
+                elemento.offsetHeight; // Forzar reflow
+                elemento.style.display = '';
+                
+                // Verificar que el valor se mantenga después de un tiempo
+                setTimeout(() => {
+                    const valorActual = elemento.textContent;
+                    console.log(`** Verificación ${id}: valor actual "${valorActual}" vs esperado "${valor}"`);
+                }, 500);
+            }, 200);
+        } else {
+            console.warn(`** Elemento ${id} NO encontrado en el DOM`);
+        }
+    }
+
+    getEstadoBadge(estado) {
+        const badges = {
+            'pendiente': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">?? Pendiente</span>',
+            'aprobada': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">?? Aprobada</span>',
+            'rechazada': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">?? Rechazada</span>',
+            'entregado': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">?? Entregado</span>',
+            'devuelto': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">?? Devuelto</span>',
+            'cancelada': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">?? Cancelada</span>'
+        };
+        return badges[estado] || `<span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">${estado}</span>`;
+    }
+
+    getElementosInfo(solicitud) {
+        console.log('** getElementosInfo llamado con:', solicitud);
+        console.log('** Todas las propiedades de solicitud:', Object.keys(solicitud));
+        
+        const elementos = [];
+        
+        // Intentar diferentes estructuras para insumos
+        const insumos = solicitud.insumos || solicitud.insumo || solicitud.items || solicitud.productos || [];
+        console.log('** Insumos encontrados:', insumos);
+        
+        if (Array.isArray(insumos) && insumos.length > 0) {
+            console.log('** Procesando insumos:', insumos);
+            insumos.forEach((insumo, index) => {
+                console.log(`** Insumo ${index}:`, insumo);
+                console.log(`** Propiedades del insumo ${index}:`, Object.keys(insumo));
+                console.log(`** Valores del insumo ${index}:`, Object.values(insumo));
+                
+                // Buscar el nombre en múltiples propiedades posibles
+                const posiblesNombres = [
+                    'nombre', 'nombreProducto', 'producto', 'item', 'articulo', 
+                    'name', 'product', 'article', 'description', 'descripcion'
+                ];
+                
+                let nombre = `Insumo ${index + 1}`;
+                for (const prop of posiblesNombres) {
+                    if (insumo[prop] && typeof insumo[prop] === 'string' && insumo[prop].trim()) {
+                        nombre = insumo[prop];
+                        console.log(`** Nombre encontrado en propiedad "${prop}":`, nombre);
+                        break;
+                    }
+                }
+                
+                const cantidad = insumo.cantidad || insumo.quantity || insumo.cant || 1;
+                console.log(`** Cantidad encontrada:`, cantidad);
+                
+                elementos.push({
+                    icono: '&nbsp;??', // Icono para insumos con espacio
+                    tipo: 'insumo',
+                    nombre: nombre,
+                    cantidad: cantidad,
+                    detalles: insumo.caracteristicas || insumo.descripcion || insumo.details || ''
+                });
+                
+                console.log(`** Elemento agregado:`, elementos[elementos.length - 1]);
+            });
+        }
+        
+        // Intentar diferentes estructuras para activos
+        const activos = solicitud.activos || solicitud.activo || solicitud.equipos || solicitud.equipment || [];
+        console.log('** Activos encontrados:', activos);
+        
+        if (Array.isArray(activos) && activos.length > 0) {
+            console.log('** Procesando activos:', activos);
+            activos.forEach((activo, index) => {
+                console.log(`** Activo ${index}:`, activo);
+                const nombre = activo.nombre || activo.nombreActivo || activo.equipo || `Activo ${index + 1}`;
+                
+                elementos.push({
+                    icono: '&nbsp;??', // Icono para activos con espacio
+                    tipo: 'activo',
+                    nombre: nombre,
+                    cantidad: 1,
+                    detalles: activo.descripcion || activo.caracteristicas || ''
+                });
+            });
+        }
+        
+        // Si todavía no hay elementos, revisar si hay alguna otra propiedad
+        if (elementos.length === 0) {
+            console.log('** Buscando elementos en otras propiedades...');
+            for (const key in solicitud) {
+                if (key !== '_id' && key !== 'usuario' && key !== 'estado' && key !== 'createdAt' && key !== 'updatedAt') {
+                    const value = solicitud[key];
+                    if (value && typeof value === 'object') {
+                        console.log(`** Revisando propiedad ${key}:`, value);
+                        if (Array.isArray(value)) {
+                            value.forEach((item, index) => {
+                                if (item && typeof item === 'object') {
+                                    const nombre = item.nombre || item.name || item.descripcion || `Item ${index + 1}`;
+                                    elementos.push({
+                                        icono: '??',
+                                        nombre: nombre,
+                                        cantidad: item.cantidad || 1,
+                                        detalles: item.detalles || ''
+                                    });
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        
+        console.log('** Elementos procesados:', elementos);
+        
+        if (elementos.length === 0) {
+            console.log('** No se encontraron elementos, mostrando "Sin elementos"');
+            return '<span class="text-slate-500">Sin elementos</span>';
+        }
+        
+        const resultado = elementos.map(el => {
+            // Formato directo con emoji como en desktop
+            let texto = `?? ${el.nombre}`;
+            
+            // Si el nombre no incluye cantidad, agregarla
+            if (!el.nombre.includes('(') || !el.nombre.includes(')')) {
+                texto += el.cantidad > 1 ? ` (x${el.cantidad})` : ' (x1)';
+            }
+            
+            return `<span class="text-slate-700">${texto}</span>`;
+        }).join(', ');
+        
+        // Agregar información del total en una línea separada
+        const totalElementos = elementos.reduce((sum, el) => sum + el.cantidad, 0);
+        const infoTotal = totalElementos > 0 ? `<br><span class="text-slate-500 text-xs">Total: ${totalElementos} elemento${totalElementos > 1 ? 's' : ''}</span>` : '';
+        
+        console.log('** Resultado getElementosInfo:', resultado + infoTotal);
+        console.log('** HTML generado:', resultado + infoTotal);
+        return resultado + infoTotal;
+    }
+
+    verDetalles(solicitudId) {
+        console.log('** Ver detalles mobile:', solicitudId);
+    }
+
+    gestionarSolicitud(solicitudId) {
+        console.log('** Gestionar solicitud mobile:', solicitudId);
+    }
+
+    toggleMenu(solicitudId) {
+        const menu = document.getElementById(`menu-${solicitudId}`);
+        const allMenus = document.querySelectorAll('[id^="menu-"]');
+
+        allMenus.forEach(m => {
+            if (m.id !== `menu-${solicitudId}`) {
+                m.classList.add('hidden');
+            }
+        });
+
+        menu.classList.toggle('hidden');
+    }
+}
+
+// Inicializar directamente sin esperar a solicitudesController
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('** DOM listo - Inicializando MobileUserController directamente...');
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @media (max-width: 1023px) {
+            #mobile-solicitudes-container {
+                min-height: calc(100vh - 200px) !important;
+                max-height: calc(100vh - 200px) !important;
+                overflow-y: auto !important;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    window.mobileUserController = new MobileUserController();
+    console.log('** MobileUserController creado:', window.mobileUserController);
+    
+    setTimeout(() => {
+        console.log('** Verificando condiciones...');
+        
+        const isMobile = window.innerWidth < 1024;
+        console.log('** Ancho de pantalla:', window.innerWidth, 'Mobile:', isMobile);
+        
+        if (!isMobile) {
+            console.log('** No es mobile/tablet, saliendo');
+            return;
+        }
+        
+        const userData = localStorage.getItem('utn_user');
+        console.log('** Datos de usuario encontrados:', !!userData);
+        
+        if (!userData) {
+            console.log('** No hay datos de usuario, saliendo');
+            return;
+        }
+        
+        const currentUser = JSON.parse(userData);
+        const rol = currentUser?.rol || currentUser?.rol_nombre || '';
+        const rolText = rol.toLowerCase();
+        
+        const esAdmin = rolText.includes('admin') || rolText.includes('administrador');
+        console.log('** Es administrador:', esAdmin);
+        
+        if (esAdmin) {
+            console.log('** Usuario es administrador, no se inicia controlador mobile');
+            return;
+        }
+        
+        console.log('** Todas las condiciones cumplidas, iniciando controlador mobile...');
+        window.mobileUserController.init();
+        
+    }, 500);
+});

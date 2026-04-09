@@ -12,6 +12,24 @@
     <link rel="stylesheet" href="../css/main.css" />
     <link rel="stylesheet" href="../css/pages/solicitudes.css" />
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- CSS para prevenir parpadeo -->
+    <style>
+        /* Ocultar elementos desktop en móviles antes de cargar JavaScript */
+        @media (max-width: 1023px) {
+            .overflow-x-auto {
+                display: none !important;
+            }
+            #solicitudes-tbody {
+                display: none !important;
+            }
+            .hidden.lg\:block {
+                display: none !important;
+            }
+        }
+        
+        /* No forzar el contenedor móvil, dejar que Tailwind lo maneje */
+    </style>
   </head>
   <body class="text-slate-800">
     <!-- Header Component -->
@@ -101,6 +119,22 @@
                 <div class="mt-2 text-xs text-green-500">Listas para entrega</div>
               </div>
 
+              <!-- Rechazadas -->
+              <div
+                class="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
+                <div
+                  class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span class="text-2xl">??</span>
+                </div>
+                <h3
+                  class="text-2xl font-bold text-red-700"
+                  id="rechazadas-count">
+                  0
+                </h3>
+                <p class="text-sm text-red-600 font-medium">Rechazadas</p>
+                <div class="mt-2 text-xs text-red-500">Solicitudes denegadas</div>
+              </div>
+
               <div
                 class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
                 <div
@@ -130,6 +164,22 @@
                 <p class="text-sm text-purple-600 font-medium">Devueltas</p>
                 <div class="mt-2 text-xs text-purple-500">Proceso completado</div>
               </div>
+
+              <!-- Canceladas -->
+              <div
+                class="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-6 text-center transform hover:scale-105 transition-all duration-200 shadow-lg">
+                <div
+                  class="w-12 h-12 bg-gray-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span class="text-2xl">??</span>
+                </div>
+                <h3
+                  class="text-2xl font-bold text-gray-700"
+                  id="canceladas-count">
+                  0
+                </h3>
+                <p class="text-sm text-gray-600 font-medium">Canceladas</p>
+                <div class="mt-2 text-xs text-gray-500">Canceladas por usuario</div>
+              </div>
             </div>
           </section>
 
@@ -153,6 +203,14 @@
                 <span class="text-[9px] font-black text-green-700" id="aprobadas-count-mobile">0</span>
               </div>
 
+              <div class="flex justify-between bg-red-50 border border-red-200 rounded p-1 shadow-sm">
+                <div class="flex items-center gap-0.5">
+                  <span class="text-[11px">??</span>
+                  <span class="text-[8px] font-bold text-red-800 uppercase">Rechazadas</span>
+                </div>
+                <span class="text-[9px] font-black text-red-700" id="rechazadas-count-mobile">0</span>
+              </div>
+
               <div class="flex justify-between bg-blue-50 border border-blue-200 rounded p-1 shadow-sm">
                 <div class="flex items-center gap-0.5">
                   <span class="text-[11px]">📦</span>
@@ -167,6 +225,14 @@
                   <span class="text-[7px] font-bold text-purple-800 uppercase">Devueltas</span>
                 </div>
                 <span class="text-[9px] font-black text-purple-700" id="devueltas-count-mobile">0</span>
+              </div>
+
+              <div class="flex justify-between bg-gray-50 border border-gray-200 rounded p-1 shadow-sm">
+                <div class="flex items-center gap-0.5">
+                  <span class="text-[11px">??</span>
+                  <span class="text-[8px] font-bold text-gray-800 uppercase">Canceladas</span>
+                </div>
+                <span class="text-[9px] font-black text-gray-700" id="canceladas-count-mobile">0</span>
               </div>
 
             </div>
@@ -428,10 +494,10 @@
                       <th class="px-0 sm:px-0.25 md:px-2 lg:px-3 py-0 sm:py-0.20 text-left text-[2px] sx:text-[2px] font-medium text-slate-300 uppercase tracking-tighter leading-none w-6">.</th>
                     </tr>
                   </thead>
-                  <tbody id="solicitudes-tbody" class="bg-white lg:divide-y-0 lg:border-b lg:border-slate-200" style="z-index: 1; position: relative;">
-                    <!-- Las filas se generarán dinámicamente -->
+                  <tbody id="solicitudes-tbody-desktop" class="bg-white lg:divide-y-0 lg:border-b lg:border-slate-200" style="z-index: 1; position: relative;">
+                    <!-- Las filas de desktop se generarán dinámicamente -->
                     <style>
-                      #solicitudes-tbody td {
+                      #solicitudes-tbody-desktop td {
                         padding: 0px !important;
                         font-size: 1px !important;
                         line-height: 1 !important;
@@ -439,24 +505,25 @@
                         overflow: hidden !important;
                         text-overflow: ellipsis !important;
                       }
-                      #solicitudes-tbody td:nth-child(5) {
+                      #solicitudes-tbody-desktop td:nth-child(5) {
                         font-size: 0.05px !important;
                         padding: 0px !important;
                       }
-                      #solicitudes-tbody td:last-child {
+                      #solicitudes-tbody-desktop td:last-child {
                         font-size: 0.01px !important;
                         padding: 0px !important;
                         min-width: 24px !important;
                         width: 24px !important;
                         text-align: center !important;
                       }
-                      #solicitudes-tbody td:last-child * {
-                        font-size: 0.01px !important;
+                      #solicitudes-tbody-desktop td:last-child * {
+                        font-size: 0.05px !important;
                       }
-                      #solicitudes-tbody tr {
+                      #solicitudes-tbody-desktop tr {
                         height: auto !important;
                       }
                       @media (min-width: 250px) {
+                        #solicitudes-tbody-desktop td {
                         #solicitudes-tbody td {
                           font-size: 1px !important;
                           padding: 0px !important;
@@ -500,6 +567,33 @@
                   </tbody>
                 </table>
               </div>
+            </div>
+            
+            <!-- CSS para asegurar visibilidad de tarjetas móviles -->
+            <style>
+              #mobile-solicitudes-container {
+                min-height: 300px;
+                background: #f8fafc;
+                border-radius: 8px;
+                padding: 8px;
+              }
+              #mobile-solicitudes-container:empty::before {
+                content: "No hay solicitudes móviles";
+                display: block;
+                text-align: center;
+                color: #64748b;
+                padding: 20px;
+                font-size: 14px;
+              }
+              #mobile-solicitudes-container .bg-white {
+                margin-bottom: 12px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+              }
+            </style>
+
+            <!-- Contenedor para Mobile View -->
+            <div id="mobile-solicitudes-container" class="block lg:hidden px-2 sm:px-3 md:px-4 min-h-[200px]">
+              <!-- Las tarjetas móviles se generarán dinámicamente -->
             </div>
             
             <div class="p-0 sm:p-0 md:p-6">
@@ -672,6 +766,7 @@
     <script src="../js/components/modals.js"></script>
     <script src="../js/pages/Solicitudes/solicitudes.js"></script>
     <script src="../js/pages/Solicitudes/Soli_Clientes/Soli_DeskUs.js"></script>
+    <script src="../js/pages/Solicitudes/Soli_Clientes/Soli_MobUs.js"></script>
 
     <!-- Función global para el menú -->
     <script>
@@ -1083,7 +1178,7 @@
 
       // Función para crear datos de ejemplo
       function crearDatosEjemplo() {
-        const tbody = document.getElementById("solicitudes-tbody");
+        const tbody = document.getElementById("solicitudes-tbody-desktop");
         if (!tbody) return;
 
         const ejemplos = [
@@ -1279,15 +1374,19 @@
 
       // Función para mostrar solicitudes reales (SOLO CONTROLLER)
       function mostrarSolicitudesReales(solicitudes) {
-        console.log("🎯 Delegando SOLO al controller:", solicitudes.length, "solicitudes");
-        console.log("🚫 NO usar sistema HTML antiguo - SOLO controller");
+        console.log("?? Delegando SOLO al controller:", solicitudes.length, "solicitudes");
+        console.log("?? NO usar sistema HTML antiguo - SOLO controller");
+        
+        // Guardar datos para que el controller móvil pueda usarlos
+        window.solicitudesData = solicitudes;
+        console.log("?? Datos guardados en window.solicitudesData:", solicitudes.length);
         
         // SOLO actualizar contadores - NO mostrar insumos detallados aquí
         actualizarContadores(solicitudes);
-        console.log("✅ Contadores actualizados");
+        console.log("?? Contadores actualizados");
         
         // El controller se encarga de mostrar todo lo demás
-        console.log("✅ Controller manejará el renderizado completo");
+        console.log("?? Controller manejará el renderizado completo");
       }
 
       
@@ -1945,7 +2044,7 @@
             boton.classList.add('bg-slate-50', 'text-slate-500');
           } else {
             // Verificar si el tbody es visible
-            const tbody = document.getElementById('solicitudes-tbody');
+            const tbody = document.getElementById('solicitudes-tbody-desktop');
             const tbodyRect = tbody ? tbody.getBoundingClientRect() : null;
             
             // Si el tbody no es visible o está fuera de pantalla, no mostrar el menú
@@ -2466,7 +2565,7 @@
 
         // Buscar la solicitud actual para verificar su estado
         // Obtener los datos desde la tabla DOM
-        const tbody = document.getElementById('solicitudes-tbody');
+        const tbody = document.getElementById('solicitudes-tbody-desktop');
         const filas = tbody.querySelectorAll('tr');
         let solicitudActual = null;
         

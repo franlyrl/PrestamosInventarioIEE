@@ -13,18 +13,26 @@ class SolicitudesController {
     }
 
     async initialize() {
-        console.log('🚀 Inicializando SolicitudesController...');
+        console.log('** initialize() llamado - BLOQUEADO para dejar control a controladores específicos');
+        
+        // Verificar si es desktop antes de continuar
+        if (window.innerWidth < 1024) {
+            console.log('** No es desktop - SolicitudesController NO se inicializará');
+            return;
+        }
+        
+        console.log('** Es desktop - Inicializando SolicitudesController...');
         await this.cargarSolicitudes();
         this.setupEventListeners();
 
         // Renderizar para actualizar contadores
         this.renderSolicitudes();
 
-        console.log('✅ SolicitudesController inicializado completamente');
+        console.log('** SolicitudesController inicializado completamente');
 
         // Forzar recarga de datos después de un breve momento
         setTimeout(() => {
-            console.log('🔄 Recargando solicitudes por si acaso...');
+            console.log('** Recargando solicitudes...');
             this.cargarSolicitudes();
         }, 1000);
     }
@@ -130,156 +138,11 @@ class SolicitudesController {
     }
 
     renderSolicitudes() {
-        console.log('🔄 renderSolicitudes() llamado - RENDERIZADO COMPLETO');
-
-        // Detectar si es móvil o desktop
-        const isMobile = window.innerWidth < 1024;
-        console.log('📱 Dispositivo detectado:', isMobile ? 'Móvil' : 'Desktop');
-
-        const tbody = document.getElementById('solicitudes-tbody');
-        const emptyState = document.getElementById('empty-state');
-        const resultadosCount = document.getElementById('resultados-count');
-
-        console.log('🔍 tbody encontrado:', tbody);
-        if (!tbody) return;
-
-        const solicitudesFiltradas = this.filtrarSolicitudes();
-        console.log('📊 Solicitudes filtradas:', solicitudesFiltradas.length);
-
-        // Actualizar contadores - USAR MÉTODO DEL CONTROLLER
-        try {
-            this.updateEstadisticas();
-            console.log('✅ Contadores actualizados con updateEstadisticas()');
-        } catch (error) {
-            console.log('⚠️ updateEstadisticas() falló - intentando con actualizarContadores()');
-            if (typeof actualizarContadores === 'function') {
-                actualizarContadores(solicitudesFiltradas);
-                console.log('✅ Contadores actualizados con actualizarContadores()');
-            } else {
-                console.log('⚠️ actualizarContadores() no disponible - actualizando manualmente');
-                // Actualizar contador principal manualmente
-                if (resultadosCount) {
-                    resultadosCount.textContent = solicitudesFiltradas.length;
-                }
-            }
-        }
-
-        // ACTUALIZACIÓN MANUAL DIRECTA DE CONTADORES MÓVILES
-        console.log('🔧 Actualizando contadores móviles directamente...');
-        const pendientes = solicitudesFiltradas.filter(s => s.estado === 'pendiente');
-        const aprobadas = solicitudesFiltradas.filter(s => s.estado === 'aprobada');
-        const entregadas = solicitudesFiltradas.filter(s => s.estado === 'entregado');
-        const devueltas = solicitudesFiltradas.filter(s => s.estado === 'devuelto');
-
-        console.log('📊 Contadores móviles:', {
-            pendientes: pendientes.length,
-            aprobadas: aprobadas.length,
-            entregadas: entregadas.length,
-            devueltas: devueltas.length
-        });
-
-        // ACTUALIZAR CONTADOR DE RESULTADOS MOSTRADOS
-        const resultadosCountEl = document.getElementById(isMobile ? 'resultados-count-mobile' : 'resultados-count');
-        if (resultadosCountEl) {
-            console.log('🔧 Actualizando resultados-count:', solicitudesFiltradas.length, 'para', isMobile ? 'mobile' : 'desktop');
-            resultadosCountEl.textContent = solicitudesFiltradas.length;
-        } else {
-            console.log('🔧 No se encontró el elemento resultados-count para', isMobile ? 'mobile' : 'desktop');
-        }
-
-        // VERIFICAR QUE LOS ELEMENTOS EXISTAN (USAR IDS DE MÓVIL)
-        const pendientesEl = document.getElementById('pendientes-count-mobile');
-        const aprobadasEl = document.getElementById('aprobadas-count-mobile');
-        const entregadasEl = document.getElementById('entregadas-count-mobile');
-        const devueltasEl = document.getElementById('devueltas-count-mobile');
-
-        console.log('🔍 Elementos móviles encontrados:', {
-            'pendientes-count-mobile': !!pendientesEl,
-            'aprobadas-count-mobile': !!aprobadasEl,
-            'entregadas-count-mobile': !!entregadasEl,
-            'devueltas-count-mobile': !!devueltasEl
-        });
-
-        // ACTUALIZAR CON VERIFICACIÓN
-        if (pendientesEl) {
-            pendientesEl.textContent = pendientes.length;
-            console.log('✅ pendientes-count-mobile actualizado:', pendientes.length);
-        } else {
-            console.error('❌ pendientes-count-mobile NO encontrado');
-        }
-
-        if (aprobadasEl) {
-            aprobadasEl.textContent = aprobadas.length;
-            console.log('✅ aprobadas-count-mobile actualizado:', aprobadas.length);
-        } else {
-            console.error('❌ aprobadas-count-mobile NO encontrado');
-        }
-
-        if (entregadasEl) {
-            entregadasEl.textContent = entregadas.length;
-            console.log('✅ entregadas-count-mobile actualizado:', entregadas.length);
-        } else {
-            console.error('❌ entregadas-count-mobile NO encontrado');
-        }
-
-        if (devueltasEl) {
-            devueltasEl.textContent = devueltas.length;
-            console.log('✅ devueltas-count-mobile actualizado:', devueltas.length);
-        } else {
-            console.error('❌ devueltas-count-mobile NO encontrado');
-        }
-
-        console.log('✅ Contadores móviles actualizados en el DOM');
-
-        // Limpiar tbody completamente
-        tbody.innerHTML = '';
-
-        if (solicitudesFiltradas.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="text-center py-8">
-                        <div class="text-slate-400">
-                            <div class="text-4xl mb-2">📋</div>
-                            <div class="text-lg font-medium mb-1">
-                                ${this.filtros.estado === 'todos'
-                    ? 'No hay solicitudes encontradas'
-                    : `No hay solicitudes con estado "${this.filtros.estado}"`
-                }
-                            </div>
-                            <div class="text-sm">
-                                ${this.filtros.estado === 'todos'
-                    ? 'Intenta ajustar los filtros de búsqueda'
-                    : `No existen solicitudes en estado ${this.filtros.estado}`
-                }
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            `;
-            console.log('✅ Estado vacío mostrado');
-            return;
-        }
-
-        // Renderizar TODAS las solicitudes con formato responsive
-        console.log('🔨 Iniciando renderizado de solicitudes...');
-
-        // Usar innerHTML directo con formato responsive
-        const todasLasFilas = solicitudesFiltradas.map((solicitud, index) => {
-            const rowHTML = this.createSolicitudRow(solicitud, isMobile);
-            console.log(`🔨 Creando fila ${index + 1}:`, solicitud._id?.slice(-6));
-            return rowHTML;
-        }).join('');
-
-        console.log('📊 Insertando HTML en tbody...');
-        tbody.innerHTML = todasLasFilas;
-
-        console.log('✅ HTML insertado, vérificando contenido...');
-        console.log('🔍 tbody.innerHTML (primeros 200 chars):', tbody.innerHTML.substring(0, 200));
-        console.log('🔍 Número de filas en tbody:', tbody.children.length);
-
-        console.log('✅ TODAS las solicitudes renderizadas con formato responsive:', solicitudesFiltradas.length);
-        // Actualizar paginación
-        this.updatePaginacion();
+        console.log('** renderSolicitudes() llamado - BLOQUEADO para dejar control a Soli_DeskUs.js');
+        
+        // No renderizar nada - dejar que Soli_DeskUs.js maneje desktop
+        // y Soli_MobUs.js maneje móvil
+        return;
     }
 
     filtrarSolicitudes() {
@@ -388,6 +251,7 @@ class SolicitudesController {
         
         const esEstudiante = rolText.includes('estudiante');
         const esDocente = rolText.includes('docente') || rolText.includes('profesor');
+        const isMobile = window.innerWidth < 1024; // Definir isMobile
         
         let rolColor = '#10b981'; // Verde para estudiantes
         let rolBgGradient = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
@@ -400,7 +264,7 @@ class SolicitudesController {
         }
 
         if (isMobile) {
-            // Versión móvil
+            // Versión móvil - estilo Soli_DeskUs.js
             return `
                 <tr class="border-b hover:bg-slate-50">
                     <td class="p-4">
@@ -409,7 +273,7 @@ class SolicitudesController {
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-2">
                                         <span class="text-lg font-bold text-slate-800">#${solicitud._id?.slice(-6)}</span>
-                                        <span class="px-2 py-1 rounded-full text-xs font-medium" style="background: ${rolBgGradient}; color: white;">
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium" style="background: linear-gradient(135deg, rgba(229, 220, 220, 0) 0%, rgba(132, 128, 128, 0) 100%); color: #004a8c;">
                                             ${esEstudiante ? 'ESTUDIANTE' : 'DOCENTE'}
                                         </span>
                                     </div>
@@ -427,14 +291,19 @@ class SolicitudesController {
                                 </div>
                                 
                                 <div class="flex justify-end">
-                                    <button 
-                                        onclick="window.solicitudesController.toggleMenu('${solicitud._id}')" 
-                                        class="p-2 rounded-lg transition-all duration-200 hover:scale-110"
-                                        style="background: ${rolBgGradient}; color: white; box-shadow: 0 2px 8px ${rolColor}40;">
-                                        ?
-                                    </button>
-                                    <div id="menu-${solicitud._id}" class="hidden absolute right-4 mt-2 w-48 bg-white rounded-lg shadow-lg border" style="border-color: ${rolColor}; z-index: 1000;">
-                                        ${this.createActionsForRole(solicitud, esEstudiante, esDocente, rolColor)}
+                                    <div class="relative">
+                                        <button 
+                                            onclick="window.solicitudesController.toggleMenu('${solicitud._id}')" 
+                                            class="p-2 rounded-lg transition-all duration-200 hover:scale-110"
+                                            style="background: linear-gradient(135deg, rgba(229, 220, 220, 0) 0%, rgba(132, 128, 128, 0) 100%); color: black; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);">
+                                            <span class="text-lg">?</span>
+                                        </button>
+                                        <div id="menu-${solicitud._id}" class="hidden absolute right-4 mt-2 w-48 bg-white rounded-lg shadow-lg border" style="border-color: #000000; z-index: 1000;">
+                                            <!-- Acciones según rol y estado -->
+                                            <div class="p-2">
+                                                ${this.createActionsForRole(solicitud, esEstudiante, esDocente, '#000000')}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -959,6 +828,44 @@ class SolicitudesController {
             </div>
         `;
     }
+
+    createActionsForRole(solicitud, esEstudiante, esDocente, rolColor) {
+        const estado = solicitud.estado;
+        let actions = [];
+
+        // Acción Ver (siempre disponible)
+        actions.push(`
+            <button onclick="window.solicitudesController.verDetalles('${solicitud._id}')" 
+                class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                style="color: #004a8c; hover: background-color: #004a8c15;">
+                👁️ Ver Detalles
+            </button>
+        `);
+
+        // Acciones según rol y estado
+        if (esEstudiante || esDocente) {
+            if (estado === 'pendiente') {
+                actions.push(`
+                    <button onclick="window.solicitudesController.gestionarSolicitud('${solicitud._id}')" 
+                        class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                        style="color: #004a8c; hover: background-color: #004a8c15;">
+                        ✏️ Editar Solicitud
+                    </button>
+                `);
+            }
+            if (estado === 'pendiente' || estado === 'aprobada') {
+                actions.push(`
+                    <button onclick="window.eliminarSolicitud('${solicitud._id}')" 
+                        class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                        style="color: #004a8c; hover: background-color: #004a8c15;">
+                        <span style="opacity: 0.8;">×</span> Cancelar Solicitud
+                    </button>
+                `);
+            }
+        }
+        
+        return actions.join('');
+    }
 }
 
 // Función para eliminar solicitudes propias
@@ -1122,28 +1029,31 @@ window.verSolicitud = function(solicitudId) {
     document.body.appendChild(modal);
 };
 
-// Crear instancia global
-console.log('🔧 Creando instancia de SolicitudesController...');
-window.solicitudesController = new SolicitudesController();
-console.log('✅ SolicitudesController creado:', window.solicitudesController);
+// Crear instancia global solo si es desktop
+console.log('** Verificando si se debe crear SolicitudesController...');
+const isDesktop = window.innerWidth >= 1024;
+
+if (isDesktop) {
+    console.log('** Es desktop - Creando instancia de SolicitudesController...');
+    window.solicitudesController = new SolicitudesController();
+    console.log('** SolicitudesController creado:', window.solicitudesController);
+} else {
+    console.log('** No es desktop - NO se creará SolicitudesController');
+    window.solicitudesController = null;
+}
 
 // Inicializar automáticamente cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('🚀 DOM listo - Inicializando SolicitudesController...');
-    if (window.solicitudesController) {
-        window.solicitudesController.initialize();
-        console.log('✅ SolicitudesController inicializado');
-    } else {
-        console.error('❌ SolicitudesController no encontrado');
-    }
+    console.log('** DOM listo - SolicitudesController BLOQUEADO para dejar control a controladores específicos');
+    
+    // No inicializar - dejar que Soli_DeskUs.js y Soli_MobUs.js manejen todo
+    return;
 });
 
 // También intentar inicializar inmediatamente por si el DOM ya está listo
 if (document.readyState === 'loading') {
-    console.log('📄 DOM todavía cargando...');
+    console.log('** DOM todavía cargando...');
 } else {
-    console.log('📄 DOM ya listo - Inicializando ahora...');
-    if (window.solicitudesController) {
-        window.solicitudesController.initialize();
-    }
+    console.log('** DOM ya listo - SolicitudesController BLOQUEADO');
+    // No inicializar - dejar que los controladores específicos manejen todo
 }
