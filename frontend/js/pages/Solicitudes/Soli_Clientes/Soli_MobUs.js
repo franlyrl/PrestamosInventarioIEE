@@ -790,16 +790,24 @@ class MobileUserController {
                     classes: btn.className
                 });
                 
-                // CORRECCIÓN: Forzar que los botones siempre sean visibles
+                // CORRECCIÓN MEJORADA: Forzar que los botones siempre sean visibles
                 if (btn.classList.contains('hidden')) {
                     console.log('** REMOVIENDO CLASE HIDDEN DEL BOTÓN:', btn.id);
                     btn.classList.remove('hidden');
+                    btn.classList.remove('invisible'); // También remover invisible si existe
                 }
-                if (btn.style.display === 'none' || window.getComputedStyle(btn).display === 'none') {
-                    console.log('** FORZANDO DISPLAY BLOCK DEL BOTÓN:', btn.id);
-                    btn.style.display = 'block';
-                    btn.style.setProperty('display', 'block', 'important');
-                }
+                
+                // Forzar display correcto de múltiples maneras
+                btn.style.display = 'block';
+                btn.style.setProperty('display', 'block', 'important');
+                btn.style.visibility = 'visible';
+                btn.style.setProperty('visibility', 'visible', 'important');
+                
+                console.log('** BOTÓN CORREGIDO -', btn.id, ':', {
+                    display: btn.style.display,
+                    visibility: btn.style.visibility,
+                    classes: btn.className
+                });
             });
         }, 100);
         
@@ -811,7 +819,8 @@ class MobileUserController {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('** DOM listo - Inicializando MobileUserController directamente...');
     
-    // Agregar MutationObserver para detectar qué modifica los botones
+    // Agregar MutationObserver para detectar qué modifica los botones (DESACTIVADO - causa bucle infinito)
+    /*
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
@@ -846,6 +855,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         console.log('** Observer instalado en', buttons.length, 'botones');
     }, 1000);
+    */
     
     const style = document.createElement('style');
     style.textContent = `
