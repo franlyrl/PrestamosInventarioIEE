@@ -868,20 +868,21 @@ class SolicitudesController {
     }
 }
 
-// Función para eliminar solicitudes propias
+// Función para cancelar solicitudes (cambiar estado a cancelada)
 window.eliminarSolicitud = async function(solicitudId) {
-    console.log('🗑️ Iniciando eliminación de solicitud:', solicitudId);
+    console.log('*** FUNCIÓN CANCELAR SOLICITUD LLAMADA ***');
+    console.log('*** ID recibido:', solicitudId);
     
     // Validar que el ID no sea undefined
     if (!solicitudId || solicitudId === 'undefined') {
-        console.error('❌ ID de solicitud es undefined');
+        console.error('*** ID de solicitud es undefined');
         Utils.showToast('Error: ID de solicitud no válido', 'error');
         return;
     }
     
     // Verificación de seguridad
-    if (!confirm('¿Estás seguro de que quieres eliminar esta solicitud? Esta acción no se puede deshacer.')) {
-        console.log('❌ Eliminación cancelada por el usuario');
+    if (!confirm('¿Estás seguro de que quieres cancelar esta solicitud? Esta acción no se puede deshacer.')) {
+        console.log('*** Cancelación cancelada por el usuario');
         return;
     }
     
@@ -893,36 +894,42 @@ window.eliminarSolicitud = async function(solicitudId) {
             return;
         }
         
-        console.log('🔍 Enviando solicitud de eliminación para ID:', solicitudId);
-        console.log('🔍 URL completa:', `${CONFIG.API_BASE_URL}/solicitudes/${solicitudId}`);
+        console.log('*** Token encontrado, enviando solicitud...');
+        console.log('*** URL:', `http://localhost:4000/api/solicitudes/${solicitudId}`);
         
-        // Enviar solicitud de eliminación al backend
-        const response = await fetch(`${CONFIG.API_BASE_URL}/solicitudes/${solicitudId}`, {
-            method: 'DELETE',
+        // Cambiar estado a cancelada en lugar de eliminar
+        const response = await fetch(`http://localhost:4000/api/solicitudes/${solicitudId}`, {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
-            }
+            },
+            body: JSON.stringify({
+                estado: 'cancelada',
+                observacion: 'Solicitud cancelada desde móvil'
+            })
         });
         
-        console.log('📡 Respuesta del servidor:', response.status);
+        console.log('*** Respuesta del servidor:', response.status);
         
         if (!response.ok) {
             const errorData = await response.text();
-            console.error('❌ Error al eliminar:', errorData);
-            Utils.showToast(`Error al eliminar: ${response.statusText}`, 'error');
+            console.error('*** Error en la respuesta:', errorData);
+            Utils.showToast(`Error al cancelar: ${response.statusText}`, 'error');
             return;
         }
         
         const result = await response.json();
-        console.log('✅ Solicitud eliminada:', result);
+        console.log('*** Estado cambiado exitosamente:', result);
         
         // Mostrar mensaje de éxito
-        Utils.showToast('Solicitud eliminada correctamente', 'success');
+        Utils.showToast('Solicitud cancelada correctamente', 'success');
         
         // Recargar la lista de solicitudes
         if (window.solicitudesManager) {
             await window.solicitudesManager.loadSolicitudes();
+        } else if (window.mobileUserController) {
+            await window.mobileUserController.recargarDatos();
         } else {
             // Si no está disponible, recargar la página
             setTimeout(() => {
@@ -931,10 +938,14 @@ window.eliminarSolicitud = async function(solicitudId) {
         }
         
     } catch (error) {
-        console.error('❌ Error en eliminación:', error);
-        Utils.showToast('Error al eliminar la solicitud', 'error');
+        console.error('*** Error cancelando solicitud:', error);
+        Utils.showToast('Error al cancelar la solicitud', 'error');
     }
 };
+
+// Verificar que la función se creó correctamente
+console.log('*** FUNCIÓN CANCELAR CREADA:', typeof window.eliminarSolicitud);
+console.log('*** FUNCIÓN DISPONIBLE:', !!window.eliminarSolicitud);
 
 // Función para toggle del menú de acciones
 window.toggleMenu = function(solicitudId, event) {

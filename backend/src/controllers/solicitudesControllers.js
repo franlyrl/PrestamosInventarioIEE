@@ -389,16 +389,15 @@ exports.actualizarEstadoSolicitud = async (req, res) => {
 
 /**
  * @route DELETE /api/solicitudes/:id
- * @desc Elimina una solicitud del sistema, Pero solo el Usaurio Dueño de la solicitud puede hacerlo, 
- * antes que el admin haya rechazado o aceptado la solicitud. Si ya fue procesada por el admin, 
- * no se puede eliminar, solo cancelar (cambiar estado a cancelada).
- * REGLA DE ORO: No se puede eliminar una solicitud que ya fue aceptada o rechazada por el admin,
- *  para mantener la integridad de los registros
- *.
+ * @desc Cancela una solicitud (cambia estado a cancelada) en lugar de eliminarla físicamente.
+ * Solo el usuario dueño de la solicitud puede hacerlo, antes que el admin haya rechazado o aceptado.
+ * Si ya fue procesada por el admin, no se puede cancelar.
+ * REGLA DE ORO: No se puede cancelar una solicitud que ya fue aceptada o rechazada por el admin,
+ *  para mantener la integridad de los registros.
  */
 exports.deleteSolicitud = async (req, res) => {
     try {
-        // 1. Primero BUSCAMOS, no borramos de un solo.
+        // 1. Primero BUSCAMOS la solicitud
         const eliminarSoli = await Solicitudes.findById(req.params.id);
 
         if (!eliminarSoli) {
@@ -413,21 +412,35 @@ exports.deleteSolicitud = async (req, res) => {
             });
         }
 
-        // 3. REGLA DE ORO 2: ¿Sigue pendiente?
-        // Si ya fue aceptada o rechazada, el Admin ya trabajó en ella. No se toca.
-        if (eliminarSoli.estado && eliminarSoli.estado !== 'pendiente') {
+        // 3. REGLA DE ORO 2: ¿Sigue pendiente o aprobada?
+        // El usuario puede cancelar si está pendiente o aprobada (antes de entregar)
+        if (eliminarSoli.estado && !['pendiente', 'aprobada'].includes(eliminarSoli.estado)) {
             return res.status(400).json({
-                message: `No se puede eliminar. La solicitud ya se encuentra en estado: ${eliminarSoli.estado}.`
+                message: `No se puede cancelar. La solicitud ya se encuentra en estado: ${eliminarSoli.estado}.`
             });
         }
 
-        // 4. Si pasó los filtros, procedemos a la eliminación física.
-        await Solicitudes.findByIdAndDelete(req.params.id);
+        // 4. Cambiar estado a 'cancelada' en lugar de eliminar físicamente
+        eliminarSoli.estado = 'cancelada';
+        
+        // 5. Agregar al histórico
+        eliminarSoli.historico_estados.push({
+            estado: 'cancelada',
+            fecha: new Date(),
+            observaciones: 'Solicitud cancelada por el usuario.'
+        });
 
-        res.json({ message: 'Solicitud cancelada y eliminada correctamente.' });
+        // 6. Guardar los cambios
+        await eliminarSoli.save();
+
+        res.json({ 
+            message: 'Solicitud cancelada correctamente.',
+            estado: 'cancelada',
+            historico: eliminarSoli.historico_estados
+        });
 
     } catch (error) {
-        res.status(500).json({ message: 'Error al eliminar la solicitud', error: error.message });
+        res.status(500).json({ message: 'Error al cancelar la solicitud', error: error.message });
     }
 };
 

@@ -46,7 +46,7 @@ const solicitudesSchema = new mongoose.Schema({
         /** @property {String} estado Estado actual (pendiente, aprobada, etc.). */
         estado: {
             type: String,
-            enum: ['pendiente', 'aprobada', 'rechazada', 'entregado', 'penalizado', 'devuelto'],
+            enum: ['pendiente', 'aprobada', 'rechazada', 'entregado', 'penalizado', 'devuelto', 'cancelada'],
             default: 'pendiente'
         },
         /** @property {Date} fecha Fecha en la que ocurrió el cambio de estado. */
@@ -76,7 +76,7 @@ const solicitudesSchema = new mongoose.Schema({
      */
     estado: {
         type: String,
-        enum: ['pendiente', 'aprobada', 'rechazada', 'entregado', 'penalizado', 'devuelto'],
+        enum: ['pendiente', 'aprobada', 'rechazada', 'entregado', 'penalizado', 'devuelto', 'cancelada'],
         default: 'pendiente'
     },
 

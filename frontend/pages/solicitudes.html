@@ -766,7 +766,7 @@
     <script src="../js/components/modals.js"></script>
     <script src="../js/pages/Solicitudes/solicitudes.js"></script>
     <script src="../js/pages/Solicitudes/Soli_Clientes/Soli_DeskUs.js"></script>
-    <script src="../js/pages/Solicitudes/Soli_Clientes/Soli_MobUs.js?v=1.6.2"></script>
+    <script src="../js/pages/Solicitudes/Soli_Clientes/Soli_MobUs.js?v=1.6.7"></script>
 
     <!-- Función global para el menú -->
     <script>
@@ -816,18 +816,82 @@
             }
         };
         
-        // Función global para eliminar solicitudes (cancelar)
-        window.eliminarSolicitud = function(solicitudId) {
-            console.log('eliminarSolicitud() llamada globalmente:', solicitudId);
+        // Función para cancelar solicitudes (cambiar estado a cancelada)
+        window.eliminarSolicitud = async function(solicitudId) {
+            console.log('*** FUNCIÓN CANCELAR SOLICITUD LLAMADA ***');
+            console.log('*** ID recibido:', solicitudId);
             
-            // Buscar el controller y llamar al método
-            if (window.mobileUserController) {
-                window.mobileUserController.eliminarSolicitud(solicitudId);
-            } else {
-                console.error('MobileUserController no encontrado');
-                alert('Error: Sistema no inicializado correctamente');
+            // Validar que el ID no sea undefined
+            if (!solicitudId || solicitudId === 'undefined') {
+                console.error('*** ID de solicitud es undefined');
+                alert('Error: ID de solicitud no válido');
+                return;
+            }
+            
+            // Verificación de seguridad
+            if (!confirm('¿Estás seguro de que quieres cancelar esta solicitud? Esta acción no se puede deshacer.')) {
+                console.log('*** Cancelación cancelada por el usuario');
+                return;
+            }
+            
+            console.log('*** Continuando con la cancelación...');
+            
+            try {
+                // Obtener token de autenticación
+                const token = localStorage.getItem('utn_token');
+                if (!token) {
+                    alert('No tienes sesión activa');
+                    return;
+                }
+                
+                console.log('*** Token encontrado, enviando solicitud...');
+                console.log('*** URL:', `http://localhost:4000/api/solicitudes/${solicitudId}`);
+                
+                // Cambiar estado a cancelada en lugar de eliminar
+                const response = await fetch(`http://localhost:4000/api/solicitudes/${solicitudId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({
+                        estado: 'cancelada',
+                        observacion: 'Solicitud cancelada desde móvil'
+                    })
+                });
+                
+                console.log('*** Respuesta del servidor:', response.status);
+                
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    console.error('*** Error en la respuesta:', errorData);
+                    throw new Error(`Error ${response.status}: ${errorData}`);
+                }
+                
+                const result = await response.json();
+                console.log('*** Estado cambiado exitosamente:', result);
+                
+                alert('Solicitud cancelada exitosamente');
+                
+                // Recargar los datos para reflejar el cambio
+                if (window.mobileUserController) {
+                    console.log('*** Recargando datos del controller...');
+                    await window.mobileUserController.recargarDatos();
+                } else {
+                    console.log('*** Recargando página completa...');
+                    // Recargar la página si no hay controller
+                    window.location.reload();
+                }
+                
+            } catch (error) {
+                console.error('*** Error cancelando solicitud:', error);
+                alert('Error al cancelar la solicitud: ' + error.message);
             }
         };
+        
+        // Verificar que la función se creó correctamente
+        console.log('*** FUNCIÓN CANCELAR CREADA:', typeof window.eliminarSolicitud);
+        console.log('*** FUNCIÓN DISPONIBLE:', !!window.eliminarSolicitud);
     </script>
 
     <!-- Inicialización -->
@@ -2794,25 +2858,76 @@
         actualizarEstadoSolicitud(id, "devuelto", "🔄 Solicitud devuelta");
       }
 
-      function eliminarSolicitud(id) {
-        console.log("🗑️ Eliminar solicitud:", id);
-        cerrarTodosLosMenus();
-
-        if (
-          confirm(
-            `¿Estás seguro de eliminar la solicitud ${id.substring(0, 8)}...?`,
-          )
-        ) {
-          // Aquí iría la llamada al backend para eliminar
-          showToast(
-            `🗑️ Eliminando solicitud ${id.substring(0, 8)}...`,
-            "error",
-          );
-
-          // Simular eliminación (recargar después de un tiempo)
-          setTimeout(() => {
-            cargarSolicitudesDesdeBackend();
-          }, 1000);
+      async function eliminarSolicitud(id) {
+        console.log('*** FUNCIÓN CANCELAR SOLICITUD LLAMADA ***');
+        console.log('*** ID recibido:', id);
+        
+        // Validar que el ID no sea undefined
+        if (!id || id === 'undefined') {
+            console.error('*** ID de solicitud es undefined');
+          showToast('Error: ID de solicitud no válido', 'error');
+          return;
+        }
+        
+        // Verificación de seguridad
+        if (!confirm('¿Estás seguro de que quieres cancelar esta solicitud? Esta acción no se puede deshacer.')) {
+          console.log('*** Cancelación cancelada por el usuario');
+          return;
+        }
+        
+        try {
+          // Obtener token de autenticación
+          const token = localStorage.getItem('utn_token');
+          if (!token) {
+            showToast('No tienes sesión activa', 'error');
+            return;
+          }
+          
+          console.log('*** Token encontrado, enviando solicitud...');
+          console.log('*** URL:', `http://localhost:4000/api/solicitudes/${id}`);
+          
+          // Probar el endpoint DELETE que permite a los usuarios cancelar sus propias solicitudes
+          const endpoint = `http://localhost:4000/api/solicitudes/${id}`;
+          
+          console.log(`*** Probando endpoint: DELETE ${endpoint}`);
+          
+          try {
+            const response = await fetch(endpoint, {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            console.log('*** Respuesta de DELETE:', response.status, response.statusText);
+            
+            if (response.ok) {
+              const resultado = await response.json();
+              console.log('*** Solicitud cancelada exitosamente en backend:', resultado);
+              
+              // Mostrar mensaje de éxito
+              showToast('Solicitud cancelada correctamente', 'success');
+              
+              // Recargar los datos
+              setTimeout(() => {
+                cargarSolicitudesDesdeBackend();
+              }, 1000);
+              
+            } else {
+              const errorText = await response.text();
+              console.log('*** Error en DELETE:', errorText);
+              throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+            
+          } catch (error) {
+            console.error('*** Error cancelando solicitud:', error);
+            showToast('Error al cancelar la solicitud: ' + error.message, 'error');
+          }
+          
+        } catch (error) {
+          console.error('*** Error cancelando solicitud:', error);
+          showToast('Error al cancelar la solicitud', 'error');
         }
       }
 

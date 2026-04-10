@@ -271,7 +271,6 @@ class MobileUserController {
             console.error('** No se encontró contenedor mobile');
             return;
         }
-
         const solicitudesFiltradas = this.getFilteredSolicitudes();
         console.log('** Solicitudes filtradas para renderizar:', solicitudesFiltradas.length);
         
@@ -443,7 +442,7 @@ class MobileUserController {
             }
             if (estado === 'pendiente' || estado === 'aprobada') {
                 actions.push(`
-                    <button onclick="window.eliminarSolicitud('${solicitud._id}')" 
+                    <button onclick="console.log('*** ONCLICK INICIADO'); console.log('*** ID A ENVIAR:', '${solicitud._id}'); console.log('*** TIPO DE window.eliminarSolicitud:', typeof window.eliminarSolicitud); console.log('*** window.eliminarSolicitud EXISTE:', !!window.eliminarSolicitud); window.eliminarSolicitud('${solicitud._id}'); console.log('*** DESPUÉS DE LLAMAR A eliminarSolicitud');" 
                         class="w-full text-left px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-2"
                         style="color: #004a8c; hover: background-color: #004a8c15;">
                         <span style="opacity: 0.8;">×</span> Cancelar Solicitud
@@ -1337,6 +1336,7 @@ class MobileUserController {
             }
             
             console.log('** Solicitud encontrada para cancelar:', solicitud);
+            console.log('** Llamando a cambiarEstadoSolicitud con estado "cancelada"...');
             
             // Cambiar el estado a "cancelada"
             await this.cambiarEstadoSolicitud(solicitudId, 'cancelada');
