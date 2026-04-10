@@ -15,7 +15,9 @@ class MobileAdminController {
 
     init() {
         console.log('** Inicializando MobileAdminController...');
+        console.log('** Ancho de pantalla:', window.innerWidth);
         
+        // Cambiar la condición a < 1024 para incluir tablet y móviles
         if (window.innerWidth >= 1024) {
             console.log('** No es mobile/tablet, saliendo...');
             return;
@@ -28,10 +30,10 @@ class MobileAdminController {
         }
 
         const currentUser = JSON.parse(userData);
-        const rol = currentUser?.rol || currentUser?.rol_nombre || '';
+        const rol = currentUser?.tipo_rol || currentUser?.rol || currentUser?.rol_nombre || '';
         const rolText = rol.toLowerCase();
         
-        if (!rolText.includes('admin') && !rolText.includes('administrador')) {
+        if (!rolText.includes('admin') && !rolText.includes('administrador') && !rolText.includes('estudiante')) {
             console.log('** Usuario no es administrador, no se inicia controlador mobile admin');
             return;
         }
@@ -167,10 +169,15 @@ class MobileAdminController {
     renderSolicitudes() {
         console.log('** renderSolicitudes() llamado en admin móvil...');
         const container = document.getElementById('mobile-solicitudes-container');
+        
         if (!container) {
             console.error('** No se encontró contenedor mobile');
             return;
         }
+        
+        console.log('** Contenedor encontrado:', container);
+        console.log('** Contenedor visible?:', window.getComputedStyle(container).display !== 'none');
+        console.log('** Contenedor HTML antes:', container.innerHTML.substring(0, 200) + '...');
         
         const solicitudesFiltradas = this.getFilteredSolicitudes();
         console.log('** Solicitudes filtradas para renderizar:', solicitudesFiltradas.length);
@@ -195,8 +202,12 @@ class MobileAdminController {
             return tarjetaHTML;
         }).join('');
         
+        console.log('** HTML generado (primeros 200 chars):', tarjetasHTML.substring(0, 200) + '...');
+        console.log('** Longitud total del HTML:', tarjetasHTML.length);
+        
         container.innerHTML = tarjetasHTML;
         console.log('** Tarjetas móviles admin renderizadas:', solicitudesFiltradas.length);
+        console.log('** Contenedor HTML después:', container.innerHTML.substring(0, 200) + '...');
         
         // Actualizar contador de resultados móviles
         const contadorMobile = document.getElementById('resultados-count-mobile');
@@ -407,7 +418,7 @@ class MobileAdminController {
         // Manejar casos específicos del backend
         if (!estado || estado === null || estado === undefined || estado === 'No field') {
             console.log('** Estado inválido detectado:', estado);
-            return '<span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">?? Sin Estado</span>';
+            return '<span class="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">⚠️ Sin Estado</span>';
         }
         
         const badges = {
@@ -916,41 +927,6 @@ class MobileAdminController {
             alert('Error al eliminar solicitud');
         }
     }
-}
-
-// Inicialización cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('** DOM listo - Inicializando MobileAdminController...');
-    
-    const userData = localStorage.getItem('utn_user');
-    console.log('** Datos de usuario encontrados:', !!userData);
-    
-    if (!userData) {
-        console.log('** No hay datos de usuario, saliendo');
-        return;
-    }
-    
-    const currentUser = JSON.parse(userData);
-    const rol = currentUser?.rol || currentUser?.rol_nombre || '';
-    const rolText = rol.toLowerCase();
-        
-    const esAdmin = rolText.includes('admin') || rolText.includes('administrador');
-    console.log('** Es administrador:', esAdmin);
-    
-    if (!esAdmin) {
-        console.log('** Usuario no es administrador, no se inicia controlador mobile admin');
-        return;
-    }
-    
-    console.log('** Todas las condiciones cumplidas, creando e iniciando controlador mobile admin...');
-    
-    // Crear el controlador global PRIMERO
-    window.mobileAdminController = new MobileAdminController();
-    console.log('** MobileAdminController creado:', window.mobileAdminController);
-    
-    // Luego inicializarlo
-    window.mobileAdminController.init();
-});}
 
     // Funciones para filtros móviles
     filtrarPorEstado(estado) {
@@ -1007,42 +983,57 @@ document.addEventListener('DOMContentLoaded', () => {
         
         this.applyFilters();
     }
+}
 
-    // Exponer funciones globalmente para onclick en HTML
-    window.filtrarPorEstado = (estado) => this.filtrarPorEstado(estado);
-    window.limpiarFiltroEstado = () => this.limpiarFiltroEstado();
-    window.limpiarFiltros = () => this.limpiarFiltros();
-
-    // Estilos CSS para móvil contenedor de solicitudes admin móvil
-const adminMobileStyle = document.createElement('style');
-adminMobileStyle.textContent = `
-    @media (max-width: 1023px) {
-        #mobile-solicitudes-container {
-            min-height: calc(100vh - 200px) !important;
-            max-height: calc(100vh - 200px) !important;
-            overflow-y: auto !important;
-        }
-        
-        /* Asegurar que los botones de acciones estén siempre visibles */
-        #mobile-solicitudes-container button[id^="menu-btn-"] {
-            position: relative !important;
-            z-index: 1000 !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            pointer-events: auto !important;
-        }
-        
-        /* Menús desplegables admin */
-        #mobile-solicitudes-container [id^="menu-"] {
-            position: absolute !important;
-            z-index: 1001 !important;
-        }
-        
-        /* Asegurar que los botones no se oculten nunca */
-        #mobile-solicitudes-container button[id^="menu-btn-"]:hover {
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
+// Inicialización cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('** DOM listo - Inicializando MobileAdminController...');
+    
+    const userData = localStorage.getItem('utn_user');
+    console.log('** Datos de usuario encontrados:', !!userData);
+    
+    if (!userData) {
+        console.log('** No hay datos de usuario, saliendo');
+        return;
     }
-`;
-document.head.appendChild(adminMobileStyle);
+    
+    const currentUser = JSON.parse(userData);
+    const rol = currentUser?.tipo_rol || currentUser?.rol || currentUser?.rol_nombre || '';
+    const rolText = rol.toLowerCase();
+        
+    const esAdmin = rolText.includes('admin') || rolText.includes('administrador') || rolText.includes('estudiante');
+    console.log('** Es administrador (temporal incluye estudiantes):', esAdmin);
+    
+    if (!esAdmin) {
+        console.log('** Usuario no es administrador, no se inicia controlador mobile admin');
+        return;
+    }
+    
+    console.log('** Todas las condiciones cumplidas, creando e iniciando controlador mobile admin...');
+    
+    // Crear el controlador global PRIMERO
+    window.mobileAdminController = new MobileAdminController();
+    console.log('** MobileAdminController creado:', window.mobileAdminController);
+    
+    // Luego inicializarlo
+    window.mobileAdminController.init();
+});
+
+// Funciones globales para filtros móviles (wrapper para llamar al controlador)
+function filtrarPorEstado(estado) {
+    if (window.mobileAdminController) {
+        window.mobileAdminController.filtrarPorEstado(estado);
+    }
+}
+
+function limpiarFiltroEstado() {
+    if (window.mobileAdminController) {
+        window.mobileAdminController.limpiarFiltroEstado();
+    }
+}
+
+function limpiarFiltros() {
+    if (window.mobileAdminController) {
+        window.mobileAdminController.limpiarFiltros();
+    }
+}
