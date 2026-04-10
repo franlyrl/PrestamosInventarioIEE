@@ -41,6 +41,10 @@ router.get('/estudiante/:id',
 // REGLA DE ORO: Solo si el estado es 'pendiente' y es el dueño.
 router.delete('/:id', solicitudesControllers.deleteSolicitud);
 
+// 3.1. Gestión del Estudiante (Editar su propia solicitud)
+// REGLA DE ORO: Solo si el estado es 'pendiente' o 'aprobada' y es el dueño.
+router.put('/:id', solicitudesControllers.updateSolicitud);
+
 // 4. Gestión Administrativa (Solo Admin / Administrativo)
 // Estas rutas son para aprobar, rechazar o marcar devoluciones.
 

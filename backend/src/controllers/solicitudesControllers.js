@@ -523,3 +523,94 @@ exports.gestionarEstadoAdmin = async (req, res) => {
         res.status(500).json({ message: 'Error en la gestión administrativa', error: error.message });
     }
 };
+
+/**
+ * @route PUT /api/solicitudes/:id
+ * @desc Actualiza los items (activos e insumos) de una solicitud existente.
+ * Solo el usuario dueño puede editar su solicitud si está en estado 'pendiente' o 'aprobada'.
+ * REGLA DE ORO: No se puede editar una solicitud que ya fue entregada, devuelta o rechazada.
+ */
+exports.updateSolicitud = async (req, res) => {
+    try {
+        const { activos, insumos } = req.body;
+
+        // 1. Buscar la solicitud
+        const solicitud = await Solicitudes.findById(req.params.id);
+        if (!solicitud) {
+            return res.status(404).json({ message: 'Solicitud no encontrada' });
+        }
+
+        // 2. Verificar que el usuario sea el dueño
+        if (solicitud.usuario.toString() !== req.user.id) {
+            return res.status(403).json({
+                message: 'No tienes permiso. Solo el dueño puede editar esta solicitud.'
+            });
+        }
+
+        // 3. Verificar que la solicitud esté en un estado editable
+        if (!['pendiente', 'aprobada'].includes(solicitud.estado)) {
+            return res.status(400).json({
+                message: `No se puede editar. La solicitud ya se encuentra en estado: ${solicitud.estado}.`
+            });
+        }
+
+        // 4. Validar y procesar los nuevos items
+        const activosProcesados = [];
+        const insumosProcesados = [];
+
+        // Procesar activos
+        if (activos && Array.isArray(activos)) {
+            for (const activoId of activos) {
+                if (activoId && typeof activoId === 'string') {
+                    activosProcesados.push(activoId);
+                }
+            }
+        }
+
+        // Procesar insumos
+        if (insumos && Array.isArray(insumos)) {
+            for (const insumo of insumos) {
+                if (insumo.id_insumo && insumo.cantidad && insumo.cantidad > 0) {
+                    insumosProcesados.push({
+                        id_insumo: insumo.id_insumo,
+                        cantidad: insumo.cantidad,
+                        caracteristicas: insumo.caracteristicas || '',
+                        descripcion: insumo.descripcion || ''
+                    });
+                }
+            }
+        }
+
+        // 5. Actualizar la solicitud
+        solicitud.activos = activosProcesados;
+        solicitud.insumos = insumosProcesados;
+
+        // 6. Agregar al histórico
+        solicitud.historico_estados.push({
+            estado: solicitud.estado,
+            fecha: new Date(),
+            observaciones: 'Solicitud editada por el usuario.'
+        });
+
+        // 7. Guardar los cambios
+        await solicitud.save();
+
+        res.json({
+            message: 'Solicitud actualizada correctamente.',
+            solicitud: {
+                _id: solicitud._id,
+                activos: solicitud.activos,
+                insumos: solicitud.insumos,
+                estado: solicitud.estado,
+                historico_estados: solicitud.historico_estados
+            }
+        });
+
+    } catch (error) {
+        console.error('Error actualizando solicitud:', error);
+        res.status(500).json({ 
+            message: 'Error al actualizar la solicitud', 
+            error: error.message 
+        });
+    }
+};

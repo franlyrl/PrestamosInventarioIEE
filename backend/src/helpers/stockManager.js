@@ -10,7 +10,7 @@ const stockManager = {
         console.log(" [StockManager] Procesando aprobación de solicitud:", solicitud._id);
 
         try {
-            const ListaEspera = require('../models/ListaEspera');
+            const ListaEspera = require('../models/listaEspera');
             const Insumos = require('../models/insumos');
 
             // Lógica para reservar activos y reducir stock de insumos
@@ -89,7 +89,7 @@ const stockManager = {
 
         try {
             const Insumos = require('../models/insumos');
-            const ListaEspera = require('../models/ListaEspera');
+            const ListaEspera = require('../models/listaEspera');
 
             // Lógica para liberar activos y restaurar stock de insumos
             if (solicitud.activos && solicitud.activos.length > 0) {

@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editar Solicitud - UTN Sistema de Gestión</title>
+    <meta name="description" content="Editar solicitud existente" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/pages/solicitudes.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="text-slate-800">
+    <!-- Header Component -->
+    <div id="header-component"></div>
+
+    <!-- Contenido Principal -->
+    <main class="container py-6">
+      <div class="flex gap-6">
+        <!-- Sidebar Component -->
+        <div id="sidebar-component"></div>
+
+        <!-- Contenido de Edición -->
+        <div class="flex-1">
+          <!-- Header -->
+          <header class="mb-8 bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] rounded-2xl p-6 text-white shadow-xl">
+            <div class="flex items-center gap-4">
+              <button onclick="history.back()" class="text-white/80 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <div>
+                <h1 class="text-2xl font-bold">Editar Solicitud</h1>
+                <p class="text-white/80">Modifica los items de tu solicitud</p>
+              </div>
+            </div>
+          </header>
+
+          <!-- Formulario de Edición -->
+          <div class="bg-white rounded-xl shadow-lg p-6">
+            <!-- Información de la Solicitud -->
+            <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 class="font-semibold text-blue-900">Solicitud #<span id="solicitud-id">...</span></h3>
+                  <p class="text-sm text-blue-700">Estado: <span id="solicitud-estado" class="font-medium">...</span></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Carrito de Items -->
+            <div class="mb-6">
+              <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-[#004a8c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Items de la Solicitud
+              </h2>
+              
+              <!-- Lista de Items Actuales -->
+              <div id="items-actuales" class="space-y-3 mb-4">
+                <!-- Los items se cargarán aquí dinámicamente -->
+              </div>
+
+              <!-- Botón para agregar items -->
+              <button onclick="abrirSelectorItems()" class="w-full py-3 border-2 border-dashed border-[#004a8c] text-[#004a8c] rounded-lg hover:bg-[#004a8c] hover:text-white transition-colors flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Agregar Items
+              </button>
+            </div>
+
+            <!-- Selector de Items (Modal) -->
+            <div id="selector-items" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+              <div class="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                <div class="p-6">
+                  <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold">Seleccionar Items</h3>
+                    <button onclick="cerrarSelectorItems()" class="text-gray-400 hover:text-gray-600">
+                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <!-- Tabs -->
+                  <div class="flex gap-2 mb-6">
+                    <button onclick="mostrarTab('activos')" id="tab-activos" class="px-4 py-2 bg-[#004a8c] text-white rounded-lg">Activos</button>
+                    <button onclick="mostrarTab('insumos')" id="tab-insumos" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg">Insumos</button>
+                  </div>
+
+                  <!-- Contenido de Tabs -->
+                  <div id="contenido-activos" class="space-y-3">
+                    <!-- Activos se cargarán aquí -->
+                  </div>
+                  <div id="contenido-insumos" class="hidden space-y-3">
+                    <!-- Insumos se cargarán aquí -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex gap-4">
+              <button onclick="history.back()" class="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                Cancelar
+              </button>
+              <button onclick="guardarCambios()" class="flex-1 py-3 bg-[#004a8c] text-white rounded-lg hover:bg-[#003d73] transition-colors">
+                Guardar Cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="../js/main.js"></script>
+    <script src="../js/components/header.js"></script>
+    <script src="../js/components/sidebar.js"></script>
+    <script src="../js/components/modals.js"></script>
+    
+    <!-- Script de Edición -->
+    <script>
+      let solicitudActual = null;
+      let itemsSeleccionados = [];
+
+      // Obtener ID de la solicitud de la URL
+      function obtenerSolicitudId() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('editar');
+      }
+
+      // Cargar datos de la solicitud
+      async function cargarSolicitud() {
+        const solicitudId = obtenerSolicitudId();
+        if (!solicitudId) {
+          alert('Error: No se proporcionó ID de solicitud');
+          return;
+        }
+
+        try {
+          const token = localStorage.getItem('utn_token');
+          const response = await fetch(`http://localhost:4000/api/solicitudes/${solicitudId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error('Error al cargar la solicitud');
+          }
+
+          const solicitud = await response.json();
+          solicitudActual = solicitud;
+          
+          // Mostrar información básica
+          document.getElementById('solicitud-id').textContent = solicitud._id.slice(-6);
+          document.getElementById('solicitud-estado').textContent = solicitud.estado;
+          
+          // Cargar items actuales
+          cargarItemsActuales(solicitud);
+          
+        } catch (error) {
+          console.error('Error cargando solicitud:', error);
+          alert('Error al cargar la solicitud');
+        }
+      }
+
+      // Cargar items actuales de la solicitud
+      function cargarItemsActuales(solicitud) {
+        const container = document.getElementById('items-actuales');
+        container.innerHTML = '';
+
+        // Cargar activos
+        if (solicitud.activos && solicitud.activos.length > 0) {
+          solicitud.activos.forEach(activo => {
+            const itemDiv = crearItemDiv(activo, 'activo');
+            container.appendChild(itemDiv);
+          });
+        }
+
+        // Cargar insumos
+        if (solicitud.insumos && solicitud.insumos.length > 0) {
+          solicitud.insumos.forEach(insumo => {
+            const itemDiv = crearItemDiv(insumo, 'insumo');
+            container.appendChild(itemDiv);
+          });
+        }
+
+        if (container.children.length === 0) {
+          container.innerHTML = '<p class="text-gray-500 text-center py-4">No hay items en esta solicitud</p>';
+        }
+      }
+
+      // Crear div para mostrar un item
+      function crearItemDiv(item, tipo) {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between p-3 border rounded-lg bg-gray-50';
+        
+        const nombre = tipo === 'activo' 
+          ? `${item.marca || ''} ${item.modelo || ''} (${item.numActivo || ''})`
+          : `${item.id_insumo?.nombre || 'Insumo'} (x${item.cantidad || 0})`;
+        
+        div.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">${tipo === 'activo' ? '??' : '??'}</span>
+            <div>
+              <p class="font-medium">${nombre}</p>
+              <p class="text-sm text-gray-500">${tipo === 'activo' ? 'Activo' : 'Insumo'}</p>
+            </div>
+          </div>
+          <button onclick="removerItem('${item._id || item.id_insumo?._id}', '${tipo}')" class="text-red-500 hover:text-red-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        `;
+        
+        return div;
+      }
+
+      // Abrir selector de items
+      function abrirSelectorItems() {
+        document.getElementById('selector-items').classList.remove('hidden');
+        cargarDisponibles();
+      }
+
+      // Cerrar selector de items
+      function cerrarSelectorItems() {
+        document.getElementById('selector-items').classList.add('hidden');
+      }
+
+      // Mostrar tab específico
+      function mostrarTab(tab) {
+        // Actualizar botones
+        document.getElementById('tab-activos').className = tab === 'activos' 
+          ? 'px-4 py-2 bg-[#004a8c] text-white rounded-lg'
+          : 'px-4 py-2 bg-gray-200 text-gray-700 rounded-lg';
+        document.getElementById('tab-insumos').className = tab === 'insumos'
+          ? 'px-4 py-2 bg-[#004a8c] text-white rounded-lg'
+          : 'px-4 py-2 bg-gray-200 text-gray-700 rounded-lg';
+
+        // Mostrar contenido
+        document.getElementById('contenido-activos').classList.toggle('hidden', tab !== 'activos');
+        document.getElementById('contenido-insumos').classList.toggle('hidden', tab !== 'insumos');
+      }
+
+      // Cargar items disponibles
+      async function cargarDisponibles() {
+        try {
+          const token = localStorage.getItem('utn_token');
+          
+          // Cargar activos
+          const responseActivos = await fetch('http://localhost:4000/api/activos', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const activos = await responseActivos.json();
+          mostrarActivosDisponibles(activos);
+
+          // Cargar insumos
+          const responseInsumos = await fetch('http://localhost:4000/api/insumos', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const insumos = await responseInsumos.json();
+          mostrarInsumosDisponibles(insumos);
+
+        } catch (error) {
+          console.error('Error cargando items disponibles:', error);
+        }
+      }
+
+      // Mostrar activos disponibles
+      function mostrarActivosDisponibles(activos) {
+        const container = document.getElementById('contenido-activos');
+        container.innerHTML = '';
+
+        activos.forEach(activo => {
+          if (activo.estado === 'disponible') {
+            const div = document.createElement('div');
+            div.className = 'p-3 border rounded-lg hover:bg-gray-50 cursor-pointer';
+            div.innerHTML = `
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">??</span>
+                  <div>
+                    <p class="font-medium">${activo.marca} ${activo.modelo}</p>
+                    <p class="text-sm text-gray-500">${activo.numActivo}</p>
+                  </div>
+                </div>
+                <button onclick="agregarItem('${activo._id}', 'activo')" class="px-3 py-1 bg-[#004a8c] text-white rounded hover:bg-[#003d73]">
+                  Agregar
+                </button>
+              </div>
+            `;
+            container.appendChild(div);
+          }
+        });
+      }
+
+      // Mostrar insumos disponibles
+      function mostrarInsumosDisponibles(insumos) {
+        const container = document.getElementById('contenido-insumos');
+        container.innerHTML = '';
+
+        insumos.forEach(insumo => {
+          if (insumo.stock > 0) {
+            const div = document.createElement('div');
+            div.className = 'p-3 border rounded-lg hover:bg-gray-50 cursor-pointer';
+            div.innerHTML = `
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">??</span>
+                  <div>
+                    <p class="font-medium">${insumo.nombre}</p>
+                    <p class="text-sm text-gray-500">Stock: ${insumo.stock}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <input type="number" id="cantidad-${insumo._id}" min="1" max="${insumo.stock}" value="1" class="w-16 px-2 py-1 border rounded">
+                  <button onclick="agregarItem('${insumo._id}', 'insumo')" class="px-3 py-1 bg-[#004a8c] text-white rounded hover:bg-[#003d73]">
+                    Agregar
+                  </button>
+                </div>
+              </div>
+            `;
+            container.appendChild(div);
+          }
+        });
+      }
+
+      // Agregar item a la solicitud
+      function agregarItem(itemId, tipo) {
+        if (tipo === 'activo') {
+          if (!solicitudActual.activos) solicitudActual.activos = [];
+          if (!solicitudActual.activos.find(a => a._id === itemId)) {
+            solicitudActual.activos.push({ _id: itemId });
+          }
+        } else {
+          if (!solicitudActual.insumos) solicitudActual.insumos = [];
+          const cantidad = parseInt(document.getElementById(`cantidad-${itemId}`).value) || 1;
+          const existente = solicitudActual.insumos.find(i => i.id_insumo === itemId);
+          if (existente) {
+            existente.cantidad += cantidad;
+          } else {
+            solicitudActual.insumos.push({ id_insumo: itemId, cantidad });
+          }
+        }
+
+        cargarItemsActuales(solicitudActual);
+        cerrarSelectorItems();
+      }
+
+      // Remover item de la solicitud
+      function removerItem(itemId, tipo) {
+        if (tipo === 'activo') {
+          solicitudActual.activos = solicitudActual.activos.filter(a => a._id !== itemId);
+        } else {
+          solicitudActual.insumos = solicitudActual.insumos.filter(i => i.id_insumo !== itemId);
+        }
+
+        cargarItemsActuales(solicitudActual);
+      }
+
+      // Guardar cambios en la solicitud
+      async function guardarCambios() {
+        try {
+          const token = localStorage.getItem('utn_token');
+          
+          const response = await fetch(`http://localhost:4000/api/solicitudes/${solicitudActual._id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              activos: solicitudActual.activos || [],
+              insumos: solicitudActual.insumos || []
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error('Error al actualizar la solicitud');
+          }
+
+          alert('Solicitud actualizada correctamente');
+          history.back();
+
+        } catch (error) {
+          console.error('Error guardando cambios:', error);
+          alert('Error al guardar los cambios');
+        }
+      }
+
+      // Inicializar
+      document.addEventListener('DOMContentLoaded', cargarSolicitud);
+    </script>
+  </body>
+</html>
