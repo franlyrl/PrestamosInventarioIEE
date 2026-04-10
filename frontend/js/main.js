@@ -17,118 +17,9 @@ if (typeof window.CONFIG === 'undefined') {
     window.CONFIG = CONFIG;
 }
 
-// Estado de la Aplicación
-class AppState {
-    constructor() {
-        this.currentUser = null;
-        this.currentPage = this.getCurrentPage();
-        this.data = {
-            activos: [],
-            insumos: [],
-            solicitudes: []
-        };
-        this.isLoading = false;
-    }
+// Utilidades adicionales que no están en app.js
 
-    getCurrentPage() {
-        const path = window.location.pathname;
-        const page = path.split('/').pop().replace('.html', '');
-        return page || 'index';
-    }
-
-    setUser(user) {
-        this.currentUser = user;
-        localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(user));
-    }
-
-    getUser() {
-        if (!this.currentUser) {
-            const stored = localStorage.getItem(CONFIG.STORAGE_KEYS.USER);
-            this.currentUser = stored ? JSON.parse(stored) : null;
-        }
-        return this.currentUser;
-    }
-
-    setToken(token) {
-        localStorage.setItem(CONFIG.STORAGE_KEYS.TOKEN, token);
-    }
-
-    getToken() {
-        return localStorage.getItem(CONFIG.STORAGE_KEYS.TOKEN);
-    }
-
-    logout() {
-        this.currentUser = null;
-        localStorage.removeItem(CONFIG.STORAGE_KEYS.TOKEN);
-        localStorage.removeItem(CONFIG.STORAGE_KEYS.USER);
-        window.location.href = '../index.html';
-    }
-}
-
-// Instancia global del estado
-const appState = new AppState();
-
-// Utilidades
 const Utils = {
-    // Formatear fecha
-    formatDate(date) {
-        return new Date(date).toLocaleDateString('es-CR', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    },
-
-    // Formatear fecha y hora
-    formatDateTime(date) {
-        return new Date(date).toLocaleString('es-CR', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    },
-
-    // Formatear número
-    formatNumber(num) {
-        return new Intl.NumberFormat('es-CR').format(num);
-    },
-
-    // Capitalizar texto
-    capitalize(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-    },
-
-    // Validar email
-    isValidEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    },
-
-    // Validar cédula costarricense
-    isValidCedula(cedula) {
-        const re = /^\d{9,10}$/;
-        return re.test(cedula);
-    },
-
-    // Mostrar toast
-    showToast(message, type = 'success') {
-        const toast = document.getElementById('toast');
-        const toastMsg = document.getElementById('toastMsg');
-
-        if (!toast || !toastMsg) return;
-
-        toastMsg.textContent = message;
-        toast.classList.remove('translate-y-20', 'opacity-0');
-        toast.classList.add('translate-y-0', 'opacity-100');
-
-        setTimeout(() => {
-            toast.classList.remove('translate-y-0', 'opacity-100');
-            toast.classList.add('translate-y-20', 'opacity-0');
-        }, 3000);
-    },
-
     // Mostrar loading
     showLoading(show = true) {
         const loadingState = document.getElementById('loading-state');
@@ -599,9 +490,13 @@ try {
         if (!window.CONFIG) {
             window.CONFIG = CONFIG;
         }
-        window.appState = appState;
-        window.Utils = Utils;
-        window.ApiService = ApiService;
+        // Utils y AppState ya se exportan desde app.js
+        if (!window.Utils) {
+            window.Utils = Utils;
+        }
+        if (!window.ApiService) {
+            window.ApiService = ApiService;
+        }
     }
 } catch (error) {
     console.warn('Error exportando variables globales:', error);

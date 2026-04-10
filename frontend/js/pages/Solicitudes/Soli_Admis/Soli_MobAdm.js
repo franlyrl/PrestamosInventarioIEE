@@ -17,12 +17,8 @@ class MobileAdminController {
         console.log('** Inicializando MobileAdminController...');
         console.log('** Ancho de pantalla:', window.innerWidth);
         
-        // Cambiar la condición a < 1024 para incluir tablet y móviles
-        if (window.innerWidth >= 1024) {
-            console.log('** No es mobile/tablet, saliendo...');
-            return;
-        }
-
+        // Para admin, permitir funcionamiento en desktop también
+        // Solo salir si no es admin y no es móvil
         const userData = localStorage.getItem('utn_user');
         if (!userData) {
             console.log('** No hay datos de usuario');
@@ -32,9 +28,10 @@ class MobileAdminController {
         const currentUser = JSON.parse(userData);
         const rol = currentUser?.tipo_rol || currentUser?.rol || currentUser?.rol_nombre || '';
         const rolText = rol.toLowerCase();
+        const esAdmin = rolText.includes('admin') || rolText.includes('administrador') || rolText.includes('estudiante');
         
-        if (!rolText.includes('admin') && !rolText.includes('administrador') && !rolText.includes('estudiante')) {
-            console.log('** Usuario no es administrador, no se inicia controlador mobile admin');
+        if (!esAdmin && window.innerWidth >= 1024) {
+            console.log('** No es administrador y es desktop, saliendo...');
             return;
         }
 
@@ -44,20 +41,28 @@ class MobileAdminController {
         const tbody = document.getElementById('solicitudes-tbody');
         const mobileContainer = document.getElementById('mobile-solicitudes-container');
         
-        if (tableContainer) {
-            tableContainer.style.display = 'none';
-            console.log('** Tabla desktop completamente oculta');
-        }
-        
-        if (tbody) {
-            tbody.style.display = 'none';
-            console.log('** Tbody desktop oculto');
-        }
-        
-        if (mobileContainer) {
-            mobileContainer.style.display = 'block';
-            mobileContainer.classList.remove('hidden');
-            console.log('** Contenedor mobile visible y activo');
+        if (window.innerWidth >= 1024) {
+            // En desktop: Usar la tabla existente pero con control del admin
+            console.log('** Modo desktop - usando tabla existente');
+            if (mobileContainer) {
+                mobileContainer.style.display = 'none';
+                console.log('** Contenedor móvil oculto en desktop');
+            }
+            if (tableContainer) {
+                tableContainer.style.display = 'block';
+                console.log('** Tabla desktop visible en modo admin');
+            }
+        } else {
+            // En móvil: Usar el contenedor móvil
+            console.log('** Modo móvil - usando contenedor móvil');
+            if (tableContainer) {
+                tableContainer.style.display = 'none';
+                console.log('** Tabla desktop oculta en móvil');
+            }
+            if (mobileContainer) {
+                mobileContainer.style.display = 'block';
+                console.log('** Contenedor móvil visible en modo admin');
+            }
         }         
          
         this.setupEventListeners();
@@ -168,6 +173,56 @@ class MobileAdminController {
 
     renderSolicitudes() {
         console.log('** renderSolicitudes() llamado en admin móvil...');
+        
+        const isDesktop = window.innerWidth >= 1024;
+        console.log('** Modo de renderización:', isDesktop ? 'desktop' : 'móvil');
+        
+        if (isDesktop) {
+            // En desktop: renderizar en la tabla
+            this.renderDesktopTable();
+        } else {
+            // En móvil: renderizar tarjetas
+            this.renderMobileCards();
+        }
+    }
+
+    renderDesktopTable() {
+        console.log('** Renderizando tabla desktop para admin...');
+        const tbody = document.getElementById('solicitudes-tbody-desktop');
+        
+        if (!tbody) {
+            console.error('** No se encontró tbody de tabla desktop');
+            return;
+        }
+        
+        const solicitudesFiltradas = this.getFilteredSolicitudes();
+        console.log('** Solicitudes filtradas para tabla:', solicitudesFiltradas.length);
+        
+        if (solicitudesFiltradas.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-8 text-slate-500">
+                        <div class="text-6xl mb-4">📋</div>
+                        <h3 class="text-xl font-semibold text-slate-700 mb-2">No hay solicitudes</h3>
+                        <p class="text-sm text-slate-500">No se encontraron solicitudes con los filtros actuales</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        const rowsHTML = solicitudesFiltradas.map((solicitud, index) => {
+            console.log(`** Creando fila ${index + 1}/${solicitudesFiltradas.length} para solicitud:`, solicitud._id);
+            return this.createDesktopRow(solicitud);
+        }).join('');
+        
+        tbody.innerHTML = rowsHTML;
+        console.log('** Tabla desktop renderizada:', solicitudesFiltradas.length);
+        this.updateEstadisticas();
+    }
+
+    renderMobileCards() {
+        console.log('** Renderizando tarjetas móviles para admin...');
         const container = document.getElementById('mobile-solicitudes-container');
         
         if (!container) {
@@ -223,6 +278,77 @@ class MobileAdminController {
         
         // Actualizar totales por estado
         this.updateEstadisticas();
+    }
+
+    createDesktopRow(solicitud) {
+        const estadoBadge = this.getEstadoBadge(solicitud.estado);
+        const nombreUsuario = solicitud.usuario?.nombre_completo || 'Usuario desconocido';
+        const elementosInfo = this.getElementosInfo(solicitud);
+        const fecha = new Date(solicitud.createdAt).toLocaleDateString();
+        
+        return `
+            <tr class="hover:bg-slate-50 relative">
+                <td class="px-4 py-3 text-sm">${solicitud._id?.slice(-6) || 'N/A'}</td>
+                <td class="px-4 py-3 text-sm font-medium">${nombreUsuario}</td>
+                <td class="px-4 py-3 text-sm">${elementosInfo}</td>
+                <td class="px-4 py-3 text-sm">${fecha}</td>
+                <td class="px-4 py-3 text-sm">${estadoBadge}</td>
+                <td class="px-4 py-3 text-sm">${solicitud.observaciones || '-'}</td>
+                <td class="px-4 py-3 text-sm relative">
+                    <button 
+                        onclick="window.mobileAdminController.toggleMenu('${solicitud._id}')" 
+                        class="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">
+                        ⚙️
+                    </button>
+                    
+                    <!-- Menú desplegable de acciones -->
+                    <div id="menu-${solicitud._id}" class="hidden absolute right-0 top-12 bg-white border border-slate-200 rounded-lg shadow-lg z-50 min-w-48">
+                        <div class="p-2 space-y-1">
+                            ${solicitud.estado === 'pendiente' ? `
+                                <button 
+                                    onclick="window.mobileAdminController.aprobarSolicitud('${solicitud._id}')" 
+                                    class="w-full text-left px-3 py-2 text-sm bg-green-50 text-green-700 hover:bg-green-100 rounded flex items-center gap-2">
+                                    ✅ Aprobar
+                                </button>
+                                <button 
+                                    onclick="window.mobileAdminController.rechazarSolicitud('${solicitud._id}')" 
+                                    class="w-full text-left px-3 py-2 text-sm bg-red-50 text-red-700 hover:bg-red-100 rounded flex items-center gap-2">
+                                    ❌ Rechazar
+                                </button>
+                            ` : ''}
+                            
+                            ${solicitud.estado === 'aprobada' ? `
+                                <button 
+                                    onclick="window.mobileAdminController.entregarSolicitud('${solicitud._id}')" 
+                                    class="w-full text-left px-3 py-2 text-sm bg-blue-50 text-blue-700 hover:bg-blue-100 rounded flex items-center gap-2">
+                                    📦 Entregar
+                                </button>
+                            ` : ''}
+                            
+                            ${solicitud.estado === 'entregado' ? `
+                                <button 
+                                    onclick="window.mobileAdminController.devolverSolicitud('${solicitud._id}')" 
+                                    class="w-full text-left px-3 py-2 text-sm bg-orange-50 text-orange-700 hover:bg-orange-100 rounded flex items-center gap-2">
+                                    🔄 Devolver
+                                </button>
+                            ` : ''}
+                            
+                            <button 
+                                onclick="window.mobileAdminController.verDetalles('${solicitud._id}')" 
+                                class="w-full text-left px-3 py-2 text-sm bg-slate-50 text-slate-700 hover:bg-slate-100 rounded flex items-center gap-2">
+                                👁️ Ver detalles
+                            </button>
+                            
+                            <button 
+                                onclick="window.mobileAdminController.eliminarSolicitud('${solicitud._id}')" 
+                                class="w-full text-left px-3 py-2 text-sm bg-red-50 text-red-700 hover:bg-red-100 rounded flex items-center gap-2">
+                                🗑️ Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
     }
 
     createSolicitudCardV2(solicitud) {
@@ -550,6 +676,11 @@ class MobileAdminController {
         
         const menu = document.getElementById(`menu-${solicitudId}`);
         console.log('** Menú admin encontrado:', !!menu, menu?.id);
+        
+        if (!menu) {
+            console.error('** ERROR: No se encontró el menú para la solicitud:', solicitudId);
+            return;
+        }
         
         const allMenus = document.querySelectorAll('[id^="menu-"]');
         console.log('** Total menús encontrados:', allMenus.length);
