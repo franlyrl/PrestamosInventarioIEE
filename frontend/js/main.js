@@ -17,138 +17,77 @@ if (typeof window.CONFIG === 'undefined') {
     window.CONFIG = CONFIG;
 }
 
-// Utilidades adicionales que no están en app.js
+// Utils ya está definido en app.js con todos los métodos necesarios
 
-const Utils = {
-    // Mostrar loading
-    showLoading(show = true) {
-        const loadingState = document.getElementById('loading-state');
-        if (loadingState) {
-            loadingState.classList.toggle('hidden', !show);
-        }
-    },
-
-    // Mostrar empty state
-    showEmpty(show = true, message = 'No se encontraron resultados') {
-        const emptyState = document.getElementById('empty-state');
-        if (emptyState) {
-            emptyState.classList.toggle('hidden', !show);
-            const messageElement = emptyState.querySelector('h3');
-            if (messageElement) {
-                messageElement.textContent = message;
-            }
-        }
-    },
-
-    // Animar elemento
-    animate(element, animation) {
-        element.classList.add(animation);
-        setTimeout(() => {
-            element.classList.remove(animation);
-        }, CONFIG.ANIMATIONS.FADE_IN);
-    },
-
-    // Hacer fetch con autenticación
-    async authenticatedFetch(url, options = {}) {
-        const token = appState.getToken();
-        const headers = {
-            'Content-Type': 'application/json',
-            ...options.headers
-        };
-
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        return fetch(url, {
-            ...options,
-            headers
-        });
-    },
-
-    // Manejar errores de API
-    handleApiError(error) {
-        console.error('Error de API:', error);
-        if (error.message.includes('401') || error.message.includes('403')) {
-            Utils.showToast('Sesión expirada, por favor inicie sesión nuevamente', 'error');
-            setTimeout(() => {
-                appState.logout();
-            }, 2000);
-        } else {
-            Utils.showToast('Error en la operación', 'error');
-        }
-    },
-
-    // Actualizar fecha y hora
-    updateDateTime() {
-        const dateTimeElement = document.getElementById('currentDateTime');
-        if (dateTimeElement) {
-            const now = new Date();
-            dateTimeElement.textContent = now.toLocaleString('es-CR', {
-                weekday: 'short',
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-    },
-
-    // Inicializar actualización de tiempo
-    startTimeUpdates() {
-        this.updateDateTime();
-        setInterval(() => this.updateDateTime(), 60000); // Actualizar cada minuto
-    },
-
-    // Actualizar información del usuario
-    updateUserInfo() {
-        const user = appState.getUser();
-        const userInfoElements = document.querySelectorAll('#userInfo');
-        const userMenuElements = document.querySelectorAll('#userMenuName');
-
-        if (user) {
-            const displayName = user.nombre_completo || user.nombre || 'Usuario';
-            userInfoElements.forEach(el => {
-                el.textContent = displayName;
-            });
-            userMenuElements.forEach(el => {
-                el.textContent = displayName;
-            });
-        }
-    },
-
-    // Validar formulario
-    validateForm(formId) {
-        const form = document.getElementById(formId);
-        if (!form) return false;
-
-        const requiredFields = form.querySelectorAll('[required]');
-        let isValid = true;
-
-        requiredFields.forEach(field => {
-            if (!field.value.trim()) {
-                field.classList.add('border-red-500');
-                isValid = false;
-            } else {
-                field.classList.remove('border-red-500');
-            }
-        });
-
-        return isValid;
-    },
-
-    // Limpiar formulario
-    clearForm(formId) {
-        const form = document.getElementById(formId);
-        if (!form) return;
-
-        form.reset();
-        form.querySelectorAll('.border-red-500').forEach(field => {
-            field.classList.remove('border-red-500');
+// Funciones adicionales
+function updateDateTime() {
+    const dateTimeElement = document.getElementById('currentDateTime');
+    if (dateTimeElement) {
+        const now = new Date();
+        dateTimeElement.textContent = now.toLocaleString('es-CR', {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     }
-};
+}
+
+// Inicializar actualización de tiempo
+function startTimeUpdates() {
+    updateDateTime();
+    setInterval(updateDateTime, 60000); // Actualizar cada minuto
+}
+
+// Actualizar información del usuario
+function updateUserInfo() {
+    const user = appState.getUser();
+    const userInfoElements = document.querySelectorAll('#userInfo');
+    const userMenuElements = document.querySelectorAll('#userMenuName');
+
+    if (user) {
+        const displayName = user.nombre_completo || user.nombre || 'Usuario';
+        userInfoElements.forEach(el => {
+            el.textContent = displayName;
+        });
+        userMenuElements.forEach(el => {
+            el.textContent = displayName;
+        });
+    }
+}
+
+// Validar formulario
+function validateForm(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return false;
+
+    const requiredFields = form.querySelectorAll('[required]');
+    let isValid = true;
+
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            field.classList.add('border-red-500');
+            isValid = false;
+        } else {
+            field.classList.remove('border-red-500');
+        }
+    });
+
+    return isValid;
+}
+
+// Limpiar formulario
+function clearForm(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    form.reset();
+    form.querySelectorAll('.border-red-500').forEach(field => {
+        field.classList.remove('border-red-500');
+    });
+}
 
 // API Service
 const ApiService = {
@@ -490,10 +429,7 @@ try {
         if (!window.CONFIG) {
             window.CONFIG = CONFIG;
         }
-        // Utils y AppState ya se exportan desde app.js
-        if (!window.Utils) {
-            window.Utils = Utils;
-        }
+        // Utils ya se exporta desde app.js
         if (!window.ApiService) {
             window.ApiService = ApiService;
         }

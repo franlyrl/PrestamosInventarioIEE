@@ -56,13 +56,17 @@
                 <section class="flex justify-between items-center mb-6">
                     <div class="flex gap-2">
                         <button id="agregar-btn" class="btn btn-primary">
-                            ➕ Agregar Insumo
+                            + Agregar Insumo
                         </button>
                         <button id="agregar-masivo-btn" class="btn btn-secondary">
-                            📦 Agregar Masivo
+                            Agregar Masivo
                         </button>
+                        <button id="subir-imagenes-btn" class="btn btn-secondary">
+                            Subir Imágenes ZIP
+                        </button>
+                        <input type="file" id="zip-upload-input" accept=".zip" class="hidden" onchange="window.insumosController.handleZipUpload(event)">
                         <button id="exportar-btn" class="btn btn-secondary">
-                            📥 Exportar
+                            Exportar
                         </button>
                     </div>
                     <div class="text-sm text-slate-600">
@@ -158,6 +162,76 @@
                     </button>
                     <button type="submit" class="flex-1 py-3 text-sm font-bold bg-purple-600 text-white rounded-xl hover:bg-purple-700 shadow-lg shadow-purple-100 transition">
                         ➕ Agregar Insumo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PARA EDITAR INSUMO -->
+    <div id="modalEditarInsumo" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
+            <div class="p-6 border-b border-slate-100">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-slate-800">✏️ Editar Insumo</h2>
+                    <button onclick="cerrarModalEditarInsumo()" class="text-slate-400 hover:text-slate-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="formEditarInsumo" class="p-6">
+                <input type="hidden" id="editarInsumoId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">ID del Insumo</label>
+                        <input type="text" id="editarIdInsumo" readonly class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Nombre del Insumo *</label>
+                        <input type="text" id="editarNombreInsumo" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
+                        <select id="editarCategoriaInsumo" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Selecciona una categoría</option>
+                            <option value="Componentes Digitales">Componentes Digitales</option>
+                            <option value="Componentes Analógicos">Componentes Analógicos</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad *</label>
+                        <input type="number" id="editarCantidadInsumo" required min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Características</label>
+                    <textarea id="editarCaracteristicasInsumo" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+                
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Estado</label>
+                    <select id="editarEstadoInsumo" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                        <option value="disponible">Disponible</option>
+                        <option value="deteriorado">Deteriorado</option>
+                        <option value="dañado">Dañado</option>
+                    </select>
+                </div>
+                
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="cerrarModalEditarInsumo()" class="flex-1 py-3 text-sm font-bold bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="flex-1 py-3 text-sm font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition">
+                        💾 Guardar Cambios
                     </button>
                 </div>
             </form>
@@ -335,6 +409,10 @@
     <script src="../js/components/header.js"></script>
     <script src="../js/components/sidebar.js"></script>
     <script src="../js/components/modals.js"></script>
+    <script src="../assets/components/local-images.js"></script>
+    <script src="../assets/components/base64-images.js"></script>
+    <script src="../assets/components/component-images.js"></script>
+    <script src="../assets/components/generate-images.js"></script>
     <script src="../js/pages/insumos.js"></script>
     <script src="../js/pages/insumos-imagenes.js"></script>
     
@@ -544,12 +622,12 @@
                         // Enviar al backend
                         await enviarInsumosMasivos(insumos);
                     } else {
-                        showToast('❌ No se encontraron insumos válidos en el archivo', 'error');
+                        Utils.showToast('❌ No se encontraron insumos válidos en el archivo', 'error');
                     }
                     
                 } catch (error) {
                     console.error('❌ Error procesando archivo:', error);
-                    showToast('❌ Error al procesar el archivo', 'error');
+                    Utils.showToast('❌ Error al procesar el archivo', 'error');
                 }
             }
         });
@@ -569,7 +647,7 @@
                 
                 if (response.ok) {
                     const result = await response.json();
-                    showToast(`✅ ${result.count || insumos.length} insumos agregados desde archivo`, 'success');
+                    Utils.showToast(`✅ ${result.count || insumos.length} insumos agregados desde archivo`, 'success');
                     cerrarModalMasivo();
                     
                     // Recargar la lista de insumos
@@ -591,11 +669,11 @@
                     }
                 } else {
                     const error = await response.json();
-                    showToast(`❌ Error: ${error.message || 'Error al agregar insumos'}`, 'error');
+                    Utils.showToast(`❌ Error: ${error.message || 'Error al agregar insumos'}`, 'error');
                 }
             } catch (error) {
                 console.error('❌ Error agregando insumos masivamente:', error);
-                showToast('❌ Error al agregar insumos', 'error');
+                Utils.showToast('❌ Error al agregar insumos', 'error');
             }
         }
 
@@ -667,7 +745,7 @@ Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplado
             a.click();
             window.URL.revokeObjectURL(url);
             
-            showToast('📥 Plantilla CSV descargada - Excel puede abrirla', 'success');
+            Utils.showToast('📥 Plantilla CSV descargada - Excel puede abrirla', 'success');
         }
 
         // Función principal para procesar agregado masivo
@@ -678,7 +756,7 @@ Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplado
             let insumos = [];
             
             if (tabName === 'archivo') {
-                showToast('📁 Función de archivo en desarrollo', 'info');
+                Utils.showToast('📁 Función de archivo en desarrollo', 'info');
                 return;
             } else if (tabName === 'tabla') {
                 // Procesar tabla
@@ -730,7 +808,7 @@ Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplado
             }
             
             if (insumos.length === 0) {
-                showToast('❌ No hay insumos para agregar', 'error');
+                Utils.showToast('❌ No hay insumos para agregar', 'error');
                 return;
             }
             
@@ -747,7 +825,7 @@ Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplado
                 
                 if (response.ok) {
                     const result = await response.json();
-                    showToast(`✅ ${result.count || insumos.length} insumos agregados correctamente`, 'success');
+                    Utils.showToast(`✅ ${result.count || insumos.length} insumos agregados correctamente`, 'success');
                     cerrarModalMasivo();
                     
                     // Recargar la lista de insumos
@@ -756,11 +834,11 @@ Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplado
                     }
                 } else {
                     const error = await response.json();
-                    showToast(`❌ Error: ${error.message || 'Error al agregar insumos'}`, 'error');
+                    Utils.showToast(`❌ Error: ${error.message || 'Error al agregar insumos'}`, 'error');
                 }
             } catch (error) {
                 console.error('Error agregando insumos masivamente:', error);
-                showToast('❌ Error al agregar insumos', 'error');
+                Utils.showToast('❌ Error al agregar insumos', 'error');
             }
         }
 
@@ -782,7 +860,7 @@ Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplado
                 console.log('📥 Iniciando exportación de insumos a Excel con diseño completo...');
                 
                 if (!todosLosInsumos || todosLosInsumos.length === 0) {
-                    showToast('❌ No hay insumos para exportar', 'error');
+                    Utils.showToast('❌ No hay insumos para exportar', 'error');
                     return;
                 }
 
@@ -1423,6 +1501,96 @@ Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplado
                 
                 document.body.appendChild(link);
                 link.click();
+                
+            } catch (error) {
+                console.error('Error exportando insumos:', error);
+                Utils.showToast('Error al exportar insumos', 'error');
+            }
+        }
+
+    // Funciones globales para el modal de edición
+    function abrirModalEditarInsumo(insumo) {
+        const modal = document.getElementById('modalEditarInsumo');
+        
+        // Llenar el formulario con los datos del insumo
+        document.getElementById('editarInsumoId').value = insumo._id;
+        document.getElementById('editarIdInsumo').value = insumo.id_insumo || '';
+        document.getElementById('editarNombreInsumo').value = insumo.NombProducto || '';
+        document.getElementById('editarCategoriaInsumo').value = insumo.categoria || '';
+        document.getElementById('editarCantidadInsumo').value = insumo.cantidad || 0;
+        document.getElementById('editarCaracteristicasInsumo').value = insumo.caracteristicas || '';
+        document.getElementById('editarEstadoInsumo').value = insumo.estado || 'activo';
+        
+        // Mostrar el modal
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100');
+    }
+
+    function cerrarModalEditarInsumo() {
+        const modal = document.getElementById('modalEditarInsumo');
+        modal.classList.remove('opacity-100');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    async function guardarCambiosInsumo(event) {
+        event.preventDefault();
+        
+        const id = document.getElementById('editarInsumoId').value;
+        const datosActualizados = {
+            id_insumo: document.getElementById('editarIdInsumo').value,
+            NombProducto: document.getElementById('editarNombreInsumo').value,
+            categoria: document.getElementById('editarCategoriaInsumo').value,
+            cantidad: parseInt(document.getElementById('editarCantidadInsumo').value),
+            caracteristicas: document.getElementById('editarCaracteristicasInsumo').value,
+            estado: document.getElementById('editarEstadoInsumo').value
+        };
+        
+        try {
+            const token = localStorage.getItem('utn_token');
+            const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos/${id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(datosActualizados)
+            });
+            
+            if (response.ok) {
+                Utils.showToast('Insumo actualizado correctamente', 'success');
+                cerrarModalEditarInsumo();
+                
+                // Recargar la lista de insumos
+                if (window.insumosController && window.insumosController.cargarInsumos) {
+                    await window.insumosController.cargarInsumos();
+                }
+            } else {
+                // Verificar si la respuesta es JSON antes de parsear
+                const contentType = response.headers.get('content-type');
+                let errorMessage = 'Error al actualizar insumo';
+                
+                if (contentType && contentType.includes('application/json')) {
+                    try {
+                        const error = await response.json();
+                        errorMessage = error.message || errorMessage;
+                    } catch (e) {
+                        console.error('Error parseando JSON:', e);
+                    }
+                } else {
+                    // Si no es JSON, obtener el texto para depuración
+                    const errorText = await response.text();
+                    console.error('Respuesta no JSON del servidor:', errorText.substring(0, 200));
+                    errorMessage = `Error del servidor (${response.status}): ${response.statusText}`;
+                }
+                
+                Utils.showToast(`Error: ${errorMessage}`, 'error');
+            }
+        } catch (error) {
+            console.error('Error actualizando insumo:', error);
+            Utils.showToast('Error al actualizar insumo', 'error');
+        }
+    }
+        
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 Iniciando insumos.html...');
             
@@ -1443,15 +1611,21 @@ Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplado
             
             console.log('** Sesión válida en insumos.html, inicializando...');
             
+            // Conectar el formulario de edición
+            const formEditarInsumo = document.getElementById('formEditarInsumo');
+            if (formEditarInsumo) {
+                formEditarInsumo.addEventListener('submit', guardarCambiosInsumo);
+            }
+
             // Inicializar controlador de insumos
             setTimeout(async () => {
                 try {
                     // Crear instancia del controlador
-                    const insumosController = new InsumosController();
-                    console.log('** InsumosController creado:', insumosController);
+                    window.insumosController = new InsumosController();
+                    console.log('** InsumosController creado:', window.insumosController);
                     
                     // Inicializar el controlador
-                    await insumosController.initialize();
+                    await window.insumosController.initialize();
                     console.log('** InsumosController inicializado');
                     
                 } catch (error) {

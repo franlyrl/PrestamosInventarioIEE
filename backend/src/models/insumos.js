@@ -62,11 +62,11 @@ const insumoSchema = new mongoose.Schema({
         default: '' // Permite que sea opcional pero existente en el objeto
     },
 
-    /** * @property {String} estado - Estado del insumo para borrado lógico.
+    /** * @property {String} estado - Estado del insumo para borrado lógico y gestión de inventario.
      */
     estado: {
         type: String,
-        enum: ['activo', 'eliminado'],
+        enum: ['activo', 'inactivo', 'disponible', 'deteriorado', 'dañado', 'eliminado'],
         default: 'activo'
     },
 

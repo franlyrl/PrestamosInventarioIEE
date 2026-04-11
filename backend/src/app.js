@@ -20,8 +20,24 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Permite leer formularios
 app.use(morgan('dev'));
 
-// Middleware para servir archivos estáticos (imágenes subidas)
-app.use('/uploads', express.static('uploads'));
+// Middleware para servir archivos estáticos (imágenes subidas) con encabezados CORP correctos
+app.use('/uploads', express.static('uploads', {
+    setHeaders: (res, path, stat) => {
+        // Permitir acceso desde cualquier origen
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        
+        // Configurar Cross-Origin-Resource-Policy para permitir acceso
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+        
+        // Configurar Cross-Origin-Embedder-Policy si es necesario
+        res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+        
+        // Cache control para imágenes
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 día
+    }
+}));
 
 // Crear directorio uploads si no existe
 const fs = require('fs');

@@ -130,6 +130,26 @@ const Utils = {
         });
     },
 
+    // Mostrar loading
+    showLoading(show = true) {
+        const loadingState = document.getElementById('loading-state');
+        if (loadingState) {
+            loadingState.classList.toggle('hidden', !show);
+        }
+    },
+
+    // Mostrar empty state
+    showEmpty(show = true, message = 'No se encontraron resultados') {
+        const emptyState = document.getElementById('empty-state');
+        if (emptyState) {
+            emptyState.classList.toggle('hidden', !show);
+            const messageElement = emptyState.querySelector('h3');
+            if (messageElement) {
+                messageElement.textContent = message;
+            }
+        }
+    },
+
     // Manejar errores de API
     handleApiError(error) {
         console.error('Error de API:', error);
