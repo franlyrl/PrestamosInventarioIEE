@@ -49,11 +49,7 @@
                         <input type="email" id="emailInput" placeholder="juan.perez@utn.ac.cr" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
                     </div>
                     
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Código de Barras</label>
-                        <input type="text" id="codigoBarrasInput" placeholder="604550123" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
-                    </div>
-                    
+                                        
                     <div>
                         <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 ml-1">Rol</label>
                         <select id="rolInput" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ring-blue-500 outline-none transition text-sm" required>
@@ -190,7 +186,6 @@
                     nombre_completo: userData.nombre_completo,
                     correo_electronico: userData.correo_electronico,
                     contrasena: userData.contrasena,
-                    codigo_barras: userData.codigo_barras,
                     tipo_rol: userData.tipo_rol,
                     carrera: userData.carrera || 'N/A',
                     estado_usuario: 'activo'
@@ -252,7 +247,6 @@
                     nombre_completo: document.getElementById('nombreInput').value.trim(),
                     cedula: document.getElementById('cedulaInput').value.trim(),
                     correo_electronico: document.getElementById('emailInput').value.trim(),
-                    codigo_barras: document.getElementById('codigoBarrasInput').value.trim(),
                     tipo_rol: document.getElementById('rolInput').value,
                     carrera: document.getElementById('carreraInput').value,
                     contrasena: document.getElementById('passInput').value,
@@ -261,7 +255,7 @@
                 
                 // Validaciones básicas
                 if (!userData.nombre_completo || !userData.cedula || !userData.correo_electronico || 
-                    !userData.codigo_barras || !userData.tipo_rol || !userData.contrasena) {
+                    !userData.tipo_rol || !userData.contrasena) {
                     showToast('Por favor complete todos los campos', 'error');
                     return;
                 }
@@ -269,14 +263,7 @@
                 handleSignUp(userData);
             });
             
-            // Auto-llenar código de barras con cédula
-            document.getElementById('cedulaInput')?.addEventListener('input', (e) => {
-                const codigoBarrasInput = document.getElementById('codigoBarrasInput');
-                if (!codigoBarrasInput.value) {
-                    codigoBarrasInput.value = e.target.value;
-                }
-            });
-            
+                        
             // Auto-llenar email con formato UTN si es cédula
             document.getElementById('cedulaInput')?.addEventListener('blur', (e) => {
                 const emailInput = document.getElementById('emailInput');

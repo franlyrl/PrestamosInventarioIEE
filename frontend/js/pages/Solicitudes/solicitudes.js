@@ -13,7 +13,26 @@ class SolicitudesController {
     }
 
     async initialize() {
-        console.log('** initialize() llamado - BLOQUEADO para dejar control a controladores específicos');
+        console.log('** initialize() llamado - VERIFICANDO ROL DEL USUARIO');
+        
+        // Obtener información del usuario
+        const userData = localStorage.getItem('utn_user');
+        const user = userData ? JSON.parse(userData) : null;
+        
+        if (!user) {
+            console.log('** No hay usuario - SolicitudesController NO se inicializará');
+            return;
+        }
+        
+        const rol = user.rol || user.rol_nombre || user.tipo_rol || '';
+        const rolText = rol.toLowerCase();
+        
+        // Si es administrador, no inicializar este controlador
+        if (rolText.includes('administrador') || rolText.includes('admin')) {
+            console.log('** Usuario es administrador - SolicitudesController BLOQUEADO completamente');
+            console.log('** MobileAdminController debería manejar la vista');
+            return;
+        }
         
         // Verificar si es desktop antes de continuar
         if (window.innerWidth < 1024) {
@@ -21,7 +40,7 @@ class SolicitudesController {
             return;
         }
         
-        console.log('** Es desktop - Inicializando SolicitudesController...');
+        console.log('** Es desktop y no es admin - Inicializando SolicitudesController...');
         await this.cargarSolicitudes();
         this.setupEventListeners();
 
@@ -838,9 +857,20 @@ class SolicitudesController {
             <button onclick="window.solicitudesController.verDetalles('${solicitud._id}')" 
                 class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
                 style="color: #004a8c; hover: background-color: #004a8c15;">
-                👁️ Ver Detalles
+                <span style="opacity: 0.8;">?</span> Ver Detalles
             </button>
         `);
+
+        // Botón para enviar correo al estudiante (solo para administradores)
+        if (!esEstudiante && !esDocente && solicitud.usuario && solicitud.usuario.correo_electronico) {
+            actions.push(`
+                <button onclick="window.solicitudesController.enviarCorreoEstudiante('${solicitud.usuario.correo_electronico}', '${solicitud._id}')" 
+                    class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                    style="color: #004a8c; hover: background-color: #004a8c15;">
+                    <span style="opacity: 0.8;">?</span> Enviar Correo
+                </button>
+            `);
+        }
 
         // Acciones según rol y estado
         if (esEstudiante || esDocente) {
@@ -849,7 +879,7 @@ class SolicitudesController {
                     <button onclick="window.solicitudesController.gestionarSolicitud('${solicitud._id}')" 
                         class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
                         style="color: #004a8c; hover: background-color: #004a8c15;">
-                        ✏️ Editar Solicitud
+                        <span style="opacity: 0.8;">×</span> Cancelar Solicitud
                     </button>
                 `);
             }
@@ -865,6 +895,36 @@ class SolicitudesController {
         }
         
         return actions.join('');
+    }
+
+    async enviarCorreoEstudiante(correoEstudiante, solicitudId) {
+        try {
+            console.log('Enviando correo al estudiante:', correoEstudiante);
+            console.log('ID de solicitud:', solicitudId);
+            
+            // Crear el enlace mailto con el correo del estudiante
+            const asunto = encodeURIComponent(`Información sobre solicitud #${solicitudId?.slice(-6) || 'N/A'}`);
+            const cuerpo = encodeURIComponent(`
+Estimado estudiante,
+
+Le escribimos respecto a su solicitud #${solicitudId?.slice(-6) || 'N/A'}.
+
+Por favor, revise el estado de su solicitud en el sistema o acérquese al laboratorio para más información.
+
+Saludos cordiales,
+Departamento de Electrónica - UTN
+            `.trim());
+            
+            // Abrir el cliente de correo del usuario
+            window.location.href = `mailto:${correoEstudiante}?subject=${asunto}&body=${cuerpo}`;
+            
+            // Mostrar mensaje de confirmación
+            Utils.showToast('Abriendo cliente de correo para contactar al estudiante', 'success');
+            
+        } catch (error) {
+            console.error('Error al enviar correo:', error);
+            Utils.showToast('Error al abrir el cliente de correo', 'error');
+        }
     }
 }
 

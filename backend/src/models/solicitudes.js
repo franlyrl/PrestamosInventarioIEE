@@ -98,7 +98,37 @@ const solicitudesSchema = new mongoose.Schema({
     /** * @property {String} comentario_admin 
      * Notas internas exclusivas del administrador.
      */
-    comentario_admin: { type: String, trim: true }
+    comentario_admin: { type: String, trim: true },
+
+    /** * @property {Date} fecha_entrega 
+     * Fecha asignada para la entrega/recogida de artículos.
+     */
+    fecha_entrega: { type: Date },
+
+    /** * @property {Date} fecha_devolucion 
+     * Fecha asignada para la devolución de artículos.
+     */
+    fecha_devolucion: { type: Date },
+
+    /** * @property {Date} fecha_limite_devolucion 
+     * Fecha límite para devolver los artículos.
+     */
+    fecha_limite_devolucion: { type: Date },
+
+    /** * @property {String} horario_recogida 
+     * Horario asignado para la recogida de artículos.
+     */
+    horario_recogida: { type: String, trim: true },
+
+    /** * @property {Date} fecha_recogida 
+     * Fecha asignada para la recogida (similar a fecha_entrega).
+     */
+    fecha_recogida: { type: Date },
+
+    /** * @property {String} dias_disponibles 
+     * Días y horarios disponibles para recoger los artículos.
+     */
+    dias_disponibles: { type: String, trim: true }
 
 }, {
     /** Genera automáticamente campos de auditoría: createdAt y updatedAt. */

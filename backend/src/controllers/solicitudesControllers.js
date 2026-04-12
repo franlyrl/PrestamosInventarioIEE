@@ -455,16 +455,23 @@ exports.deleteSolicitud = async (req, res) => {
     * Criterio: El estado de la solicitud se actualiza en un solo paso para evitar inconsistencias.
     * Criterio: El Admin no puede cambiar el estado a 'aprobada' si no hay activos o insumos en la solicitud, para evitar aprobaciones vacías.
     * Criterio: El Admin no puede rechazar una solicitud sin proporcionar una razón válida, para fomentar la comunicación y el aprendizaje.
-    * Criterio: El Admin no puede modificar una solicitud que ya fue procesada (rechazada o devuelta), para mantener la integridad de los registros y evitar confusiones.
-    * Criterio: El Admin no puede aprobar una solicitud que no contiene activos ni insumos, para evitar aprobaciones sin sentido.
 */
 exports.gestionarEstadoAdmin = async (req, res) => {
     try {
-        console.log('🔍 Iniciando gestión de estado admin...');
-        console.log('📥 Body recibido:', req.body);
-        console.log('🆔 ID recibido:', req.params.id);
+        console.log('** Iniciando gestión de estado admin...');
+        console.log('** Body recibido:', req.body);
+        console.log('** ID recibido:', req.params.id);
 
-        const { nuevoEstadoAdmin, observaciones } = req.body;
+        const { 
+            nuevoEstadoAdmin, 
+            observaciones,
+            fecha_entrega,
+            fecha_devolucion,
+            fecha_limite_devolucion,
+            horario_recogida,
+            fecha_recogida,
+            dias_disponibles
+        } = req.body;
         const { id } = req.params;
 
         // Nombre único: EstadoSoli
@@ -503,6 +510,23 @@ exports.gestionarEstadoAdmin = async (req, res) => {
         // Aquí sincronizamos: campo del Schema = nuestra variable local
         EstadoSoli.estado = nuevoEstadoAdmin;
 
+        // Guardar campos de fecha si se proporcionan
+        if (fecha_entrega) EstadoSoli.fecha_entrega = fecha_entrega;
+        if (fecha_devolucion) EstadoSoli.fecha_devolucion = fecha_devolucion;
+        if (fecha_limite_devolucion) EstadoSoli.fecha_limite_devolucion = fecha_limite_devolucion;
+        if (horario_recogida) EstadoSoli.horario_recogida = horario_recogida;
+        if (fecha_recogida) EstadoSoli.fecha_recogida = fecha_recogida;
+        if (dias_disponibles) EstadoSoli.dias_disponibles = dias_disponibles;
+
+        console.log('** Campos de fecha guardados:', {
+            fecha_entrega: EstadoSoli.fecha_entrega,
+            fecha_devolucion: EstadoSoli.fecha_devolucion,
+            fecha_limite_devolucion: EstadoSoli.fecha_limite_devolucion,
+            horario_recogida: EstadoSoli.horario_recogida,
+            fecha_recogida: EstadoSoli.fecha_recogida,
+            dias_disponibles: EstadoSoli.dias_disponibles
+        });
+
         EstadoSoli.historico_estados.push({
             estado: nuevoEstadoAdmin,
             fecha: new Date(),
@@ -513,6 +537,17 @@ exports.gestionarEstadoAdmin = async (req, res) => {
 
         res.json({
             message: `Solicitud marcada como ${nuevoEstadoAdmin} con éxito.`,
+            solicitud: {
+                _id: EstadoSoli._id,
+                estado: EstadoSoli.estado,
+                fecha_entrega: EstadoSoli.fecha_entrega,
+                fecha_devolucion: EstadoSoli.fecha_devolucion,
+                fecha_limite_devolucion: EstadoSoli.fecha_limite_devolucion,
+                horario_recogida: EstadoSoli.horario_recogida,
+                fecha_recogida: EstadoSoli.fecha_recogida,
+                dias_disponibles: EstadoSoli.dias_disponibles,
+                observacion: observaciones || "Sin observaciones adicionales."
+            },
             visualizacion_usuario: {
                 estado_actual: EstadoSoli.estado,
                 ultimo_comentario: observaciones || "Sin observaciones adicionales."

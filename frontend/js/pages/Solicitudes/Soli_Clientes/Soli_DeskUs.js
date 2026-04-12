@@ -45,9 +45,19 @@ this.loadUserSolicitudes();
 
 setupContainer() {
 // Buscar tbody principal o crear uno si no existe
-this.tbody = document.getElementById('solicitudes-tbody-desktop') || 
-document.getElementById('solicitudes-tbody-desktop') ||
-document.querySelector('tbody[id*="solicitudes"]');
+const tbodyDesktop = document.getElementById('solicitudes-tbody-desktop');
+const tbodyGeneral = document.getElementById('solicitudes-tbody');
+const tbodyAny = document.querySelector('tbody[id*="solicitudes"]');
+
+console.log('** setupContainer - tbodies encontrados:', {
+    'solicitudes-tbody-desktop': !!tbodyDesktop,
+    'solicitudes-tbody': !!tbodyGeneral,
+    'tbody[id*="solicitudes"]': !!tbodyAny
+});
+
+this.tbody = tbodyDesktop || tbodyGeneral || tbodyAny;
+console.log('** setupContainer - tbody seleccionado:', this.tbody?.id || 'desconocido');
+
 if (!this.tbody) {
 console.error('No se encontró ningún tbody de solicitudes, creando uno...');
 // Crear tbody si no existe
@@ -233,11 +243,16 @@ rolBgGradient = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
 rolIcono = '👨‍🏫';
 }
 
+console.log('** createSolicitudRow - llamando a getFechaInfoDesktop para:', solicitud._id);
+const fechaInfo = this.getFechaInfoDesktop(solicitud);
+console.log('** createSolicitudRow - resultado de getFechaInfoDesktop:', fechaInfo);
+
 return `
 <tr class="hover:bg-slate-50 border-b">
 <td class="px-4 py-3 font-mono text-sm">#${solicitud._id?.slice(-6)}</td>
 <td class="px-4 py-3 font-medium">${solicitud.usuario?.nombre_completo || 'Usuario'}</td>
 <td class="px-4 py-3 text-sm">${this.getElementosInfo(solicitud)}</td>
+<td class="px-4 py-3 text-sm">${fechaInfo}</td>
 <td class="px-4 py-3 text-sm">${new Date(solicitud.createdAt).toLocaleDateString()}</td>
 <td class="px-4 py-3">${this.formatEstado(solicitud.estado)}</td>
 <td class="px-4 py-3">
@@ -325,11 +340,16 @@ const esDocente = rolText.includes('docente') || rolText.includes('profesor');
             rolIcono = '👨‍🏫';
         }
 
-        return `
+        console.log('** createSolicitudRow (segunda) - llamando a getFechaInfoDesktop para:', solicitud._id);
+const fechaInfo = this.getFechaInfoDesktop(solicitud);
+console.log('** createSolicitudRow (segunda) - resultado de getFechaInfoDesktop:', fechaInfo);
+
+return `
             <tr class="hover:bg-slate-50 border-b">
                 <td class="px-4 py-3 font-mono text-sm">#${solicitud._id?.slice(-6)}</td>
                 <td class="px-4 py-3 font-medium">${solicitud.usuario?.nombre_completo || 'Usuario'}</td>
                 <td class="px-4 py-3 text-sm">${this.getElementosInfo(solicitud)}</td>
+                <td class="px-4 py-3 text-sm">${fechaInfo}</td>
                 <td class="px-4 py-3 text-sm">${new Date(solicitud.createdAt).toLocaleDateString()}</td>
                 <td class="px-4 py-3">${this.formatEstado(solicitud.estado)}</td>
                 <td class="px-4 py-3">
@@ -753,14 +773,83 @@ const esDocente = rolText.includes('docente') || rolText.includes('profesor');
 
     formatEstado(estado) {
         const estados = {
-            'pendiente': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">⏳ Pendiente</span>',
-            'aprobada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">✅ Aprobada</span>',
-            'rechazada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">🚫 Rechazada</span>',
-            'entregado': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">📦 Entregado</span>',
-            'devuelto': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">🔄 Devuelto</span>',
-            'cancelada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">❌ Cancelada</span>'
+            'pendiente': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">?? Pendiente</span>',
+            'aprobada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">?? Aprobada</span>',
+            'rechazada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">?? Rechazada</span>',
+            'entregado': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">?? Entregado</span>',
+            'devuelto': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">?? Devuelto</span>',
+            'cancelada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">?? Cancelada</span>'
         };
         return estados[estado] || `<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">${estado}</span>`;
+    }
+
+    getFechaInfoDesktop(solicitud) {
+        console.log('** getFechaInfoDesktop llamado para solicitud:', solicitud._id, 'estado:', solicitud.estado);
+        
+        if (solicitud.estado === 'aprobada') {
+            console.log('** Es aprobada, mostrando fechas:', {
+                fecha_recogida: solicitud.fecha_recogida,
+                fecha_entrega: solicitud.fecha_entrega,
+                fecha_devolucion: solicitud.fecha_devolucion,
+                fecha_limite_devolucion: solicitud.fecha_limite_devolucion,
+                horario_recogida: solicitud.horario_recogida,
+                dias_disponibles: solicitud.dias_disponibles
+            });
+            // Para solicitudes aprobadas, mostrar información compacta
+            let fechaInfo = '<div class="space-y-1">';
+            
+            if (solicitud.fecha_recogida || solicitud.fecha_entrega) {
+                const fechaRecogida = solicitud.fecha_recogida || solicitud.fecha_entrega;
+                const fechaFormateada = new Date(fechaRecogida).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit'
+                });
+                fechaInfo += `<div class="text-green-700 text-xs font-medium">?? Recoger: ${fechaFormateada}</div>`;
+            }
+            
+            if (solicitud.fecha_devolucion || solicitud.fecha_limite_devolucion) {
+                const fechaDevolucion = solicitud.fecha_devolucion || solicitud.fecha_limite_devolucion;
+                const fechaDevolucionFormateada = new Date(fechaDevolucion).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit'
+                });
+                fechaInfo += `<div class="text-red-700 text-xs font-medium">?? Devolver: ${fechaDevolucionFormateada}</div>`;
+            }
+            
+            if (solicitud.horario_recogida) {
+                fechaInfo += `<div class="text-green-600 text-xs">?? ${solicitud.horario_recogida}</div>`;
+            }
+            
+            fechaInfo += '</div>';
+            return fechaInfo;
+            
+        } else if (solicitud.estado === 'entregado') {
+            // Para solicitudes entregadas, mostrar información compacta
+            let fechaInfo = '<div class="space-y-1">';
+            
+            if (solicitud.fecha_entrega) {
+                const fechaEntregaFormateada = new Date(solicitud.fecha_entrega).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit'
+                });
+                fechaInfo += `<div class="text-blue-700 text-xs font-medium">?? Entregado: ${fechaEntregaFormateada}</div>`;
+            }
+            
+            if (solicitud.fecha_devolucion || solicitud.fecha_limite_devolucion) {
+                const fechaDevolucion = solicitud.fecha_devolucion || solicitud.fecha_limite_devolucion;
+                const fechaDevolucionFormateada = new Date(fechaDevolucion).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit'
+                });
+                fechaInfo += `<div class="text-red-700 text-xs font-medium">?? Devolver: ${fechaDevolucionFormateada}</div>`;
+            }
+            
+            fechaInfo += '</div>';
+            return fechaInfo;
+        }
+        
+        // Para otros estados, no mostrar información de fechas
+        return '<div class="text-gray-400 text-xs">Sin fechas</div>';
     }
 
     showError(message) {

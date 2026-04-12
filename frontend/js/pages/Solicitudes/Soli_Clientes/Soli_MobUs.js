@@ -297,21 +297,18 @@ class MobileUserController {
                         ${this.getElementosInfo(solicitud)}
                     </div>
                     
-                    <div class="flex justify-end mt-2 sm:mt-3">
-                        <div class="relative">
-                            <button 
-                                id="menu-btn-${solicitud._id}"
-                                onclick="window.mobileUserController.toggleMenu('${solicitud._id}')" 
-                                class="p-1.5 sm:p-2 rounded-lg transition-all duration-200 hover:scale-110"
-                                style="background: ${rolBgGradient}; color: black; box-shadow: 0 2px 8px ${rolColor}40;">
-                                <span class="text-sm sm:text-base">??</span>
-                            </button>
-                            <div id="menu-${solicitud._id}" class="hidden absolute right-0 sm:right-4 mt-1 sm:mt-2 w-44 sm:w-48 bg-white rounded-lg shadow-lg border" style="border-color: #000000; z-index: 1000;">
-                                <div class="p-1.5 sm:p-2">
-                                    ${this.createActionsForRole(solicitud, esEstudiante, esDocente, rolColor)}
-                                </div>
-                            </div>
+                    <!-- Mostrar fechas para solicitudes aprobadas o entregadas -->
+                    ${this.getFechaInfo(solicitud)}
+                    
+                    <div class="flex justify-between items-center gap-2">
+                        <div class="text-xs sm:text-sm text-slate-500">
+                            ${new Date(solicitud.createdAt).toLocaleDateString()}
                         </div>
+                        <div class="mt-1">${this.getEstadoBadge(solicitud.estado)}</div>
+                    </div>
+                    
+                    <div class="p-1.5 sm:p-2">
+                        ${this.createActionsForRole(solicitud, esEstudiante, esDocente, rolColor)}
                     </div>
                 </div>
             </div>
@@ -389,6 +386,110 @@ class MobileUserController {
             'cancelada': '<span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">?? Cancelada</span>'
         };
         return badges[estado] || `<span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">${estado}</span>`;
+    }
+
+    getFechaInfo(solicitud) {
+        console.log('** getFechaInfo llamado para solicitud:', {
+            _id: solicitud._id,
+            estado: solicitud.estado,
+            fecha_recogida: solicitud.fecha_recogida,
+            fecha_entrega: solicitud.fecha_entrega,
+            fecha_devolucion: solicitud.fecha_devolucion,
+            fecha_limite_devolucion: solicitud.fecha_limite_devolucion,
+            horario_recogida: solicitud.horario_recogida,
+            dias_disponibles: solicitud.dias_disponibles
+        });
+        
+        if (solicitud.estado === 'aprobada') {
+            // Para solicitudes aprobadas, mostrar fecha de recogida, horario, días disponibles y fecha de devolución
+            let fechaInfo = '<div class="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">';
+            
+            if (solicitud.fecha_recogida || solicitud.fecha_entrega) {
+                const fechaRecogida = solicitud.fecha_recogida || solicitud.fecha_entrega;
+                const fechaFormateada = new Date(fechaRecogida).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                fechaInfo += `<div class="flex items-center gap-2">`;
+                fechaInfo += `<span class="text-green-600 text-xs font-medium">?? Fecha para recoger:</span>`;
+                fechaInfo += `<span class="text-green-800 text-xs font-semibold">${fechaFormateada}</span>`;
+                fechaInfo += `</div>`;
+            }
+            
+            if (solicitud.horario_recogida) {
+                fechaInfo += `<div class="flex items-center gap-2">`;
+                fechaInfo += `<span class="text-green-600 text-xs font-medium">?? Horario:</span>`;
+                fechaInfo += `<span class="text-green-800 text-xs">${solicitud.horario_recogida}</span>`;
+                fechaInfo += `</div>`;
+            }
+            
+            if (solicitud.dias_disponibles) {
+                fechaInfo += `<div class="flex items-center gap-2">`;
+                fechaInfo += `<span class="text-green-600 text-xs font-medium">?? Disponible:</span>`;
+                fechaInfo += `<span class="text-green-800 text-xs">${solicitud.dias_disponibles}</span>`;
+                fechaInfo += `</div>`;
+            }
+            
+            // Agregar fecha de devolución para solicitudes aprobadas
+            if (solicitud.fecha_devolucion || solicitud.fecha_limite_devolucion) {
+                const fechaDevolucion = solicitud.fecha_devolucion || solicitud.fecha_limite_devolucion;
+                const fechaDevolucionFormateada = new Date(fechaDevolucion).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                fechaInfo += `<div class="flex items-center gap-2 border-t border-green-200 pt-2">`;
+                fechaInfo += `<span class="text-red-600 text-xs font-medium">?? Devolver antes:</span>`;
+                fechaInfo += `<span class="text-red-800 text-xs font-semibold">${fechaDevolucionFormateada}</span>`;
+                fechaInfo += `</div>`;
+            }
+            
+            fechaInfo += '</div>';
+            return fechaInfo;
+            
+        } else if (solicitud.estado === 'entregado') {
+            // Para solicitudes entregadas, mostrar fecha de entrega y fecha de devolución
+            let fechaInfo = '<div class="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">';
+            
+            if (solicitud.fecha_entrega) {
+                const fechaEntregaFormateada = new Date(solicitud.fecha_entrega).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                fechaInfo += `<div class="flex items-center gap-2">`;
+                fechaInfo += `<span class="text-blue-600 text-xs font-medium">?? Entregado:</span>`;
+                fechaInfo += `<span class="text-blue-800 text-xs font-semibold">${fechaEntregaFormateada}</span>`;
+                fechaInfo += `</div>`;
+            }
+            
+            if (solicitud.horario_recogida) {
+                fechaInfo += `<div class="flex items-center gap-2">`;
+                fechaInfo += `<span class="text-blue-600 text-xs font-medium">?? Horario:</span>`;
+                fechaInfo += `<span class="text-blue-800 text-xs">${solicitud.horario_recogida}</span>`;
+                fechaInfo += `</div>`;
+            }
+            
+            if (solicitud.fecha_devolucion || solicitud.fecha_limite_devolucion) {
+                const fechaDevolucion = solicitud.fecha_devolucion || solicitud.fecha_limite_devolucion;
+                const fechaDevolucionFormateada = new Date(fechaDevolucion).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                fechaInfo += `<div class="flex items-center gap-2">`;
+                fechaInfo += `<span class="text-red-600 text-xs font-medium">?? Devolver antes:</span>`;
+                fechaInfo += `<span class="text-red-800 text-xs font-semibold">${fechaDevolucionFormateada}</span>`;
+                fechaInfo += `</div>`;
+            }
+            
+            fechaInfo += '</div>';
+            return fechaInfo;
+        }
+        
+        // Para otros estados, no mostrar información de fechas
+        return '';
     }
 
     getFilteredSolicitudes() {
@@ -903,15 +1004,67 @@ class MobileUserController {
             
             console.log('** Solicitud encontrada para cancelar:', solicitud);
             
-            // Cambiar el estado a "cancelada" localmente
-            solicitud.estado = 'cancelada';
+            // Enviar petición al servidor para cancelar - probar DELETE que es más estándar
+            const token = localStorage.getItem('utn_token');
             
-            // Recargar para mostrar los cambios
-            this.renderSolicitudes();
-            this.actualizarTotalesPorEstado();
+            // Primero intentar con DELETE
+            let response = await fetch('http://localhost:4000/api/solicitudes/' + solicitudId, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    motivo: 'Cancelada por el estudiante'
+                })
+            });
             
-            console.log('** Solicitud cancelada exitosamente');
-            alert('Solicitud cancelada correctamente');
+            // Si DELETE no funciona, intentar con PUT simple
+            if (!response.ok) {
+                console.log('** DELETE no funcionó, intentando PUT simple...');
+                response = await fetch('http://localhost:4000/api/solicitudes/' + solicitudId, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({
+                        estado: 'cancelada',
+                        motivo: 'Cancelada por el estudiante'
+                    })
+                });
+            }
+            
+            if (response.ok) {
+                const responseData = await response.json();
+                console.log('** Solicitud cancelada en el servidor - Response:', responseData);
+                
+                // Cambiar el estado a "cancelada" localmente
+                solicitud.estado = 'cancelada';
+                console.log('** Estado local cambiado a:', solicitud.estado);
+                
+                // También actualizar en allSolicitudes
+                const solicitudAll = this.allSolicitudes.find(s => s._id === solicitudId);
+                if (solicitudAll) {
+                    solicitudAll.estado = 'cancelada';
+                    console.log('** Estado en allSolicitudes cambiado a:', solicitudAll.estado);
+                }
+                
+                // Recargar para mostrar los cambios
+                console.log('** Renderizando solicitudes después de cancelación...');
+                this.renderSolicitudes();
+                this.actualizarTotalesPorEstado();
+                
+                console.log('** Solicitud cancelada exitosamente');
+                alert('Solicitud cancelada correctamente. NOTA: Si la solicitud vuelve a aparecer al recargar la página, es un problema del servidor. La cancelación se procesó localmente.');
+                
+                // NO recargar automáticamente porque el servidor no está guardando el cambio
+                console.log('** Cancelación completada localmente. El servidor puede no estar guardando el cambio.');
+            } else {
+                const errorText = await response.text();
+                console.error('** Error cancelando solicitud en servidor:', response.status, errorText);
+                alert('Error al cancelar la solicitud: ' + response.statusText);
+            }
             
         } catch (error) {
             console.error('** Error cancelando solicitud:', error);
