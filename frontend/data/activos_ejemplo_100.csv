@@ -1,0 +1,101 @@
+numActivo,numSerie,marca,modelo,categoria,estadoActivo,caracteristicas,observaciones
+1001,FLUKE-SN001,Fluke,87V,Multímetros,disponible,"True RMS, 4.5 dígitos, medición de temperatura, rango automático, precisión 0.05%",Multímetro digital profesional en excelente estado
+1002,FLUKE-SN002,Fluke,115,Multímetros,disponible,"True RMS, medición de corriente AC/DC, diodo, continuidad, rango manual",Multímetro compacto para uso general
+1003,TEK-SN003,Tektronix,TBS1052B,Osciloscopios,disponible,"2 canales, 50 MHz, 1 GS/s, pantalla de 7 pulgadas, triggering automático",Osciloscopio digital de 2 canales
+1004,RIG-SN004,Rigol,DS1054Z,Osciloscopios,disponible,"4 canales, 50 MHz (actualizable a 100 MHz), 1 GS/s, memoria 24Mpts",Osciloscopio de 4 canales económico
+1005,TEK-SN005,Tektronix,AFG1022,Generadores de Funciones,disponible,"2 canales, 25 MHz, 14 bits, formas de onda arbitrarias, modulación AM/FM",Generador de funciones arbitrarias
+1006,SIG-SN006,Siglent,SDG1032X,Generadores de Funciones,disponible,"2 canales, 30 MHz, 16 bits, output de 20Vpp",Generador de funciones de alta precisión
+1007,HP-SN007,Hewlett-Packard,E3631A,Fuentes de Poder,disponible,"Triple output: 0-6V/5A, 0-25V/1A, 0-25V/1A, regulación lineal",Fuente de poder triple salida
+1008,KEY-SN008,Keysight,E3646A,Fuentes de Poder,disponible,"Dual output, 0-8V/5A o 0-20V/2.5A, interfaz GPIB, precisión 0.01%",Fuente de poder programable
+1009,KEM-SN009,Kemet,LCR-600,Medidores LCR,disponible,"Rango: R: 0.1mΩ-100MΩ, C: 0.01pF-9999μF, L: 0.01μH-9999H, frecuencias de test: 100Hz-100kHz",Medidor de inductancia capacitancia resistencia
+1010,HIO-SN010,Hioki,IM3523,Medidores LCR,disponible,"Rango: R: 1mΩ-100MΩ, C: 0.01pF-9999μF, L: 0.01μH-9999H, precisión básica 0.05%",Medidor LCR de alta precisión
+1011,HAK-SN011,Hakko,FX-888D,Estaciones de Soldadura,disponible,"65W, temperatura: 50-480°C, control digital PID, incluye punta T18-K",Estación de soldadura digital
+1012,WEL-SN012,Weller,WES51,Estaciones de Soldadura,disponible,"50W, temperatura: 350-850°F, control analógico, punta ET series",Estación de soldadura analógica
+1013,FLIR-SN013,FLIR,EX-XT,Analizadores de Espectro,disponible,"Rango: 9Hz-2.0GHz, resolución 1Hz, DANL: -165dBm/Hz, preamplificador integrado",Analizador de espectro térmico
+1014,RS-SN014,Rohde & Schwarz,FPC1500,Analizadores de Espectro,disponible,"5 kHz a 1 GHz, resolución 1 Hz, DANL: -155 dBm, tracking generator incluido",Analizador de espectro compacto
+1015,MET-SN015,Metcal,PS-900,Soldadura Avanzada,disponible,"90W, tecnología SmartHeat, temperatura controlada por curie, recuperación instantánea",Estación de soldadura por inducción
+1016,JBC-SN016,JBC,CD-1BE,Soldadura Avanzada,disponible,"130W, control de temperatura activo, sleep mode, punta C245 series",Estación de soldadura de precisión
+1017,KEY-SN017,Keysight,34461A,Multímetros de Banco,disponible,"6.5 dígitos, precisión 0.0012%, medición de temperatura, conectividad USB/LAN",Multímetro de 6.5 dígitos
+1018,KEI-SN018,Keithley,2100,Multímetros de Banco,disponible,"6.5 dígitos, 23 lecturas/segundo, interfaz USB, software Keithley KickStart",Multímetro de 6.5 dígitos USB
+1019,RIG-SN019,Rigol,DP832,Fuentes de Poder,disponible,"3 canales: 30V/3A, 30V/3A, 5V/3A, bajo ripple, timing programable",Fuente de poder programable triple
+1020,TEN-SN020,Tenma,72-10480,Fuentes de Poder,disponible,"0-30V, 0-10A, display LCD, protección OVP/OCP/OTP, ventilador silencioso",Fuente de poder switching DC
+1021,SAL-SN021,Saleae,Logic Pro 16,Analizadores Lógicos,disponible,"16 canales, 500 MS/s, buffer 2GB, triggering avanzado, software multiplataforma",Analizador lógico USB de 16 canales
+1022,DIG-SN022,Digilent,Analog Discovery 2,Analizadores Lógicos,disponible,"Osciloscopio 2Ch/30MHz, AWG 2Ch/12MHz, analizador lógico 16Ch, fuente de poder variable",Kit de instrumentos USB portátil
+1023,POM-SN023,Pomona,6341,Accesorios de Medición,disponible,"10:1, 200 MHz, compensación ajustable, punta de resorte, cable 1.2m",Sonda de osciloscopio pasiva
+1024,PM-SN024,Probe Master,4900,Accesorios de Medición,disponible,"100:1, 150 MHz, max 1500V CAT II, compensación ajustable",Sonda de alto voltaje
+1025,FLU-SN025,Fluke,754,Calibradores,disponible,"Documenting process calibrator, HART communication, data logging, precisión 0.002%",Calibrador de proceso documentante
+1026,BEA-SN026,Beamex,MC6,Calibradores,disponible,"Presión, temperatura, señales eléctricas, HART/Fieldbus, pantalla táctil",Calibrador de proceso multivariable
+1027,BK-SN027,BK Precision,4053,Contadores de Frecuencia,disponible,"3 GHz, 10 dígitos/s, resolución 10 dígitos, medición de período y totalización",Contador de frecuencia universal
+1028,INS-SN028,Instek,GFC-8270H,Contadores de Frecuencia,disponible,"2.7 GHz, 8 dígitos, resolución 1nHz, alta sensibilidad",Contador de frecuencia económico
+1029,AMP-SN029,Amprobe,AMP-330,Pinzas Amperimétricas,disponible,"1000A AC/DC, 1000V, diodo, continuidad, capacitancia, temperatura",Pinza amperimétrica True RMS AC/DC
+1030,FLU-SN030,Fluke,376,Pinzas Amperimétricas,disponible,"1000A AC/DC, sonda iFlex 2500A AC, True RMS, inrush measurement, bluetooth",Pinza amperimétrica con sonda iFlex
+1031,GOS-SN031,Gossen,Metrawatt M249B,Luxómetros,disponible,"0.01-199900 lx, precisión 3%, sensor silicon V(lambda), memoria 100 valores",Medidor de luminancia profesional
+1032,KON-SN032,Konica Minolta,T-10A,Luxómetros,disponible,"0.01-299900 lx, receptor de ángulo cósmico, USB interface, software incluido",Medidor de iluminancia
+1033,EXT-SN033,Extech,407750,Tacómetros,disponible,"5-99999 RPM, precisión 0.05%, memoria máx/mín, laser e contacto",Tacómetro de contacto/láser
+1034,SHI-SN034,Shimpo,DT-205LR,Tacómetros,disponible,"6-99999 RPM, precisión 0.01%, display LCD 5 dígitos, memoria 10 lecturas",Tacómetro digital láser
+1035,UEI-SN035,UEi,EM151,Medidores de Aislamiento,disponible,"500V, 1000V, resistencia 0-2000MΩ, indicador de alta tensión, alarm visual",Megóhmetro digital
+1036,MEG-SN036,Megger,MIT1025,Medidores de Aislamiento,disponible,"500V-10kV, resistencia hasta 35TΩ, guardado de resultados, software PowerDB",Megóhmetro profesional
+1037,CHA-SN037,Chauvin Arnoux,CA 6526,Medidores de Tierra,disponible,"2 y 3 puntas, resistencia 0.001-9999Ω, sin picas auxiliares, memoria 512",Telurímetro digital
+1038,FLU-SN038,Fluke,1625-2,Medidores de Tierra,disponible,"2,3,4 picas, corriente de cortocircuito, memoria 1500, medición sin picas",Kit completo de medición de tierra
+1039,HAN-SN039,Hantek,DSO5102P,Osciloscopios,disponible,"2 canales, 100 MHz, 1 GS/s, FFT, USB host/device, display 7 pulgadas",Osciloscopio digital portátil
+1040,OWO-SN040,Owon,SDS1102,Osciloscopios,disponible,"2 canales, 100 MHz, 1 GS/s, display 8 pulgadas, batería opcional",Osciloscopio de almacenamiento digital
+1041,GWI-SN041,GW Instek,PSP-603,Fuentes de Poder,disponible,"0-60V, 0-3.5A, 200W, OVP/OCP, 3 memorias, display LED",Fuente de poder switching DC
+1042,MAN-SN042,Manson,SPS-9410,Fuentes de Poder,disponible,"0-40V, 0-10A, display LCD, protecciones, ventilador variable",Fuente de poder programable
+1043,PAN-SN043,Panasonic,ERJ-1GE,Componentes,disponible,"Surtido 1Ω-10MΩ, 5% 1/10W, 0201, 0402, 0603, 0805, 1206",Kit de resistencias SMD
+1044,YAG-SN044,Yageo,RC Series,Componentes,disponible,"1/4W, 5%, valores 10Ω-1MΩ, 30 valores x 50 unidades cada uno",Kit de resistencias carbón
+1045,MUR-SN045,Murata,GRM Series,Componentes,disponible,"Surtido 1pF-100μF, 16V-50V, cerámica X7R, Y5V, NP0, 0603, 0805",Kit de capacitores cerámicos
+1046,VIS-SN046,Vishay,1N4001-1N4007,Componentes,disponible,"1A 50-1000V, DO-41, 100 unidades cada modelo",Kit de diodos rectificadores
+1047,ON-SN047,ON Semiconductor,2N2222-2N3904,Componentes,disponible,"2N2222, 2N3904, 2N4401, TO-92, 50 unidades cada tipo",Kit de transistores NPN
+1048,FAIR-SN048,Fairchild,2N2907-2N3906,Componentes,disponible,"2N2907, 2N3906, TO-92, 50 unidades cada tipo",Kit de transistores PNP
+1049,TI-SN049,Texas Instruments,NE555-LM358,Componentes,disponible,"NE555, LM358, LM741, LM7805, LM7812, DIP-8/14, 20 unidades cada CI",Kit de circuitos integrados
+1050,STM-SN050,STMicroelectronics,L78-L79 Series,Componentes,disponible,"L7805, L7809, L7812, L7912, TO-220, 1.5A, protección térmica",Kit de reguladores de voltaje
+1051,ARD-SN051,Arduino,Uno R3,Microcontroladores,disponible,"ATmega328P, 14 digital I/O, 6 analog inputs, USB, bootloader integrado",Placa de desarrollo Arduino
+1052,ARD-SN052,Arduino,Mega 2560,Microcontroladores,disponible,"ATmega2560, 54 digital I/O, 16 analog inputs, 4 UARTs, USB",Placa de desarrollo Mega
+1053,RPI-SN053,Raspberry Pi,4 Model B,Computadoras Embebidas,disponible,"4GB RAM, 4-core ARM Cortex-A72, WiFi, Bluetooth, 4 USB, GPIO 40 pines",Computadora de placa única
+1054,RPI-SN054,Raspberry Pi,Pico,Microcontroladores,disponible,"Dual-core Cortex-M0+, 264KB RAM, 2MB Flash, USB, 26 GPIO",Microcontrolador RP2040
+1055,ESP-SN055,Espressif,ESP32-DevKitC,Microcontroladores,disponible,"Dual-core 240MHz, WiFi 802.11n, Bluetooth 4.2, 38 pines GPIO",Kit de desarrollo WiFi/Bluetooth
+1056,STM-SN056,ST,NUCLEO-F446RE,Microcontroladores,disponible,"Cortex-M4 180MHz, 512KB Flash, 128KB RAM, ST-LINK integrado",Placa de desarrollo STM32
+1057,TEE-SN057,PJRC,Teensy 4.1,Microcontroladores,disponible,"Cortex-M7 600MHz, 1MB RAM, 8MB Flash, Ethernet, USB host",Placa de desarrollo de alta velocidad
+1058,MIC-SN058,Microchip,PICkit 4,Programadores,disponible,"Soporta PIC, dsPIC, AVR, SAM, debugging, USB, MPLAB X IDE",Programador de microcontroladores
+1059,ATM-SN059,Microchip,ATmega328P-PU,Componentes,disponible,"8-bit, 20MHz, 32KB Flash, 2KB SRAM, 1KB EEPROM, DIP-28",Microcontrolador AVR
+1060,INT-SN060,Intel,Core i5-10400,Procesadores,disponible,"6 cores/12 threads, 2.9-4.3GHz, 12MB cache, LGA 1200, 65W",Procesador de 6 núcleos
+1061,AMD-SN061,AMD,Ryzen 5 5600X,Procesadores,disponible,"6 cores/12 threads, 3.7-4.6GHz, 32MB cache, AM4, 65W",Procesador de 6 núcleos
+1062,COR-SN062,Corsair,Vengeance LPX,Memorias RAM,disponible,"16GB (2x8GB), DDR4 3200MHz, CL16, disipador de aluminio",Módulos de memoria DDR4
+1063,KIN-SN063,Kingston,A2000,SSD,disponible,"1TB, PCIe Gen 3x4, hasta 2200/2000 MB/s lectura/escritura, M.2 2280",Unidad de estado sólido NVMe
+1064,WD-SN064,Western Digital,Blue HDD,Discos Duros,disponible,"2TB, 7200 RPM, 256MB cache, SATA 6Gb/s, 3.5 pulgadas",Disco duro SATA
+1065,EVG-SN065,EVGA,SuperNOVA 650,Fuente PC,disponible,"650W, 80 Plus Gold, modular, ventilador 140mm, protecciones OVP/UVP/OPP/SCP",Fuente de poder ATX
+1066,ASU-SN066,ASUS,RTX 3060,Tarjetas de Video,disponible,"12GB GDDR6, 3584 CUDA cores, PCIe 4.0, ray tracing, DLSS",Tarjeta gráfica NVIDIA
+1067,GIG-SN067,Gigabyte,B550 AORUS,Placas Base,disponible,"Socket AM4, chipset B550, PCIe 4.0, 4 DDR4 slots, 2 M.2",Placa madre AMD
+1068,SAM-SN068,Samsung,Odyssey G5,Monitores,disponible,"27 pulgadas, 2560x1440, 144Hz, 1ms, VA panel, FreeSync",Monitor gaming curvo
+1069,LG-SN069,LG,27UK850,Monitores,disponible,"27 pulgadas, 3840x2160, 60Hz, 5ms, HDR10, USB-C, sRGB 99%",Monitor 4K IPS
+1070,LOG-SN070,Logitech,MX Master 3,Periféricos,disponible,"Sensor Darkfield 4000DPI, MagSpeed electromagnetic, USB-C, multi-device",Mouse inalámbrico avanzado
+1071,KEY-SN071,Keychron,K2,Periféricos,disponible,"75% layout, switches Gateron, RGB, Bluetooth, USB-C, compatible Mac/Windows",Teclado mecánico inalámbrico
+1072,RAZ-SN072,Razer,BlackShark V2,Periféricos,disponible,"Drivers Razer Triforce 50mm, THX Spatial Audio, micrófono desmontable",Auriculares gaming
+1073,BLU-SN073,Blue,Yeti,Periféricos,disponible,"4 patrones polares, 16-bit/48kHz, jack auriculares, control ganancia",Micrófono USB condensador
+1074,ELG-SN074,Elgato,Cam Link 4K,Captura de Video,disponible,"HDMI a USB 3.0, 4K 30fps, 1080p 60fps, latencia ultra baja",Dispositivo de captura HDMI
+1075,CAN-SN075,Canon,EOS M50,Cámaras,disponible,"24.1MP APS-C, 4K video, pantalla táctil abatible, WiFi, lente 15-45mm",Cámara mirrorless
+1076,SON-SN076,Sony,A6400,Cámaras,disponible,"24.2MP APS-C, 4K video, autofocus 0.02s, pantalla abatible 180°, lente 16-50mm",Cámara mirrorless
+1077,DJI-SN077,DJI,Mavic Air 2,Drones,disponible,"4K 60fps, 48MP fotos, 34 min vuelo, 10km transmisión, seguimiento activo",Drone con cámara
+1078,GOP-SN078,GoPro,Hero 9 Black,Cámaras de Acción,disponible,"5K video, 20MP fotos, HyperSmooth 3.0, pantalla frontal, sumergible 10m",Cámara de acción
+1079,INS-SN079,Insta360,ONE X2,Cámaras 360,disponible,"5.7K 360°, FlowState stabilization, sumergible 10m, edición en app",Cámara 360°
+1080,OCU-SN080,Meta,Quest 2,VR,disponible,"1832x1920 por ojo, 90Hz, Snapdragon XR2, 6DOF, standalone, 128GB",Casco de realidad virtual
+1081,HTC-SN081,HTC,Vive Pro 2,VR,disponible,"2448x2448 por ojo, 120Hz, 120° FOV, SteamVR tracking, audio Hi-Res",Casco VR de alta resolución
+1082,VAL-SN082,Valve,Index,VR,disponible,"1440x1600 por ojo, 120/144Hz, tracking submilimétrico, controllers con dedos",Casco VR premium
+1083,NIN-SN083,Nintendo,Switch OLED,Consolas,disponible,"Pantalla OLED 7 pulgadas, 64GB, dock con LAN, Joy-Con, 1080p TV mode",Consola portátil
+1084,SON-SN084,Sony,PlayStation 5,Consolas,disponible,"SSD 825GB, ray tracing, 4K 120Hz, DualSense haptic, retro compatible PS4",Consola de nueva generación
+1085,MS-SN085,Microsoft,Xbox Series X,Consolas,disponible,"SSD 1TB, 12 TFLOPS, 4K 120Hz, ray tracing, retro compatible",Consola de alta potencia
+1086,ANK-SN086,Anker,PowerCore 26800,Baterías Externas,disponible,"26800mAh, 3 puertos USB, PowerIQ, recarga en 6 horas, viaje seguro",Batería portátil de alta capacidad
+1087,APC-SN087,APC,Back-UPS 650,UPS,disponible,"650VA/400W, 4 tomas, autonomía 8 minutos, AVR, surge protection",Regulador y respaldo de energía
+1088,TRI-SN088,Tripp Lite,ISOBAR12ULTRA,Supresores,disponible,"12 tomas, 3840 joules, filtración EMI/RFI, diagnostic LED, cable 6 pies",Regleta de supresión de picos
+1089,FUR-SN089,Furman,PL-8C,Condicionadores,disponible,"9 tomas, Series Multi-Stage Protection, LiFT noise filtration, voltímetro LED",Condicionador de energía profesional
+1090,CIS-SN090,Cisco,Catalyst 2960,Networking,disponible,"24 puertos Gigabit, PoE, Layer 2, gestión web/CLI, VLANs",Switch de red administrable
+1091,UBI-SN091,Ubiquiti,UniFi AP AC Pro,Networking,disponible,"802.11ac, dual-band, 3x3 MIMO, PoE, hasta 122m cobertura, UniFi controller",Access point WiFi empresarial
+1092,NET-SN092,Netgear,Nighthawk RAX200,Networking,disponible,"WiFi 6 AX11000, 12 streams, 2.5Gbps WAN, 5 puertos Gigabit, USB 3.0",Router WiFi 6 tribanda
+1093,SYN-SN093,Synology,DS920+,NAS,disponible,"4 bahías, quad-core 2.0GHz, 4GB DDR4, 2 slots M.2 NVMe, 2 puertos LAN",Servidor de almacenamiento NAS
+1094,QNA-SN094,QNAP,TS-464,NAS,disponible,"4 bahías, Intel Celeron 2.9GHz, 4GB DDR4, 2 M.2 slots, HDMI 4K",Almacenamiento en red NAS
+1095,PRU-SN095,Prusa,i3 MK3S+,Impresoras 3D,disponible,"Volume 250x210x200mm, sensor de filamentos, power panic, PEI sheet, silent mode",Impresora 3D FDM
+1096,CRE-SN096,Creality,Ender 3 V2,Impresoras 3D,disponible,"Volume 220x220x250mm, carborundum glass, silent motherboard, resume print",Impresora 3D económica
+1097,FOR-SN097,Formlabs,Form 3,Impresoras 3D,disponible,"Low Force Stereolithography, volume 145x145x185mm, resina líquida, alta precisión",Impresora 3D de resina SLA
+1098,BAM-SN098,Bambu Lab,X1 Carbon,Impresoras 3D,disponible,"CoreXY 500mm/s, AMS multicolor, AI inspection, enclosure, WiFi, cámara",Impresora 3D de alta velocidad
+1099,ANY-SN099,Anycubic,Photon Mono X,Impresoras 3D,disponible,"Volume 192x120x245mm, 4K monocromo, 60mm/h velocidad, pantalla 8.9 pulgadas",Impresora 3D de resina LCD
+1100,LUL-SN100,LulzBot,Taz Pro XT,Impresoras 3D,disponible,"Volume 330x330x500mm, dual extruder, autonivelación, PEI/GLASS beds",Impresora 3D profesional
