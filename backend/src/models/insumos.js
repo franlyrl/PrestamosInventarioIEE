@@ -44,7 +44,7 @@ const insumoSchema = new mongoose.Schema({
     categoria: {
         type: String,
         required: [true, 'La categoria del insumo es obligatoria'],
-        enum: ['Analógico', 'Digital'],
+        enum: ['Componentes Analógicos', 'Componentes Digitales'],
         trim: true
     },
     imagenUrl: {
