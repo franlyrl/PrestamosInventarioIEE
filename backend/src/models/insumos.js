@@ -59,7 +59,7 @@ const insumoSchema = new mongoose.Schema({
     },
     estado: {
         type: String,
-        enum: ['disponible', 'prestado', 'en espera', 'fuera de stock', 'eliminado', 'mal_estado'],
+        enum: ['disponible', 'prestado', 'en espera', 'fuera de stock', 'eliminado', 'fuera de servicio'],
         default: 'disponible',
         lowercase: true,
         trim: true

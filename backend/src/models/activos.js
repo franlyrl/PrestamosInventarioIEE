@@ -20,7 +20,7 @@ const activoSchema = new mongoose.Schema({
     estadoActivo: {
         type: String,
         required: [true, 'El estado del activo es obligatorio'],
-        enum: ['disponible', 'prestado', 'en espera', 'fuera de stock', 'eliminado', 'mal_estado'],
+        enum: ['disponible', 'prestado', 'en espera', 'fuera de stock', 'eliminado', 'fuera de servicio'],
         default: 'disponible',
         lowercase: true,
         trim: true

@@ -26,14 +26,12 @@ class SolicitudesController {
 
     // ─── Inicialización ──────────────────────────────────────────────────────────
     async initialize() {
-        console.log('[Solicitudes] Inicializando. Admin:', this.isAdmin);
         try {
             this._showLoading(true);
             await this.cargarSolicitudes();
             this.setupEventListeners();
             this.render();
         } catch (error) {
-            console.error('[Solicitudes] Error:', error);
             this._toast('Error al cargar solicitudes', 'error');
         } finally {
             this._showLoading(false);
@@ -58,11 +56,9 @@ class SolicitudesController {
             });
             // Si por alguna razón el filtro frontal falla pero el backend ya filtró, usar todas
             if (this.solicitudes.length === 0 && todas.length > 0) {
-                console.warn('[Solicitudes] Filtro frontend vacío, asumiendo datos del backend.');
                 this.solicitudes = todas;
             }
         }
-        console.log(`[Solicitudes] Cargadas: ${this.solicitudes.length} (admin: ${this.isAdmin})`);
     }
 
     // ─── Eventos ─────────────────────────────────────────────────────────────────
@@ -778,10 +774,6 @@ class SolicitudesController {
 
     // ─── Admin: Poner fuera de servicio ─────────────────────────────
     async ponerFueraDeServicio(id) {
-        console.log('=== INICIANDO PONER FUERA DE SERVICIO ===');
-        console.log('ID:', id);
-        console.log('Headers:', this.headers);
-        
         const s = this.solicitudes.find(s => s._id === id);
         if (!s) return;
         if (!this.isAdmin) return;
@@ -792,36 +784,21 @@ class SolicitudesController {
         );
         if (!ans.isConfirmed) return;
         
-        const bodyData = { 
-            nuevoEstado: 'penalizado',
-            observaciones: 'Artículos puestos fuera de servicio manualmente por administrador'
-        };
-        
-        console.log('URL:', `${this.apiBase}/solicitudes/estado/${id}`);
-        console.log('Body:', bodyData);
-        
         try {
-            const resp = await fetch(`${this.apiBase}/solicitudes/estado/${id}`, {
+            const resp = await fetch(`${this.apiBase}/solicitudes/poner-fuera-servicio/${id}`, {
                 method: 'PUT',
                 headers: this.headers,
                 body: JSON.stringify({
-                    nuevoEstado: 'penalizado',
                     observaciones: 'Artículos puestos fuera de servicio manualmente por administrador'
                 })
             });
             
-            console.log('Respuesta status:', resp.status);
-            console.log('Respuesta ok:', resp.ok);
-            
             const responseText = await resp.text();
-            console.log('Respuesta texto:', responseText);
             
             let responseData;
             try {
                 responseData = JSON.parse(responseText);
-                console.log('Respuesta JSON:', responseData);
             } catch (e) {
-                console.log('No se pudo parsear JSON');
                 responseData = responseText;
             }
             
@@ -832,7 +809,6 @@ class SolicitudesController {
                 throw new Error(responseData.message || responseData || 'Error al poner fuera de servicio');
             }
         } catch (error) {
-            console.error('Error completo:', error);
             window.SwalUTN.error('Error', error.message);
         }
     }

@@ -24,23 +24,15 @@ exports.getSolicitudes = async (req, res) => {
 
         // 1. EL ESCUDO DE PRIVACIDAD (Criterio: Solo veo lo mío si no soy admin)
         // Nota: Asegúrate de si en tu Schema el campo es 'usuario'
-        console.log('🔍 req.user completo:', JSON.stringify(req.user, null, 2));
-        console.log('🔍 req.user.role:', req.user.role);
-        console.log('🔍 req.user.tipo_rol:', req.user.tipo_rol);
 
         // Verificar rol en ambos campos (role y tipo_rol)
         const userRole = req.user.role || req.user.tipo_rol;
-        console.log('🔍 userRole final:', userRole);
 
         if (!['admin', 'administrador', 'administrativo'].includes(userRole)) {
-            console.log('❌ Usuario no es admin, aplicando filtro por usuario:', req.user.id);
             filtro = { usuario: req.user.id };
-        } else {
-            console.log('✅ Usuario es admin, mostrando todas las solicitudes');
         }
 
         // 2. LA RIQUEZA DE DATOS (El populate detallado del GET viejo)
-        console.log('🔍 Iniciando getSolicitudes con filtro:', filtro);
 
         const ObtenerSolicitudes = await Solicitudes.find(filtro)
             // 1. Traemos todo del usuario (menos la contraseña por seguridad)
@@ -70,10 +62,6 @@ exports.getSolicitudes = async (req, res) => {
             );
         }
 
-        console.log('📡 Solicitudes obtenidas de DB (raw):', ObtenerSolicitudes);
-        console.log('📦 Insumos en primera solicitud:', ObtenerSolicitudes[0]?.insumos);
-        console.log('🔍 Estructura de insumos:', JSON.stringify(ObtenerSolicitudes[0]?.insumos, null, 2));
-
         // 3. MEJORA DE VISUALIZACIÓN: Ordenar historiales en la lista
         // Como es un array de solicitudes, usamos map para ordenar cada una
         const solicitudesOrdenadas = resultados.map(sol => {
@@ -84,7 +72,6 @@ exports.getSolicitudes = async (req, res) => {
         });
 
         res.status(200).json(solicitudesOrdenadas);
-
 
     } catch (error) {
         res.status(500).json({
@@ -103,41 +90,15 @@ exports.getSolicitudes = async (req, res) => {
  */
 exports.createSolicitud = async (req, res) => {
     try {
-        console.log('🚀 Iniciando creación de solicitud...');
-
         // 1. Obtenemos el ID del usuario del token (es el _id de MongoDB)
         const usuarioId = req.user.id;
-        console.log('👤 ID del usuario desde token:', usuarioId);
 
         // --- DATOS DE LA SOLICITUD (Vienen del Formulario/Body) ---
         const { activos, insumos, observaciones } = req.body;
         // NOTA: fecha_entrega_esperada REMOVIDO — solo el admin puede asignar fecha de entrega (Área F)
-        console.log('📋 Datos recibidos en createSolicitud:', {
-            activos,
-            insumos,
-            observaciones,
-            bodyCompleto: req.body
-        });
-
-        // Validar que los datos lleguen correctamente
-        if (!insumos || !Array.isArray(insumos)) {
-            console.log('❌ Insumos no llegaron como array:', insumos);
-        } else {
-            console.log(`✅ Llegaron ${insumos.length} insumos`);
-            insumos.forEach((insumo, index) => {
-                console.log(`📦 Insumo ${index + 1}:`, insumo);
-            });
-        }
-
-        if (!activos || !Array.isArray(activos)) {
-            console.log('❌ Activos no llegaron como array:', activos);
-        } else {
-            console.log(`✅ Llegaron ${activos.length} activos`);
-        }
 
         // 2. REVISIÓN DEL ESTADO USANDO EL _ID DE MONGODB
         const usuarioDB = await Usuarios.findById(usuarioId).select('estado');
-        console.log('🔍 Usuario encontrado en DB:', usuarioDB);
 
         if (!usuarioDB) {
             return res.status(404).json({ message: 'El usuario con ese ID no existe en el sistema.' });
@@ -158,7 +119,6 @@ exports.createSolicitud = async (req, res) => {
             usuario: usuarioId, // <--- Aquí usamos usuarioId directamente
             estado: { $in: ['pendiente'] } // Solo bloquear si hay solicitudes pendientes
         });
-        console.log('Solicitud pendiente encontrada:', solicitudActiva);
 
         if (solicitudActiva) {
             return res.status(403).json({
@@ -178,7 +138,6 @@ exports.createSolicitud = async (req, res) => {
                 // Convertir id_insumo de objeto a string si viene como $oid
                 if (insumo.id_insumo && typeof insumo.id_insumo === 'object') {
                     insumoProcesado.id_insumo = insumo.id_insumo.$oid || insumo.id_insumo._id || insumo.id_insumo.id;
-                    console.log('🔄 Convertido id_insumo de $oid a string:', insumoProcesado.id_insumo);
                 }
 
                 return insumoProcesado;
@@ -194,15 +153,11 @@ exports.createSolicitud = async (req, res) => {
                 // Convertir referencias de objeto a string si es necesario
                 if (activo.codigo_activo && typeof activo.codigo_activo === 'object') {
                     activoProcesado.codigo_activo = activo.codigo_activo.$oid || activo.codigo_activo._id || activo.codigo_activo.id;
-                    console.log('🔄 Convertido codigo_activo de $oid a string:', activoProcesado.codigo_activo);
                 }
 
                 return activoProcesado;
             });
         }
-
-        console.log('📝 Insumos procesados para guardar:', insumosProcesados);
-        console.log('🔧 Activos procesados para guardar:', activosProcesados);
 
         const nuevaSolicitud = new Solicitudes({
             usuario: usuarioId,
@@ -217,10 +172,7 @@ exports.createSolicitud = async (req, res) => {
             }]
         });
 
-        console.log('📝 Nueva solicitud a guardar:', nuevaSolicitud);
-
         const solicitudGuardada = await nuevaSolicitud.save();
-        console.log('✅ Solicitud guardada en Atlas:', solicitudGuardada);
 
         return res.status(201).json({
             message: "¡Solicitud registrada con éxito!",
@@ -228,7 +180,6 @@ exports.createSolicitud = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('❌ Error en createSolicitud:', error);
         return res.status(500).json({
             message: 'Error interno en la creación de solicitud',
             error: error.message
@@ -269,12 +220,6 @@ exports.getSolicitudByIdForStudent = async (req, res) => {
             SolicitudxId.usuario.toString();
 
         const currentUserId = req.user.id || req.user._id;
-
-        console.log('🔍 Verificación de permisos:', {
-            solicitudUserId,
-            currentUserId,
-            userRole: req.user.role
-        });
 
         if (solicitudUserId !== currentUserId) {
             return res.status(403).json({
@@ -357,16 +302,12 @@ exports.actualizarEstadoSolicitud = async (req, res) => {
         if (!MapearEstadoSoli) return res.status(404).json({ message: 'Solicitud no encontrada.' });
 
         // --- MOTOR DE INVENTARIO ---
-        console.log(' [actualizarEstadoSolicitud] Estado a procesar:', nuevoEstado);
         try {
             if (nuevoEstado === 'penalizado') {
-                console.log(' [actualizarEstadoSolicitud] Procesando penalización...');
                 const stockManager = require('../helpers/stockManager');
                 await stockManager.processPenalty(MapearEstadoSoli, observaciones);
-                console.log(' [actualizarEstadoSolicitud] stockManager.processPenalty completado');
             }
         } catch (errorStock) {
-            console.error(' [actualizarEstadoSolicitud] Error en motor de inventario:', errorStock);
             return res.status(400).json({
                 message: 'Error de Inventario',
                 detalles: errorStock.message
@@ -488,16 +429,7 @@ exports.deleteSolicitud = async (req, res) => {
     * Criterio: El Admin no puede aprobar una solicitud que no contiene activos ni insumos, para evitar aprobaciones sin sentido.
 */
 exports.gestionarEstadoAdmin = async (req, res) => {
-    console.log('*** GESTIONAR ESTADO ADMIN EJECUTADO ***');
-    console.log('=== INICIO GESTIONAR ESTADO ADMIN ===');
-    console.log('Método:', req.method);
-    console.log('URL:', req.originalUrl);
-    console.log('Headers:', req.headers);
     try {
-        console.log(' Iniciando gestión de estado admin...');
-        console.log('📥 Body recibido:', req.body);
-        console.log('🆔 ID recibido:', req.params.id);
-
         const { nuevoEstadoAdmin, observaciones, fecha_recogida_programada, hora_recogida } = req.body;
         const { id } = req.params;
 
@@ -520,28 +452,17 @@ exports.gestionarEstadoAdmin = async (req, res) => {
         }
 
         // --- 2. MOTOR DE INVENTARIO ---
-        console.log(' [DEBUG] Estado a procesar:', nuevoEstadoAdmin);
         try {
             if (nuevoEstadoAdmin === 'aprobada') {
-                console.log(' [DEBUG] Procesando aprobación...');
                 await stockManager.processApproval(EstadoSoli);
             } else if (nuevoEstadoAdmin === 'devuelto') {
-                console.log(' [DEBUG] Procesando devolución...');
                 await stockManager.processReturn(EstadoSoli);
             } else if (nuevoEstadoAdmin === 'penalizado') {
-                console.log(' [DEBUG] Procesando penalización...');
-                console.log(' [DEBUG] Llamando a stockManager.processPenalty...');
                 await stockManager.processPenalty(EstadoSoli, observaciones);
-                console.log(' [DEBUG] stockManager.processPenalty completado');
             } else if (nuevoEstadoAdmin === 'poner-fuera-servicio') {
-                console.log(' [DEBUG] Procesando poner fuera de servicio...');
                 await stockManager.processPenalty(EstadoSoli, observaciones || 'Puesto fuera de servicio manualmente por administrador');
-            } else {
-                console.log(' [DEBUG] Estado no reconocido:', nuevoEstadoAdmin);
             }
-            console.log(' [DEBUG] Motor de inventario completado exitosamente');
         } catch (errorStock) {
-            console.error(' [ERROR] Error en motor de inventario:', errorStock);
             return res.status(400).json({
                 message: 'Error de Inventario',
                 detalles: errorStock.message
@@ -670,7 +591,6 @@ exports.updateSolicitud = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error actualizando solicitud:', error);
         res.status(500).json({ 
             message: 'Error al actualizar la solicitud', 
             error: error.message 
