@@ -226,6 +226,15 @@
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Observaciones</h3>
                 <p id="drawerObs" class="text-sm text-slate-500 leading-relaxed italic">Sin observaciones.</p>
             </div>
+
+            <!-- Observaciones de Estado (solo fuera de servicio) -->
+            <div id="drawerObsEstadoSection" class="hidden p-6 border-t border-red-100 bg-red-50">
+                <h3 class="text-[10px] font-black text-red-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    Motivo de Penalización
+                </h3>
+                <p id="drawerObsEstado" class="text-sm text-red-700 leading-relaxed font-medium">-</p>
+            </div>
         </div>
 
         <!-- Acciones-->
@@ -598,9 +607,9 @@
     }
 
     function buildCard(ac, i) {
-        const stripClases = { 'disponible':'strip-disp','prestado':'strip-prest','en espera':'strip-mant','fuera de stock':'strip-fuera','eliminado':'strip-elim' };
+        const stripClases = { 'disponible':'strip-disp','prestado':'strip-prest','en espera':'strip-mant','fuera de stock':'strip-fuera','fuera de servicio':'strip-fuera','eliminado':'strip-elim' };
         const stripClass = stripClases[ac.estadoActivo] || 'strip-elim';
-        const badgeClases = { 'disponible':'badge-disp','prestado':'badge-prest','en espera':'badge-mant','fuera de stock':'badge-fuera','eliminado':'badge-elim' };
+        const badgeClases = { 'disponible':'badge-disp','prestado':'badge-prest','en espera':'badge-mant','fuera de stock':'badge-fuera','fuera de servicio':'badge-fuera','eliminado':'badge-elim' };
         const badgeClass = badgeClases[ac.estadoActivo] || 'badge-elim';
         const img = ac.imagenUrl && ac.imagenUrl !== 'https://via.placeholder.com/150?text=Sin+Imagen'
             ? `<img src="${ac.imagenUrl}" alt="${ac.modelo}" class="w-full h-full object-cover cursor-zoom-in hover:opacity-90 transition-opacity" onclick="event.stopPropagation(); window.verImagenCompleta(this.src, '${(ac.marca + ' ' + ac.modelo).replace(/'/g, "\\'")}')" onerror="this.style.display='none'">`
@@ -675,7 +684,17 @@
         document.getElementById('drawerCaract').textContent = ac.caracteristicas || 'Sin descripción';
         document.getElementById('drawerObs').textContent = ac.observaciones || 'Sin observaciones.';
 
-        const badgeClases = { 'disponible':'badge-disp','prestado':'badge-prest','en espera':'badge-mant','fuera de stock':'badge-fuera','eliminado':'badge-elim' };
+        // Mostrar observacion_estado si está fuera de servicio
+        const obsEstadoSection = document.getElementById('drawerObsEstadoSection');
+        const obsEstado = document.getElementById('drawerObsEstado');
+        if (ac.estadoActivo === 'fuera de servicio' && ac.observacion_estado) {
+            obsEstadoSection.classList.remove('hidden');
+            obsEstado.textContent = ac.observacion_estado;
+        } else {
+            obsEstadoSection.classList.add('hidden');
+        }
+
+        const badgeClases = { 'disponible':'badge-disp','prestado':'badge-prest','en espera':'badge-mant','fuera de stock':'badge-fuera','fuera de servicio':'badge-fuera','eliminado':'badge-elim' };
         const estadoBadge = document.getElementById('drawerEstadoBadge');
         estadoBadge.className = `badge ${badgeClases[ac.estadoActivo] || 'badge-elim'}`;
         estadoBadge.textContent = ac.estadoActivo || '-';

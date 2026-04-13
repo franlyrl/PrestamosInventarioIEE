@@ -29,6 +29,7 @@
         .badge-prest { background: #dbeafe; color: #1d4ed8; }
         .badge-espera { background: #fef9c3; color: #a16207; }
         .badge-stock { background: #fee2e2; color: #dc2626; }
+        .badge-fuera { background: #fee2e2; color: #dc2626; border: 1px solid #dc2626; }
         .badge-elim { background: #f1f5f9; color: #64748b; }
         /* Campo de formulario */
         .f-label { display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px; }
@@ -220,6 +221,15 @@
             <div class="p-6 border-b border-slate-100">
                 <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Características</h3>
                 <p id="drawerCaract" class="text-sm text-slate-600 leading-relaxed">-</p>
+            </div>
+
+            <!-- Observaciones de Estado (solo fuera de servicio) -->
+            <div id="drawerObsEstadoSection" class="hidden p-6 border-t border-red-100 bg-red-50">
+                <h3 class="text-[10px] font-black text-red-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    Motivo de Penalización
+                </h3>
+                <p id="drawerObsEstado" class="text-sm text-red-700 leading-relaxed font-medium">-</p>
             </div>
 
             <!-- Historial de movimientos -->
@@ -632,7 +642,8 @@
     function buildCard(ins, i) {
         const estadoClases = {
             'disponible': 'badge-disp', 'prestado': 'badge-prest',
-            'en espera': 'badge-espera', 'fuera de stock': 'badge-stock', 'eliminado': 'badge-elim'
+            'en espera': 'badge-espera', 'fuera de stock': 'badge-stock', 
+            'fuera de servicio': 'badge-fuera', 'eliminado': 'badge-elim'
         };
         const badgeClass = estadoClases[ins.estado] || 'badge-elim';
         const stockPct = Math.min(100, ((ins.cantidad || 0) / 50) * 100);
@@ -715,8 +726,18 @@
         document.getElementById('drawerStockNum').textContent = `${ins.cantidad || 0} unidades`;
         document.getElementById('drawerCategBadge').textContent = ins.categoria || '-';
 
+        // Mostrar observacion_estado si está fuera de servicio
+        const obsEstadoSection = document.getElementById('drawerObsEstadoSection');
+        const obsEstado = document.getElementById('drawerObsEstado');
+        if (ins.estado === 'fuera de servicio' && ins.observacion_estado) {
+            obsEstadoSection.classList.remove('hidden');
+            obsEstado.textContent = ins.observacion_estado;
+        } else {
+            obsEstadoSection.classList.add('hidden');
+        }
+
         const estadoBadge = document.getElementById('drawerEstadoBadge');
-        const clases = { 'disponible':'badge-disp','prestado':'badge-prest','en espera':'badge-espera','fuera de stock':'badge-stock','eliminado':'badge-elim' };
+        const clases = { 'disponible':'badge-disp','prestado':'badge-prest','en espera':'badge-espera','fuera de stock':'badge-stock','fuera de servicio':'badge-fuera','eliminado':'badge-elim' };
         estadoBadge.className = `badge ${clases[ins.estado] || 'badge-elim'}`;
         estadoBadge.textContent = ins.estado || '-';
 

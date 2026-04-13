@@ -279,7 +279,7 @@ class SolicitudesController {
                         ${this.isAdmin && s.estado === 'penalizado' ? `
                         <button title="Poner fuera de servicio" onclick="event.stopPropagation(); window.solicitudesController.ponerFueraDeServicio('${s._id}')" class="p-2 hover:bg-red-50 rounded-lg transition text-red-600">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                             </svg>
                         </button>` : ''}
                     </div>
@@ -356,7 +356,7 @@ class SolicitudesController {
                     ${this.isAdmin && s.estado === 'entregado' ? `<button onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'devuelto')" class="px-3 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition">Devuelto</button>` : ''}
                     ${this.isAdmin && s.estado === 'penalizado' ? `<button onclick="event.stopPropagation(); window.solicitudesController.ponerFueraDeServicio('${s._id}')" class="px-3 py-2 text-xs font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition inline-flex items-center gap-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                         </svg>
                         Fuera de Servicio
                     </button>` : ''}
@@ -778,18 +778,40 @@ class SolicitudesController {
         if (!s) return;
         if (!this.isAdmin) return;
         
-        const ans = await window.SwalUTN.confirm(
-            'Poner fuera de servicio',
-            '¿Poner todos los artículos de esta solicitud en "fuera de servicio"?'
-        );
-        if (!ans.isConfirmed) return;
+        // Primero pedir el comentario
+        const { value: comentario, isConfirmed: confirmado } = await Swal.fire({
+            title: 'Poner fuera de servicio',
+            html: '<p class="text-sm text-gray-600 mb-4">¿Poner todos los artículos de esta solicitud en "fuera de servicio"?</p>',
+            input: 'textarea',
+            inputLabel: 'Motivo / Documentación (opcional)',
+            inputPlaceholder: 'Ingrese el motivo por el cual se pone fuera de servicio...',
+            inputAttributes: {
+                'aria-label': 'Motivo para poner fuera de servicio',
+                'rows': 3
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Confirmar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b',
+            inputValidator: (value) => {
+                // Permitir vacío o con comentario
+                return null;
+            }
+        });
+        
+        if (!confirmado) return;
         
         try {
+            const observaciones = comentario?.trim() 
+                ? `fuera de servicio por penalizacion - ${comentario.trim()}` 
+                : 'fuera de servicio por penalizacion - Solicitud penalizada';
+            
             const resp = await fetch(`${this.apiBase}/solicitudes/poner-fuera-servicio/${id}`, {
                 method: 'PUT',
                 headers: this.headers,
                 body: JSON.stringify({
-                    observaciones: 'Artículos puestos fuera de servicio manualmente por administrador'
+                    observaciones: observaciones
                 })
             });
             
