@@ -1,1833 +1,1108 @@
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Activos - UTN Sistema de Gestión</title>
-        <meta name="description" content="Gestión de activos del laboratorio UTN">
-        
-        <!-- CSS -->
-        <link rel="stylesheet" href="../css/main.css">
-        <link rel="stylesheet" href="../css/pages/activos.css">
-        <script src="https://cdn.tailwindcss.com"></script>
-        
-        <!-- SheetJS para procesar archivos XLSX -->
-        <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-    </head>
-    <body class="text-slate-800">
-        
-        <!-- Header Component -->
-        <div id="header-component"></div>
-        
-        <!-- Contenido Principal -->
-        <main class="container py-6">
-            <div class="flex gap-6">
-                <!-- Sidebar Component -->
-                <div id="sidebar-component"></div>
-                
-                <!-- Contenido de Activos -->
-                <div class="flex-1">
-                    <header class="mb-6">
-                        <h1 class="text-3xl font-bold text-slate-800">🔧 Gestión de Activos</h1>
-                        <p class="text-slate-600">Administra los equipos y herramientas del laboratorio</p>
-                    </header>
-                    
-                    <!-- Filtros y Búsqueda -->
-                    <section class="card p-4 mb-6">
-                        <div class="flex flex-wrap gap-4 items-center">
-                            <div class="flex-1 min-w-[200px]">
-                                <input type="text" id="busqueda-input" placeholder="Buscar activos..." class="input-field w-full">
-                            </div>
-                            <select id="categoria-select" class="input-field w-48">
-                                <option value="todas">Todas las categorías</option>
-                                <option value="Instrumentos">Instrumentos</option>
-                                <option value="Herramientas">Herramientas</option>
-                            </select>
-                            <select id="estado-select" class="input-field w-32">
-                                <option value="todos">Todos</option>
-                                <option value="disponible">Disponible</option>
-                                <option value="prestado">Prestado</option>
-                                <option value="mantenimiento">Mantenimiento</option>
-                            </select>
-                            <button id="buscar-btn" class="btn btn-primary">
-                                🔍 Buscar
-                            </button>
-                            <button id="limpiar-btn" class="btn btn-secondary">
-                                🔄 Limpiar
-                            </button>
-                        </div>
-                    </section>
-                    
-                    <!-- Acciones Rápidas -->
-                    <section class="flex justify-between items-center mb-6">
-                        <div class="flex gap-2">
-                            <button id="agregar-btn" class="btn btn-primary">
-                                ➕ Agregar Activo
-                            </button>
-                            <button id="agregar-masivo-btn" class="btn btn-secondary">
-                                📦 Agregar Masivo
-                            </button>
-                            <button id="exportar-btn" class="btn btn-secondary">
-                                📥 Exportar
-                            </button>
-                        </div>
-                        <div class="text-sm text-slate-600">
-                            Mostrando <span id="resultados-count">0</span> resultados
-                        </div>
-                    </section>
-                    
-                    <!-- Grid de Activos -->
-                    <section id="activos-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        <!-- Los activos se cargarán dinámicamente -->
-                    </section>
-                    
-                    <!-- Loading State -->
-                    <div id="loading-state" class="hidden">
-                        <div class="flex justify-center items-center py-12">
-                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                            <p class="ml-4 text-slate-600">Cargando activos...</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Empty State -->
-                    <div id="empty-state" class="hidden">
-                        <div class="text-center py-12">
-                            <div class="text-6xl mb-4">🔧</div>
-                            <h3 class="text-xl font-bold text-slate-700 mb-2">No se encontraron activos</h3>
-                            <p class="text-slate-500 mb-4">Intenta ajustar los filtros o agrega nuevos activos</p>
-                            <button class="btn btn-primary" onclick="activosController.showAgregarModal()">
-                                ➕ Agregar Primer Activo
-                            </button>
-                        </div>
-                    </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Activos - UTN SPIEE</title>
+    <meta name="description" content="Gestión completa de activos y equipos del laboratorio UTN">
+    <link rel="icon" type="image/jpeg" href="../css/UTN.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- SheetJS (Para parseo rápido de XLSX y CSV en frontend) -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        /* Drawer */
+        #drawer { transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); }
+        #drawer.open { transform: translateX(0); }
+        #drawerOverlay { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        #drawerOverlay.open { opacity: 1; pointer-events: all; }
+        /* Cards */
+        .item-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; transition: all 0.25s; cursor: pointer; }
+        .item-card:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(0,45,98,0.1); border-color: #cbd5e1; }
+        /* Estado strip */
+        .estado-strip { height: 4px; border-radius: 2px 2px 0 0; }
+        .strip-disp { background: linear-gradient(90deg, #34d399, #059669); }
+        .strip-prest { background: linear-gradient(90deg, #60a5fa, #2563eb); }
+        .strip-mant { background: linear-gradient(90deg, #fbbf24, #d97706); }
+        .strip-fuera { background: linear-gradient(90deg, #f87171, #dc2626); }
+        .strip-elim { background: linear-gradient(90deg, #94a3b8, #64748b); }
+        /* Badges */
+        .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .badge-disp { background:#dcfce7; color:#15803d; }
+        .badge-prest { background:#dbeafe; color:#1d4ed8; }
+        .badge-mant { background:#fef3c7; color:#d97706; }
+        .badge-fuera { background:#fee2e2; color:#dc2626; }
+        .badge-elim { background:#f1f5f9; color:#64748b; }
+        /* Form */
+        .f-label { display:block; font-size:10px; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px; }
+        .f-input { width:100%; padding:10px 14px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:10px; font-size:14px; color:#1e293b; transition:all 0.2s; outline:none; }
+        .f-input:focus { border-color:#002D62; box-shadow:0 0 0 3px rgba(0,45,98,0.08); background:white; }
+        ::-webkit-scrollbar { width:5px; } ::-webkit-scrollbar-track { background:#f1f5f9; } ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:5px; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .fade-up { animation: fadeUp 0.35s ease both; }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <div id="header-component"></div>
+
+    <!-- Encabezado -->
+    <div class="bg-white border-b border-slate-200 px-6 py-5">
+        <div class="container mx-auto max-w-7xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <a href="ModAdmis.html" class="group flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-[#002D62] text-slate-500 hover:text-white rounded-lg text-[11px] font-black tracking-wide transition-all duration-200 border border-slate-200 hover:border-[#002D62]">
+                        <svg class="w-3.5 h-3.5 transform group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        VOLVER AL PANEL
+                    </a>
+                    <span class="text-slate-300">/</span>
+                    <span class="w-2 h-2 rounded-full bg-[#002D62] inline-block"></span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Inventario</span>
                 </div>
+                <h1 class="text-2xl font-black text-[#002D62]">Gestión de Activos</h1>
+                <p class="text-sm text-slate-400 mt-0.5">Equipos y dispositivos del laboratorio</p>
             </div>
-        </main>
-        
-        <!-- Modals Component -->
-        <div id="modals-component"></div>
-        
-        <!-- Toast Component -->
-        <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
-        </div>
-    </main>
-    
-    <!-- Modals Component -->
-    <div id="modals-component"></div>
-    
-    <!-- Modal Agregar Masivo -->
-    <div id="modalAgregarMasivo" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-all duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-2xl">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="text-2xl font-bold">📦 Agregar Activos Masivamente</h2>
-                        <p class="text-blue-100 text-sm mt-1">Agrega múltiples activos desde archivo, tabla o manualmente</p>
-                    </div>
-                    <button onclick="cerrarModalMasivo()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Tabs -->
-            <div class="border-b border-slate-200">
-                <div class="flex">
-                    <button id="tab-archivo" onclick="mostrarTabMasivo('archivo')" class="px-6 py-4 text-sm font-medium text-blue-600 border-b-2 border-blue-600 transition-colors">
-                        📁 Cargar Archivo
-                    </button>
-                    <button id="tab-tabla" onclick="mostrarTabMasivo('tabla')" class="px-6 py-4 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors">
-                        📊 Tabla de Datos
-                    </button>
-                    <button id="tab-manual" onclick="mostrarTabMasivo('manual')" class="px-6 py-4 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors">
-                        ⌨️ Ingreso Manual
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Contenido -->
-            <div class="p-6">
-                <!-- Tab 1: Cargar Archivo -->
-                <div id="contenido-archivo" class="tab-content">
-                    <div class="mb-6">
-                        <h3 class="text-lg font-semibold text-slate-800 mb-2">Subir Archivo CSV</h3>
-                        <p class="text-slate-600">Selecciona un archivo CSV con los datos de los activos</p>
-                    </div>
-                    
-                    <div class="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
-                        <input type="file" id="archivo-masivo" accept=".csv,.xlsx,.xls" class="hidden">
-                        <label for="archivo-masivo" class="cursor-pointer">
-                            <div class="text-4xl mb-4">📁</div>
-                            <p class="text-slate-700 font-medium mb-2">Haz clic para seleccionar archivo</p>
-                            <p class="text-slate-500 text-sm">CSV, XLSX o XLS (máx. 10MB)</p>
-                        </label>
-                    </div>
-                    
-                    <div id="archivo-seleccionado" class="mt-3 text-sm text-slate-600"></div>
-                    
-                    <!-- Plantilla -->
-                    <div class="mt-6 p-4 bg-slate-50 rounded-lg">
-                        <p class="text-sm text-slate-600 mb-2">¿Necesitas una plantilla?</p>
-                        <button onclick="descargarPlantilla()" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                            📥 Descargar Plantilla CSV
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Tab 2: Tabla de Datos -->
-                <div id="contenido-tabla" class="tab-content hidden">
-                    <div class="mb-4">
-                        <h3 class="text-lg font-semibold text-slate-800 mb-2">Tabla de Activos</h3>
-                        <p class="text-slate-600">Agrega múltiples filas con los datos de los activos</p>
-                    </div>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="w-full border border-slate-200 rounded-lg">
-                            <thead class="bg-slate-50">
-                                <tr>
-                                    <th class="border border-slate-200 px-4 py-2 text-left">Nombre</th>
-                                    <th class="border border-slate-200 px-4 py-2 text-left">Código</th>
-                                    <th class="border border-slate-200 px-4 py-2 text-left">Marca</th>
-                                    <th class="border border-slate-200 px-4 py-2 text-left">Modelo</th>
-                                    <th class="border border-slate-200 px-4 py-2 text-left">Categoría</th>
-                                    <th class="border border-slate-200 px-4 py-2 text-left">Estado</th>
-                                    <th class="border border-slate-200 px-4 py-2">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabla-activos-masivos">
-                                <!-- Filas se agregarán dinámicamente -->
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="mt-4 flex gap-2">
-                        <button onclick="agregarFilaTabla()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
-                            ➕ Agregar Fila
-                        </button>
-                        <button onclick="limpiarTabla()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
-                            🗑️ Limpiar Todo
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Tab 3: Ingreso Manual -->
-                <div id="contenido-manual" class="tab-content hidden">
-                    <div class="mb-4">
-                        <h3 class="text-lg font-semibold text-slate-800 mb-2">Ingreso Manual Rápido</h3>
-                        <p class="text-slate-600">Ingresa los datos separados por comas o líneas</p>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Nombres (uno por línea)</label>
-                            <textarea id="nombres-manual" rows="6" class="w-full px-3 py-2 border border-slate-300 rounded-lg" placeholder="Multímetro Digital&#10;Osciloscopio&#10;Generador de Funciones"></textarea>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Categoría</label>
-                                <select id="categoria-manual" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
-                                    <option value="">Selecciona una categoría</option>
-                                    <option value="Instrumentos">Instrumentos</option>
-                                    <option value="Herramientas">Herramientas</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Estado</label>
-                                <select id="estado-manual" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
-                                    <option value="">Selecciona un estado</option>
-                                    <option value="disponible">Disponible</option>
-                                    <option value="prestado">Prestado</option>
-                                    <option value="mantenimiento">Mantenimiento</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Marca</label>
-                                <input type="text" id="marca-manual" class="w-full px-3 py-2 border border-slate-300 rounded-lg" placeholder="Marca del activo">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Modelo</label>
-                                <input type="text" id="modelo-manual" class="w-full px-3 py-2 border border-slate-300 rounded-lg" placeholder="Modelo del activo">
-                            </div>
-                        </div>
-                        
-                        <div class="bg-blue-50 p-4 rounded-lg">
-                            <p class="text-sm text-blue-800">
-                                <strong>Ejemplo:</strong> Si ingresas "Multímetro Digital, Osciloscopio" y seleccionas "Instrumentos", 
-                                se crearán 2 activos con esa categoría, estado, marca y modelo.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Botones de acción -->
-            <div class="p-6 border-t border-slate-100">
-                <div class="flex gap-3">
-                    <button onclick="cerrarModalMasivo()" class="flex-1 py-3 text-sm font-bold bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition">
-                        Cancelar
-                    </button>
-                    <button onclick="procesarAgregadoMasivo()" class="flex-1 py-3 text-sm font-bold bg-green-600 text-white rounded-xl hover:bg-green-700 shadow-lg shadow-green-100 transition">
-                        📦 Agregar Activos Masivamente
-                    </button>
-                </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-[10px] font-black text-slate-400 uppercase">Total:</span>
+                <span id="totalCount" class="text-2xl font-black text-[#002D62]">0</span>
+                <button onclick="abrirModalImportarCSV()" class="ml-3 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-50 transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Importar CSV
+                </button>
+                <button onclick="autoAsignarImagenesMasivas('activos')" class="px-4 py-2 bg-white border border-slate-200 text-[#002D62] rounded-xl font-bold text-sm hover:bg-slate-50 transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                    Auto-Asignar
+                </button>
+                <button onclick="exportarCSV()" class="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-50 transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Exportar
+                </button>
+                <button onclick="abrirModalNuevoActivo()" class="px-4 py-2 bg-[#002D62] text-white rounded-xl font-bold text-sm hover:bg-[#001A33] transition flex items-center gap-2 shadow-sm shadow-blue-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Nuevo Activo
+                </button>
             </div>
         </div>
     </div>
-    
-    <!-- Modal para Agregar Activo Individual -->
-    <div id="modalAgregarActivo" class="fixed inset-0 z-[300] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
-        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="text-2xl font-bold flex items-center gap-2">
-                            🔧 Agregar Nuevo Activo
-                        </h2>
-                        <p class="text-blue-100 text-sm mt-1">Registra un nuevo equipo o herramienta</p>
+
+    <!-- Contenido -->
+    <main class="container mx-auto max-w-7xl px-6 py-8 flex-grow">
+
+        <!-- Filtros -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                <div class="lg:col-span-2">
+                    <label class="f-label">Búsqueda</label>
+                    <div class="relative">
+                        <input type="text" id="busquedaInput" placeholder="Marca, modelo, serie, código..." class="f-input pl-10">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
                     </div>
-                    <button onclick="cerrarModalAgregarActivo()" class="text-white/80 hover:text-white transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
+                </div>
+                <div>
+                    <label class="f-label">Categoría</label>
+                    <select id="categoriaFiltro" class="f-input">
+                        <option value="">Todas</option>
+                        <option>Instrumentos</option>
+                        <option>Herramientas</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="f-label">Estado</label>
+                    <select id="estadoFiltro" class="f-input">
+                        <option value="">Todos</option>
+                        <option value="disponible">Disponible</option>
+                        <option value="prestado">Prestado</option>
+                        <option value="en espera">En espera</option>
+                        <option value="fuera de stock">Fuera de servicio</option>
+                    </select>
+                </div>
+                <div>
+                    <button onclick="limpiarFiltros()" class="w-full px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Limpiar</button>
                 </div>
             </div>
-            
-            <!-- Formulario -->
-            <form id="formAgregarActivo" class="p-6 space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Nombre del Activo *</label>
-                        <input type="text" id="nombreActivo" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: Osciloscopio Digital">
+        </div>
+
+        <!-- Grid de activos -->
+        <div id="activosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+        <div id="acPagination" class="flex flex-wrap justify-center items-center gap-2 mt-8 mb-4"></div>
+
+        <!-- Loading -->
+        <div id="loadingState" class="flex flex-col items-center justify-center py-24 text-slate-400">
+            <div class="w-10 h-10 border-4 border-slate-200 border-t-[#002D62] rounded-full animate-spin mb-4"></div>
+            <p class="text-sm font-medium">Cargando activos...</p>
+        </div>
+
+        <!-- Empty -->
+        <div id="emptyState" class="hidden flex flex-col items-center justify-center py-24 text-slate-400">
+            <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+            </div>
+            <h3 class="font-bold text-slate-600 mb-1">No se encontraron activos</h3>
+            <p class="text-sm mb-5">Prueba con otros filtros o registra el primero</p>
+            <button onclick="abrirModalNuevoActivo()" class="px-5 py-2.5 bg-[#002D62] text-white rounded-xl font-bold text-sm hover:bg-[#001A33] transition">+ Nuevo Activo</button>
+        </div>
+    </main>
+
+    <!-- ============================================================
+         DRAWER - Detalle del Activo
+    ============================================================ -->
+    <div id="drawerOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110]" onclick="cerrarDrawer()"></div>
+
+    <aside id="drawer" class="fixed right-0 top-0 h-full w-full max-w-lg bg-white z-[120] shadow-2xl flex flex-col overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-[#002D62] to-[#004A8C] text-white p-6 flex-shrink-0">
+            <div class="flex items-start justify-between">
+                <div class="flex-1 min-w-0">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-blue-200 opacity-80">Activo del Laboratorio</span>
+                    <h2 id="drawerNombre" class="text-xl font-black mt-1 leading-tight">-</h2>
+                    <p id="drawerCodigo" class="text-sm text-blue-200 mt-1 font-mono">N° de Activo: -</p>
+                </div>
+                <button onclick="cerrarDrawer()" class="ml-4 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Cuerpo scrollable -->
+        <div class="flex-1 overflow-y-auto">
+            <!-- Imagen + estado -->
+            <div class="p-6 border-b border-slate-100">
+                <div class="flex gap-4 items-start">
+                    <div class="w-24 h-24 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center flex-shrink-0 border border-slate-200">
+                        <svg id="drawerImgPlaceholder" class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                        <img id="drawerImg" src="" alt="" class="w-full h-full object-cover hidden cursor-zoom-in hover:opacity-90 transition-opacity" onclick="window.verImagenCompleta(this.src, document.getElementById('drawerNombre').textContent)">
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Código de Barras *</label>
-                        <input type="text" id="codigoBarras" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: ACT-001">
+                    <div class="flex-1">
+                        <span id="drawerEstadoBadge" class="badge badge-disp mb-2">Disponible</span>
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Marca</p>
+                                <p id="drawerMarca" class="font-bold text-slate-700 text-sm">-</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Modelo</p>
+                                <p id="drawerModelo" class="font-bold text-slate-700 text-sm">-</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            </div>
+
+            <!-- Detalles técnicos -->
+            <div class="p-6 border-b border-slate-100">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Ficha Técnica</h3>
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
-                        <select id="categoriaActivo" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="">Selecciona una categoría</option>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mb-1">N° de Activo</p>
+                        <p id="drawerNumActivo" class="font-bold text-slate-700 font-mono">-</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mb-1">N° de Serie</p>
+                        <p id="drawerSerie" class="font-bold text-slate-700 font-mono">-</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mb-1">Categoría</p>
+                        <p id="drawerCategoria" class="font-bold text-slate-700">-</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mb-1">Registrado</p>
+                        <p id="drawerFecha" class="font-bold text-slate-700">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Características -->
+            <div class="p-6 border-b border-slate-100">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Características</h3>
+                <p id="drawerCaract" class="text-sm text-slate-600 leading-relaxed">-</p>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="p-6">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Observaciones</h3>
+                <p id="drawerObs" class="text-sm text-slate-500 leading-relaxed italic">Sin observaciones.</p>
+            </div>
+        </div>
+
+        <!-- Acciones-->
+        <div class="p-5 border-t border-slate-100 bg-slate-50 flex-shrink-0">
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="editarDesdeDrawer()" class="py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition flex items-center justify-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    Editar
+                </button>
+                <button onclick="cambiarEstadoDesdeDrawer()" class="py-2.5 bg-white border border-blue-200 text-blue-700 rounded-xl font-bold text-sm hover:bg-blue-50 transition flex items-center justify-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Estado
+                </button>
+                <button onclick="marcarMalEstadoDesdeDrawer()" class="py-2.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl font-bold text-sm hover:bg-amber-100 transition flex items-center justify-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    Mal Estado
+                </button>
+                <button onclick="eliminarDesdeDrawer()" class="py-2.5 bg-white border border-red-200 text-red-600 rounded-xl font-bold text-sm hover:bg-red-50 transition flex items-center justify-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    Baja
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ============================================================
+         MODAL - Nuevo / Editar Activo
+    ============================================================ -->
+    <div id="modalActivo" class="fixed inset-0 z-[200] bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-all duration-300" id="modalActivoBox">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-[#002D62] to-[#004A8C] p-6 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    </div>
+                    <div>
+                        <h3 id="modalActivoTitulo" class="text-lg font-black">Nuevo Activo</h3>
+                        <p class="text-blue-200 text-xs">Inventario UTN - SPIEE</p>
+                    </div>
+                </div>
+                <button onclick="cerrarModalActivo()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Formulario -->
+            <form id="formActivo" class="p-7 overflow-y-auto max-h-[75vh]">
+                <input type="hidden" id="editandoActivoId">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- N° Activo -->
+                    <div>
+                        <label class="f-label">N° de Activo (único) *</label>
+                        <input type="text" id="acNumActivo" required placeholder="Ej: 5 - 000008754" class="f-input">
+                    </div>
+
+                    <!-- N° Serie -->
+                    <div>
+                        <label class="f-label">N° de Serie *</label>
+                        <input type="text" id="acSerie" required placeholder="Ej: SN-2024-001" class="f-input font-mono">
+                    </div>
+
+                    <!-- Marca -->
+                    <div>
+                        <label class="f-label">Marca *</label>
+                        <input type="text" id="acMarca" required placeholder="Ej: Fluke, Tektronix, Rigol" class="f-input">
+                    </div>
+
+                    <!-- Modelo -->
+                    <div>
+                        <label class="f-label">Modelo *</label>
+                        <input type="text" id="acModelo" required placeholder="Ej: 87V, MSO4054, DS1054Z" class="f-input">
+                    </div>
+
+                    <!-- Categoría -->
+                    <div>
+                        <label class="f-label">Categoría *</label>
+                        <select id="acCategoria" required class="f-input">
                             <option value="Instrumentos">Instrumentos</option>
                             <option value="Herramientas">Herramientas</option>
                         </select>
                     </div>
+
+                    <!-- Estado -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Estado *</label>
-                        <select id="estadoActivo" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="">Selecciona un estado</option>
+                        <label class="f-label">Estado inicial</label>
+                        <select id="acEstado" class="f-input">
                             <option value="disponible">Disponible</option>
                             <option value="prestado">Prestado</option>
-                            <option value="deteriorado">Deteriorado</option>
-                            <option value="dañado">Dañado</option>
+                            <option value="en espera">En espera</option>
+                            <option value="fuera de stock">Fuera de servicio</option>
                         </select>
                     </div>
+
+                    <!-- Características -->
+                    <div class="md:col-span-2">
+                        <label class="f-label">Características técnicas *</label>
+                        <textarea id="acCaract" required rows="3" placeholder="Especificaciones técnicas, rango de medición, accesorios incluidos..." class="f-input resize-none"></textarea>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="md:col-span-2">
+                        <label class="f-label">Observaciones</label>
+                        <input type="text" id="acObs" placeholder="Ej: Requiere calibración anual. Incluye maletín." class="f-input">
+                    </div>
+
+                    <!-- URL Imagen -->
+                    <div class="md:col-span-2">
+                        <label class="f-label">URL de imagen (opcional)</label>
+                        <input type="text" id="acImagen" placeholder="https://ejemplo.com/imagen.jpg" class="f-input">
+                    </div>
                 </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Descripción</label>
-                    <textarea id="descripcionActivo" rows="3" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Describe las características y usos del activo..."></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Ubicación</label>
-                    <input type="text" id="ubicacionActivo" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: Laboratorio 101, Armario A">
-                </div>
-                
-                <!-- Botones -->
-                <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
-                    <button type="button" onclick="cerrarModalAgregarActivo()" class="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        Agregar Activo
-                    </button>
+
+                <div class="mt-6 flex gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="cerrarModalActivo()" class="flex-1 py-3 border border-slate-200 text-slate-500 font-bold rounded-xl hover:bg-slate-50 transition text-sm">Cancelar</button>
+                    <button type="submit" id="btnGuardarActivo" class="flex-[2] py-3 bg-[#002D62] text-white font-black rounded-xl hover:bg-[#001A33] transition text-sm uppercase tracking-widest">Guardar Activo</button>
                 </div>
             </form>
         </div>
     </div>
-    
-    <!-- Toast Component -->
-    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
-        <div class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
-            <span id="toastMsg">Operación Exitosa</span>
+
+    <!-- ============================================================
+         MODAL - Cambiar Estado
+    ============================================================ -->
+    <div id="modalEstado" class="fixed inset-0 z-[200] bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div class="bg-gradient-to-r from-slate-700 to-slate-600 p-5 text-white flex justify-between items-center">
+                <h3 class="font-black text-lg">Cambiar Estado</h3>
+                <button onclick="cerrarModal('modalEstado')" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <p id="estadoNombreLabel" class="text-sm text-slate-500 mb-4 font-medium">Activo seleccionado</p>
+                <div class="space-y-2">
+                    <button onclick="aplicarEstado('disponible')" class="w-full py-3 text-left px-4 rounded-xl border-2 border-transparent hover:border-emerald-300 hover:bg-emerald-50 text-sm font-bold text-slate-700 transition flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-emerald-400"></span> Disponible
+                    </button>
+                    <button onclick="aplicarEstado('prestado')" class="w-full py-3 text-left px-4 rounded-xl border-2 border-transparent hover:border-blue-300 hover:bg-blue-50 text-sm font-bold text-slate-700 transition flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-blue-400"></span> Prestado
+                    </button>
+                    <button onclick="aplicarEstado('en espera')" class="w-full py-3 text-left px-4 rounded-xl border-2 border-transparent hover:border-amber-300 hover:bg-amber-50 text-sm font-bold text-slate-700 transition flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-amber-400"></span> En espera
+                    </button>
+                    <button onclick="aplicarEstado('fuera de stock')" class="w-full py-3 text-left px-4 rounded-xl border-2 border-transparent hover:border-red-300 hover:bg-red-50 text-sm font-bold text-slate-700 transition flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-red-400"></span> Fuera de servicio
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
-    
-    <!-- JavaScript -->
+
+    <!-- ============================================================
+         MODAL - Importar CSV
+    ============================================================ -->
+    <div id="modalCSV" class="fixed inset-0 z-[200] bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="w-full max-w-5xl flex flex-col max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-all duration-300" id="modalCSVBox">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-[#002D62] to-[#004A8C] p-6 text-white flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black">Importar Activos</h3>
+                        <p class="text-blue-100 text-xs">Carga masiva desde archivo CSV</p>
+                    </div>
+                </div>
+                <button onclick="cerrarModalCSV()" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 overflow-y-auto flex-grow">
+                <!-- Zona de subida -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-[10px] font-black tracking-[0.2em] uppercase text-slate-400">Archivo de Datos</label>
+                        <button onclick="descargarPlantilla()" class="text-xs font-bold text-[#002D62] hover:text-[#004A8C] flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Descargar Plantilla CSV
+                        </button>
+                    </div>
+                    <label class="block w-full border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 transition-colors rounded-2xl p-8 text-center cursor-pointer group">
+                        <input type="file" id="csvFileInput" accept=".csv, .xlsx" class="hidden" onchange="onCSVFileSelected(event)">
+                        <div class="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center mx-auto mb-3 text-slate-400 group-hover:text-blue-500 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <p class="text-sm font-bold text-slate-700 mb-1" id="csvFileName">Haz clic para seleccionar el archivo</p>
+                        <p class="text-xs text-slate-400">Admite archivos Excel (.xlsx) o texto (.csv delimitados por comas)</p>
+                    </label>
+                </div>
+
+                <!-- Preview Area -->
+                <div id="csvPreviewArea" class="mb-6 hidden">
+                    <p class="text-[10px] font-black tracking-[0.2em] uppercase text-slate-400 mb-2">Vista Previa (<span id="csvRowCount">0</span> filas detectadas)</p>
+                    <div class="bg-white border border-slate-200 rounded-xl overflow-x-auto max-h-64 overflow-y-auto">
+                        <table id="csvPreviewTable" class="w-full text-left whitespace-nowrap text-sm"></table>
+                    </div>
+                </div>
+
+                <!-- Result Area -->
+                <div id="csvResultArea" class="mb-6 hidden">
+                    <p class="text-[10px] font-black tracking-[0.2em] uppercase text-slate-400 mb-2">Resultado de la Importación</p>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div class="bg-emerald-50 border border-emerald-100 p-3 rounded-xl">
+                            <p class="text-xs font-bold text-emerald-800">Éxitos</p>
+                            <p class="text-xl font-black text-emerald-600" id="csvResultOk">0</p>
+                        </div>
+                        <div class="bg-red-50 border border-red-100 p-3 rounded-xl">
+                            <p class="text-xs font-bold text-red-800">Errores</p>
+                            <p class="text-xl font-black text-red-600" id="csvResultErr">0</p>
+                        </div>
+                    </div>
+                    <ul id="csvErrorList" class="bg-red-50/50 p-3 rounded-xl max-h-32 overflow-y-auto space-y-1 mt-2"></ul>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 flex-shrink-0">
+                <button type="button" onclick="cerrarModalCSV()" class="px-5 py-2.5 font-bold text-sm text-slate-500 hover:bg-slate-200 rounded-xl transition">Cerrar</button>
+                <button type="button" id="btnProcesarCSV" onclick="procesarImportarCSV()" class="px-6 py-2.5 bg-[#002D62] text-white font-bold text-sm rounded-xl hover:bg-[#001A33] transition shadow-sm shadow-blue-200 flex items-center gap-2">
+                    Importar Datos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div id="footer-component"></div>
+
+    <!-- Scripts -->
     <script src="../js/app.js"></script>
     <script src="../js/main.js"></script>
-    <script src="../js/components/header.js"></script>
-    <script src="../js/components/sidebar.js"></script>
-    <script src="../js/components/modals.js"></script>
-    <!-- Temporalmente comentado para evitar error de sintaxis -->
-    <!-- <script src="../js/pages/activos.js" onerror="console.error('❌ Error cargando activos.js')" onload="console.log('✅ activos.js cargado correctamente')"></script> -->
-    
-    <!-- Prueba de carga del script -->
+    <script src="../js/components.js"></script>
+    <script src="../js/auth.js"></script>
+
     <script>
-        console.log('🔍 Verificando carga del script de activos...');
-        setTimeout(() => {
-            console.log('📋 Estado después de 2 segundos:', {
-                activosController: !!window.activosController,
-                abrirModalMasivo: typeof window.abrirModalMasivo,
-                activosControllerType: typeof window.activosController
-            });
-        }, 2000);
-    </script>
-    
-    <!-- Funciones para el modal de agregar activo -->
-    <script>
-        // Funciones para el modal de agregar activo
-        function abrirModalAgregarActivo() {
-            console.log('🔧 Abriendo modal para agregar activo...');
-            const modal = document.getElementById('modalAgregarActivo');
-            if (modal) {
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                document.getElementById('formAgregarActivo').reset();
-            }
+    // ================================================================
+    // CONTROLADOR DE ACTIVOS - Completo y funcional
+    // ================================================================
+
+    const API = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+    let todosLosActivos = [];
+    let activoActual = null;
+
+    function getToken() { return localStorage.getItem('utn_token'); }
+    function authHeaders() { return { 'Authorization': `Bearer ${getToken()}`, 'Content-Type': 'application/json' }; }
+
+    // ----- Bootstrap -----
+    document.addEventListener('DOMContentLoaded', async () => {
+        const token = getToken();
+        const user = JSON.parse(localStorage.getItem('utn_user') || 'null');
+        const rol = (user?.tipo_rol || user?.rol || '').toLowerCase();
+        if (!token || !user || (!rol.includes('admin') && !rol.includes('administrativo'))) {
+            window.location.href = '../login.html';
+            return;
         }
-        
-        function cerrarModalAgregarActivo() {
-            console.log('🔧 Cerrando modal de agregar activo...');
-            const modal = document.getElementById('modalAgregarActivo');
-            if (modal) {
-                modal.classList.add('opacity-0', 'pointer-events-none');
-            }
+        await cargarActivos();
+        setupFiltros();
+
+        if (new URLSearchParams(location.search).get('action') === 'masivo') {
+            setTimeout(() => mostrarToast('Módulo de carga masiva disponible dentro del formulario', 'info'), 600);
         }
+    });
+
+    // ----- API CRUD -----
+    async function cargarActivos() {
+        showLoading(true);
+        try {
+            const res = await fetch(`${API}/activos`, { headers: { Authorization: `Bearer ${getToken()}` } });
+            if (!res.ok) throw new Error(`Error ${res.status}`);
+            const data = await res.json();
+            todosLosActivos = Array.isArray(data) ? data : (data.todosLosActivos || []);
+        } catch (e) {
+            console.error('Error cargando activos:', e);
+            todosLosActivos = [];
+            mostrarToast('Error al cargar activos', 'error');
+        }
+        showLoading(false);
+        renderActivos();
+    }
+
+    async function guardarActivo(data) {
+        const editId = document.getElementById('editandoActivoId').value;
+        const url = editId ? `${API}/activos/${editId}` : `${API}/activos`;
+        const method = editId ? 'PATCH' : 'POST';
+        const res = await fetch(url, { method, headers: authHeaders(), body: JSON.stringify(data) });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.message || `Error ${res.status}`);
+        return body;
+    }
+
+    async function actualizarEstadoActivo(id, estadoActivo) {
+        const res = await fetch(`${API}/activos/${id}`, {
+            method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ estadoActivo })
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.message || `Error ${res.status}`);
+        return body;
+    }
+
+    async function eliminarActivoAPI(id, observaciones) {
+        const res = await fetch(`${API}/activos/${id}`, {
+            method: 'DELETE', headers: authHeaders(), body: JSON.stringify({ observaciones })
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.message || `Error ${res.status}`);
+        return body;
+    }
+
+    // ----- PAGINACIÓN & RENDER -----
+    let currentPage = 1;
+    const itemsPerPage = 32;
+
+    function renderActivos(page = 1) {
+        currentPage = page;
+        const grid = document.getElementById('activosGrid');
+        const loading = document.getElementById('loadingState');
+        const empty = document.getElementById('emptyState');
+        const count = document.getElementById('totalCount');
+        const paginationContainer = document.getElementById('acPagination');
         
-        // Configurar evento del formulario y botón
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('formAgregarActivo');
-            if (form) {
-                form.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const formData = {
-                        numActivo: Date.now(), // Número de activo único temporal
-                        numSerie: document.getElementById('codigoBarras').value, // Usar código de barras como número de serie
-                        estadoActivo: document.getElementById('estadoActivo').value.toLowerCase(), // Convertir a minúsculas
-                        marca: 'Generica', // Campo requerido, valor por defecto
-                        modelo: document.getElementById('nombreActivo').value, // Usar nombre como modelo
-                        categoria: document.getElementById('categoriaActivo').value, // Debe ser 'Instrumentos' o 'Herramientas'
-                        caracteristicas: document.getElementById('descripcionActivo').value || 'Sin características específicas',
-                        observaciones: document.getElementById('ubicacionActivo').value || 'Sin observaciones particulares'
-                    };
+        const filtrados = filtrarActivos();
 
-                    try {
-                        const token = localStorage.getItem('utn_token');
-                        const userData = localStorage.getItem('utn_user');
-                        const currentUser = userData ? JSON.parse(userData) : null;
-                        
-                        console.log('👤 Usuario actual:', currentUser);
-                        console.log('🔑 Token disponible:', token ? 'Sí' : 'No');
-                        console.log('📋 Enviando datos:', formData);
-                        
-                        const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify(formData)
-                        });
+        count.textContent = filtrados.length;
+        loading.classList.add('hidden');
 
-                        console.log('📡 Respuesta status:', response.status);
-                        console.log('📡 Respuesta headers:', response.headers);
+        if (filtrados.length === 0) {
+            grid.innerHTML = '';
+            paginationContainer.innerHTML = '';
+            empty.classList.remove('hidden');
+            return;
+        }
+        empty.classList.add('hidden');
 
-                        if (response.ok) {
-                            showToast('✅ Activo agregado correctamente', 'success');
-                            cerrarModalAgregarActivo();
-                            // Recargar la lista de activos usando la función manual
-                            cargarActivosManualmente();
-                        } else {
-                            const error = await response.json();
-                            console.error('❌ Error del backend:', error);
-                            showToast(`❌ Error: ${error.message || 'Permiso denegado'}`, 'error');
-                        }
-                    } catch (error) {
-                        console.error('Error agregando activo:', error);
-                        showToast('❌ Error al agregar activo', 'error');
-                    }
-                });
-            }
-            
-            // Configurar botón de agregar
-            const agregarBtn = document.getElementById('agregar-btn');
-            if (agregarBtn) {
-                agregarBtn.addEventListener('click', abrirModalAgregarActivo);
-                console.log('✅ Botón agregar-btn configurado');
-            } else {
-                console.log('❌ No se encontró el botón agregar-btn');
+        const totalPages = Math.ceil(filtrados.length / itemsPerPage);
+        if (currentPage > totalPages) currentPage = totalPages;
+        
+        const start = (currentPage - 1) * itemsPerPage;
+        const paginatedItems = filtrados.slice(start, start + itemsPerPage);
+
+        grid.innerHTML = paginatedItems.map((ac, i) => buildCard(ac, i)).join('');
+        renderPaginationUI(totalPages);
+        
+        // Auto scroll a encabezado tras paginar (si no es la primera carga)
+        if (page !== 1 || window.scrollY > 300) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function renderPaginationUI(totalPages) {
+        const container = document.getElementById('acPagination');
+        if (totalPages <= 1) { container.innerHTML = ''; return; }
+
+        let html = '';
+        html += `<button onclick="renderActivos(${currentPage - 1})" class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 font-bold text-sm bg-white hover:bg-slate-50 disabled:opacity-30 transition" ${currentPage === 1 ? 'disabled' : ''}>Ant</button>`;
+        
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, currentPage + 2);
+        
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button onclick="renderActivos(${i})" class="w-8 h-8 flex items-center justify-center rounded-lg font-bold text-sm transition ${i === currentPage ? 'bg-[#002D62] text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}">${i}</button>`;
+        }
+
+        html += `<button onclick="renderActivos(${currentPage + 1})" class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 font-bold text-sm bg-white hover:bg-slate-50 disabled:opacity-30 transition" ${currentPage === totalPages ? 'disabled' : ''}>Sig</button>`;
+        container.innerHTML = html;
+    }
+
+    function buildCard(ac, i) {
+        const stripClases = { 'disponible':'strip-disp','prestado':'strip-prest','en espera':'strip-mant','fuera de stock':'strip-fuera','eliminado':'strip-elim' };
+        const stripClass = stripClases[ac.estadoActivo] || 'strip-elim';
+        const badgeClases = { 'disponible':'badge-disp','prestado':'badge-prest','en espera':'badge-mant','fuera de stock':'badge-fuera','eliminado':'badge-elim' };
+        const badgeClass = badgeClases[ac.estadoActivo] || 'badge-elim';
+        const img = ac.imagenUrl && ac.imagenUrl !== 'https://via.placeholder.com/150?text=Sin+Imagen'
+            ? `<img src="${ac.imagenUrl}" alt="${ac.modelo}" class="w-full h-full object-cover cursor-zoom-in hover:opacity-90 transition-opacity" onclick="event.stopPropagation(); window.verImagenCompleta(this.src, '${(ac.marca + ' ' + ac.modelo).replace(/'/g, "\\'")}')" onerror="this.style.display='none'">`
+            : `<svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>`;
+
+        return `
+        <div class="item-card overflow-hidden fade-up" style="animation-delay:${i*40}ms" onclick="abrirDrawer('${ac._id}')">
+            <div class="estado-strip ${stripClass}"></div>
+            <div class="p-5">
+                <div class="flex gap-3 mb-4">
+                    <div class="w-16 h-16 bg-slate-100 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200">${img}</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-1 mb-0.5">
+                            <p class="text-xs text-slate-400 font-mono">#${ac.numActivo || '-'}</p>
+                            <span class="badge ${badgeClass}">${ac.estadoActivo || '-'}</span>
+                        </div>
+                        <h3 class="font-black text-slate-800 text-sm leading-tight">${ac.marca || '-'} ${ac.modelo || '-'}</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">${ac.categoria || '-'}</p>
+                    </div>
+                </div>
+                ${ac.numSerie ? `<div class="flex gap-2 items-center mb-3 bg-slate-50 rounded-lg px-3 py-2"><span class="text-[10px] text-slate-400 font-black uppercase tracking-wide">S/N</span><span class="text-xs font-mono font-bold text-slate-600">${ac.numSerie}</span></div>` : ''}
+                ${ac.caracteristicas ? `<p class="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-4">${ac.caracteristicas}</p>` : ''}
+                <div class="flex gap-2" style="opacity:1">
+                    <button onclick="event.stopPropagation(); abrirDrawer('${ac._id}')" class="flex-1 py-2 text-xs font-bold text-[#002D62] bg-blue-50 rounded-lg hover:bg-blue-100 transition">Ver detalle</button>
+                    <button onclick="event.stopPropagation(); abrirModalEditar('${ac._id}')" class="flex-1 py-2 text-xs font-bold text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition">Editar</button>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    // ----- FILTROS -----
+    function setupFiltros() {
+        ['busquedaInput','categoriaFiltro','estadoFiltro'].forEach(id => {
+            document.getElementById(id)?.addEventListener('input', () => renderActivos(1));
+            document.getElementById(id)?.addEventListener('change', () => renderActivos(1));
+        });
+    }
+
+    function filtrarActivos() {
+        const q = (document.getElementById('busquedaInput')?.value || '').toLowerCase();
+        const cat = document.getElementById('categoriaFiltro')?.value || '';
+        const est = document.getElementById('estadoFiltro')?.value || '';
+
+        return todosLosActivos.filter(ac => {
+            if (ac.estadoActivo === 'eliminado') return false;
+            const texto = [(ac.marca||''),(ac.modelo||''),(ac.numSerie||''),(ac.caracteristicas||''),String(ac.numActivo||'')].join(' ').toLowerCase();
+            if (q && !texto.includes(q)) return false;
+            if (cat && ac.categoria !== cat) return false;
+            if (est && ac.estadoActivo !== est) return false;
+            return true;
+        });
+    }
+
+    function limpiarFiltros() {
+        ['busquedaInput','categoriaFiltro','estadoFiltro'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+        renderActivos();
+    }
+
+    // ----- DRAWER -----
+    function abrirDrawer(id) {
+        const ac = todosLosActivos.find(a => a._id === id);
+        if (!ac) return;
+        activoActual = ac;
+
+        document.getElementById('drawerNombre').textContent = `${ac.marca || '-'} ${ac.modelo || '-'}`;
+        document.getElementById('drawerCodigo').textContent = `N° de Activo: ${ac.numActivo || '-'}`;
+        document.getElementById('drawerMarca').textContent = ac.marca || '-';
+        document.getElementById('drawerModelo').textContent = ac.modelo || '-';
+        document.getElementById('drawerNumActivo').textContent = ac.numActivo || '-';
+        document.getElementById('drawerSerie').textContent = ac.numSerie || '-';
+        document.getElementById('drawerCategoria').textContent = ac.categoria || '-';
+        document.getElementById('drawerCaract').textContent = ac.caracteristicas || 'Sin descripción';
+        document.getElementById('drawerObs').textContent = ac.observaciones || 'Sin observaciones.';
+
+        const badgeClases = { 'disponible':'badge-disp','prestado':'badge-prest','en espera':'badge-mant','fuera de stock':'badge-fuera','eliminado':'badge-elim' };
+        const estadoBadge = document.getElementById('drawerEstadoBadge');
+        estadoBadge.className = `badge ${badgeClases[ac.estadoActivo] || 'badge-elim'}`;
+        estadoBadge.textContent = ac.estadoActivo || '-';
+
+        const fecha = ac.createdAt ? new Date(ac.createdAt).toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric'}) : '-';
+        document.getElementById('drawerFecha').textContent = fecha;
+
+        const img = document.getElementById('drawerImg');
+        const ph = document.getElementById('drawerImgPlaceholder');
+        const hasImg = ac.imagenUrl && ac.imagenUrl !== 'https://via.placeholder.com/150?text=Sin+Imagen';
+        if (hasImg) { img.src = ac.imagenUrl; img.classList.remove('hidden'); ph.classList.add('hidden'); }
+        else { img.classList.add('hidden'); ph.classList.remove('hidden'); }
+
+        document.getElementById('drawer').classList.add('open');
+        document.getElementById('drawerOverlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarDrawer() {
+        document.getElementById('drawer').classList.remove('open');
+        document.getElementById('drawerOverlay').classList.remove('open');
+        document.body.style.overflow = '';
+        activoActual = null;
+    }
+
+    // ----- MODAL ACTIVO -----
+    function abrirModalNuevoActivo() {
+        document.getElementById('editandoActivoId').value = '';
+        document.getElementById('modalActivoTitulo').textContent = 'Nuevo Activo';
+        document.getElementById('btnGuardarActivo').textContent = 'Guardar Activo';
+        document.getElementById('formActivo').reset();
+        document.getElementById('acNumActivo').readOnly = false;
+        document.getElementById('acNumActivo').classList.remove('bg-slate-100', 'cursor-not-allowed');
+        abrirModal('modalActivo');
+    }
+
+    function abrirModalEditar(id) {
+        const ac = todosLosActivos.find(a => a._id === id);
+        if (!ac) return;
+        document.getElementById('editandoActivoId').value = ac._id;
+        document.getElementById('modalActivoTitulo').textContent = 'Editar Activo';
+        document.getElementById('btnGuardarActivo').textContent = 'Actualizar';
+        
+        const numInput = document.getElementById('acNumActivo');
+        numInput.value = ac.numActivo || '';
+        numInput.readOnly = true;
+        numInput.classList.add('bg-slate-100', 'cursor-not-allowed');
+
+        document.getElementById('acSerie').value = ac.numSerie || '';
+        document.getElementById('acMarca').value = ac.marca || '';
+        document.getElementById('acModelo').value = ac.modelo || '';
+        document.getElementById('acCategoria').value = ac.categoria || 'Instrumentos';
+        document.getElementById('acEstado').value = ac.estadoActivo || 'disponible';
+        document.getElementById('acCaract').value = ac.caracteristicas || '';
+        document.getElementById('acObs').value = ac.observaciones || '';
+        document.getElementById('acImagen').value = ac.imagenUrl && ac.imagenUrl !== 'https://via.placeholder.com/150?text=Sin+Imagen' ? ac.imagenUrl : '';
+        abrirModal('modalActivo');
+    }
+
+    function cerrarModalActivo() { cerrarModal('modalActivo'); }
+    function editarDesdeDrawer() {
+        if (!activoActual) return;
+        const id = activoActual._id; // guardar ANTES de que cerrarDrawer() lo ponga en null
+        cerrarDrawer();
+        setTimeout(() => abrirModalEditar(id), 200);
+    }
+
+    document.getElementById('formActivo')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnGuardarActivo');
+        btn.disabled = true; btn.textContent = 'Guardando...';
+        const data = {
+            numActivo: document.getElementById('acNumActivo').value.trim(),
+            numSerie: document.getElementById('acSerie').value.trim(),
+            marca: document.getElementById('acMarca').value.trim(),
+            modelo: document.getElementById('acModelo').value.trim(),
+            categoria: document.getElementById('acCategoria').value,
+            estadoActivo: document.getElementById('acEstado').value,
+            caracteristicas: document.getElementById('acCaract').value.trim(),
+            observaciones: document.getElementById('acObs').value.trim() || 'Sin observaciones',
+            imagenUrl: document.getElementById('acImagen').value.trim() || 'https://via.placeholder.com/150?text=Sin+Imagen'
+        };
+        try {
+            await guardarActivo(data);
+            mostrarToast(document.getElementById('editandoActivoId').value ? 'Activo actualizado ✓' : 'Activo registrado ✓', 'success');
+            cerrarModalActivo();
+            await cargarActivos();
+        } catch (err) {
+            mostrarToast(err.message || 'Error al guardar', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = document.getElementById('editandoActivoId').value ? 'Actualizar' : 'Guardar Activo';
+        }
+    });
+
+    // ----- CAMBIAR ESTADO -----
+    function cambiarEstadoDesdeDrawer() {
+        if (!activoActual) return;
+        document.getElementById('estadoNombreLabel').textContent = `${activoActual.marca || ''} ${activoActual.modelo || ''}`;
+        abrirModal('modalEstado');
+    }
+
+    async function aplicarEstado(nuevoEstado) {
+        if (!activoActual) return;
+        try {
+            await actualizarEstadoActivo(activoActual._id, nuevoEstado);
+            mostrarToast(`Estado cambiado a "${nuevoEstado}" ✓`, 'success');
+            cerrarModal('modalEstado');
+            cerrarDrawer();
+            await cargarActivos();
+        } catch (err) {
+            mostrarToast(err.message || 'Error al cambiar estado', 'error');
+        }
+    }
+
+    async function marcarMalEstadoDesdeDrawer() {
+        if (!activoActual) return;
+        const { value: motivo, isConfirmed } = await Swal.fire({
+            title: 'Reportar Mal Estado',
+            text: 'Indique el daño o problema observado en el equipo:',
+            input: 'textarea',
+            inputPlaceholder: 'Ej: Pantalla rota, no enciende...',
+            showCancelButton: true,
+            confirmButtonText: 'Reportar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#d97706',
+            inputValidator: (value) => { if (!value) return '¡El motivo es obligatorio!'; }
+        });
+        if (!isConfirmed) return;
+
+        try {
+            await actualizarEstadoActivo(activoActual._id, 'fuera de stock');
+            // Podríamos enviar el motivo como observaciones si el backend lo soporta
+            mostrarToast('Equipo marcado fuera de servicio ✓', 'success');
+            cerrarDrawer();
+            await cargarActivos();
+        } catch (err) {
+            mostrarToast(err.message || 'Error al actualizar', 'error');
+        }
+    }
+
+    // ----- ELIMINAR -----
+    async function eliminarDesdeDrawer() {
+        if (!activoActual) return;
+        const result = await Swal.fire({
+            title: 'Dar de baja activo',
+            html: `<p class="text-slate-500 text-sm mb-4">Se registrará la baja de <strong>${activoActual.marca} ${activoActual.modelo}</strong>. El historial se conserva.</p>
+                   <input id="swal-obs" class="swal2-input" placeholder="Justificación (mínimo 10 caracteres)">`,
+            confirmButtonText: 'Confirmar Baja',
+            cancelButtonText: 'Cancelar',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            preConfirm: () => {
+                const v = document.getElementById('swal-obs').value.trim();
+                if (v.length < 10) { Swal.showValidationMessage('Justificación demasiado corta'); return false; }
+                return v;
             }
         });
-        
-        // Cerrar modal al hacer clic fuera
-        document.addEventListener('click', (e) => {
-            const modal = document.getElementById('modalAgregarActivo');
-            if (e.target === modal) {
-                cerrarModalAgregarActivo();
-            }
-        });
-    </script>
-    
-    <!-- Carga del Header Component -->
-    <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Cargar header component
+        if (!result.isConfirmed) return;
+        try {
+            await eliminarActivoAPI(activoActual._id, result.value);
+            mostrarToast('Activo dado de baja ✓', 'success');
+            cerrarDrawer();
+            await cargarActivos();
+        } catch (err) {
+            mostrarToast(err.message || 'Error al dar de baja', 'error');
+        }
+    }
+
+    // ========================  IMPORTAR CSV  ========================
+    function abrirModalImportarCSV() {
+        document.getElementById('csvFileInput').value = '';
+        document.getElementById('csvFileName').textContent = 'Ningún archivo seleccionado';
+        document.getElementById('csvPreviewArea').classList.add('hidden');
+        document.getElementById('csvResultArea').classList.add('hidden');
+        abrirModal('modalCSV');
+    }
+
+    function cerrarModalCSV() { cerrarModal('modalCSV'); }
+
+    function descargarPlantilla() {
+        const bom = '\uFEFF';
+        const encabezado = 'numActivo,numSerie,marca,modelo,categoria,estadoActivo,caracteristicas,observaciones';
+        const ejemplo1 = '1234,FL123456,Fluke,87V,Instrumentos,disponible,Multimetro digital True RMS,Calibrado';
+        const ejemplo2 = '1235,WEL7890,Weller,WE1010NA,Herramientas,disponible,Estacion de soldadura 70W,Nueva';
+        const csv = bom + [encabezado, ejemplo1, ejemplo2].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'plantilla_activos_UTN.csv' });
+        a.click();
+        mostrarToast('Plantilla descargada', 'success');
+    }
+
+    function onCSVFileSelected(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        document.getElementById('csvFileName').textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const data = new Uint8Array(ev.target.result);
             try {
-                const headerResponse = await fetch('../components/header.html');
-                const headerHtml = await headerResponse.text();
-                document.getElementById('header-component').innerHTML = headerHtml;
-                console.log('✅ Header component cargado en activos.html');
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1, raw: false});
                 
-                // Actualizar información del usuario
-                const userData = localStorage.getItem('utn_user');
-                if (userData) {
-                    const currentUser = JSON.parse(userData);
-                    const userInfo = document.getElementById('userInfo');
-                    const userMenuName = document.getElementById('userMenuName');
-                    const dropdownUserName = document.getElementById('dropdownUserName');
-                    const dropdownUserRole = document.getElementById('dropdownUserRole');
-                    
-                    const nombreCompleto = currentUser.nombre_completo || currentUser.nombre || 'Usuario';
-                    
-                    if (userInfo) userInfo.textContent = nombreCompleto;
-                    if (userMenuName) userMenuName.textContent = nombreCompleto;
-                    if (dropdownUserName) dropdownUserName.textContent = nombreCompleto;
-                    if (dropdownUserRole) dropdownUserRole.textContent = currentUser.rol || 'Estudiante';
-                }
-                
-                // Configurar logout
-                const logoutBtn = document.getElementById('logoutBtn');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', () => {
-                        localStorage.removeItem('utn_token');
-                        localStorage.removeItem('utn_user');
-                        window.location.href = '../index.html';
-                    });
-                }
-                
-                // Configurar menú usuario
-                const userMenuBtn = document.getElementById('user-menu-btn');
-                const userDropdown = document.getElementById('user-dropdown');
-                if (userMenuBtn && userDropdown) {
-                    userMenuBtn.addEventListener('click', () => {
-                        userDropdown.classList.toggle('hidden');
-                    });
-                    
-                    // Cerrar al hacer click fuera
-                    document.addEventListener('click', (e) => {
-                        if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-                            userDropdown.classList.add('hidden');
-                        }
-                    });
-                }
-                
-            } catch (error) {
-                console.error('❌ Error cargando header component:', error);
-            }
-        });
-    </script>
-    
-    <!-- Inicialización -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Iniciando activos.html...');
-            
-            // Verificar autenticación usando la misma lógica que index.html
-            const token = localStorage.getItem('utn_token');
-            const userData = localStorage.getItem('utn_user');
-            
-            console.log('🔍 Verificando sesión en activos.html:', {
-                token: token ? 'existe' : 'no existe',
-                usuario: userData ? 'existe' : 'no existe'
-            });
-            
-            if (!token || !userData) {
-                console.log('🚫 No hay sesión en activos.html, redirigiendo a ../index.html...');
-                window.location.href = '../index.html';
-                return;
-            }
-            
-            console.log('✅ Sesión válida en activos.html, inicializando...');
-            
-            // Cargar activos inicialmente
-            console.log('🔄 Cargando activos iniciales...');
-            cargarActivosManualmente();
-            
-            // Inicializar página de activos
-            if (window.activosController) {
-                console.log('📋 Controlador encontrado, inicializando...');
-                window.activosController.initialize().then(() => {
-                    console.log('✅ Controlador inicializado correctamente');
-                }).catch(error => {
-                    console.error('❌ Error inicializando controlador:', error);
-                });
-            } else {
-                console.error('❌ Error: window.activosController no está definido');
-                
-                // Si no existe el controlador, cargar activos manualmente
-                console.log('🔄 Cargando activos manualmente...');
-                cargarActivosManualmente();
-            }
-            
-            // Agregar event listener directo como respaldo
-            setTimeout(() => {
-                const agregarMasivoBtn = document.getElementById('agregar-masivo-btn');
-                if (agregarMasivoBtn) {
-                    console.log('🔧 Agregando event listener directo al botón...');
-                    agregarMasivoBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        console.log('📦 Click directo en botón agregar masivo');
-                        console.log('🔍 Verificando función abrirModalMasivo:', typeof window.abrirModalMasivo);
-                        
-                        if (typeof window.abrirModalMasivo === 'function') {
-                            window.abrirModalMasivo();
-                        } else {
-                            console.error('❌ Función abrirModalMasivo no encontrada');
-                            // Intentar abrir el modal directamente
-                            const modal = document.getElementById('modalAgregarMasivo');
-                            if (modal) {
-                                console.log('🔄 Abriendo modal directamente...');
-                                modal.classList.remove('opacity-0', 'pointer-events-none');
-                                modal.classList.add('opacity-100');
-                            } else {
-                                console.error('❌ Modal no encontrado');
-                            }
-                        }
-                    });
-                    console.log('✅ Event listener directo agregado');
-                } else {
-                    console.error('❌ Botón agregar-masivo-btn no encontrado');
-                }
-                
-                // Agregar event listener para botón limpiar
-                const limpiarBtn = document.getElementById('limpiar-btn');
-                if (limpiarBtn) {
-                    console.log('🔧 Agregando event listener al botón limpiar...');
-                    limpiarBtn.addEventListener('click', () => {
-                        console.log('🔄 Click en botón limpiar');
-                        // Limpiar todos los campos de búsqueda y filtros
-                        document.getElementById('busqueda-input').value = '';
-                        document.getElementById('categoria-select').value = 'todas';
-                        document.getElementById('estado-select').value = 'todos';
-                        
-                        // Recargar activos
-                        if (window.activosController && window.activosController.cargarActivos) {
-                            window.activosController.cargarActivos();
-                        }
-                        
-                        // Mostrar mensaje
-                        showToast('🔄 Filtros limpiados', 'success');
-                    });
-                    console.log('✅ Event listener del botón limpiar agregado');
-                }
-                
-                // Agregar event listener para botón buscar
-                const buscarBtn = document.getElementById('buscar-btn');
-                if (buscarBtn) {
-                    console.log('🔧 Agregando event listener al botón buscar...');
-                    buscarBtn.addEventListener('click', () => {
-                        console.log('🔍 Click en botón buscar');
-                        
-                        // Obtener valores de los filtros
-                        const busqueda = document.getElementById('busqueda-input').value.trim();
-                        const categoria = document.getElementById('categoria-select').value;
-                        const estado = document.getElementById('estado-select').value;
-                        
-                        console.log('🔍 Filtros de búsqueda:', { busqueda, categoria, estado });
-                        
-                        // Filtrar activos si existe el controlador
-                        if (window.activosController && window.activosController.filtrarActivos) {
-                            window.activosController.filtrarActivos({
-                                busqueda: busqueda,
-                                categoria: categoria,
-                                estado: estado
-                            });
-                        } else {
-                            // Si no existe el controlador, hacer filtrado manual
-                            console.log('🔍 Haciendo filtrado manual...');
-                            const todosActivos = document.querySelectorAll('#activos-grid .activo-card');
-                            let encontrados = 0;
-                            
-                            todosActivos.forEach(card => {
-                                const textoCard = card.textContent.toLowerCase();
-                                const busquedaLower = busqueda.toLowerCase();
-                                const categoriaCard = card.dataset.categoria || '';
-                                const estadoCard = card.dataset.estado || '';
-                                
-                                let coincide = true;
-                                
-                                // Verificar búsqueda
-                                if (busqueda && !textoCard.includes(busquedaLower)) {
-                                    coincide = false;
-                                }
-                                
-                                // Verificar categoría
-                                if (categoria !== 'todas' && categoriaCard !== categoria) {
-                                    coincide = false;
-                                }
-                                
-                                // Verificar estado
-                                if (estado !== 'todos' && estadoCard !== estado) {
-                                    coincide = false;
-                                }
-                                
-                                // Mostrar u ocultar
-                                if (coincide) {
-                                    card.style.display = '';
-                                    encontrados++;
-                                } else {
-                                    card.style.display = 'none';
-                                }
-                            });
-                            
-                            // Actualizar contador
-                            const contador = document.getElementById('resultados-count');
-                            if (contador) {
-                                contador.textContent = encontrados;
-                            }
-                            
-                            // Mostrar mensaje
-                            showToast(`🔍 ${encontrados} resultados encontrados`, 'success');
-                        }
-                    });
-                    console.log('✅ Event listener del botón buscar agregado');
-                }
-            }, 1000);
-            
-            // Verificar que la función del modal esté disponible
-            if (typeof window.abrirModalMasivo === 'function') {
-                console.log('✅ Función abrirModalMasivo disponible');
-            } else {
-                console.error('❌ Error: función abrirModalMasivo no está disponible');
-            }
-        });
-    </script>
-    
-    <!-- Funciones para el modal de agregar masivo -->
-    <script>
-        // Función de prueba simple
-        function testBoton() {
-            console.log('🧪 TEST: Botón de prueba presionado');
-            alert('✅ Botón de prueba funciona!');
-        }
-        
-        // Funciones para el modal de agregar masivo
-        let activosMasivos = [];
-
-        function abrirModalMasivo() {
-            console.log('📦 abriendo modal masivo...');
-            const modal = document.getElementById('modalAgregarMasivo');
-            if (modal) {
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                modal.classList.add('opacity-100');
-                
-                // Inicializar con una fila en la tabla
-                activosMasivos = [];
-                mostrarTabMasivo('archivo');
-                limpiarTabla();
-                agregarFilaTabla();
-            } else {
-                console.error('❌ Modal no encontrado');
-            }
-        }
-
-        function cerrarModalMasivo() {
-            const modal = document.getElementById('modalAgregarMasivo');
-            modal.classList.remove('opacity-100');
-            modal.classList.add('opacity-0', 'pointer-events-none');
-        }
-
-        function mostrarTabMasivo(tab) {
-            // Ocultar todos los contenidos
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-            
-            // Quitar estilos activos de todos los tabs
-            document.querySelectorAll('[id^="tab-"]').forEach(tabBtn => {
-                tabBtn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
-                tabBtn.classList.add('text-slate-600');
-            });
-            
-            // Mostrar contenido seleccionado
-            document.getElementById(`contenido-${tab}`).classList.remove('hidden');
-            
-            // Activar tab seleccionado
-            const tabActivo = document.getElementById(`tab-${tab}`);
-            tabActivo.classList.remove('text-slate-600');
-            tabActivo.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
-        }
-
-        // Funciones para la tabla
-        function agregarFilaTabla() {
-            const tbody = document.getElementById('tabla-activos-masivos');
-            const filaIndex = tbody.children.length;
-            
-            const fila = document.createElement('tr');
-            fila.innerHTML = `
-                <td class="border border-slate-200 px-2 py-1">
-                    <input type="text" class="w-full px-2 py-1 border border-slate-300 rounded" placeholder="Nombre del activo" data-field="nombre">
-                </td>
-                <td class="border border-slate-200 px-2 py-1">
-                    <input type="text" class="w-full px-2 py-1 border border-slate-300 rounded" placeholder="Código" data-field="codigo">
-                </td>
-                <td class="border border-slate-200 px-2 py-1">
-                    <input type="text" class="w-full px-2 py-1 border border-slate-300 rounded" placeholder="Marca" data-field="marca">
-                </td>
-                <td class="border border-slate-200 px-2 py-1">
-                    <input type="text" class="w-full px-2 py-1 border border-slate-300 rounded" placeholder="Modelo" data-field="modelo">
-                </td>
-                <td class="border border-slate-200 px-2 py-1">
-                    <select class="w-full px-2 py-1 border border-slate-300 rounded" data-field="categoria">
-                        <option value="Instrumentos">Instrumentos</option>
-                        <option value="Herramientas">Herramientas</option>
-                    </select>
-                </td>
-                <td class="border border-slate-200 px-2 py-1">
-                    <select class="w-full px-2 py-1 border border-slate-300 rounded" data-field="estado">
-                        <option value="disponible">Disponible</option>
-                        <option value="prestado">Prestado</option>
-                        <option value="mantenimiento">Mantenimiento</option>
-                    </select>
-                </td>
-                <td class="border border-slate-200 px-2 py-1 text-center">
-                    <button onclick="eliminarFilaTabla(this)" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm">
-                        🗑️
-                    </button>
-                </td>
-            `;
-            
-            tbody.appendChild(fila);
-        }
-
-        function eliminarFilaTabla(boton) {
-            boton.closest('tr').remove();
-        }
-
-        function limpiarTabla() {
-            document.getElementById('tabla-activos-masivos').innerHTML = '';
-        }
-
-        // Event listener para el archivo
-        document.getElementById('archivo-masivo').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            console.log('📄 Archivo seleccionado:', file.name, file.type);
-
-            // Detectar tipo de archivo de forma más robusta
-            const fileName = file.name.toLowerCase();
-            const fileType = file.type;
-            
-            // Forzar detección por extensión primero
-            const isXLSX = fileName.endsWith('.xlsx') || 
-                          fileType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-                          fileType === 'application/vnd.ms-excel.sheet.macroEnabled.12' ||
-                          fileName.endsWith('.xls');
-            const isCSV = fileName.endsWith('.csv') || fileType === 'text/csv' || fileType === 'text/plain';
-
-            console.log('🔍 Tipo de archivo detectado:', { 
-                fileName, 
-                fileType, 
-                isXLSX, 
-                isCSV,
-                endsWithXLSX: fileName.endsWith('.xlsx'),
-                endsWithXLS: fileName.endsWith('.xls'),
-                endsWithCSV: fileName.endsWith('.csv'),
-                fileExtension: fileName.split('.').pop()
-            });
-
-            const reader = new FileReader();
-            
-            reader.onload = function(event) {
-                const content = event.target.result;
-                
-                console.log('🔍 Archivo cargado, tipo:', file.name, 'mime:', file.type);
-                
-                // Forzar procesamiento XLSX si la extensión es .xlsx o .xls
-                if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-                    console.log('🔄 Forzando procesamiento como XLSX por extensión...');
-                    console.log('📄 ArrayBuffer recibido, tamaño:', content.byteLength);
-                    procesarArchivoXLSX(content);
-                } else if (isCSV) {
-                    console.log('🔄 Procesando archivo CSV...');
-                    console.log('📄 Contenido del archivo (primeros 100 chars):', content.substring(0, 100));
-                    procesarArchivoCSV(content);
-                } else {
-                    console.log('❌ Tipo de archivo no reconocido:', { name: file.name, type: file.type, isXLSX, isCSV });
-                    Utils.showToast('Formato de archivo no soportado. Use CSV o XLSX', 'error');
+                // Limpiar filas vacías
+                const lineas = jsonData.filter(row => row.length > 0 && row.some(cell => cell !== undefined && cell !== ''));
+                if (lineas.length < 2) {
+                    mostrarToast('El archivo está vacío o no tiene datos válidos', 'error');
                     return;
                 }
+                document.getElementById('csvPreviewArea').xlsxData = lineas; // guardar temporalmente para el boton procesar
+
+                const preview = document.getElementById('csvPreviewTable');
+                const headers = lineas[0];
+                const rows = lineas.slice(1, 6);
+                preview.innerHTML = `
+                    <thead class="bg-slate-50">
+                        <tr>${headers.map(h => `<th class="px-3 py-2 text-left text-[10px] font-black text-slate-500 uppercase tracking-wide">${String(h||'').trim()}</th>`).join('')}</tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        ${rows.map(r => {
+                            let tds = '';
+                            for(let i=0; i<headers.length; i++) {
+                                tds += `<td class="px-3 py-2 text-xs text-slate-700">${String(r[i]||'').trim()}</td>`;
+                            }
+                            return `<tr>${tds}</tr>`;
+                        }).join('')}
+                        ${lineas.length > 6 ? `<tr><td colspan="${headers.length}" class="px-3 py-2 text-xs text-slate-400 italic">... y ${lineas.length - 6} filas más</td></tr>` : ''}
+                    </tbody>`;
+                document.getElementById('csvPreviewArea').classList.remove('hidden');
+                document.getElementById('csvRowCount').textContent = lineas.length - 1;
+            } catch (err) {
+                console.error(err);
+                mostrarToast('Error al leer el archivo. Asegúrate que sea .xlsx o .csv válido.', 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    async function procesarImportarCSV() {
+        const dataPreview = document.getElementById('csvPreviewArea').xlsxData;
+        if (!dataPreview || dataPreview.length < 2) { mostrarToast('Selecciona un archivo válido primero', 'error'); return; }
+
+        const token = getToken();
+        const btn = document.getElementById('btnProcesarCSV');
+        btn.disabled = true; btn.textContent = 'Importando...';
+
+        const lineas = dataPreview;
+        // Normalizar los headers (quitar tildes y pasar a minúsculas)
+        const headers = lineas[0].map(h => 
+            String(h||'').trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        );
+
+        let ok = 0, errores = [];
+        for (let i = 1; i < lineas.length; i++) {
+            const cols = lineas[i];
+            const row = {};
+            headers.forEach((h, idx) => row[h] = String(cols[idx]||'').trim());
+
+            // Mapeo flexible para aceptar archivos como 'Activos.xlsx'
+            // 'Placa' -> numActivo
+            // 'descripcion' -> caracteristicas
+            // 'serie' -> numSerie
+            const numAct = row['placa'] || row['numactivo'] || '';
+            const desc = row['descripcion'] || row['caracteristicas'] || '';
+            
+            let serie = (row['serie'] || row['numserie'] || '').trim();
+            // Si viene vacío o con palabras por defecto, asegurar una serie única
+            const nulas = ['', '-', 'n/a', 'na', 'no tiene', 'sin serie', '0', 's/n'];
+            if (nulas.includes(serie.toLowerCase())) {
+                serie = `SN-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}-${i}`;
+            }
+
+            const payload = {
+                numActivo: numAct,
+                numSerie: serie,
+                marca: row['marca'] || 'Genérico',
+                modelo: row['modelo'] || 'Estándar',
+                categoria: row['categoria'] || 'Instrumentos',
+                estadoActivo: row['estadoactivo'] || row['estado'] || 'disponible',
+                caracteristicas: desc,
+                observaciones: row['observaciones'] || ''
             };
 
-            // Usar el método de lectura correcto según el tipo de archivo
-            if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-                reader.readAsArrayBuffer(file);
-                console.log('📖 Leyendo archivo como ArrayBuffer...');
-            } else if (isCSV) {
-                reader.readAsText(file, 'UTF-8');
-                console.log('📖 Leyendo archivo como texto...');
-            } else {
-                Utils.showToast('Formato de archivo no soportado. Use CSV o XLSX', 'error');
-                return;
-            }
+            if (!payload.numActivo) { errores.push(`Fila ${i + 1}: Faltan datos (Placa/NumActivo requerido)`); continue; }
+            if (payload.numActivo.toLowerCase() === 'placa') continue; // Ignorar si se repitieron encabezados
+
+            try {
+                const res = await fetch(`${API}/activos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (res.ok) { 
+                    ok++; 
+                } else {
+                    const e = await res.json();
+                    errores.push(`ID ${payload.numActivo}: ${e.message || 'Error'}`);
+                }
+            } catch(ex) { errores.push(`ID ${payload.numActivo}: Error de red`); }
+        }
+
+        document.getElementById('csvResultOk').textContent = ok;
+        document.getElementById('csvResultErr').textContent = errores.length;
+        document.getElementById('csvErrorList').innerHTML = errores.map(e => `<li class="text-xs text-red-600">${e}</li>`).join('');
+        document.getElementById('csvResultArea').classList.remove('hidden');
+
+        btn.disabled = false; btn.textContent = 'Importar Datos';
+
+        if (ok > 0) {
+            mostrarToast(`${ok} activo(s) importados`, 'success');
+            await cargarActivos();
+        }
+        if (errores.length > 0) mostrarToast(`${errores.length} fila(s) fallaron`, 'error');
+    }
+
+    // ========================  EXPORTAR CSV (UTF-8 BOM)  ========================
+    function exportarCSV() {
+        if (!todosLosActivos.length) { mostrarToast('No hay datos para exportar', 'error'); return; }
+        const rows = todosLosActivos.filter(a => a.estadoActivo !== 'eliminado').map(a => ({
+            'N° Activo': a.numActivo || '', 'N° Serie': a.numSerie || '',
+            'Marca': a.marca || '', 'Modelo': a.modelo || '',
+            'Categoría': a.categoria || '', 'Estado': a.estadoActivo || '',
+            'Características': a.caracteristicas || '', 'Observaciones': a.observaciones || ''
+        }));
+        const hdrs = Object.keys(rows[0]);
+        // Escapar comillas dobles y encerrar entre comillas cada campo
+        const csvRows = [hdrs.join(',')];
+        rows.forEach(r => {
+            const rowFields = hdrs.map(h => {
+                let s = String(r[h]);
+                if (s.includes('"') || s.includes(',') || s.includes('\n')) {
+                    s = `"${s.replace(/"/g, '""')}"`;
+                }
+                return s;
+            });
+            csvRows.push(rowFields.join(','));
+        });
+        
+        // Agregar \uFEFF BOM para que Excel cargue los caracteres latinos correctamente
+        const csv = '\uFEFF' + csvRows.join('\n');
+        const a = Object.assign(document.createElement('a'), {
+            href: URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'})),
+            download: `activos_UTN_${new Date().toISOString().split('T')[0]}.csv`
+        });
+        a.click();
+        mostrarToast('Exportación generada ✓', 'success');
+    }
+
+    // ----- HELPERS UI -----
+    function abrirModal(id) {
+        const el = document.getElementById(id);
+        const box = document.getElementById(id+'Box');
+        el?.classList.remove('opacity-0','pointer-events-none');
+        box?.classList.remove('scale-95'); box?.classList.add('scale-100');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarModal(id) {
+        const el = document.getElementById(id);
+        const box = document.getElementById(id+'Box');
+        el?.classList.add('opacity-0','pointer-events-none');
+        box?.classList.add('scale-95'); box?.classList.remove('scale-100');
+        document.body.style.overflow = '';
+    }
+
+    function showLoading(show) { document.getElementById('loadingState')?.classList.toggle('hidden', !show); }
+
+    function mostrarToast(msg, tipo='success') {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({toast:true, position:'top-end', icon:tipo, title:msg, showConfirmButton:false, timer:2800, timerProgressBar:true});
+        } else { alert(msg); }
+    }
+
+    // Función global para auto-asignar imágenes
+    window.autoAsignarImagenesMasivas = async function(modulo) {
+        Swal.fire({
+            title: 'Asignación Inteligente',
+            html: `
+                <div class="mb-4">
+                    <div class="animate-spin w-12 h-12 border-4 border-slate-200 border-t-[#002D62] rounded-full mx-auto mb-4"></div>
+                    <p class="text-sm font-bold text-slate-700">Conectando con Wikimedia Commons...</p>
+                    <p class="text-xs text-slate-500 mt-2">Buscando y vinculando imágenes automáticamente para los artículos sin foto. Esto puede tomar unos segundos.</p>
+                </div>
+            `,
+            showConfirmButton: false,
+            allowOutsideClick: false
         });
 
-        // Función para procesar archivo XLSX
-        function procesarArchivoXLSX(arrayBuffer) {
-            console.log('🔄 Procesando archivo XLSX...');
+        try {
+            const token = localStorage.getItem('utn_token');
+            const apiBaseUrl = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
             
-            try {
-                console.log('🔍 Paso 1: Convirtiendo ArrayBuffer...');
-                
-                // Convertir ArrayBuffer a string con diferentes codificaciones
-                let xmlString = '';
-                try {
-                    const uint8Array = new Uint8Array(arrayBuffer);
-                    console.log('🔍 Paso 2: Uint8Array creado, tamaño:', uint8Array.length);
-                    
-                    // Intentar diferentes decodificaciones
-                    const decoder = new TextDecoder('utf-8');
-                    xmlString = decoder.decode(uint8Array);
-                    console.log('🔍 Paso 3: TextDecoder UTF-8 completado');
-                    
-                    // Si no funciona, intentar con Latin-1
-                    if (!xmlString.includes('<') && !xmlString.includes('>')) {
-                        const decoderLatin1 = new TextDecoder('latin-1');
-                        xmlString = decoderLatin1.decode(uint8Array);
-                        console.log('🔍 Paso 3: TextDecoder Latin-1 completado');
-                    }
-                    
-                    // Si aún no funciona, convertir manualmente
-                    if (!xmlString.includes('<') && !xmlString.includes('>')) {
-                        xmlString = String.fromCharCode.apply(null, uint8Array);
-                        console.log('🔍 Paso 3: Conversión manual completada');
-                    }
-                    
-                } catch (decodeError) {
-                    console.error('❌ Error en decodificación:', decodeError);
-                    throw decodeError;
+            const response = await fetch(`${apiBaseUrl}/${modulo}/auto-imagenes`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
-                
-                console.log('🔍 Paso 4: ArrayBuffer decodificado');
-                
-                console.log('📄 Tamaño del XML:', xmlString.length);
-                console.log('📄 Primeros 200 caracteres:', xmlString.substring(0, 200));
-                console.log('📄 ¿Contiene < ? ', xmlString.includes('<'));
-                console.log('📄 ¿Contiene > ? ', xmlString.includes('>'));
-                
-                // Como es un ZIP, buscar directamente los valores numéricos
-                console.log('🔄 Buscando valores numéricos en el ZIP...');
-                
-                console.log('🔍 Iniciando búsqueda de valores...');
-                
-                // Probar diferentes patrones para valores
-                const valuePatterns = [
-                    /<v>([^<]*)<\/v>/g,
-                    /<v[^>]*>([^<]*)<\/v>/g,
-                    /<v>([^<]*)<\/v>/gi,
-                    /<c[^>]*>.*?<v>([^<]*)<\/v>.*?<\/c>/gi
-                ];
-                
-                let valueMatches = null;
-                for (const pattern of valuePatterns) {
-                    valueMatches = xmlString.match(pattern);
-                    if (valueMatches) {
-                        console.log('✅ Valores encontrados con patrón:', pattern);
-                        break;
-                    }
-                }
-                
-                console.log('🔍 Búsqueda de <v> completada:', valueMatches ? valueMatches.length : 0, 'resultados');
-                
-                // Probar diferentes patrones para textos
-                const stringPatterns = [
-                    /<t[^>]*>([^<]*)<\/t>/g,
-                    /<t>([^<]*)<\/t>/g,
-                    /<t[^>]*>([^<]*)<\/t>/gi,
-                    /<is[^>]*><t[^>]*>([^<]*)<\/t><\/is>/g
-                ];
-                
-                let stringMatches = null;
-                for (const pattern of stringPatterns) {
-                    stringMatches = xmlString.match(pattern);
-                    if (stringMatches) {
-                        console.log('✅ Strings encontrados con patrón:', pattern);
-                        break;
-                    }
-                }
-                
-                console.log('🔍 Búsqueda de <t> completada:', stringMatches ? stringMatches.length : 0, 'resultados');
-                
-                // Si aún no encuentra, buscar cualquier contenido dentro de etiquetas
-                if (!valueMatches && !stringMatches) {
-                    console.log('🔍 Buscando cualquier contenido en etiquetas...');
-                    
-                    // Buscar cualquier texto entre etiquetas
-                    const anyContent = xmlString.match(/<[^>]*>([^<]*)<\/[^>]*>/g);
-                    console.log('🔍 Contenido general encontrado:', anyContent ? anyContent.length : 0, 'resultados');
-                    
-                    if (anyContent) {
-                        console.log('📋 Primeros 20 contenidos generales:', anyContent.slice(0, 20));
-                        
-                        // Extraer solo el contenido de las etiquetas
-                        const contentValues = anyContent.map(match => {
-                            const contentMatch = match.match(/<[^>]*>([^<]*)<\/[^>]*>/);
-                            return contentMatch ? contentMatch[1] : '';
-                        }).filter(val => val.trim() !== '');
-                        
-                        console.log('📊 Contenidos limpios:', contentValues.length);
-                        console.log('📋 Primeros 20 contenidos limpios:', contentValues.slice(0, 20));
-                        
-                        // Usar estos contenidos como si fueran shared strings
-                        stringMatches = anyContent;
-                    }
-                }
-                
-                // Mostrar fragmentos del XML para depurar
-                console.log('🔍 Analizando estructura XML...');
-                const xmlFragments = xmlString.match(/<[^>]*>/g);
-                if (xmlFragments) {
-                    console.log('📋 Primeras 30 etiquetas XML:', xmlFragments.slice(0, 30));
-                    
-                    // Buscar etiquetas que puedan contener datos
-                    const dataTags = xmlFragments.filter(tag => 
-                        tag.includes('<v>') || 
-                        tag.includes('<t>') || 
-                        tag.includes('<c ') || 
-                        tag.includes('<row') ||
-                        tag.includes('<sheet')
-                    );
-                    console.log('📋 Etiquetas de datos:', dataTags.slice(0, 20));
-                }
-                
-                console.log('🔍 Procesando resultados...');
-                
-                let sharedStrings = [];
-                if (stringMatches) {
-                    console.log('🔄 Procesando shared strings...');
-                    sharedStrings = stringMatches.map(match => {
-                        const textMatch = match.match(/<t[^>]*>([^<]*)<\/t>/);
-                        return textMatch ? textMatch[1] : '';
-                    });
-                    console.log('📝 Shared strings:', sharedStrings.length, 'encontrados');
-                    console.log('📝 Primeros 20 strings:', sharedStrings.slice(0, 20));
-                }
-                
-                let valores = [];
-                if (valueMatches) {
-                    console.log('🔄 Procesando valores <v>...');
-                    valores = valueMatches.map(match => {
-                        const valMatch = match.match(/<v>([^<]*)<\/v>/);
-                        return valMatch ? valMatch[1] : '';
-                    });
-                    console.log('📊 Valores <v>:', valores.length, 'encontrados');
-                    console.log('📊 Primeros 20 valores:', valores.slice(0, 20));
-                }
-                
-                console.log('🔄 Iniciando procesamiento de datos...');
-                
-                // Procesar datos combinando valores y shared strings
-                console.log('🔄 Procesando datos combinados...');
-                
-                const activos = [];
-                const categoriasValidas = ['Instrumentos', 'Herramientas']; // ✅ Solo categorías del modelo
-                const estadosValidos = ['disponible', 'prestado', 'mantenimiento'];
-                
-                console.log('🔄 Evaluando opciones de procesamiento...');
-                console.log('📊 ¿Hay suficientes valores?', valores.length >= 6);
-                console.log('📝 ¿Hay suficientes strings?', sharedStrings.length >= 6);
-                
-                // Opción 1: Usar valores directamente si hay suficientes
-                if (valores.length >= 6) {
-                    console.log('🔄 Intentando procesar valores <v> directamente...');
-                    
-                    for (let i = 0; i < valores.length; i += 6) {
-                        if (i + 5 < valores.length) {
-                            let nombre = valores[i];
-                            let codigo = valores[i + 1];
-                            let marca = valores[i + 2];
-                            let modelo = valores[i + 3];
-                            let categoria = valores[i + 4];
-                            let estado = valores[i + 5] || 'disponible';
-                            
-                            // Si son índices numéricos y hay shared strings, convertir
-                            if (sharedStrings.length > 0 && !isNaN(parseInt(nombre))) {
-                                nombre = sharedStrings[parseInt(nombre)] || nombre;
-                                codigo = sharedStrings[parseInt(codigo)] || codigo;
-                                marca = sharedStrings[parseInt(marca)] || marca;
-                                modelo = sharedStrings[parseInt(modelo)] || modelo;
-                                categoria = sharedStrings[parseInt(categoria)] || categoria;
-                                estado = sharedStrings[parseInt(estado)] || estado;
-                            }
-                            
-                            console.log('📋 Datos desde valores:', { nombre, codigo, marca, modelo, categoria, estado });
-                            
-                            if (nombre && nombre.trim() && categoriasValidas.includes(categoria)) {
-                                activos.push({
-                                    numActivo: Date.now() + Math.random(),    // ✅ Campo correcto
-                                    numSerie: codigo.trim(),                  // ✅ Campo correcto
-                                    marca: marca.trim(),
-                                    modelo: nombre.trim(),                     // ✅ Usar nombre como modelo
-                                    categoria: categoria.trim(),
-                                    estadoActivo: estado.trim(),              // ✅ Campo correcto
-                                    caracteristicas: `Activo de categoría ${categoria.trim()}` // ✅ Campo requerido
-                                });
-                                console.log('✅ Activo desde valores agregado');
-                            }
-                        }
-                    }
-                }
-                
-                // Opción 2: Usar shared strings directamente si no funcionó con valores
-                if (activos.length === 0 && sharedStrings.length >= 6) {
-                    console.log('🔄 Intentando con shared strings directamente...');
-                    
-                    for (let i = 0; i < sharedStrings.length; i += 6) {
-                        if (i + 5 < sharedStrings.length) {
-                            const nombre = sharedStrings[i];
-                            const codigo = sharedStrings[i + 1];
-                            const marca = sharedStrings[i + 2];
-                            const modelo = sharedStrings[i + 3];
-                            const categoria = sharedStrings[i + 4];
-                            const estado = sharedStrings[i + 5];
-                            
-                            console.log('📋 Datos desde strings:', { nombre, codigo, marca, modelo, categoria, estado });
-                            
-                            if (nombre && nombre.trim() && categoriasValidas.includes(categoria)) {
-                                activos.push({
-                                    numActivo: Date.now() + Math.random(),    // ✅ Campo correcto
-                                    numSerie: codigo.trim(),                  // ✅ Campo correcto
-                                    marca: marca.trim(),
-                                    modelo: nombre.trim(),                     // ✅ Usar nombre como modelo
-                                    categoria: categoria.trim(),
-                                    estadoActivo: estado.trim(),              // ✅ Campo correcto
-                                    caracteristicas: `Activo de categoría ${categoria.trim()}` // ✅ Campo requerido
-                                });
-                                console.log('✅ Activo desde strings agregado');
-                            }
-                        }
-                    }
-                }
-                
-                // Opción 3: Buscar patrones específicos
-                if (activos.length === 0) {
-                    console.log('🔄 Buscando patrones específicos...');
-                    
-                    // Buscar en shared strings por categorías
-                    for (let i = 0; i < sharedStrings.length; i++) {
-                        const item = sharedStrings[i];
-                        
-                        if (categoriasValidas.includes(item)) {
-                            const posibleNombre = sharedStrings[i - 4] || '';
-                            const posibleCodigo = sharedStrings[i - 3] || '';
-                            const posibleMarca = sharedStrings[i - 2] || '';
-                            const posibleModelo = sharedStrings[i - 1] || '';
-                            const posibleEstado = sharedStrings[i + 1] || '';
-                            
-                            if (posibleNombre && posibleNombre.trim()) {
-                                console.log('📋 Patrón encontrado:', { 
-                                    nombre: posibleNombre, 
-                                    codigo: posibleCodigo, 
-                                    marca: posibleMarca, 
-                                    modelo: posibleModelo, 
-                                    categoria: item, 
-                                    estado: posibleEstado 
-                                });
-                                
-                                activos.push({
-                                    numActivo: Date.now() + Math.random(),    // ✅ Campo correcto
-                                    numSerie: posibleCodigo.trim(),            // ✅ Campo correcto
-                                    marca: posibleMarca.trim(),
-                                    modelo: posibleNombre.trim(),              // ✅ Usar nombre como modelo
-                                    categoria: item.trim(),
-                                    estadoActivo: posibleEstado.trim() || 'disponible', // ✅ Campo correcto
-                                    caracteristicas: `Activo de categoría ${item.trim()}` // ✅ Campo requerido
-                                });
-                                console.log('✅ Activo desde patrón agregado');
-                            }
-                        }
-                    }
-                }
-                
-                console.log(`📁 Total activos procesados: ${activos.length}`);
-                
-                if (activos.length > 0) {
-                    console.log('📤 Enviando activos al backend...', activos);
-                    enviarActivosMasivos(activos);
-                    return;
-                } else {
-                    console.log('❌ No se encontraron activos válidos');
-                    console.log('📋 Todos los shared strings:', sharedStrings);
-                    console.log('📋 Todos los valores <v>:', valores);
-                }
-                
-                showToast('❌ No se encontraron datos válidos en el archivo XLSX', 'error');
-                
-            } catch (error) {
-                console.error('❌ Error procesando archivo XLSX:', error);
-                console.error('❌ Stack trace:', error.stack);
-                showToast('❌ Error al procesar el archivo XLSX', 'error');
-            }
-        }
-
-        // Función para procesar archivo CSV/Excel
-        function procesarArchivoCSV(content) {
-            try {
-                const texto = content;
-                console.log('📄 Contenido del archivo:', texto.substring(0, 200));
-
-                // Dividir líneas y limpiar
-                const lineas = texto.split('\n')
-                    .map(linea => linea.trim())
-                    .filter(linea => linea && 
-                        !linea.startsWith('Placa') && 
-                        !linea.includes('Descripción') &&
-                        !linea.includes('Código') &&
-                        !linea.includes('Nombre') &&
-                        !linea.includes('Marca') &&
-                        !linea.includes('Modelo') &&
-                        !linea.includes('Serie') &&
-                        !linea.includes('Fecha') &&
-                        !linea.includes('incorporación')
-                    );
-
-                console.log('📄 Líneas encontradas:', lineas.length);
-                if (lineas.length > 0) {
-                    console.log('📄 Primera línea de datos:', lineas[0]);
-                }
-
-                // Parsear CSV - ahora maneja tabs y punto y coma
-                const activos = [];
-
-                for (let i = 0; i < lineas.length; i++) {
-                    const linea = lineas[i];
-                    console.log(`🔍 Procesando línea ${i + 1}:`, linea);
-                    
-                    // Siempre usar tabs primero (para CSV con espacios), luego punto y coma y coma
-                    let valores = linea.split('\t');
-                    
-                    // Si no hay suficientes valores con tabs, intentar con punto y coma
-                    if (valores.length < 6) {
-                        valores = linea.split(';');
-                    }
-                    
-                    // Si aún no hay suficientes, intentar con coma
-                    if (valores.length < 6) {
-                        valores = linea.split(',');
-                    }
-                    
-                    console.log('📊 Valores parseados:', valores);
-                    
-                    if (valores.length >= 5) {
-                        // ✅ Mapeo CORRECTO según tu CSV:
-                        // Nombre,Código,Marca,Modelo,Categoría,Estado
-                        // 0      1       2      3      4         5
-                        const nombre = valores[0].replace(/"/g, '').trim();
-                        const codigo = valores[1].replace(/"/g, '').trim();
-                        const marca = valores[2].replace(/"/g, '').trim();
-                        const modelo = valores[3].replace(/"/g, '').trim();
-                        const categoria = valores[4].replace(/"/g, '').trim();
-                        const estado = valores[5] ? valores[5].replace(/"/g, '').trim() : 'disponible';
-                        
-                        console.log('📋 Datos extraídos:', { nombre, codigo, marca, modelo, categoria, estado });
-                        
-                        // Asignar categoría según tipo de equipo
-                        const categoriasValidas = ['equipos', 'herramientas', 'instrumentos', 'mobiliario', 'material_laboratorio']; // ✅ Categorías del backend
-                        let categoriaFinal = 'equipos'; // Default
-                        
-                        // Usar categoría del CSV si es válida, sino inferir
-                        if (categoria && categoriasValidas.includes(categoria.toLowerCase())) {
-                            categoriaFinal = categoria.toLowerCase();
-                        } else {
-                            // Inferir categoría del nombre/descripción
-                            const nombreLower = nombre.toLowerCase();
-                            if (nombreLower.includes('soldador') || nombreLower.includes('taladro') || 
-                                nombreLower.includes('llave') || nombreLower.includes('destornillador') ||
-                                nombreLower.includes('sierra') || nombreLower.includes('lijadora') ||
-                                nombreLower.includes('pulidora') || nombreLower.includes('corta') ||
-                                nombreLower.includes('martillo') || nombreLower.includes('pinza') ||
-                                nombreLower.includes('herramienta') || nombreLower.includes('manual')) {
-                                categoriaFinal = 'herramientas';
-                            } else if (nombreLower.includes('multímetro') || nombreLower.includes('osciloscopio') || 
-                                       nombreLower.includes('generador') || nombreLower.includes('fuente') ||
-                                       nombreLower.includes('analizador') || nombreLower.includes('medidor')) {
-                                categoriaFinal = 'instrumentos';
-                            }
-                        }
-                        
-                        console.log(`🔄 Categoría inferida: ${categoriaFinal}`);
-                        
-                        // Estado desde CSV o por defecto
-                        const estadoFinal = estado || 'disponible';
-                        
-                        if (categoriasValidas.includes(categoriaFinal)) {
-                            // Extraer número del código (eliminar prefijos como SP-INV-, 5 -, etc.)
-                            let numActivo = codigo; // ✅ Mantener como string
-                            try {
-                                // Limpiar el código eliminando prefijos comunes
-                                let codigoLimpio = codigo
-                                    .replace(/SP-INV-/g, '')
-                                    .replace(/SP-/g, '')
-                                    .replace(/5\s*-\s*/g, '')
-                                    .replace(/AU-/g, '');
-                                
-                                // Extraer todos los números del código limpio
-                                const numeros = codigoLimpio.match(/\d+/g);
-                                if (numeros && numeros.length > 0) {
-                                    // Tomar el primer número encontrado (generalmente el más grande)
-                                    numActivo = numeros[0] || codigo; // ✅ Mantener como string
-                                }
-                            } catch (e) {
-                                console.warn('⚠️ Error extrayendo número del código:', codigo, e);
-                                numActivo = codigo; // ✅ Mantener como string
-                            }
-                            
-                            activos.push({
-                                numActivo: codigo,                        // ✅ Código del CSV
-                                numSerie: codigo || null,                    // ✅ Usar código como serie
-                                marca: marca === 'N/A' || !marca ? null : marca,
-                                modelo: modelo || null,                       // ✅ Modelo del CSV
-                                categoria: categoriaFinal || null,             // ✅ Categoría procesada
-                                estadoActivo: estadoFinal || null,            // ✅ Estado del CSV
-                                caracteristicas: `Activo ${nombre || 'sin nombre'} - ${categoriaFinal || 'sin categoría'}` // ✅ Campo requerido
-                            });
-                            console.log('✅ Activo válido agregado (estructura backend):', { 
-                                numActivo: codigo, 
-                                modelo: (modelo || 'SIN MODELO').substring(0, 30) + '...' 
-                            });
-                        } else {
-                            console.log('❌ Categoría inválida:', { categoria: categoriaFinal });
-                        }
-                    } else {
-                        console.log('❌ Línea inválida o vacía');
-                    }
-                }
-                
-                console.log(`📁 Total activos procesados: ${activos.length}`);
-                
-                if (activos.length > 0) {
-                    console.log('📤 Enviando activos al backend...', activos);
-                    
-                    // Enviar uno por uno con estructura correcta
-                    (async () => {
-                        let enviados = 0;
-                        let errores = 0;
-                        
-                        for (let i = 0; i < Math.min(10, activos.length); i++) {
-                            try {
-                                console.log(`📦 Enviando activo ${i + 1}/${Math.min(10, activos.length)}:`, activos[i]);
-                                console.log('🔍 Datos completos del activo:', JSON.stringify(activos[i], null, 2));
-                                
-                                const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${localStorage.getItem('utn_token')}` 
-                                    },
-                                    body: JSON.stringify(activos[i])
-                                });
-                                
-                                console.log(`📡 Respuesta HTTP (activo ${i + 1}):`, response.status, response.statusText);
-                                
-                                if (response.ok) {
-                                    enviados++;
-                                    console.log(`✅ Activo ${i + 1} enviado correctamente`);
-                                } else {
-                                    const error = await response.json();
-                                    console.error(`❌ Error en activo ${i + 1}:`, error);
-                                    console.error(`❌ Mensaje de error completo:`, JSON.stringify(error, null, 2));
-                                    console.error(`❌ Status HTTP:`, response.status, response.statusText);
-                                    errores++;
-                                    
-                                    if (errores >= 3) {
-                                        console.log('⏹️ Demasiados errores, deteniendo envío');
-                                        break;
-                                    }
-                                }
-                            } catch (error) {
-                                console.error(`❌ Error de conexión activo ${i + 1}:`, error);
-                                errores++;
-                                
-                                if (errores >= 3) {
-                                    console.log('⏹️ Demasiados errores, deteniendo envío');
-                                    break;
-                                }
-                            }
-                        }
-                        
-                        console.log(`📊 Resumen: ${enviados} enviados, ${errores} errores`);
-                        
-                        if (enviados > 0) {
-                            showToast(`✅ ${enviados} activos agregados exitosamente`, 'success');
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 2000);
-                        } else {
-                            showToast(`❌ No se pudieron agregar los activos`, 'error');
-                        }
-                    })();
-                } else {
-                    showToast('❌ No se encontraron activos válidos en el archivo', 'error');
-                }
-                
-            } catch (error) {
-                console.error('❌ Error procesando archivo:', error);
-                showToast('❌ Error al procesar el archivo', 'error');
-            }
-        }
-
-        // Función para procesar archivo XLSX
-        function procesarArchivoXLSX(arrayBuffer) {
-            try {
-                console.log('🔄 Procesando archivo XLSX con SheetJS...');
-                
-                // Convertir ArrayBuffer a Workbook usando SheetJS
-                const workbook = XLSX.read(arrayBuffer, {type: 'array'});
-                
-                // Obtener la primera hoja
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                
-                // Convertir a JSON
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-                
-                console.log('📊 Datos XLSX convertidos a JSON:', jsonData.length, 'filas');
-                
-                // Convertir a formato CSV y procesar
-                const csvContent = jsonData
-                    .map(row => row.join('\t')) // Unir con tabs
-                    .join('\n'); // Unir filas con saltos de línea
-                
-                console.log('📄 XLSX convertido a CSV con tabs');
-                
-                // Procesar como CSV
-                procesarArchivoCSV(csvContent);
-                
-            } catch (error) {
-                console.error('❌ Error procesando archivo XLSX:', error);
-                showToast('❌ Error al procesar archivo XLSX', 'error');
-            }
-        }
-
-        // Función para enviar activos masivos al backend
-        async function enviarActivosMasivos(activos) {
-            try {
-                console.log('📤 Enviando activos masivos (uno por uno)...');
-                
-                const token = localStorage.getItem('utn_token');
-                let enviados = 0;
-                let errores = 0;
-                
-                // Enviar uno por uno, no como array
-                for (let i = 0; i < activos.length; i++) {
-                    try {
-                        console.log(`📦 Enviando activo ${i + 1}/${activos.length}:`, activos[i]);
-                        console.log(`🔍 JSON enviado al backend (${i + 1}):`, JSON.stringify(activos[i], null, 2));
-                        
-                        const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify(activos[i])  // 🔑 Un solo activo, no array
-                        });
-                        
-                        if (response.ok) {
-                            enviados++;
-                            console.log(`✅ Activo ${i + 1} enviado correctamente`);
-                        } else {
-                            const error = await response.json();
-                            console.error(`❌ Error en activo ${i + 1}:`, error);
-                            errores++;
-                            
-                            if (errores >= 5) {
-                                console.log('⏹️ Demasiados errores, deteniendo envío');
-                                break;
-                            }
-                        }
-                    } catch (e) {
-                        console.error(`❌ Error de conexión activo ${i + 1}:`, e);
-                        errores++;
-                        
-                        if (errores >= 5) {
-                            console.log('⏹️ Demasiados errores, deteniendo envío');
-                            break;
-                        }
-                    }
-                }
-                
-                console.log(`📊 Resumen final: ${enviados} enviados, ${errores} errores`);
-                
-                if (enviados > 0) {
-                    showToast(`✅ ${enviados} activos agregados exitosamente`, 'success');
-                    cerrarModalMasivo();
-                    
-                    // Recargar la lista de activos
-                    if (window.activosController && window.activosController.cargarActivos) {
-                        await window.activosController.cargarActivos();
-                        window.activosController.renderActivos();
-                    }
-                } else {
-                    showToast(`❌ No se pudieron agregar los activos`, 'error');
-                }
-                
-            } catch (error) {
-                console.error('❌ Error enviando activos masivos:', error);
-                showToast('❌ Error al enviar activos', 'error');
-            }
-        }
-
-        // Función para descargar plantilla CSV compatible con Excel
-        function descargarPlantilla() {
-            // Crear CSV simple que Excel abra correctamente
-            const csvContent = `Nombre,Código,Marca,Modelo,Categoría,Estado
-Multímetro Digital,MULT-001,Fluke,87V,Instrumentos,disponible
-Osciloscopio,OSCI-002,Tektronix,TDS2024B,Instrumentos,disponible
-Generador de Funciones,GEN-003,Rigol,DG4062,Instrumentos,disponible
-Pinza Amperimétrica,PINZ-004,Fluke,376 FC,Instrumentos,disponible
-Soldador de Estaño,SOLD-006,Weller,WLC100,Herramientas,disponible
-Taladro Inalámbrico,TALA-007,DeWalt,DCD771,Herramientas,disponible
-Juego de Llaves,LLAV-008,Stanley,94-248,Herramientas,disponible`;
-            
-            // Crear CSV con BOM UTF-8 para Excel
-            const blob = new Blob(['\ufeff' + csvContent], { 
-                type: 'text/csv;charset=utf-8;' 
             });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'plantilla_activos.csv';
-            a.click();
-            window.URL.revokeObjectURL(url);
-            
-            showToast('📥 Plantilla CSV descargada - Excel puede abrirla', 'success');
-        }
 
-        // Función principal para procesar agregado masivo
-        async function procesarAgregadoMasivo() {
-            console.log('🔄 Iniciando procesarAgregadoMasivo...');
-            
-            const tabActivo = document.querySelector('[id^="tab-"].text-blue-600');
-            console.log('🔍 Tab activo encontrado:', tabActivo);
-            
-            if (!tabActivo) {
-                console.error('❌ No hay tab activo');
-                showToast('❌ Error: No hay una pestaña activa', 'error');
-                return;
-            }
-            
-            const tabName = tabActivo.id.replace('tab-', '');
-            console.log('📋 Nombre del tab:', tabName);
-            
-            let activos = [];
-            
-            if (tabName === 'archivo') {
-                showToast('📁 Función de archivo en desarrollo', 'info');
-                return;
-            } else if (tabName === 'tabla') {
-                // Procesar tabla
-                const filas = document.querySelectorAll('#tabla-activos-masivos tr');
-                filas.forEach(fila => {
-                    const inputs = fila.querySelectorAll('input, select');
-                    if (inputs[0].value.trim()) {
-                        activos.push({
-                            numActivo: Date.now() + Math.random(),    // ✅ Campo correcto
-                            numSerie: inputs[1].value,                 // ✅ Campo correcto
-                            marca: inputs[2].value,
-                            modelo: inputs[0].value,                    // ✅ Usar nombre como modelo
-                            categoria: inputs[4].value,
-                            estadoActivo: inputs[5].value,              // ✅ Campo correcto
-                            caracteristicas: `Activo ${inputs[0].value} - ${inputs[4].value}` // ✅ Campo requerido
-                        });
-                    }
-                });
-            } else if (tabName === 'manual') {
-                console.log('📝 Procesando ingreso manual...');
-                
-                // Procesar ingreso manual
-                const nombresTextarea = document.getElementById('nombres-manual');
-                const categoriaSelect = document.getElementById('categoria-manual');
-                const estadoSelect = document.getElementById('estado-manual');
-                const marcaInput = document.getElementById('marca-manual');
-                const modeloInput = document.getElementById('modelo-manual');
-                
-                console.log('🔍 Elementos encontrados:', {
-                    nombres: !!nombresTextarea,
-                    categoria: !!categoriaSelect,
-                    estado: !!estadoSelect,
-                    marca: !!marcaInput,
-                    modelo: !!modeloInput
-                });
-                
-                if (!nombresTextarea) {
-                    console.error('❌ Textarea de nombres no encontrado');
-                    showToast('❌ Error: Campo de nombres no encontrado', 'error');
-                    return;
-                }
-                
-                const nombresText = nombresTextarea.value;
-                console.log('📄 Texto de nombres:', nombresText);
-                
-                // Procesar líneas - soporta tanto nombres simples como líneas completas de CSV
-                const lineas = nombresText.split('\n').filter(linea => linea.trim());
-                const nombres = [];
-                const datosExtraidos = []; // Guardar datos completos del CSV
-                
-                lineas.forEach(linea => {
-                    linea = linea.trim();
-                    if (!linea) return;
-                    
-                    // Si contiene tabs o comas, es una línea completa de CSV
-                    if (linea.includes('\t') || linea.includes(',')) {
-                        // Usar tabs primero, luego comas
-                        let valores = linea.includes('\t') ? linea.split('\t') : linea.split(',');
-                        
-                        if (valores.length >= 2) {
-                            // Extraer todos los datos del CSV (formato: nombre,codigo,marca,modelo,categoria,estado)
-                            const datos = {
-                                nombre: valores[0] ? valores[0].replace(/"/g, '').trim() : '',
-                                codigo: valores[1] ? valores[1].replace(/"/g, '').trim() : '',
-                                marca: valores[2] ? valores[2].replace(/"/g, '').trim() : '',
-                                modelo: valores[3] ? valores[3].replace(/"/g, '').trim() : '',
-                                categoria: valores[4] ? valores[4].replace(/"/g, '').trim() : '',
-                                estado: valores[5] ? valores[5].replace(/"/g, '').trim() : ''
-                            };
-                            
-                            if (datos.nombre) {
-                                nombres.push(datos.nombre);
-                                datosExtraidos.push(datos);
-                            }
-                        }
-                    } else {
-                        // Es un nombre simple
-                        nombres.push(linea);
-                        datosExtraidos.push({ nombre: linea });
-                    }
-                });
-                
-                console.log('📋 Nombres procesados:', nombres);
-                console.log('📊 Datos extraídos del CSV:', datosExtraidos);
-                
-                const categoria = categoriaSelect ? categoriaSelect.value : '';
-                const estado = estadoSelect ? estadoSelect.value : '';
-                const marca = marcaInput ? marcaInput.value : '';
-                const modelo = modeloInput ? modeloInput.value : '';
-                
-                console.log('📊 Valores seleccionados:', { categoria, estado, marca, modelo });
-                
-                nombres.forEach((nombre, index) => {
-                    if (nombre.trim()) {
-                        const datosCSV = datosExtraidos[index] || {};
-                        
-                        // Usar datos del CSV si existen, si no usar los del formulario
-                        const marcaFinal = datosCSV.marca || marca || null;
-                        const modeloFinal = datosCSV.modelo || modelo || null;
-                        
-                        // Usar categoría del CSV si existe, si no usar la del formulario
-                        const categoriaFinal = datosCSV.categoria || categoria || null;
-                        
-                        // Extraer ID del código si existe
-                        let idActivo = Date.now() + Math.random();
-                        if (datosCSV.codigo) {
-                            try {
-                                const numeros = datosCSV.codigo.match(/\d+/g);
-                                if (numeros && numeros.length > 0) {
-                                    idActivo = parseInt(numeros[0]) || Date.now() + Math.random();
-                                }
-                            } catch (e) {
-                                console.warn('⚠️ Error extrayendo ID del código:', datosCSV.codigo);
-                            }
-                        }
-                        
-                        const activo = {
-                            nombre: datosCSV.nombre || nombre.trim(),
-                            categoria: categoriaFinal,
-                            estado: estado || 'disponible'
-                        };
-                        
-                        activos.push(activo);
-                        console.log(`✅ Activo ${index + 1} creado:`, activo);
-                        console.log(`🔍 JSON completo del activo ${index + 1}:`, JSON.stringify(activo, null, 2));
-                    }
-                });
-            }
-            
-            console.log(`📊 Total activos a procesar: ${activos.length}`);
-            
-            if (activos.length === 0) {
-                showToast('❌ No hay activos para agregar', 'error');
-                return;
-            }
-            
-            // Enviar activos
-            console.log('📤 Enviando activos al backend...');
-            await enviarActivosMasivos(activos);
-        }
+            const data = await response.json();
 
-        // Función para mostrar toast (compatibilidad)
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMsg');
-            
-            if (toast && toastMsg) {
-                toastMsg.textContent = message;
-                toast.classList.remove('translate-y-20', 'opacity-0');
-                toast.classList.add('translate-y-0', 'opacity-100');
-                
-                setTimeout(() => {
-                    toast.classList.add('translate-y-20', 'opacity-0');
-                    toast.classList.remove('translate-y-0', 'opacity-100');
-                }, 3000);
-            }
-        }
-        
-        // Función para cargar activos manualmente
-        async function cargarActivosManualmente() {
-            try {
-                console.log('🔄 Cargando activos desde el backend...');
-                
-                const token = localStorage.getItem('utn_token');
-                if (!token) {
-                    console.error('❌ No hay token de autenticación');
-                    return;
-                }
-                
-                console.log('🔑 Token encontrado, haciendo fetch a activos...');
-                
-                const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Proceso Completado!',
+                    text: `${data.message} Se actualizaron ${data.actualizados} imágenes de ${data.procesados} posibles.`,
+                    confirmButtonColor: '#002D62'
+                }).then(() => {
+                    window.location.reload();
                 });
-                
-                console.log('📡 Respuesta status:', response.status);
-                
-                if (!response.ok) {
-                    console.error('❌ Error cargando activos:', response.status);
-                    return;
-                }
-                
-                const responseData = await response.json();
-                console.log('✅ Respuesta completa:', responseData);
-                
-                // Extraer el array de activos de la respuesta
-                const activos = responseData.todosLosActivos || responseData.activos || [];
-                console.log('✅ Activos extraídos:', activos.length);
-                console.log('📋 Datos de activos:', activos);
-                
-                // Renderizar activos en el grid
-                const grid = document.getElementById('activos-grid');
-                console.log('🔍 Grid encontrado:', !!grid);
-                
-                if (!grid) {
-                    console.error('❌ Grid de activos no encontrado');
-                    return;
-                }
-                
-                console.log('🧹 Limpiando grid...');
-                grid.innerHTML = '';
-                
-                if (activos.length === 0) {
-                    console.log('📭 No hay activos, mostrando mensaje vacío');
-                    grid.innerHTML = `
-                        <div class="col-span-full text-center py-12">
-                            <div class="text-6xl mb-4">🔧</div>
-                            <h3 class="text-xl font-bold text-slate-700 mb-2">No hay activos registrados</h3>
-                            <p class="text-slate-500 mb-4">Agrega tu primer activo usando el botón "Agregar Masivo"</p>
-                        </div>
-                    `;
-                } else {
-                    console.log('🎨 Renderizando', activos.length, 'activos...');
-                    activos.forEach((activo, index) => {
-                        console.log(`🔧 Creando card para activo ${index + 1}:`, activo);
-                        const card = crearActivoCard(activo, index);
-                        grid.appendChild(card);
-                    });
-                }
-                
-                // Actualizar contador
-                const contador = document.getElementById('resultados-count');
-                if (contador) {
-                    contador.textContent = activos.length;
-                    console.log('🔢 Contador actualizado:', activos.length);
-                }
-                
-                console.log('✅ Carga de activos completada');
-                
-            } catch (error) {
-                console.error('❌ Error en cargarActivosManualmente:', error);
+            } else {
+                throw new Error(data.message || 'Error en la respuesta del servidor');
             }
+        } catch (error) {
+            console.error('Error auto-asignando imágenes:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de Asignación',
+                text: 'Hubo un problema al buscar las imágenes en internet. ' + error.message,
+                confirmButtonColor: '#002D62'
+            });
         }
-        
-        function crearActivoCard(activo, index) {
-            const card = document.createElement('div');
-            card.className = 'activo-card bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-slate-100';
-            card.dataset.categoria = activo.categoria || '';
-            card.dataset.estado = activo.estadoActivo || activo.estado || '';
-            
-            const categoriaIcon = {
-                'Instrumentos': '🔧',
-                'Herramientas': '🔨'
-            }[activo.categoria] || '📦';
-            
-            const estadoColor = {
-                'disponible': 'bg-green-100 text-green-700',
-                'prestado': 'bg-yellow-100 text-yellow-700',
-                'deteriorado': 'bg-red-100 text-red-700',
-                'dañado': 'bg-red-100 text-red-700'
-            }[activo.estadoActivo || activo.estado] || 'bg-gray-100 text-gray-700';
-            
-            card.innerHTML = `
-                <div class="flex items-start justify-between mb-4">
-                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-2xl">
-                        ${categoriaIcon}
-                    </div>
-                    <span class="px-2 py-1 rounded-full text-xs font-medium ${estadoColor}">
-                        ${activo.estadoActivo || activo.estado || 'disponible'}
-                    </span>
-                </div>
-                <h3 class="font-bold text-slate-800 mb-2 line-clamp-2">
-                    ${activo.modelo || activo.nombre_activo || 'Sin nombre'}
-                </h3>
-                <div class="space-y-1 text-sm text-slate-600">
-                    <p><strong>Número:</strong> ${activo.numActivo || 'N/A'}</p>
-                    <p><strong>Serie:</strong> ${activo.numSerie || 'N/A'}</p>
-                    <p><strong>Marca:</strong> ${activo.marca || 'N/A'}</p>
-                    <p><strong>Modelo:</strong> ${activo.modelo || 'N/A'}</p>
-                    <p><strong>Categoría:</strong> ${activo.categoria || 'N/A'}</p>
-                </div>
-                <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
-                    <span class="text-xs text-slate-500">ID: ${activo._id || activo.id || index}</span>
-                    <div class="flex gap-2">
-                        <button class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                            Editar
-                        </button>
-                        <button class="text-red-600 hover:text-red-700 text-sm font-medium">
-                            Eliminar
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            return card;
-        }
+    };
     </script>
 </body>
 </html>

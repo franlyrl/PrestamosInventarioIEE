@@ -100,7 +100,7 @@ class MobileUserController {
         if (solicitudesFiltradas.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-8">
-                    <div class="text-6xl mb-4">📋</div>
+                    <div class="text-6xl mb-4"></div>
                     <h3 class="text-xl font-semibold text-slate-700 mb-2">No tienes solicitudes</h3>
                     <p class="text-sm text-slate-500">Crea tu primera solicitud para comenzar</p>
                 </div>
@@ -123,7 +123,7 @@ class MobileUserController {
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0 mb-3">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="text-base sm:text-lg">📋</span>
+                            <span class="text-base sm:text-lg"></span>
                             <div>
                                 <h3 class="font-semibold text-slate-800">Solicitud #${solicitud._id.slice(-6)}</h3>
                                 <p class="text-xs sm:text-sm text-slate-500">${new Date(solicitud.createdAt).toLocaleDateString()}</p>
@@ -174,7 +174,7 @@ class MobileUserController {
             <button onclick="window.mobileUserController.verDetalles('${solicitud._id}')" 
                 class="w-full text-left px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-2"
                 style="color: #004a8c; hover: background-color: #004a8c15;">
-                <span class="text-xs sm:text-sm">👁️</span> Ver Detalles
+                <span class="text-xs sm:text-sm">️</span> Ver Detalles
             </button>
         `);
 
@@ -185,7 +185,7 @@ class MobileUserController {
                     <button onclick="window.mobileUserController.abrirModalEdicion('${solicitud._id}')" 
                         class="w-full text-left px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-2"
                         style="color: #004a8c; hover: background-color: #004a8c15;">
-                        <span class="text-xs sm:text-sm">✏️</span> Editar Solicitud
+                        <span class="text-xs sm:text-sm">️</span> Editar Solicitud
                     </button>
                 `);
             }
@@ -196,7 +196,7 @@ class MobileUserController {
                     <button onclick="console.log('*** ONCLICK INICIADO'); console.log('*** ID A ENVIAR:', '${solicitud._id}'); console.log('*** TIPO DE window.eliminarSolicitud:', typeof window.eliminarSolicitud); console.log('*** window.eliminarSolicitud EXISTE:', !!window.eliminarSolicitud); window.eliminarSolicitud('${solicitud._id}'); console.log('*** DESPUÉS DE LLAMAR A eliminarSolicitud');" 
                         class="w-full text-left px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-2"
                         style="color: #dc2626; hover: background-color: #dc262615;">
-                        <span class="text-xs sm:text-sm">🗑️</span> Cancelar Solicitud
+                        <span class="text-xs sm:text-sm">️</span> Cancelar Solicitud
                     </button>
                 `);
             }
@@ -299,7 +299,7 @@ class MobileUserController {
                 <!-- Items Actuales -->
                 <div>
                     <h4 class="text-lg font-semibold mb-3 flex items-center gap-2">
-                        <span class="text-xl">📋</span>
+                        <span class="text-xl"></span>
                         Items Actuales
                     </h4>
                     <div id="items-actuales-${solicitud._id}" class="space-y-2 mb-4">
@@ -310,7 +310,7 @@ class MobileUserController {
                 <!-- Tabs para agregar items -->
                 <div>
                     <h4 class="text-lg font-semibold mb-3 flex items-center gap-2">
-                        <span class="text-xl">➕</span>
+                        <span class="text-xl"></span>
                         Agregar Items
                     </h4>
                     <div class="flex gap-2 mb-4">
@@ -422,7 +422,7 @@ class MobileUserController {
                         div.innerHTML = `
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
-                                    <span class="text-lg">🖥️</span>
+                                    <span class="text-lg">️</span>
                                     <div>
                                         <p class="font-medium text-sm">${activo.marca} ${activo.modelo}</p>
                                         <p class="text-xs text-gray-500">${activo.numActivo}</p>
@@ -459,7 +459,7 @@ class MobileUserController {
                         div.innerHTML = `
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
-                                    <span class="text-lg">🧪</span>
+                                    <span class="text-lg"></span>
                                     <div>
                                         <p class="font-medium text-sm">${insumo.nombre}</p>
                                         <p class="text-xs text-gray-500">Stock: ${insumo.stock}</p>
@@ -521,7 +521,7 @@ class MobileUserController {
                 itemDiv.className = 'flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded';
                 itemDiv.innerHTML = `
                     <div class="flex items-center gap-2">
-                        <span class="text-lg">🖥️</span>
+                        <span class="text-lg">️</span>
                         <div>
                             <p class="font-medium text-sm">Activo</p>
                             <p class="text-xs text-gray-500">${activo._id.slice(-6)}</p>
@@ -545,7 +545,7 @@ class MobileUserController {
                 itemDiv.className = 'flex items-center justify-between p-2 bg-blue-50 border border-blue-200 rounded';
                 itemDiv.innerHTML = `
                     <div class="flex items-center gap-2">
-                        <span class="text-lg">🧪</span>
+                        <span class="text-lg"></span>
                         <div>
                             <p class="font-medium text-sm">Insumo</p>
                             <p class="text-xs text-gray-500">x${insumo.cantidad}</p>
@@ -668,7 +668,7 @@ class MobileUserController {
         if (solicitud.activos && solicitud.activos.length > 0) {
             console.log('** Activos encontrados:', solicitud.activos.length);
             solicitud.activos.forEach(activo => {
-                elementosHtml += `<span class="text-slate-700">🖥️ ${activo.marca || ''} ${activo.modelo || ''} (${activo.numActivo || ''})</span>, `;
+                elementosHtml += `<span class="text-slate-700">️ ${activo.marca || ''} ${activo.modelo || ''} (${activo.numActivo || ''})</span>, `;
                 totalElementos++;
             });
         }
@@ -679,7 +679,7 @@ class MobileUserController {
             solicitud.insumos.forEach(insumo => {
                 const cantidad = insumo.cantidad || 0;
                 const nombre = insumo.id_insumo?.nombre || 'Insumo desconocido';
-                elementosHtml += `<span class="text-slate-700">🧪 ${nombre} (x${cantidad})</span>, `;
+                elementosHtml += `<span class="text-slate-700"> ${nombre} (x${cantidad})</span>, `;
                 totalElementos += cantidad;
             });
         }

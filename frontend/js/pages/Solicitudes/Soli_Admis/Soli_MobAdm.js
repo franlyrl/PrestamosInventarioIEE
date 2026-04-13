@@ -202,7 +202,7 @@ class MobileAdminController {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="8" class="text-center py-8 text-slate-500">
-                        <div class="text-6xl mb-4">📋</div>
+                        <div class="text-6xl mb-4"></div>
                         <h3 class="text-xl font-semibold text-slate-700 mb-2">No hay solicitudes</h3>
                         <p class="text-sm text-slate-500">No se encontraron solicitudes con los filtros actuales</p>
                     </td>
@@ -240,7 +240,7 @@ class MobileAdminController {
         if (solicitudesFiltradas.length === 0) {
             container.innerHTML = `
                 <div class="text-center py-8">
-                    <div class="text-6xl mb-4">📋</div>
+                    <div class="text-6xl mb-4"></div>
                     <h3 class="text-xl font-semibold text-slate-700 mb-2">No hay solicitudes</h3>
                     <p class="text-sm text-slate-500">No se encontraron solicitudes con los filtros actuales</p>
                 </div>
@@ -298,7 +298,7 @@ class MobileAdminController {
                     <button 
                         onclick="window.mobileAdminController.toggleMenu('${solicitud._id}')" 
                         class="p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">
-                        ⚙️
+                        ️
                     </button>
                     
                     <!-- Menú desplegable de acciones -->
@@ -308,12 +308,12 @@ class MobileAdminController {
                                 <button 
                                     onclick="window.mobileAdminController.aprobarSolicitud('${solicitud._id}')" 
                                     class="w-full text-left px-3 py-2 text-sm bg-green-50 text-green-700 hover:bg-green-100 rounded flex items-center gap-2">
-                                    ✅ Aprobar
+                                     Aprobar
                                 </button>
                                 <button 
                                     onclick="window.mobileAdminController.rechazarSolicitud('${solicitud._id}')" 
                                     class="w-full text-left px-3 py-2 text-sm bg-red-50 text-red-700 hover:bg-red-100 rounded flex items-center gap-2">
-                                    ❌ Rechazar
+                                     Rechazar
                                 </button>
                             ` : ''}
                             
@@ -321,7 +321,7 @@ class MobileAdminController {
                                 <button 
                                     onclick="window.mobileAdminController.entregarSolicitud('${solicitud._id}')" 
                                     class="w-full text-left px-3 py-2 text-sm bg-blue-50 text-blue-700 hover:bg-blue-100 rounded flex items-center gap-2">
-                                    📦 Entregar
+                                     Entregar
                                 </button>
                             ` : ''}
                             
@@ -329,20 +329,20 @@ class MobileAdminController {
                                 <button 
                                     onclick="window.mobileAdminController.devolverSolicitud('${solicitud._id}')" 
                                     class="w-full text-left px-3 py-2 text-sm bg-orange-50 text-orange-700 hover:bg-orange-100 rounded flex items-center gap-2">
-                                    🔄 Devolver
+                                     Devolver
                                 </button>
                             ` : ''}
                             
                             <button 
                                 onclick="window.mobileAdminController.verDetalles('${solicitud._id}')" 
                                 class="w-full text-left px-3 py-2 text-sm bg-slate-50 text-slate-700 hover:bg-slate-100 rounded flex items-center gap-2">
-                                👁️ Ver detalles
+                                ️ Ver detalles
                             </button>
                             
                             <button 
                                 onclick="window.mobileAdminController.eliminarSolicitud('${solicitud._id}')" 
                                 class="w-full text-left px-3 py-2 text-sm bg-red-50 text-red-700 hover:bg-red-100 rounded flex items-center gap-2">
-                                🗑️ Eliminar
+                                ️ Eliminar
                             </button>
                         </div>
                     </div>
@@ -370,12 +370,12 @@ class MobileAdminController {
         
         let rolColor = '#10b981'; // Verde para estudiantes
         let rolBgGradient = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-        let rolIcono = '👨‍🎓';
+        let rolIcono = '‍';
         
         if (esDocente) {
             rolColor = '#f59e0b'; // Naranja para docentes
             rolBgGradient = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
-            rolIcono = '👨‍🏫';
+            rolIcono = '‍';
         }
 
         return `
@@ -409,7 +409,7 @@ class MobileAdminController {
                                 onclick="window.mobileAdminController.toggleMenu('${solicitud._id}')" 
                                 class="p-1.5 sm:p-2 rounded-lg transition-all duration-200 hover:scale-110"
                                 style="background: ${rolBgGradient}; color: white; box-shadow: 0 2px 8px ${rolColor}40;">
-                                <span class="text-sm sm:text-base">⚙️</span>
+                                <span class="text-sm sm:text-base">️</span>
                             </button>
                             <div id="menu-${solicitud._id}" class="hidden absolute right-0 sm:right-4 mt-1 sm:mt-2 w-48 sm:w-56 bg-white rounded-lg shadow-lg border-2" style="border-color: ${rolColor}; z-index: 1000;">
                                 <div class="menu-header" style="background: ${rolBgGradient}; color: white; padding: 12px; border-radius: 8px 8px 0 0;">
@@ -440,14 +440,14 @@ class MobileAdminController {
         actions.push(`
             <button onclick="window.mobileAdminController.verDetalles('${solicitud._id}')" 
                 class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 hover:bg-blue-50 hover:text-blue-600">
-                <span>👁️</span> Ver Detalles
+                <span>️</span> Ver Detalles
             </button>
         `);
 
         actions.push(`
             <button onclick="window.mobileAdminController.editarSolicitud('${solicitud._id}')" 
                 class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 hover:bg-green-50 hover:text-green-600">
-                <span>✏️</span> Editar
+                <span>️</span> Editar
             </button>
         `);
 
@@ -457,11 +457,11 @@ class MobileAdminController {
                 <div class="border-t border-slate-200 my-1"></div>
                 <button onclick="window.mobileAdminController.aprobarSolicitud('${solicitud._id}')" 
                     class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 hover:bg-green-50 hover:text-green-600">
-                    <span>✅</span> Aprobar
+                    <span></span> Aprobar
                 </button>
                 <button onclick="window.mobileAdminController.rechazarSolicitud('${solicitud._id}')" 
                     class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 hover:bg-red-50 hover:text-red-600">
-                    <span>❌</span> Rechazar
+                    <span></span> Rechazar
                 </button>
             `);
         }
@@ -471,7 +471,7 @@ class MobileAdminController {
                 <div class="border-t border-slate-200 my-1"></div>
                 <button onclick="window.mobileAdminController.entregarSolicitud('${solicitud._id}')" 
                     class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 hover:bg-blue-50 hover:text-blue-600">
-                    <span>📦</span> Entregar
+                    <span></span> Entregar
                 </button>
             `);
         }
@@ -481,7 +481,7 @@ class MobileAdminController {
                 <div class="border-t border-slate-200 my-1"></div>
                 <button onclick="window.mobileAdminController.devolverSolicitud('${solicitud._id}')" 
                     class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 hover:bg-purple-50 hover:text-purple-600">
-                    <span>🔄</span> Devolver
+                    <span></span> Devolver
                 </button>
             `);
         }
@@ -491,7 +491,7 @@ class MobileAdminController {
             <div class="border-t border-slate-200 my-1"></div>
             <button onclick="window.mobileAdminController.eliminarSolicitud('${solicitud._id}')" 
                 class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 hover:bg-red-50 text-red-600">
-                <span>🗑️</span> Eliminar
+                <span>️</span> Eliminar
             </button>
         `);
         
@@ -544,7 +544,7 @@ class MobileAdminController {
         // Manejar casos específicos del backend
         if (!estado || estado === null || estado === undefined || estado === 'No field') {
             console.log('** Estado inválido detectado:', estado);
-            return '<span class="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">⚠️ Sin Estado</span>';
+            return '<span class="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">️ Sin Estado</span>';
         }
         
         const badges = {
@@ -725,7 +725,7 @@ class MobileAdminController {
         modal.innerHTML = `
             <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold text-slate-800">📋 Detalles de Solicitud (Admin)</h3>
+                    <h3 class="text-xl font-bold text-slate-800"> Detalles de Solicitud (Admin)</h3>
                     <button onclick="this.closest('.fixed').remove()" class="text-slate-400 hover:text-slate-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>

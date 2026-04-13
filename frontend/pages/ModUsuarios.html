@@ -1,2460 +1,438 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UTN - Sistema de Gestión</title>
-    <meta name="description" content="Sistema de gestión de laboratorio UTN">
-    
-    <!-- CSS -->
+    <title>UTN SPIEE - Portal Estudiante</title>
+    <meta name="description" content="Consulta inventario y realiza solicitudes de préstamo - UTN SPIEE">
+    <link rel="icon" type="image/jpeg" href="../css/UTN.jpg"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles.css">
+    <script>
+        const _cw = console.warn;
+        console.warn = function() { if (arguments[0]?.includes?.('cdn.tailwindcss.com')) return; _cw.apply(console, arguments); };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { utn: { blue: '#002D62', dark: '#001A33', gold: '#F2A900' } } } }
+        }
+    </script>
     <style>
-        /* Estilos personalizados para las opciones del select */
-        .custom-select {
-            position: relative;
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        .field-input {
+            width: 100%; padding: 9px 13px; background: white;
+            border: 1.5px solid #e2e8f0; border-radius: 10px;
+            font-size: 13px; font-weight: 500; color: #1e293b;
+            transition: border-color 0.2s; outline: none;
         }
-        
-        .custom-select select {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background: white;
+        .field-input:focus { border-color: #002D62; box-shadow: 0 0 0 3px rgba(0,45,98,0.08); }
+        .card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
-        
-        /* Para navegadores que soportan estilización limitada */
-        #categoria-select option {
-            font-weight: normal;
-        }
-        
-        #categoria-select option[value*="Insumos"] {
-            font-weight: 600;
-            color: #16a34a;
-        }
-        
-        #categoria-select option[value*="Activos"] {
-            font-weight: 600;
-            color: #2563eb;
-        }
-        
-        /* Alternativa con data attributes */
-        #categoria-select option[data-type="insumo"]::after {
-            content: " [Insumos]";
-            font-weight: 600;
-            font-size: 0.8em;
-            color: #16a34a;
-        }
-        
-        #categoria-select option[data-type="activo"]::after {
-            content: " [Activos]";
-            font-weight: 600;
-            font-size: 0.8em;
-            color: #2563eb;
-        }
+        .item-card { animation: fadeInUp 0.3s ease both; }
+
+        /* Modal overlay */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.48); z-index: 9000; align-items: center; justify-content: center; padding: 1rem; }
+        .modal-overlay.open { display: flex; }
+
+        /* Panel contextual de notificaciones */
+        #notif-panel { display: none; }
+        #notif-panel.open { display: block; }
+
+        /* Sticky filter bar shadow */
+        #filter-bar { transition: box-shadow 0.2s; }
+        #filter-bar.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
     </style>
+
+    <!-- SweetAlert2 --><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen">
-  <!-- 🔥 HEADER COMPONENT -->
-  <div id="header-component"></div>
-  
-  <!-- * Estructura HTML para la aplicación de gestión de laboratorio de la UTN.
-    * Incluye:
-    * - Pantalla de verificación de autenticación
-    * - Indicador de conexión a la base de datos
-    * - Header con información del usuario y fecha/hora
-    * - Navegación por tabs para activos e insumos
-    * - Grid dinámico para mostrar los items disponibles
-    * - Modales para confirmación de solicitudes y carrito de compras
-    * - Pop-up para mostrar imágenes de los productos
-    * - Toast para notificaciones rápidas
-    * El diseño es responsivo y utiliza Tailwind CSS para estilos rápidos y modernos.
-    * La lógica de autenticación, carga de datos y manejo de UI se encuentra en los archivos JS vinculados al final del body.
-    * ---`-->
-        <!-- VERIFICACIÓN DE AUTENTICACIÓN -->
-        <div id="loginPage" class="fixed inset-0 z-[200] bg-slate-50 flex items-center justify-center p-4">
-            <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-100 text-center p-8">
-                <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+
+<!-- -"-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--" -->
+<!-- -"            PANTALLA DE CARGA INICIAL                -" -->
+<!-- -"a-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"- -->
+<div id="loadingScreen" class="fixed inset-0 z-[300] bg-[#002D62] flex flex-col items-center justify-center">
+    <div class="text-center">
+        <div class="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-5"></div>
+        <h2 class="text-white text-xl font-black mb-2">UTN - SPIEE</h2>
+        <p class="text-blue-200/70 text-sm">Cargando tu portal...</p>
+    </div>
+</div>
+
+<!-- -"-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--" -->
+<!-- -"           HEADER STICKY (con carrito en nav)        -" -->
+<!-- -"a-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"- -->
+    <!-- NAV: Header Component (Inyectado dinámicamente) -->
+    <div id="header-component"></div>
+
+<!-- -"-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--" -->
+<!-- -"              CONTENIDO PRINCIPAL                    -" -->
+<!-- -"a-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"- -->
+<main id="mainApp" class="flex-grow">
+
+    <!-- BANNER DE BIENVENIDA -->
+    <div class="bg-gradient-to-r from-[#002D62] via-[#003f8a] to-[#004daa] text-white px-6 py-7">
+        <div class="container mx-auto max-w-7xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <p class="text-blue-200/70 text-[10px] font-black uppercase tracking-[0.3em] mb-1">Portal Estudiantil</p>
+                    <h2 class="text-2xl sm:text-3xl font-black">Hola, <span id="nombre_completo" class="text-[#F2A900]">Estudiante</span></h2>
+                    <p class="text-blue-100/60 text-sm mt-1">Consulta el inventario disponible y realiza tus solicitudes</p>
                 </div>
-                <h2 class="text-xl font-bold text-slate-800 mb-2">Verificando sesión...</h2>
-                <p class="text-sm text-slate-600">Validando tu autenticación</p>
-            </div>
-        </div>
-
-        <!-- APLICACIÓN PRINCIPAL-->
-        <!-- El mainApp se muestra solo después de la verificación de autenticación
-                para evitar que usuarios no autenticados vean el contenido aunque sea momentáneamente
-                -->
-        <div id="mainApp" class="hidden">
-        </div>
-
-        <!-- HEADER COMPONENT -->
-        <div id="header-component"></div>
-
-        <!-- CONTENIDO PRINCIPAL -->
-        <main class="container py-6 flex-grow">     
-            <!-- VISTA PARA ESTUDIANTES Y DOCENTES -->
-            <div id="vistaEstudiante" class="hidden">
-                <!-- HEADER DE ESTUDIANTE -->
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                    <h1 class="text-3xl font-bold text-slate-800 mb-2">Bienvenido(a) <span id="nombre_completo"></span>👋 </h1>
-                    <p class="text-slate-600">Al Sistema de Prestamos y Inventario de equipos Electronico y Tecnologico de la Sede del Pacìfico</p>
-                    <br>
-
-                   
-                    <p> Por favor, lee las reglas antes de continuar </p>
-                    <ul class="list-disc list-inside text-slate-600">
-                        <li>Solo se puede pedir una vez el mismo artículo</li>
-                        <li>No se prestarán equipos que no estén en el inventario</li>
-                        <li>No se prestarán equipos que no estén disponibles</li>
-                    </ul>
-
-                </div>
-                     <!-- BUSCADOR UNIVERSAL -->
-                <section class="card p-4 mb-6" style="position: relative; z-index: 9999;">
-                    <div class="flex flex-wrap gap-4 items-center">
-                        <div class="flex-1 min-w-[200px]">
-                            <input type="text" id="busqueda-universal" placeholder="Buscar activos e insumos..." class="input-field w-full">
-                        </div>
-                        <select id="tipo-select" class="input-field w-48">
-                            <option value="todos">Todos los tipos</option>
-                            <option value="activo">🔧 Activos</option>
-                            <option value="insumo" data-type="insumos">🧩 Insumos</option>
-                        </select>
-                        <select id="categoria-select" class="input-field w-48">
-                            <option value="todas">Todas las categorías</option>
-                            <option value="Instrumentos">Instrumentos   <a style="color: #000000 !important; font-weight: 900 !important; text-decoration: none !important;">[Activos]</a></option>
-                            <option value="Herramientas"> Herramientas  <a style="color: #000000 !important; font-weight: 900 !important; text-decoration: none !important;">[Activos]</a></option>
-                            <option value="Componentes Digitales">Componentes Digitales <a href="#" style="color: #001541 !important; font-weight: 900 !important; text-decoration: none !important;">[Insumos]</a></option>
-                            <option value="Componentes Analógicos">Componentes Analógicos <a href="#" style="color: #00040e !important; font-weight: 900 !important; text-decoration: none !important;">[Activos]</a></option>
-                        </select>
-                        <select id="estado-select" class="input-field w-32">
-                            <option value="todos">Todos</option>
-                            <option value="disponible">Disponible</option>
-                            <option value="con-stock">Con Stock</option>
-                            <option value="bajo-stock">Bajo Stock</option>
-                            <option value="sin-stock">Sin Stock</option>
-                        </select>
-                        <button id="limpiar-busqueda" class="btn btn-secondary">
-                            🔄 Limpiar
-                        </button>
-                        <button id="buscar-btn" class="btn btn-primary">
-                            🔍 Buscar
-                        </button>
-                    </div>
-                </section>
-
-                <!-- RESULTADOS DE BÚSQUEDA -->
-                <div id="resultados-container" class="mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold text-slate-800">
-                            <span id="resultados-titulo">Todos los artículos</span>
-                            <span id="resultados-count" class="text-sm font-normal text-slate-500 ml-2">(0)</span>
-                        </h2>
-                        <div class="flex gap-2">
-                            <button id="refresh-btn" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                                <span>Actualizar</span>
-                            </button>
-                        </div>
-                    </div>
-                   
-                    <!-- GRID DE RESULTADOS -->
-                    <!-- Aquí se cargarán dinámicamente los artículos que coincidan con la búsqueda,
-                    cada uno representado por una tarjeta que muestra su nombre, categoría, estado y una imagen representativa,
-                    con opciones para ver más detalles o realizar acciones como solicitar un préstamo o agregar al carrito -->
-                    <div id="itemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        <!-- Los items se cargarán aquí dinámicamente -->
-                    </div>
-
-
+                <div class="flex flex-wrap gap-2">
+                    <a href="solicitudes.html" class="bg-[#F2A900] hover:bg-amber-400 text-[#002D62] font-black text-sm px-4 py-2.5 rounded-xl flex items-center gap-2 transition shadow-lg">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        Mis Solicitudes
+                    </a>
+                    <a href="mis-prestamos.html" class="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-sm px-4 py-2.5 rounded-xl flex items-center gap-2 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        Mis Préstamos
+                    </a>
                 </div>
             </div>
-        </div>
 
-            <!-- GRID DE ITEMS -->
-            <div id="itemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <!-- Los items se cargarán aquí dinámicamente -->
-            </div>
-        </div>
-    </main>
-
-    <!-- MODAL PARA AGREGAR INSUMO -->
-    <div id="modalAgregarInsumo" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
-        <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in max-h-[90vh] overflow-y-auto">
-            <div class="p-6 border-b border-slate-100 sticky top-0 bg-white z-10">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-slate-800">➕ Agregar Nuevo Artículo</h2>
-                    <button onclick="usuariosPage.cerrarModalAgregarArticulo()" class="text-slate-400 hover:text-slate-600 transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
+            <!-- KPIs del estudiante -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+                <div class="bg-white/10 border border-white/20 rounded-xl p-4 text-center">
+                    <p class="text-2xl font-black text-white" id="est-stat-total">-</p>
+                    <p class="text-blue-100/60 text-[10px] font-black uppercase tracking-widest mt-1">Solicitudes</p>
+                </div>
+                <div class="bg-white/10 border border-white/20 rounded-xl p-4 text-center">
+                    <p class="text-2xl font-black text-yellow-300" id="est-stat-pendientes">-</p>
+                    <p class="text-blue-100/60 text-[10px] font-black uppercase tracking-widest mt-1">Pendientes</p>
+                </div>
+                <div class="bg-white/10 border border-white/20 rounded-xl p-4 text-center">
+                    <p class="text-2xl font-black text-green-300" id="est-stat-prestados">-</p>
+                    <p class="text-blue-100/60 text-[10px] font-black uppercase tracking-widest mt-1">En Préstamo</p>
+                </div>
+                <div class="bg-white/10 border border-white/20 rounded-xl p-4 text-center">
+                    <p class="text-2xl font-black text-red-300" id="est-stat-por-vencer">-</p>
+                    <p class="text-blue-100/60 text-[10px] font-black uppercase tracking-widest mt-1">Por Vencer</p>
                 </div>
             </div>
-            
-            <form id="formAgregarInsumo" class="p-6">
-                <!-- Selector de tipo -->
-                <div class="mb-6 bg-slate-50 p-4 rounded-lg">
-                    <div class="flex justify-between items-center mb-4">
-                        <label class="block text-sm font-medium text-slate-700">Tipo de Artículo *</label>
-                        <button type="button" onclick="usuariosPage.agregarNuevoArticulo()" class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
-                            <span>➕</span>
-                            <span>Agregar Otro Artículo</span>
-                        </button>
-                    </div>
-                    <select id="tipoArticulo" onchange="usuariosPage.cambiarCamposPorTipo()" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">Selecciona tipo de artículo</option>
-                        <option value="insumo">📦 Insumo</option>
-                        <option value="activo">🔧 Activo</option>
-                    </select>
-                </div>
-                
-                <!-- Contenedor para múltiples artículos -->
-                <div id="articulosContainer" class="space-y-6">
-                    <!-- Los artículos se agregarán aquí dinámicamente -->
-                </div>
-                
-                <!-- Botones de acción -->
-                <div class="flex gap-3 mt-6 p-4 bg-slate-50 rounded-lg">
-                    <button type="button" onclick="usuariosPage.cerrarModalAgregarArticulo()" class="flex-1 py-3 text-sm font-bold bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="flex-1 py-3 text-sm font-bold bg-purple-600 text-white rounded-xl hover:bg-purple-700 shadow-lg shadow-purple-100 transition">
-                        ➕ Agregar Artículos
-                    </button>
-                </div>
-                
-                <div id="camposInsumo" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Nombre del Insumo *</label>
-                        <input type="text" id="nombreInsumo" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
-                        <select id="categoriaInsumo" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Selecciona una categoría</option>
-                            <option value="reactivos">Reactivos</option>
-                            <option value="material_laboratorio">Material de Laboratorio</option>
-                            <option value="consumibles">Consumibles</option>
-                            <option value="equipos_pequeños">Equipos Pequeños</option>
-                            <option value="seguridad">Seguridad</option>
-                            <option value="otros">Otros</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad *</label>
-                        <input type="number" id="cantidadInsumo" required min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Unidad de Medida *</label>
-                        <select id="unidadInsumo" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Selecciona unidad</option>
-                            <option value="unidades">Unidades</option>
-                            <option value="ml">Mililitros (ml)</option>
-                            <option value="l">Litros (l)</option>
-                            <option value="g">Gramos (g)</option>
-                            <option value="kg">Kilogramos (kg)</option>
-                            <option value="mg">Miligramos (mg)</option>
-                            <option value="cajas">Cajas</option>
-                            <option value="paquetes">Paquetes</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Stock Mínimo</label>
-                        <input type="number" id="stockMinimo" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Estado</label>
-                        <select id="estadoActivo" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Selecciona estado</option>
-                            <option value="disponible">Disponible</option>
-                            <option value="en_mantenimiento">En Mantenimiento</option>
-                            <option value="no_disponible">No Disponible</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="mt-4">
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Descripción</label>
-                    <textarea id="descripcionActivo" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
-                </div>
-                    </button>
-                    <button type="submit" class="flex-1 py-3 text-sm font-bold bg-purple-600 text-white rounded-xl hover:bg-purple-700 shadow-lg shadow-purple-100 transition">
-                        ➕ Agregar Insumo
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 
-    <!-- MODAL DE CONFIRMACIÓN -->
-    <div id="confirmModal" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
-        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
-            <div class="p-6 text-center border-b border-slate-100">
-                <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl" id="modalIcon">🔬</div>
-                <h3 class="text-xl font-bold utn-text">Confirmar Solicitud</h3>
-                <p class="text-xs text-slate-400 mt-1">Se generará una boleta electrónica digital</p>
-            </div>
-            
-            <div class="bg-slate-50 p-4 rounded-2xl mb-6 text-[11px] space-y-3 border border-slate-100">
-                <div class="flex justify-between">
-                    <span class="text-slate-400 font-bold uppercase">Elemento</span>
-                    <span id="itemName" class="font-bold text-slate-700 text-right"></span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-slate-400 font-bold uppercase">Categoría</span>
-                    <span id="itemCat" class="font-bold text-blue-600 text-right"></span>
-                </div>
-                <div class="flex justify-between border-t border-slate-200 pt-2">
-                    <span class="text-slate-400 font-bold uppercase">Usuario</span>
-                    <span id="itemUser" class="font-bold text-slate-700"></span>
-                </div>
-            </div>
+    <!-- ÁREA CENTRAL -->
+    <div class="container mx-auto max-w-7xl px-4 sm:px-6 py-6">
 
-            <div class="flex gap-3 p-6">
-                <button onclick="usuariosPage.closeModal()" class="flex-1 py-3 text-xs font-bold text-slate-400 hover:text-slate-600 uppercase transition">
-                    Cancelar
-                </button>
-                <button onclick="usuariosPage.confirmarPedido()" class="flex-1 py-3 text-xs font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition uppercase">
-                    Enviar Boleta
+        <!-- Alerta de bloqueo (se renderiza condicionalmente con JS) -->
+        <div id="alerta-bloqueo-container"></div>
+
+        <!-- Reglamento -->
+        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-5 flex items-start gap-3">
+            <svg class="w-5 h-5 text-utn-blue mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+                <p class="text-[10px] font-black text-utn-blue uppercase tracking-widest mb-1.5">Reglamento de préstamos</p>
+                <ul class="text-xs text-slate-600 space-y-0.5">
+                    <li>⬢ Solo se permite solicitar un activo de la misma referencia a la vez.</li>
+                    <li>⬢ La devolución debe hacerse en la fecha acordada. Los atrasos generan penalización.</li>
+                    <li>⬢ Si no hay stock puedes entrar en lista de espera y serás notificado.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- BARRA DE FILTROS (estática bajo el reglamento) -->
+        <div id="filter-bar" class="card px-4 py-3 mb-5">
+            <div class="flex flex-wrap gap-2 items-center">
+                <!-- Búsqueda -->
+                <div class="flex-1 min-w-[180px] relative">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <input id="busqueda-universal" type="text" placeholder="Buscar equipo o insumo..." class="field-input pl-9">
+                </div>
+                <!-- Tipo -->
+                <select id="tipo-select" class="field-input w-36">
+                    <option value="todos">Todos</option>
+                    <option value="activo">Activos</option>
+                    <option value="insumo">Consumibles</option>
+                </select>
+                <!-- Categoría -->
+                <select id="categoria-select" class="field-input w-44">
+                    <option value="todas">Todas las categorías</option>
+                    <option value="Instrumentos">Instrumentos</option>
+                    <option value="Herramientas">Herramientas</option>
+                    <option value="Componentes Digitales">Digitales</option>
+                    <option value="Componentes Analógicos">Analógicos</option>
+                </select>
+                <!-- Stock -->
+                <select id="estado-select" class="field-input w-36">
+                    <option value="todos">Todo el stock</option>
+                    <option value="con-stock">Con stock</option>
+                    <option value="bajo-stock">Bajo stock</option>
+                    <option value="sin-stock">Sin stock</option>
+                </select>
+                <!-- Limpiar -->
+                <button id="limpiar-busqueda" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    Limpiar
                 </button>
             </div>
+            <!-- Contador -->
+            <div class="mt-2.5 flex items-center gap-1.5">
+                <span class="w-1 h-3 bg-[#F2A900] rounded-full inline-block"></span>
+                <p id="resultados-titulo" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cargando inventario...</p>
+            </div>
+        </div>
+
+        <!-- GRID DE ITEMS -->
+        <div id="itemsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div class="col-span-full py-16 text-center">
+                <div class="animate-spin w-10 h-10 border-4 border-slate-200 border-t-utn-blue rounded-full mx-auto mb-4"></div>
+                <p class="text-slate-400 text-sm font-medium">Cargando inventario...</p>
+            </div>
+        </div>
+
+        <!-- CONTROLES DE PAGINACI-N -->
+        <div id="pagination-controls" class="flex justify-center items-center gap-1 mt-8 mb-4">
+            <!-- Renderizado dinámicamente -->
         </div>
     </div>
+</main>
 
-    <!-- MODAL DEL CARRITO DE SOLICITUDES -->
-    <div id="cartModal" class="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
-        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
-            <div class="p-6 border-b border-slate-100">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-slate-800">🛒 Carrito de Solicitudes</h2>
-                    <button onclick="closeCartModal()" class="text-slate-400 hover:text-slate-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="p-6">
-                <div id="cartItems" class="space-y-3 max-h-96 overflow-y-auto mb-6">
-                    <!-- Los items del carrito se cargarán aquí -->
-                </div>
-                
-                <div class="border-t border-slate-200 pt-4">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-lg font-bold text-slate-800">Total de items:</span>
-                        <span id="cartTotal" class="text-2xl font-bold text-blue-600">0</span>
-                    </div>
-                    
-                    <div class="flex gap-3">
-                        <button onclick="clearCart()" class="flex-1 py-3 text-sm font-bold bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition">
-                            <span>Vaciar Carrito</span>
-                        </button>
-                        <button onclick="sendRequest()" class="flex-1 py-3 text-sm font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition">
-                            <span>Enviar Solicitud</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- POP-UP DE IMAGEN -->
-    <div id="imagePopup" class="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
-        <div class="relative max-w-4xl max-h-[90vh] w-full">
-            <!-- Botón cerrar -->
-            <button onclick="usuariosPage.closeImagePopup()" class="absolute top-4 right-4 z-10 bg-white/90 hover:bg-white text-slate-800 p-2 rounded-full shadow-lg transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-            
-            <!-- Contenedor de la imagen -->
-            <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
-                <!-- Header -->
-                <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4">
-                    <h3 id="imagePopupTitle" class="text-lg font-semibold">Imagen del Producto</h3>
-                </div>
-                
-                <!-- Imagen -->
-                <div class="p-6 bg-slate-50">
-                    <img id="imagePopupImg" src="" alt="" class="w-full h-auto max-h-[60vh] object-contain rounded-lg shadow-lg">
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- TOAST DE NOTIFICACIONES -->
-    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
-        <div class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
-            <span id="toastMsg">Operación Exitosa</span>
-        </div>
-    </div>
-
-        <!-- JavaScript -->
-        <script src="../js/app.js"></script>
-        <script src="../js/main.js"></script>
-        <script src="../js/auth.js"></script>
-        <script src="../js/modal.js"></script>
-        <script src="../js/pages/usuarios.js" onerror="console.error('Error cargando usuarios.js')" onload="console.log('usuarios.js cargado correctamente')"></script>
-
-        <!-- Función global para cerrar sesión -->
-        <script>
-            window.cerrarSesion = function() {
-                console.log('Cerrando sesión desde ModUsuarios...');
-                
-                if (confirm('¿Estás seguro de que quieres cerrar tu sesión?')) {
-                    // Limpiar localStorage
-                    localStorage.removeItem('utn_token');
-                    localStorage.removeItem('utn_user');
-                    
-                    // Redirigir a login
-                    window.location.href = '../login.html';
-                }
-            };
-
-            // Función global para el menú
-            window.toggleUserMenu = function() {
-                console.log('toggleUserMenu() llamada desde ModUsuarios.html');
-                
-                const userDropdown = document.getElementById('user-dropdown');
-                if (!userDropdown) {
-                    console.log('ERROR: No se encontró el dropdown');
-                    return;
-                }
-                
-                console.log('Estado actual del dropdown:', {
-                    hidden: userDropdown.classList.contains('hidden'),
-                    opacity: userDropdown.style.opacity || window.getComputedStyle(userDropdown).opacity,
-                    display: userDropdown.style.display || window.getComputedStyle(userDropdown).display,
-                    classes: userDropdown.className
-                });
-                
-                if (userDropdown.classList.contains('hidden')) {
-                    // Mostrar dropdown - anular el hidden con estilos inline
-                    userDropdown.classList.remove('hidden');
-                    userDropdown.classList.remove('opacity-0');
-                    userDropdown.classList.add('opacity-100');
-                    
-                    // Estilos inline para forzar visibilidad
-                    userDropdown.style.display = 'block';
-                    userDropdown.style.visibility = 'visible';
-                    userDropdown.style.opacity = '1';
-                    userDropdown.style.pointerEvents = 'auto';
-                    
-                    console.log('Menú abierto - estilos inline aplicados');
-                    console.log('Display final:', userDropdown.style.display);
-                } else {
-                    // Ocultar dropdown
-                    userDropdown.classList.add('hidden');
-                    userDropdown.classList.add('opacity-0');
-                    userDropdown.classList.remove('opacity-100');
-                    
-                    // Estilos inline para ocultar
-                    userDropdown.style.display = 'none';
-                    userDropdown.style.visibility = 'hidden';
-                    userDropdown.style.opacity = '0';
-                    userDropdown.style.pointerEvents = 'none';
-                    
-                    console.log('Menú cerrado');
-                }
-            };
-        </script>
-
-        <!-- Inicializar indexController -->
-        <script>
-            console.log('🔍 Verificando si usuariosPage existe...');
-            console.log('window.usuariosPage:', !!window.usuariosPage);
-            
-            document.addEventListener('DOMContentLoaded', () => {
-                console.log('🚀 DOMContentLoaded - Verificando usuariosPage...');
-                console.log('window.usuariosPage disponible:', !!window.usuariosPage);
-                
-                if (window.usuariosPage) {
-                    console.log('✅ usuariosPage ya está inicializado');
-                    window.usuariosPage.initialized = true;
-                } else {
-                    console.log('❌ usuariosPage no encontrado en window');
-                }
-            });
-            
-            // También intentar después de un pequeño retraso
-            setTimeout(() => {
-                console.log('⏰ Timeout - Verificando usuariosPage...');
-                if (window.usuariosPage && !window.usuariosPage.initialized) {
-                    console.log('🚀 usuariosPage ya existe y está inicializado');
-                    window.usuariosPage.initialized = true;
-                }
-            }, 1000);
-        </script>
-
-
-        <!-- Script de Verificación y Conexión -->
-        <script>
-            // Usar CONFIG global ya definido en js/main.js para evitar duplicación
-            console.log('✅ CONFIG global disponible:', window.CONFIG);
-            
-            // Estado de la aplicación
-            let currentUser = null;
-            let dbConnected = false;
-            let connectionCheckInterval;
-            let currentType = 'activos';
-            let isInitialized = false; // Bandera para evitar múltiples inicializaciones
-
-            // Función para mostrar notificaciones - usar Utils si está disponible
-            function showToast(message, type = 'success') {
-                if (window.Utils && window.Utils.showToast) {
-                    window.Utils.showToast(message, type);
-                } else {
-                    // Fallback si Utils no está disponible
-                    const toast = document.getElementById('toast');
-                    const toastMsg = document.getElementById('toastMsg');
-                    
-                    toastMsg.textContent = message;
-                    toast.classList.remove('translate-y-20', 'opacity-0');
-                    
-                    setTimeout(() => {
-                        toast.classList.add('translate-y-20', 'opacity-0');
-                    }, 3000);
-                }
-            }
-
-            // Función para verificar conexión a la base de datos
-            async function checkDBConnection() {
-                const indicator = document.getElementById('dbIndicator');
-                const status = document.getElementById('dbStatus');
-                
-                // Verificar que los elementos existan antes de usarlos
-                if (indicator) {
-                    indicator.classList.remove('bg-yellow-500', 'bg-red-500', 'animate-pulse');
-                    indicator.classList.add('bg-green-500');
-                }
-                
-                if (status) {
-                    status.textContent = 'Conectado';
-                }
-                
-                dbConnected = true;
-            }
-
-            // Función para verificar autenticación
-            async function checkAuthentication() {
-                console.log('🔍 Iniciando checkAuthentication...');
-                
-                const token = localStorage.getItem('utn_token');
-                const userData = localStorage.getItem('utn_user');
-                
-                console.log('🔍 Datos en localStorage:', {
-                    token: token ? 'existe' : 'no existe',
-                    userData: userData ? 'existe' : 'no existe'
-                });
-                
-                if (!token || !userData) {
-                    console.log('🚫 No hay token o usuario, redirigiendo a login...');
-                    // Solo redirigir si NO estamos ya en login.html
-                    if (!window.location.pathname.includes('login.html')) {
-                        window.location.href = 'login.html';
-                    }
-                    return false;
-                }
-                
-                try {
-                    // Token válido, cargar datos del usuario (sin verificar en backend por ahora)
-                    currentUser = JSON.parse(userData);
-                    console.log('👤 Usuario cargado:', currentUser);
-                    
-                    // Ocultar pantalla de verificación
-                    const loginPage = document.getElementById('loginPage');
-                    const mainApp = document.getElementById('mainApp');
-                    
-                    console.log('🔍 Elementos DOM:', {
-                        loginPage: loginPage ? 'encontrado' : 'no encontrado',
-                        mainApp: mainApp ? 'encontrado' : 'no encontrado'
-                    });
-                    
-                    if (loginPage) {
-                        loginPage.classList.add('hidden');
-                        console.log('✅ loginPage ocultado');
-                    }
-                    
-                    if (mainApp) {
-                        mainApp.classList.remove('hidden');
-                        console.log('✅ mainApp mostrado');
-                    }
-                    
-                    // Actualizar UI
-                    updateUserInfo();
-                    startTimeUpdates();
-                    
-                    // 5. Inicializar vista según rol del usuario
-                    setTimeout(() => {
-                        const rol = currentUser.rol.toLowerCase();
-                        console.log('👤 Rol detectado:', rol);
-                        
-                        const vistaEstudiante = document.getElementById('vistaEstudiante');
-                        
-                        console.log('🔍 Elementos encontrados:', {
-                            vistaEstudiante: vistaEstudiante ? 'encontrado' : 'no encontrado'
-                        });
-                        
-                        // Ocultar vista estudiante primero
-                        if (vistaEstudiante) {
-                            vistaEstudiante.classList.add('hidden');
-                            console.log('✅ vistaEstudiante ocultada');
-                        }
-                        
-                        // Mostrar vista para estudiantes/docentes
-                        console.log('📚 Mostrando vista para estudiantes/docentes');
-                        if (vistaEstudiante) {
-                            vistaEstudiante.classList.remove('hidden');
-                            console.log('✅ vistaEstudiante mostrada');
-                            // Inicializar funcionalidad de estudiantes
-                            inicializarFuncionalidadEstudiante();
-                        }
-                    }, 100);
-                    
-                    // Cargar datos iniciales
-                    await loadInitialData();
-                    
-                    return true;
-                    
-                } catch (error) {
-                    console.error('❌ Error de autenticación:', error);
-                    console.error('❌ Detalles del error:', error.message, error.stack);
-                    
-                    // Limpiar datos inválidos solo si no estamos en login.html
-                    if (!window.location.pathname.includes('login.html')) {
-                        console.log('🧹 Limpiando datos inválidos y redirigiendo...');
-                        localStorage.removeItem('utn_token');
-                        localStorage.removeItem('utn_user');
-                        window.location.href = 'login.html';
-                    }
-                    return false;
-                }
-            }
-
-            // Función para actualizar información del usuario
-            function updateUserInfo() {
-                console.log(' Actualizando información del usuario:', currentUser);
-                
-                if (currentUser) {
-                    const userInfo = document.getElementById('userInfo');
-                    const userMenuName = document.getElementById('userMenuName');
-                    const dropdownUserName = document.getElementById('dropdownUserName');
-                    const dropdownUserRole = document.getElementById('dropdownUserRole');
-                    
-                    // Actualizar nombre
-                    const nombreCompleto = currentUser.nombre || currentUser.nombre_completo || 'Usuario';
-                    
-                    // Actualizar nombre en el header de bienvenida
-                    const nombreCompletoElement = document.getElementById('nombre_completo');
-                    if (nombreCompletoElement) {
-                        nombreCompletoElement.textContent = nombreCompleto;
-                        console.log(' Nombre completo actualizado en header:', nombreCompleto);
-                    }
-                    
-                    if (userInfo) {
-                        userInfo.textContent = nombreCompleto;
-                        console.log(' userInfo actualizado:', nombreCompleto);
-                    }
-                    
-                    if (userMenuName) {
-                        userMenuName.textContent = nombreCompleto;
-                        console.log(' userMenuName actualizado:', nombreCompleto);
-                    }
-                    
-                    if (dropdownUserName) {
-                        dropdownUserName.textContent = nombreCompleto;
-                        console.log(' dropdownUserName actualizado:', nombreCompleto);
-                    }
-                    
-                    // Actualizar rol dinámicamente
-                    const rol = currentUser.rol || currentUser.rol_nombre || 'Estudiante';
-                    
-                    if (dropdownUserRole) {
-                        dropdownUserRole.textContent = rol;
-                        console.log(' dropdownUserRole actualizado:', rol);
-                    }
-                } else {
-                    console.log(' No hay currentUser para actualizar');
-                }
-            }
-
-            // Función para actualizar fecha y hora
-            function startTimeUpdates() {
-                const updateDateTime = () => {
-                    const now = new Date();
-                    const dateTimeElement = document.getElementById('currentDateTime');
-                    if (dateTimeElement) {
-                        dateTimeElement.textContent = now.toLocaleString('es-CR', {
-                            weekday: 'short',
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                    }
-                };
-                
-                updateDateTime();
-                setInterval(updateDateTime, 60000); // Cada minuto
-            }
-
-            // Función para inicializar funcionalidad de estudiantes
-            function inicializarFuncionalidadEstudiante() {
-                console.log('📚 Inicializando funcionalidad para estudiantes...');
-                
-                // Configurar tabs
-                document.querySelectorAll('.tab-button').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const type = button.dataset.type;
-                        currentType = type;
-                        
-                        // Actualizar estilos de tabs
-                        document.querySelectorAll('.tab-button').forEach(btn => {
-                            btn.classList.remove('utn-blue', 'text-white');
-                            btn.classList.add('text-slate-600', 'hover:bg-slate-50');
-                        });
-                        button.classList.add('utn-blue', 'text-white');
-                        button.classList.remove('text-slate-600', 'hover:bg-slate-50');
-                        
-                        // Cargar datos según el tipo
-                        if (type === 'activos') {
-                            loadActivos();
-                        } else if (type === 'insumos') {
-                            loadInsumos();
-                        }
-                    });
-                });
-                
-                // Configurar botón de refresh
-                document.getElementById('refreshBtn')?.addEventListener('click', () => {
-                    if (currentType === 'activos') {
-                        loadActivos();
-                    } else if (currentType === 'insumos') {
-                        loadInsumos();
-                    } else {
-                        loadInitialData();
-                    }
-                });
-                
-                // Cargar datos iniciales
-                loadInitialData();
-            }
-
-            // Función para cargar datos iniciales
-            async function loadInitialData() {
-                // Buscar el itemsGrid dentro de la vista de estudiantes
-                const vistaEstudiante = document.getElementById('vistaEstudiante');
-                const grid = vistaEstudiante ? vistaEstudiante.querySelector('#itemsGrid') : document.getElementById('itemsGrid');
-                
-                if (!grid) {
-                    console.log('⚠️ itemsGrid no encontrado, omitiendo carga inicial');
-                    return;
-                }
-                
-                console.log('✅ itemsGrid encontrado, mostrando mensaje inicial');
-                
-                grid.innerHTML = `
-                    <div class="col-span-full text-center py-12">
-                        <div class="text-4xl mb-4">🔧</div>
-                        <h3 class="text-lg font-medium text-slate-600 mb-2">Selecciona una categoría</h3>
-                        <p class="text-sm text-slate-400">Haz click en "Activos" o "Insumos" para ver los productos disponibles</p>
-                    </div>
-                `;
-            }
-
-            // Función para cargar activos
-            async function loadActivos() {
-                const token = localStorage.getItem('utn_token');
-                // Buscar el itemsGrid dentro de la vista de estudiantes
-                const vistaEstudiante = document.getElementById('vistaEstudiante');
-                const grid = vistaEstudiante ? vistaEstudiante.querySelector('#itemsGrid') : document.getElementById('itemsGrid');
-                
-                console.log('🔍 Iniciando carga de activos...');
-                console.log('🔑 Token disponible:', token ? 'Sí' : 'No');
-                console.log('🌐 URL:', `${window.CONFIG.API_BASE_URL}/activos`);
-                
-                try {
-                    // Ocultar el grid con animación de salida
-                    grid.style.opacity = '0';
-                    grid.style.transform = 'translateY(20px)';
-                    
-                    // Mostrar loading
-                    setTimeout(() => {
-                        grid.innerHTML = `
-                            <div class="col-span-full text-center py-12">
-                                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                                <p class="text-sm text-slate-600">Cargando activos...</p>
-                            </div>
-                        `;
-                        
-                        // Mostrar el loading con animación
-                        grid.style.opacity = '1';
-                        grid.style.transform = 'translateY(0)';
-                    }, 200);
-                    
-                    // Cargar activos
-                    console.log('📡 Enviando petición a:', `${window.CONFIG.API_BASE_URL}/activos`);
-                    
-                    const activosResponse = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    
-                    console.log('📡 Respuesta recibida:', {
-                        status: activosResponse.status,
-                        statusText: activosResponse.statusText,
-                        ok: activosResponse.ok
-                    });
-                    
-                    if (activosResponse.ok) {
-                        const activos = await activosResponse.json();
-                        console.log('📦 Datos recibidos:', activos);
-                        console.log('📊 Total de activos:', activos?.total || 0);
-                        console.log('📊 Activos disponibles:', activos?.activosDisponibles?.length || 0);
-                        console.log('📊 Todos los activos:', activos?.todosLosActivos?.length || 0);
-                        
-                        // Extraer el array correcto de activos
-                        const activosArray = activos.todosLosActivos || activos.activosDisponibles || [];
-                        console.log('📇 Array a renderizar:', activosArray);
-                        
-                        // Ocultar loading
-                        grid.style.opacity = '0';
-                        grid.style.transform = 'translateY(20px)';
-                        
-                        // Renderizar activos con animación de entrada
-                        setTimeout(() => {
-                            renderItems(activosArray, 'activos');
-                            
-                            // Animación de entrada para las tarjetas
-                            const cards = grid.querySelectorAll('.group');
-                            cards.forEach((card, index) => {
-                                card.style.opacity = '0';
-                                card.style.transform = 'translateY(30px)';
-                                
-                                setTimeout(() => {
-                                    card.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-                                    card.style.opacity = '1';
-                                    card.style.transform = 'translateY(0)';
-                                }, index * 100);
-                            });
-                        }, 200);
-                        
-                    } else {
-                        const errorData = await activosResponse.json().catch(() => ({}));
-                        console.error('❌ Error en respuesta:', errorData);
-                        throw new Error(errorData.message || 'Error al cargar activos');
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ Error cargando activos:', error);
-                    console.error('❌ Detalles del error:', {
-                        message: error.message,
-                        stack: error.stack,
-                        name: error.name
-                    });
-                    
-                    showToast(error.message || 'Error al cargar activos', 'error');
-                    
-                    grid.innerHTML = `
-                        <div class="col-span-full text-center py-12">
-                            <div class="text-4xl mb-4">❌</div>
-                            <h3 class="text-lg font-medium text-slate-600 mb-2">Error al cargar activos</h3>
-                            <p class="text-sm text-slate-400 mb-2">${error.message}</p>
-                            <p class="text-sm text-slate-400">Intenta recargar la página</p>
-                        </div>
-                    `;
-                    grid.style.opacity = '1';
-                    grid.style.transform = 'translateY(0)';
-                }
-            }
-
-            // Función para cargar insumos
-            async function loadInsumos() {
-                const token = localStorage.getItem('utn_token');
-                // Buscar el itemsGrid dentro de la vista de estudiantes
-                const vistaEstudiante = document.getElementById('vistaEstudiante');
-                const grid = vistaEstudiante ? vistaEstudiante.querySelector('#itemsGrid') : document.getElementById('itemsGrid');
-                
-                try {
-                    // Mostrar loading
-                    grid.innerHTML = `
-                        <div class="col-span-full text-center py-12">
-                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                            <p class="text-sm text-slate-600">Cargando insumos...</p>
-                        </div>
-                    `;
-                    
-                    // Cargar insumos
-                    const insumosResponse = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    
-                    if (insumosResponse.ok) {
-                        const insumos = await insumosResponse.json();
-                        renderItems(insumos, 'insumos');
-                    } else {
-                        throw new Error('Error al cargar insumos');
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ Error cargando insumos:', error);
-                    showToast('Error al cargar insumos', 'error');
-                    
-                    const grid = document.getElementById('itemsGrid');
-                    grid.innerHTML = `
-                        <div class="col-span-full text-center py-12">
-                            <div class="text-4xl mb-4">❌</div>
-                            <h3 class="text-lg font-medium text-slate-600 mb-2">Error al cargar insumos</h3>
-                            <p class="text-sm text-slate-400">Intenta recargar la página</p>
-                        </div>
-                    `;
-                }
-            }
-
-            // Función para renderizar elementos
-            function renderItems(items, type) {
-                const grid = document.getElementById('itemsGrid');
-                grid.innerHTML = '';
-                
-                console.log('🔍 renderItems llamado con:', { items, type });
-                console.log('📊 Tipo de items:', typeof items);
-                console.log('📊 Es array:', Array.isArray(items));
-                console.log('📊 Items length:', items?.length);
-                
-                // Validar que items sea un array
-                if (!items || !Array.isArray(items)) {
-                    console.warn('⚠️ Items no es un array, usando array vacío');
-                    items = [];
-                }
-                
-                if (items.length === 0) {
-                    grid.innerHTML = `
-                        <div class="col-span-full text-center py-12">
-                            <div class="text-4xl mb-4">${type === 'activos' ? '🔧' : '📦'}</div>
-                            <h3 class="text-lg font-medium text-slate-600 mb-2">No hay ${type === 'activos' ? 'activos' : 'insumos'} disponibles</h3>
-                            <p class="text-sm text-slate-400">Intenta recargar la página</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                console.log(`📦 Renderizando ${items.length} ${type}...`);
-                
-                items.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group';
-
-                // 1. Declaramos todas las variables que el HTML va a necesitar
-                let nombre, codigo, caracteristicas, observaciones, imageUrl, cantidad, ubicacion, estado;
-
-                // 2. SECCIÓN DE ACTIVOS
-                if (type === 'activos') {
-                    nombre = item.modelo_activo || item.nombre_activo || (item.marca && item.modelo ? `${item.marca} | ${item.modelo}` : null) || 'Activo sin nombre';
-                    codigo = item.codigo_activo || item.numSerie || item.codigo || 'N/A';
-                    descripcion = item.descripcion_activo || item.descripcion || item.desc || 'Sin descripción disponible';
-                    estado = (item.estado_activo || item.estado || item.status || 'disponible').toLowerCase();
-                    marca = item.marca_activo || item.marca || item.brand || 'N/A';
-                    modelo = item.modelo_activo || item.modelo || item.model || 'N/A';
-                    ubicacion = item.ubicacion_activo || item.ubicacion || item.location || 'Laboratorio';
-                    cantidad = item.cantidad_disponible || item.cantidad || 1;
-                    imageUrl = item.imagen_activo || item.imagen || item.foto || item.image || item.img || `https://picsum.photos/seed/activo-${codigo || index}/400/300.jpg`;
-                    caracteristicas = item.caracteristicas_activo || item.caracteristicas || "Sin especificar";
-                    observaciones = item.observaciones_activo || item.observaciones || "Sin especificar";
-                }  
-                      // 3. SECCIÓN DE INSUMOS
-                      /***
-                       * 
-                      */
-                else if (type === 'insumos') {
-                    nombre = item.NombProducto || 'Insumo sin nombre';
-                    codigo = item.id_insumo || 'N/A'; // Usar el ID del insumo
-                    caracteristicas = item.caracteristicas || "Sin detalles técnicos";
-                    descripcion = item.categoria || caracteristicas || 'Sin descripción';
-                    observaciones = "N/A";
-                    estado = 'disponible'; // Los insumos suelen estar siempre disponibles si hay stock
-                    ubicacion = item.ubicacion || 'Bodega General';
-                    cantidad = item.cantidad || item.cantidad_disponible || 0;
-                    imageUrl = item.img || `https://picsum.photos/seed/${item._id}/400/300.jpg`;
-                    marca = 'N/A';
-                    modelo = 'N/A';
-                }
-
-    // 4. Lógica de Estilos Comunes
-    const statusStyles = {
-        'disponible': 'bg-green-500 text-white',
-        'prestado': 'bg-yellow-500 text-white',
-        'mantenimiento': 'bg-red-500 text-white',
-        'extraviado': 'bg-gray-500 text-white',
-        'eliminado': 'bg-red-200 text-red-700'
-    };
-    const statusClass = statusStyles[estado] || statusStyles['disponible'];
-
-    // 5. Renderizado único (las variables ya vienen filtradas por el IF anterior)
-    card.innerHTML = `
-        <div class="relative h-32 bg-slate-100 overflow-hidden">
-            <img src="${imageUrl}" class="w-full h-full object-cover">
-            <div class="absolute top-2 right-2">
-                <span class="px-2 py-1 text-[10px] font-bold uppercase rounded-full ${statusClass}">
-                    ${estado}
-                </span>
-            </div>
-        </div>
-        <div class="p-4">
-            <div class="flex justify-between items-start mb-2">
-                <div class="flex-1">
-                    <h3 class="font-bold text-slate-800 text-sm line-clamp-1">${nombre}</h3>
-                    <p class="text-[10px] text-slate-400">Cod: ${codigo}</p>
-                </div>
-                <span class="text-[10px] font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                    ${type === 'activos' ? 'ACTIVO' : 'INSUMO'}
-                </span>
-            </div>
-            
-            <div class="space-y-3 mb-4">
-                <div class="flex flex-col text-xs border-b border-slate-50 pb-1">
-                    <span class="text-slate-400 font-semibold mb-1">Características:</span>
-                    <span class="text-slate-700 leading-relaxed">${caracteristicas}</span>
-                </div>
-                ${type === 'activos' ? `
-                <div class="flex flex-col text-xs border-b border-slate-50 pb-1">
-                    <span class="text-slate-400 font-semibold mb-1">Observaciones:</span>
-                    <span class="text-slate-700 italic">${observaciones}</span>
-                </div>` : ''}
-                <div class="flex justify-between items-center text-xs pt-1">
-                    <span class="text-slate-400">Disponibles: <span class="text-slate-700 font-bold">${cantidad}</span></span>
-                    <span class="text-slate-700 font-medium">${ubicacion}</span>
-                </div>
-            </div>
-
-            <button onclick="event.stopPropagation(); addToCart('${nombre}', '${type}', ${JSON.stringify(item).replace(/'/g, '&apos;')})" 
-                                    class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 rounded-lg font-medium transition-colors">
-                <span>Añadir</span>
-            </button>
-        </div>
-    `;
-    
-    grid.appendChild(card);
-});
-                
-                console.log(`✅ Renderizado completado: ${items.length} ${type}`);
-            }
-
-            // Función para abrir modal
-            function openModal(itemName, itemType, itemData = null) {
-                const modal = document.getElementById('confirmModal');
-                document.getElementById('itemName').textContent = itemName;
-                document.getElementById('itemCat').textContent = itemType === 'activos' ? 'Activo' : 'Insumo';
-                document.getElementById('itemUser').textContent = currentUser?.nombre || 'Usuario';
-                
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-            }
-
-            // Función para cerrar modal
-            function closeModal() {
-                const modal = document.getElementById('confirmModal');
-                modal.classList.add('opacity-0', 'pointer-events-none');
-            }
-
-            // Función para mostrar pop-up de imagen
-            function showImagePopup(imageUrl, itemName) {
-                const popup = document.getElementById('imagePopup');
-                const img = document.getElementById('imagePopupImg');
-                const title = document.getElementById('imagePopupTitle');
-                
-                img.src = imageUrl;
-                img.alt = itemName;
-                title.textContent = itemName;
-                
-                popup.classList.remove('opacity-0', 'pointer-events-none');
-            }
-
-            // Función para cerrar pop-up de imagen
-            function closeImagePopup() {
-                const popup = document.getElementById('imagePopup');
-                popup.classList.add('opacity-0', 'pointer-events-none');
-            }
-
-            // Cerrar pop-up al hacer clic fuera
-            document.getElementById('imagePopup')?.addEventListener('click', (e) => {
-                if (e.target.id === 'imagePopup') {
-                    closeImagePopup();
-                }
-            });
-            // Función global para agregar al carrito
-            window.addToCart = function(nombre, type, itemData) {
-                console.log('Agregando al carrito:', { nombre, type, itemData });
-                
-                // Obtener usuario actual y crear ID único
-                const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
-                const userId = user._id || user.correo_electronico || 'anonymous';
-                
-                // Crear ID único combinando múltiples campos
-                const uniqueUserId = `${userId}_${user.nombre_completo || 'unknown'}_${Date.now()}`;
-                const cartKey = `cart_${btoa(userId)}`; // Usar base64 para hacerlo único
-                
-                console.log('ID de usuario:', userId);
-                console.log('Clave de carrito:', cartKey);
-                
-                // Obtener carrito personal del usuario
-                let cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
-                
-                // Verificar si el item ya está en el carrito
-                const existingItem = cart.find(item => 
-                    item.name === nombre && item.type === type
-                );
-                
-                if (existingItem) {
-                    // Mostrar notificación si ya existe
-                    if (window.Utils && window.Utils.showToast) {
-                        window.Utils.showToast(`${nombre} ya está en tu carrito`, 'warning');
-                    }
-                    return;
-                }
-                
-                // Agregar nuevo item al carrito personal
-                const newItem = {
-                    name: nombre,
-                    type: type,
-                    quantity: 1,
-                    data: itemData,
-                    userId: userId, // Para identificar el dueño
-                    timestamp: Date.now() // Para asegurar unicidad
-                };
-                
-                cart.push(newItem);
-                localStorage.setItem(cartKey, JSON.stringify(cart));
-                
-                console.log('Carrito personal actualizado:', cart);
-                console.log('Guardado en clave:', cartKey);
-                
-                // Llamar a updateCartUI directamente
-                console.log('Ejecutando actualización de UI...');
-                
-                // Verificar updateCartUI
-                console.log('Verificando updateCartUI:', typeof window.updateCartUI);
-                console.log('window.updateCartUI existe:', !!window.updateCartUI);
-                
-                if (typeof window.updateCartUI === 'function') {
-                    console.log('Llamando a updateCartUI...');
-                    window.updateCartUI();
-                    console.log('updateCartUI ejecutada');
-                } else {
-                    console.log('updateCartUI no está disponible');
-                    // Intentar actualizar el contador manualmente
-                    const cartCount = document.getElementById('cartCount');
-                    if (cartCount) {
-                        cartCount.textContent = cart.length;
-                        console.log('Contador actualizado manualmente a:', cart.length);
-                    }
-                }
-                
-                // Mostrar notificación
-                if (window.Utils && window.Utils.showToast) {
-                    window.Utils.showToast(`${nombre} agregado a tu carrito`, 'success');
-                }
-            };
-
-            // Función para confirmar pedido
-            async function confirmarPedido() {
-                console.log('🛒 Iniciando confirmarPedido...');
-                
-                try {
-                    // Obtener los datos del carrito
-                    const cartItems = getCartItems();
-                    console.log('📦 Items en carrito:', cartItems);
-                    
-                    if (!cartItems || cartItems.length === 0) {
-                        showToast('❌ El carrito está vacío', 'error');
-                        return;
-                    }
-                    
-                    // Preparar datos para el backend
-                    const solicitudData = {
-                        activos: [], // Por ahora solo insumos
-                        insumos: cartItems.map(item => ({
-                            id_insumo: item._id || item.id, // Usar el ID del insumo
-                            cantidad: item.cantidad || 1,
-                            caracteristicas: item.caracteristicas || '',
-                            descripcion: item.descripcion || ''
-                        })),
-                        fecha_entrega_esperada: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 días desde hoy
-                    };
-                    
-                    console.log('📋 Datos a enviar:', solicitudData);
-                    
-                    // Enviar al backend
-                    const response = await Utils.authenticatedFetch(`${CONFIG.API_BASE_URL}/solicitudes`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(solicitudData)
-                    });
-                    
-                    if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.message || 'Error al crear solicitud');
-                    }
-                    
-                    const result = await response.json();
-                    console.log('✅ Solicitud creada:', result);
-                    
-                    showToast('✅ Solicitud enviada correctamente', 'success');
-                    closeModal();
-                    clearCart(); // Limpiar carrito después de enviar
-                    
-                    // Redirigir a la página de solicitudes después de un momento
-                    setTimeout(() => {
-                        window.location.href = '/pages/solicitudes.html';
-                    }, 2000);
-                    
-                } catch (error) {
-                    console.error('❌ Error en confirmarPedido:', error);
-                    showToast(`❌ Error: ${error.message}`, 'error');
-                }
-            }
-
-            // Función para abrir modal
-            function abrirModalAgregarArticulo() {
-                const modal = document.getElementById('modalAgregarInsumo');
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                modal.classList.add('opacity-100');
-                
-                // Limpiar formulario
-                document.getElementById('formAgregarInsumo').reset();
-            }
-
-            function cerrarModalAgregarArticulo() {
-                const modal = document.getElementById('modalAgregarInsumo');
-                modal.classList.remove('opacity-100');
-                modal.classList.add('opacity-0', 'pointer-events-none');
-            }
-
-            function cambiarCamposPorTipo() {
-                const tipo = document.getElementById('tipoArticulo').value;
-                const container = document.getElementById('articulosContainer');
-                
-                if (tipo === 'activo' || tipo === 'insumo') {
-                    // Limpiar contenedor y agregar nuevo artículo
-                    container.innerHTML = '';
-                    articuloCount = 0;
-                    agregarNuevoArticulo();
-                }
-            }
-
-            // Funciones para múltiples artículos
-            let articuloCount = 0;
-            
-            function agregarNuevoArticulo() {
-                articuloCount++;
-                const container = document.getElementById('articulosContainer');
-                const tipo = document.getElementById('tipoArticulo').value;
-                
-                if (!tipo) {
-                    showToast('⚠️ Por favor selecciona un tipo de artículo', 'warning');
-                    return;
-                }
-                
-                const articuloDiv = document.createElement('div');
-                articuloDiv.className = 'bg-white border-2 border-slate-200 rounded-lg p-4 relative';
-                articuloDiv.id = `articulo-${articuloCount}`;
-                
-                if (tipo === 'insumo') {
-                    articuloDiv.innerHTML = `
-                        <div class="flex justify-between items-center mb-3">
-                            <h4 class="text-lg font-bold text-slate-800">📦 Insumo #${articuloCount}</h4>
-                            <button type="button" onclick="eliminarArticulo(${articuloCount})" class="text-red-500 hover:text-red-700 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Nombre *</label>
-                                <input type="text" name="nombreInsumo_${articuloCount}" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
-                                <select name="categoriaInsumo_${articuloCount}" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="">Selecciona una categoría</option>
-                                    <option value="reactivos">Reactivos</option>
-                                    <option value="material_laboratorio">Material de Laboratorio</option>
-                                    <option value="consumibles">Consumibles</option>
-                                    <option value="equipos_pequeños">Equipos Pequeños</option>
-                                    <option value="seguridad">Seguridad</option>
-                                    <option value="otros">Otros</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad *</label>
-                                <input type="number" name="cantidadInsumo_${articuloCount}" required min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Unidad de Medida *</label>
-                                <select name="unidadInsumo_${articuloCount}" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="">Selecciona unidad</option>
-                                    <option value="unidades">Unidades</option>
-                                    <option value="ml">Mililitros (ml)</option>
-                                    <option value="l">Litros (l)</option>
-                                    <option value="g">Gramos (g)</option>
-                                    <option value="kg">Kilogramos (kg)</option>
-                                    <option value="mg">Miligramos (mg)</option>
-                                    <option value="cajas">Cajas</option>
-                                    <option value="paquetes">Paquetes</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Descripción</label>
-                            <textarea name="descripcionInsumo_${articuloCount}" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
-                        </div>
-                    `;
-                } else if (tipo === 'activo') {
-                    articuloDiv.innerHTML = `
-                        <div class="flex justify-between items-center mb-3">
-                            <h4 class="text-lg font-bold text-slate-800">🔧 Activo #${articuloCount}</h4>
-                            <button type="button" onclick="eliminarArticulo(${articuloCount})" class="text-red-500 hover:text-red-700 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Nombre *</label>
-                                <input type="text" name="nombreActivo_${articuloCount}" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
-                                <select name="categoriaActivo_${articuloCount}" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="">Selecciona una categoría</option>
-                                    <option value="Instrumentos">Instrumentos</option>
-                                    <option value="Herramientas">Herramientas</option>
-                                    <option value="Equipos">Equipos</option>
-                                    <option value="Componentes">Componentes</option>
-                                    <option value="Otros">Otros</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Marca</label>
-                                <input type="text" name="marcaActivo_${articuloCount}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Modelo</label>
-                                <input type="text" name="modeloActivo_${articuloCount}" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Descripción</label>
-                            <textarea name="descripcionActivo_${articuloCount}" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
-                        </div>
-                    `;
-                }
-                
-                container.appendChild(articuloDiv);
-                showToast(`✅ Artículo #${articuloCount} agregado`, 'success');
-            }
-
-            function eliminarArticulo(id) {
-                const articulo = document.getElementById(`articulo-${id}`);
-                if (articulo) {
-                    articulo.remove();
-                    showToast(`🗑️ Artículo #${id} eliminado`, 'info');
-                }
-            }
-
-            // Manejar el envío del formulario
-            document.addEventListener('DOMContentLoaded', function() {
-                const form = document.getElementById('formAgregarInsumo');
-                // ...
-                if (form) {
-                    form.addEventListener('submit', async function(e) {
-                        e.preventDefault();
-                        
-                        const formData = {
-                            nombre: document.getElementById('nombreInsumo').value,
-                            categoria: document.getElementById('categoriaInsumo').value,
-                            cantidad: parseInt(document.getElementById('cantidadInsumo').value),
-                            unidad_medida: document.getElementById('unidadInsumo').value,
-                            stock_minimo: parseInt(document.getElementById('stockMinimo').value) || 0,
-                            ubicacion: document.getElementById('ubicacionInsumo').value,
-                            descripcion: document.getElementById('descripcionInsumo').value
-                        };
-
-                        try {
-                            const token = localStorage.getItem('utn_token');
-                            const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${token}`
-                                },
-                                body: JSON.stringify(formData)
-                            });
-
-                            if (response.ok) {
-                                showToast('✅ Insumo agregado correctamente', 'success');
-                                cerrarModalAgregarInsumo();
-                            } else {
-                                const error = await response.json();
-                                showToast(`❌ Error: ${error.message}`, 'error');
-                            }
-                        } catch (error) {
-                            console.error('Error agregando insumo:', error);
-                            showToast('❌ Error al agregar insumo', 'error');
-                        }
-                    });
-                }
-            });
-
-            // Inicialización
-            document.addEventListener('DOMContentLoaded', async () => {
-                console.log('🚀 Iniciando aplicación...');
-                
-                // Evitar múltiples inicializaciones
-                if (isInitialized) {
-                    console.log('⚠️ La aplicación ya fue inicializada, evitando doble inicialización');
-                    return;
-                }
-                
-                try {
-                    // Verificar autenticación primero
-                    console.log('🔍 Verificando autenticación...');
-                    const isAuthenticated = await checkAuthentication();
-                    
-                    console.log('📋 ¿Autenticado?', isAuthenticated);
-                    
-                    if (isAuthenticated) {
-                        // Marcar como inicializado
-                        isInitialized = true;
-                        
-                        // Cargar componentes
-                        console.log('🔧 Cargando componentes...');
-                        try {
-                            // Cargar header component
-                            const headerResponse = await fetch('components/header.html');
-                            const headerHtml = await headerResponse.text();
-                            document.getElementById('header-component').innerHTML = headerHtml;
-                            console.log('✅ Header component cargado');
-                            
-                            // IMPORTANTE: Llamar a updateUserInfo() después de cargar el header
-                            if (typeof updateUserInfo === 'function') {
-                                console.log('🔄 Llamando a updateUserInfo() desde index.html...');
-                                updateUserInfo();
-                                
-                                // Configurar eventos del dropdown después de cargar el header
-                                setTimeout(() => {
-                                    console.log('Configurando eventos del dropdown...');
-                                    const userMenuBtn = document.getElementById('user-menu-btn');
-                                    const userDropdown = document.getElementById('user-dropdown');
-                                    
-                                    console.log('Elementos encontrados:', {
-                                        userMenuBtn: !!userMenuBtn,
-                                        userDropdown: !!userDropdown,
-                                        userMenuBtnElement: userMenuBtn,
-                                        userDropdownElement: userDropdown
-                                    });
-                                    
-                                    if (userMenuBtn && userDropdown) {
-                                        console.log('Dropdown configurado correctamente');
-                                    } else {
-                                        console.log('No se encontraron elementos del dropdown');
-                                        console.log('Buscando elementos alternativos...');
-                                        
-                                        // Buscar elementos con nombres alternativos
-                                        const altUserBtn = document.querySelector('[id*="user"], [id*="menu"], [id*="dropdown"]');
-                                        const altDropdown = document.querySelector('[id*="dropdown"], .dropdown');
-                                        
-                                        console.log('Elementos alternativos encontrados:', {
-                                            altUserBtn: !!altUserBtn,
-                                            altDropdown: !!altDropdown
-                                        });
-                                    }
-                                    
-                                    if (userMenuBtn && userDropdown) {
-                                        console.log('✅ Botón y dropdown encontrados');
-                                        
-                                        // Configurar menú según rol
-                                        const userData = localStorage.getItem('utn_user');
-                                        const currentUser = userData ? JSON.parse(userData) : null;
-                                        const userRole = currentUser?.rol || currentUser?.rol_nombre || currentUser?.tipo_rol || 'Estudiante';
-                                        
-                                        console.log('👤 Rol detectado:', userRole);
-                                        
-                                        const solicitudesMenuText = document.getElementById('solicitudes-menu-text');
-                                        const solicitudesMenuDesc = document.getElementById('solicitudes-menu-desc');
-                                        const reportesMenuItem = document.getElementById('reportes-menu-item');
-                                        
-                                        // Siempre mostrar vista estudiante (sin importar el rol)
-                                        if (solicitudesMenuText) solicitudesMenuText.textContent = 'Mis Solicitudes';
-                                        if (solicitudesMenuDesc) solicitudesMenuDesc.textContent = 'Historial completo';
-                                        if (reportesMenuItem) reportesMenuItem.classList.add('hidden');
-                                        console.log('👨‍💼 Menú configurado para estudiante');
-                                        
-                                        // Remover eventos anteriores para evitar conflictos
-                                        const newBtn = userMenuBtn.cloneNode(true);
-                                        userMenuBtn.parentNode.replaceChild(newBtn, userMenuBtn);
-                                        
-                                        // Evento click para abrir/cerrar menú
-                                        newBtn.addEventListener('click', (e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            console.log('🖱️ Click en botón de usuario - EVENTO DISPARADO');
-                                            
-                                            console.log('🔍 Estado actual del dropdown:', {
-                                                hidden: userDropdown.classList.contains('hidden'),
-                                                opacity: userDropdown.classList.contains('opacity-100')
-                                            });
-                                            
-                                            if (userDropdown.classList.contains('hidden')) {
-                                                userDropdown.classList.remove('hidden');
-                                                userDropdown.classList.add('opacity-100');
-                                                console.log('📂 Menú abierto - clases:', userDropdown.className);
-                                            } else {
-                                                userDropdown.classList.add('hidden');
-                                                userDropdown.classList.remove('opacity-100');
-                                                console.log('📁 Menú cerrado - clases:', userDropdown.className);
-                                            }
-                                        });
-                                        
-                                        // Cerrar menú al hacer clic fuera
-                                        document.addEventListener('click', (e) => {
-                                            // Solo cerrar si el clic no es en el carrito
-                                            const cartBtn = document.getElementById('cartBtn');
-                                            const cartModal = document.getElementById('cartModal');
-                                            
-                                            const isClickOnCart = cartBtn && cartBtn.contains(e.target);
-                                            const isClickOnCartModal = cartModal && cartModal.contains(e.target);
-                                            
-                                            console.log('Clic detectado:', {
-                                                isClickOnCart,
-                                                isClickOnCartModal,
-                                                isClickOnUserBtn: newBtn && newBtn.contains(e.target),
-                                                isClickOnUserDropdown: userDropdown && userDropdown.contains(e.target)
-                                            });
-                                            
-                                            if (!isClickOnCart && !isClickOnCartModal && !newBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-                                                userDropdown.classList.add('hidden');
-                                                userDropdown.classList.remove('opacity-100');
-                                                console.log('Menú usuario cerrado por clic fuera');
-                                            }
-                                        });
-                                        
-                                        console.log('✅ Eventos del dropdown configurados correctamente');
-                                    } else {
-                                        console.log('❌ No se encontraron elementos del dropdown');
-                                    }
-                                }, 1000); // Aumentado a 1 segundo para asegurar carga completa
-                            } else {
-                                console.log('❌ updateUserInfo() no está disponible');
-                            }
-                        } catch (error) {
-                            console.error('❌ Error cargando header component:', error);
-                        }
-                        
-                        // Iniciar verificación de conexión a BD
-                        checkDBConnection();
-                        connectionCheckInterval = setInterval(checkDBConnection, window.CONFIG.DB_STATUS_CHECK_INTERVAL);
-                        
-                        // Configurar eventos
-                        document.getElementById('logoutBtn')?.addEventListener('click', () => {
-                            localStorage.removeItem('utn_token');
-                            localStorage.removeItem('utn_user');
-                            window.location.href = 'login.html';
-                        });
-                        
-                        // Configurar carrito directamente aquí
-                        setTimeout(() => {
-                            // Limpiar carrito global residual si existe
-                            localStorage.removeItem('cart');
-                            console.log('Carrito global residual limpiado');
-                            
-                            const cartBtn = document.getElementById('cartBtn');
-                            console.log('Botón del carrito encontrado en ModUsuarios:', !!cartBtn);
-                            
-                            if (cartBtn) {
-                                // Remover todos los eventos anteriores
-                                const newCartBtn = cartBtn.cloneNode(true);
-                                cartBtn.parentNode.replaceChild(newCartBtn, cartBtn);
-                                
-                                // Añadir nuevo evento con más depuración
-                                newCartBtn.addEventListener('click', function(e) {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    console.log('=== CLICK EN CARRITO DESDE MODUSUARIOS ===');
-                                    console.log('Evento capturado correctamente');
-                                    console.log('Target:', e.target);
-                                    
-                                    const cartModal = document.getElementById('cartModal');
-                                    console.log('Modal encontrado:', !!cartModal);
-                                    
-                                    if (cartModal) {
-                                        console.log('Abriendo modal...');
-                                        console.log('Clases antes:', cartModal.className);
-                                        
-                                        // Remover clases de ocultar
-                                        cartModal.classList.remove('opacity-0', 'pointer-events-none');
-                                        
-                                        console.log('Clases después:', cartModal.className);
-                                        
-                                        // Forzar visibilidad con estilos inline
-                                        cartModal.style.display = 'flex';
-                                        cartModal.style.opacity = '1';
-                                        cartModal.style.pointerEvents = 'auto';
-                                        cartModal.style.visibility = 'visible';
-                                        
-                                        console.log('Modal forzado a visible');
-                                        
-                                        // Cargar artículos del carrito personal
-                                        const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
-                                        const userId = user._id || user.correo_electronico || 'anonymous';
-                                        const cartKey = `cart_${btoa(userId)}`;
-                                        
-                                        let cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
-                                        console.log('Cargando carrito personal con clave:', cartKey);
-                                        console.log('Artículos encontrados:', cart);
-                                        
-                                        // Actualizar contador
-                                        const cartCount = document.getElementById('cartCount');
-                                        if (cartCount) {
-                                            cartCount.textContent = cart.length;
-                                        }
-                                        
-                                        // Cargar artículos en el modal
-                                        const cartItems = document.getElementById('cartItems');
-                                        if (cartItems) {
-                                            cartItems.innerHTML = '';
-                                            cart.forEach((item, index) => {
-                                                const itemElement = document.createElement('div');
-                                                itemElement.className = 'flex items-center justify-between p-3 bg-slate-50 rounded-lg';
-                                                itemElement.innerHTML = `
-                                                    <div class="flex items-center gap-3 flex-1">
-                                                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                                            <span class="text-lg">${item.type === 'activos' ? '📱' : '📦'}</span>
-                                                        </div>
-                                                        <div class="flex-1">
-                                                            <h4 class="font-medium text-sm text-slate-800">${item.name}</h4>
-                                                            <p class="text-xs text-slate-500">${item.type === 'activos' ? 'Activo' : 'Insumo'}</p>
-                                                            ${item.data.caracteristicas ? `<p class="text-xs text-slate-400 mt-1">${item.data.caracteristicas}</p>` : ''}
-                                                            ${item.data.descripcion ? `<p class="text-xs text-slate-400">${item.data.descripcion}</p>` : ''}
-                                                        </div>
-                                                    </div>
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="text-sm font-medium text-slate-600">Qty: ${item.quantity || 1}</span>
-                                                        <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700">
-                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                            </svg>
-                                                        </button>
-                                                    </div>
-                                                `;
-                                                cartItems.appendChild(itemElement);
-                                            });
-                                            console.log('Artículos cargados en el modal');
-                                        }
-                                        
-                                        // Actualizar total
-                                        const cartTotal = document.getElementById('cartTotal');
-                                        if (cartTotal) {
-                                            cartTotal.textContent = cart.length;
-                                        }
-                                        
-                                        console.log('Modal del carrito abierto y cargado');
-                                    } else {
-                                        console.log('ERROR: Modal no encontrado');
-                                    }
-                                });
-                                
-                                console.log('Evento del carrito configurado correctamente en ModUsuarios');
-                                
-                                // Verificar que el evento se haya añadido
-                                console.log('Event listeners del carrito:', newCartBtn.onclick ? 'onclick presente' : 'onclick ausente');
-                                
-                            } else {
-                                console.log('ERROR: No se encontró el botón del carrito');
-                            }
-                        }, 2500); // Aumentado a 2.5 segundos para asegurar que todo cargue
-                        
-                        // Configurar menú de usuario
-                        const userMenuBtn = document.getElementById('user-menu-btn');
-                        const userDropdown = document.getElementById('user-dropdown');
-                        
-                        if (userMenuBtn && userDropdown) {
-                            userMenuBtn.addEventListener('click', () => {
-                                userDropdown.classList.toggle('hidden');
-                            });
-                        }
-                        
-                        // Cerrar menú al hacer click fuera
-                        document.addEventListener('click', (e) => {
-                            if (userMenuBtn && userDropdown && !userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-                                userDropdown.classList.add('hidden');
-                            }
-                        });
-                        
-                        // Configurar carrito del header
-                        console.log('Configurando carrito del header...');
-                        const cartBtn = document.getElementById('cartBtn');
-                        console.log('Botón del carrito encontrado:', cartBtn);
-                        
-                        if (cartBtn) {
-                            cartBtn.addEventListener('click', (e) => {
-                                e.preventDefault();
-                                console.log('¡Clic detectado en carrito del header!');
-                                console.log('Función openCartModal disponible:', typeof openCartModal);
-                                openCartModal();
-                            });
-                            console.log('Evento de clic agregado al carrito');
-                        } else {
-                            console.log('No se encontró el botón del carrito');
-                        }
-                        
-                        document.getElementById('refreshBtn')?.addEventListener('click', () => {
-                            if (currentType === 'activos') {
-                                loadActivos();
-                            } else if (currentType === 'insumos') {
-                                loadInsumos();
-                            } else {
-                                loadInitialData();
-                            }
-                        });
-                        
-                        // Configurar tabs
-                        document.querySelectorAll('.tab-button').forEach(button => {
-                            button.addEventListener('click', () => {
-                                const type = button.dataset.type;
-                                currentType = type;
-                                
-                                // Actualizar estilos de tabs
-                                document.querySelectorAll('.tab-button').forEach(btn => {
-                                    btn.classList.remove('utn-blue', 'text-white');
-                                    btn.classList.add('text-slate-600', 'hover:bg-slate-50');
-                                });
-                                button.classList.add('utn-blue', 'text-white');
-                                button.classList.remove('text-slate-600', 'hover:bg-slate-50');
-                                
-                                // Cargar datos según el tipo
-                                if (type === 'activos') {
-                                    loadActivos();
-                                } else if (type === 'insumos') {
-                                    loadInsumos();
-                                }
-                            });
-                        });
-                    }
-                } catch (error) {
-                    console.error('❌ Error inicializando aplicación:', error);
-                    showToast('Error al iniciar la aplicación', 'error');
-                }
-            });
-
-            // Limpiar intervalo al salir
-            window.addEventListener('beforeunload', () => {
-                if (connectionCheckInterval) {
-                    clearInterval(connectionCheckInterval);
-                }
-            });
-
-            // Función para verificar autenticación
-            async function checkAuthentication() {
-                console.log('🔍 Iniciando checkAuthentication...');
-                
-                const token = localStorage.getItem('utn_token');
-                const userData = localStorage.getItem('utn_user');
-                
-                console.log('🔍 Datos en localStorage:', {
-                    token: token ? 'existe' : 'no existe',
-                    userData: userData ? 'existe' : 'no existe'
-                });
-                
-                if (!token || !userData) {
-                    console.log('🚫 No hay token o usuario, redirigiendo a login...');
-                    if (!window.location.pathname.includes('login.html')) {
-                        window.location.href = 'login.html';
-                    }
-                    return false;
-                }
-                
-                try {
-                    currentUser = JSON.parse(userData);
-                    console.log('👤 Usuario cargado:', currentUser);
-                    
-                    const loginPage = document.getElementById('loginPage');
-                    const mainApp = document.getElementById('mainApp');
-                    
-                    if (loginPage) loginPage.classList.add('hidden');
-                    if (mainApp) mainApp.classList.remove('hidden');
-                    
-                    updateUserInfo();
-                    startTimeUpdates();
-                    
-                    setTimeout(() => {
-                        const rol = currentUser.rol.toLowerCase();
-                        const vistaEstudiante = document.getElementById('vistaEstudiante');
-                        
-                        if (vistaEstudiante) vistaEstudiante.classList.add('hidden');
-                        
-                        // Mostrar vista para estudiantes/docentes
-                        if (vistaEstudiante) {
-                            vistaEstudiante.classList.remove('hidden');
-                            inicializarFuncionalidadEstudiante();
-                        }
-                    }, 100);
-                    
-                    await loadInitialData();
-                    return true;
-                    
-                } catch (error) {
-                    console.error('❌ Error de autenticación:', error);
-                    if (!window.location.pathname.includes('login.html')) {
-                        localStorage.removeItem('utn_token');
-                        localStorage.removeItem('utn_user');
-                        window.location.href = 'login.html';
-                    }
-                }
-            }
-
-            function startTimeUpdates() {
-                const updateDateTime = () => {
-                    const now = new Date();
-                    const dateTimeElement = document.getElementById('currentDateTime');
-                    if (dateTimeElement) {
-                        dateTimeElement.textContent = now.toLocaleString('es-CR', {
-                            weekday: 'short',
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                    }
-                };
-                updateDateTime();
-                setInterval(updateDateTime, 60000);
-            }
-
-            function inicializarFuncionalidadEstudiante() {
-                console.log('📚 Inicializando funcionalidad para estudiantes...');
-                loadInitialData();
-            }
-
-            async function loadInitialData() {
-                const vistaEstudiante = document.getElementById('vistaEstudiante');
-                const grid = vistaEstudiante ? vistaEstudiante.querySelector('#itemsGrid') : document.getElementById('itemsGrid');
-                
-                if (grid) {
-                    grid.innerHTML = `
-                        <div class="col-span-full text-center py-12">
-                            <div class="text-4xl mb-4">🔧</div>
-                            <h3 class="text-lg font-medium text-slate-600 mb-2">Cargando...</h3>
-                            <p class="text-sm text-slate-400">Espera un momento...</p>
-                        </div>
-                    `;
-                }
-            }
-
-            // Limpiar intervalo al salir
-            window.addEventListener('beforeunload', () => {
-                if (connectionCheckInterval) {
-                    clearInterval(connectionCheckInterval);
-                }
-            });
-
-            // Actualizar UI del carrito
-            function updateCartUI() {
-                const cartCount = document.getElementById('cartCount');
-                const cartItems = document.getElementById('cartItems');
-                const cartTotal = document.getElementById('cartTotal');
-                
-                if (!cartCount || !cartItems || !cartTotal) {
-                    console.log('❌ Elementos del carrito no encontrados');
-                    return;
-                }
-                
-                // Actualizar contador
-                cartCount.textContent = cart.length;
-                
-                // Actualizar lista de items
-                cartItems.innerHTML = '';
-                cart.forEach((item, index) => {
-                    const itemElement = document.createElement('div');
-                    itemElement.className = 'flex items-center justify-between p-3 bg-slate-50 rounded-lg';
-                    itemElement.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <span class="text-lg">${item.type === 'activos' ? '🔧' : '📦'}</span>
-                            </div>
-                            <div>
-                                <h4 class="font-medium text-sm text-slate-800">${item.name}</h4>
-                                <p class="text-xs text-slate-500">${item.type === 'activos' ? 'Activo' : 'Insumo'}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="flex items-center bg-white border border-slate-200 rounded-lg">
-                                <button onclick="decreaseQuantity(${index})" class="p-1 hover:bg-slate-100 rounded-l-lg transition-colors">
-                                    <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                                    </svg>
-                                </button>
-                                <span class="px-3 py-1 text-sm font-medium text-slate-700 min-w-[40px] text-center">${item.quantity}</span>
-                                <button onclick="increaseQuantity(${index})" class="p-1 hover:bg-slate-100 rounded-r-lg transition-colors">
-                                    <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                            <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    `;
-                    cartItems.appendChild(itemElement);
-                });
-                
-                // Actualizar total (contar items individuales)
-                cartTotal.textContent = cart.length;
-            }
-            
-            // Funciones para manejar cantidades
-            function increaseQuantity(index) {
-                cart[index].quantity = (cart[index].quantity || 1) + 1;
-                updateCartUI();
-            }
-            
-            function decreaseQuantity(index) {
-                if (cart[index].quantity > 1) {
-                    cart[index].quantity -= 1;
-                    updateCartUI();
-                }
-            }
-            
-            // Eliminar del carrito
-            function removeFromCart(index) {
-                const removedItem = cart[index];
-                cart.splice(index, 1);
-                updateCartUI();
-                showToast(`Eliminado: ${removedItem.name}`, 'info');
-            }
-            
-            // Función para confirmar pedido
-            async function confirmarPedido() {
-                console.log('Iniciando confirmarPedido...');
-                
-                try {
-                    // Obtener los datos del carrito
-                    const cartItems = getCartItems();
-                    console.log('Items en carrito:', cartItems);
-                    
-                    if (!cartItems || cartItems.length === 0) {
-                        showToast('El carrito está vacío', 'error');
-                        return;
-                    }
-                    
-                    // Preparar datos para el backend
-                    const solicitudData = {
-                        activos: [], // Por ahora solo insumos
-                        insumos: cartItems.map(item => ({
-                            id_insumo: item._id || item.id, // Usar el ID del insumo
-                            cantidad: item.cantidad || 1,
-                            caracteristicas: item.caracteristicas || '',
-                            descripcion: item.descripcion || ''
-                        })),
-                        fecha_entrega_esperada: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 días desde hoy
-                    };
-                    
-                    console.log('Datos a enviar:', solicitudData);
-                    
-                    // Enviar al backend
-                    const response = await fetch(`${CONFIG.API_BASE_URL}/solicitudes`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('utn_token')}`
-                        },
-                        body: JSON.stringify(solicitudData)
-                    });
-                    
-                    if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.message || 'Error al crear solicitud');
-                    }
-                    
-                    const result = await response.json();
-                    console.log('Solicitud creada:', result);
-                    
-                    showToast('Solicitud enviada correctamente', 'success');
-                    closeCartModal();
-                    clearCart(); // Limpiar carrito después de enviar
-                    
-                    // Redirigir a la página de solicitudes después de un momento
-                    setTimeout(() => {
-                        window.location.href = 'solicitudes.html';
-                    }, 2000);
-                    
-                } catch (error) {
-                    console.error('Error en confirmarPedido:', error);
-                    showToast(`Error: ${error.message}`, 'error');
-                }
-            }
-            
-            // Funciones para manejar cantidades
-            function increaseQuantity(index) {
-                cart[index].quantity += 1;
-                updateCartUI();
-                const itemName = cart[index].name;
-                showToast(`➕ ${itemName} (${cart[index].quantity})`, 'success');
-            }
-            
-            function decreaseQuantity(index) {
-                if (cart[index].quantity > 1) {
-                    cart[index].quantity -= 1;
-                    updateCartUI();
-                    const itemName = cart[index].name;
-                    showToast(`➖ ${itemName} (${cart[index].quantity})`, 'success');
-                } else {
-                    // Si la cantidad es 1, eliminar el item
-                    removeFromCart(index);
-                }
-            }
-            
-            // Vaciar carrito
-            function clearCart() {
-                if (cart.length === 0) {
-                    showToast('🛒 El carrito ya está vacío', 'info');
-                    return;
-                }
-                
-                cart = [];
-                updateCartUI();
-                showToast('🗑️ Carrito vaciado', 'success');
-            }
-            
-            // Obtener items del carrito (para confirmarPedido)
-            function getCartItems() {
-                return cart.map(item => ({
-                    ...item.data,
-                    cantidad: item.quantity,
-                    _id: item.data._id,
-                    nombre_insumo: item.name,
-                    caracteristicas: item.data.caracteristicas || '',
-                    descripcion: item.data.descripcion || ''
-                }));
-            }
-            
-            // Abrir modal del carrito
-            function openCartModal() {
-                console.log('openCartModal() llamada');
-                const modal = document.getElementById('cartModal');
-                console.log('Modal encontrado:', modal);
-                
-                if (modal) {
-                    console.log('Clases del modal antes:', modal.className);
-                    modal.classList.remove('opacity-0', 'pointer-events-none');
-                    console.log('Clases del modal después:', modal.className);
-                    updateCartUI();
-                    console.log('Modal del carrito abierto');
-                } else {
-                    console.log('ERROR: No se encontró el modal del carrito');
-                }
-            }
-            
-            // Cerrar modal del carrito
-            function closeCartModal() {
-                const modal = document.getElementById('cartModal');
-                if (modal) {
-                    console.log('Modal cerrado con X');
-                    console.log('Clases antes:', modal.className);
-                    
-                    // Remover clases
-                    modal.classList.add('opacity-0', 'pointer-events-none');
-                    
-                    // Forzar con estilos inline
-                    modal.style.display = 'none';
-                    modal.style.opacity = '0';
-                    modal.style.pointerEvents = 'none';
-                    modal.style.visibility = 'hidden';
-                    
-                    console.log('Clases después:', modal.className);
-                    console.log('Estilos inline aplicados');
-                }
-            }
-            
-            // Hacer la función global
-            window.closeCartModal = closeCartModal;
-            
-            // Cerrar modal al hacer click fuera
-            document.addEventListener('click', (e) => {
-                const cartModal = document.getElementById('cartModal');
-                const cartBtn = document.getElementById('cartBtn');
-                
-                // Solo cerrar si el modal está visible y el clic es fuera
-                if (cartModal && cartBtn && 
-                    !cartModal.classList.contains('opacity-0') && // Modal está visible
-                    !cartModal.contains(e.target) && 
-                    !cartBtn.contains(e.target)) {
-                    console.log('Cerrando modal por clic fuera');
-                    closeCartModal();
-                }
-            });
-        </script>
-</body>
-    
-    <!-- FOOTER COMPONENT -->
-    <div id="footer-component"></div>
-    
-    <!-- Carga del Footer Component -->
-    <script>
-        // Función para cargar el footer
-        async function loadFooter() {
-            console.log('🔄 Iniciando carga del footer...');
-            
-            try {
-                const footerElement = document.getElementById('footer-component');
-                if (!footerElement) {
-                    console.error('❌ Elemento footer-component no encontrado');
-                    return;
-                }
-                
-                console.log('📡 Haciendo fetch a components/footer.html...');
-                const footerResponse = await fetch('components/footer.html');
-                
-                if (!footerResponse.ok) {
-                    console.error('❌ Error en la respuesta:', footerResponse.status, footerResponse.statusText);
-                    throw new Error(`Error ${footerResponse.status}: ${footerResponse.statusText}`);
-                }
-                
-                const footerHtml = await footerResponse.text();
-                console.log('📄 Footer HTML recibido, longitud:', footerHtml.length);
-                console.log('📄 Preview del footer:', footerHtml.substring(0, 200) + '...');
-                
-                footerElement.innerHTML = footerHtml;
-                console.log('✅ Footer component cargado exitosamente');
-                console.log('✅ Footer insertado en el DOM correctamente');
-                
-            } catch (error) {
-                console.error('❌ Error cargando footer component:', error);
-                console.error('❌ Detalles del error:', error.message, error.stack);
-                
-                // Footer de respaldo si falla la carga
-                const footerElement = document.getElementById('footer-component');
-                if (footerElement) {
-                    footerElement.innerHTML = `
-                        <footer class="bg-slate-900 text-white py-4">
-                            <div class="container mx-auto px-6 text-center">
-                                <p class="text-sm text-slate-400">
-                                    &copy; 2024 Universidad Técnica Nacional - Sistema de Gestión de Laboratorio
-                                </p>
-                            </div>
-                        </footer>
-                    `;
-                    console.log('🔄 Footer de respaldo cargado');
-                }
-            }
-        }
-        
-        // Cargar footer cuando el DOM esté listo
-        console.log('🔧 Configurando carga del footer...');
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('📋 DOMContentLoaded - Iniciando carga del footer...');
-            loadFooter();
-        });
-    </script>
-</body>
-
-<!-- 🔥 FOOTER COMPONENT -->
+<!-- -"-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--" -->
+<!-- -"              FOOTER COMPONENT                       -" -->
+<!-- -"a-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"- -->
 <div id="footer-component"></div>
 
-<script>
-    // 🔥 CARGAR COMPONENTES
-    async function loadComponents() {
-        try {
-            console.log('🔄 Iniciando carga de componentes...');
-            
-            // Cargar header
-            console.log('📡 Cargando header desde ../components/header.html...');
-            const headerResponse = await fetch('../components/header.html');
-            if (!headerResponse.ok) {
-                throw new Error(`Error cargando header: ${headerResponse.status}`);
-            }
-            const headerContent = await headerResponse.text();
-            document.getElementById('header-component').innerHTML = headerContent;
-            console.log('✅ Header component cargado');
-            
-            // Cargar footer
-            console.log('📡 Cargando footer desde ../components/footer.html...');
-            const footerResponse = await fetch('../components/footer.html');
-            if (!footerResponse.ok) {
-                throw new Error(`Error cargando footer: ${footerResponse.status}`);
-            }
-            const footerContent = await footerResponse.text();
-            document.getElementById('footer-component').innerHTML = footerContent;
-            console.log('✅ Footer component cargado');
-            
-            console.log('✅ Componentes cargados correctamente');
-        } catch (error) {
-            console.error('❌ Error cargando componentes:', error);
-            
-            // Componentes de respaldo
-            const headerElement = document.getElementById('header-component');
-            const footerElement = document.getElementById('footer-component');
-            
-            if (headerElement) {
-                headerElement.innerHTML = `
-                    <header class="bg-blue-600 text-white py-4">
-                        <div class="container mx-auto px-6">
-                            <h1 class="text-xl font-bold">SPIEE-SP</h1>
-                        </div>
-                    </header>
-                `;
-            }
-            
-            if (footerElement) {
-                footerElement.innerHTML = `
-                    <footer class="bg-slate-900 text-white py-4">
-                        <div class="container mx-auto px-6 text-center">
-                            <p class="text-sm text-slate-400">
-                                &copy; 2024 Universidad Técnica Nacional - Sistema de Gestión de Laboratorio
-                            </p>
-                        </div>
-                    </footer>
-                `;
-            }
-            
-            console.log('🔄 Componentes de respaldo cargados');
-        }
-    }
-    
-    // Cargar componentes cuando el DOM esté listo
-    document.addEventListener('DOMContentLoaded', loadComponents);
-</script>
+<!-- -"-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--" -->
+<!-- -"              MODAL: CARRITO                         -" -->
+<!-- -"a-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"- -->
+        <!-- El carrito se inyecta dinámicamente desde components.js -->
 
-<!-- Función para enviar solicitud -->
+
+<!-- -"-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--" -->
+<!-- -"           MODAL: DETALLE DE ÍTEM                    -" -->
+<!-- -"a-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"- -->
+<div id="detalleModal" class="modal-overlay" onclick="if(event.target===this)closeDetalleModal()">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
+        <div id="detalleModalContent"></div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[9999]">
+    <div class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
+        <span id="toastMsg">-S Operación exitosa</span>
+    </div>
+</div>
+
+<!-- -"-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--" -->
+<!-- -"                 SCRIPTS                             -" -->
+<!-- -"a-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"- -->
+<script src="../js/app.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/components.js"></script>
+<script src="../js/pages/usuarios.js"></script>
+<script src="../js/pages/estudiante-dashboard.js"></script>
+
 <script>
-function sendRequest() {
-    console.log('sendRequest llamada');
-    
-    // Obtener usuario actual y carrito personal con clave única
-    const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
-    const userId = user._id || user.correo_electronico || 'anonymous';
-    const cartKey = `cart_${btoa(userId)}`;
-    
-    let cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
-    
-    console.log('sendRequest llamada con carrito personal:', cart);
-    console.log('Clave utilizada:', cartKey);
-    
-    if (cart.length === 0) {
-        alert('El carrito está vacío');
-        return;
+/* ------ Inicialización General ---------------------------------------------------------------------------------------------- */
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Verificar autenticación
+    const user = JSON.parse(localStorage.getItem('utn_user') || 'null');
+    if (!user) { window.location.href = '../login.html'; return; }
+
+    // 2. Info cargada globalmente en el header de user (saltamos el footer porque components.js se encarga)
+    // 3. Actualizar info de usuario en el header interno banner
+    const nombre = user.nombre_completo || user.nombre || 'Estudiante';
+    const primerNombre = nombre.split(' ')[0];
+    const iniciales = nombre.trim().split(/\s+/).slice(0,2).map(p=>p[0]).join('').toUpperCase();
+
+    const el = id => document.getElementById(id);
+    if (el('nombre_completo'))  el('nombre_completo').textContent  = primerNombre;
+    if (el('userMenuName'))     el('userMenuName').textContent     = primerNombre;
+    if (el('dropdownUserName')) el('dropdownUserName').textContent = nombre;
+    const rolLabel = (user.rol || 'Estudiante');
+    if (el('dropdownUserRole')) el('dropdownUserRole').textContent = rolLabel.charAt(0).toUpperCase() + rolLabel.slice(1);
+    document.querySelectorAll('.user-initials').forEach(e => e.textContent = iniciales);
+
+    // 4. Mostrar app y ocultar loader
+    document.getElementById('loadingScreen').classList.add('hidden');
+
+    // 5. Iniciar el controlador de inventario
+    // La clase IndexController está en usuarios.js - la instanciamos directamente
+    if (typeof IndexController !== 'undefined') {
+        window.indexController = new IndexController();
+    } else {
+        console.error('IndexController no encontrado en usuarios.js');
     }
-    
-    try {
-        // Obtener usuario actual
-        const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
-        
-        console.log('=== ENVIANDO SOLICITUD ===');
-        console.log('Usuario:', user);
-        console.log('Carrito:', cart);
-        
-        const insumos = cart.filter(item => item.type === 'insumo').map(item => ({
-            id_insumo: item.data._id?.toString() || item.data.id?.toString() || item.data.id_insumo?.toString() || '',
-            cantidad: item.quantity || 1,
-            caracteristicas: item.data.caracteristicas || item.data.descripcion || '',
-            descripcion: item.data.descripcion || item.data.caracteristicas || ''
-        }));
-        
-        console.log('Insumos:', insumos);
-        
-        // Preparar datos de la solicitud
-        const requestData = {
-            usuario_solicitante: user.nombre_completo || user.correo_electronico || 'Usuario',
-            correo_solicitante: user.correo_electronico || 'usuario@example.com',
-            cedula_solicitante: user.cedula || user.numero_documento || 'N/A',
-            nombre_completo: user.nombre_completo || 'N/A',
-            activos: [],
-            insumos: insumos,
-            estado: 'pendiente',
-            fecha_solicitud: new Date().toISOString(),
-            observaciones: `Solicitud generada desde el carrito con ${cart.length} items` 
-        };
-        
-        console.log('Datos a enviar:', requestData);
-        console.log('Token de autenticación:', localStorage.getItem('utn_token'));
-        console.log('Usuario completo:', user);
-        
-        // Enviar a la API
-        fetch(`${CONFIG.API_BASE_URL}/solicitudes`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('utn_token')}`
-            },
-            body: JSON.stringify(requestData)
-        })
-        .then(response => {
-            console.log('Respuesta del servidor:', response.status, response.statusText);
-            console.log('Headers de respuesta:', response.headers);
-            
-            if (!response.ok) {
-                // Intentar obtener el error del cuerpo
-                return response.text().then(text => {
-                    console.log('Error response body:', text);
-                    try {
-                        const errorData = JSON.parse(text);
-                        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
-                    } catch (e) {
-                        throw new Error(`Error ${response.status}: ${response.statusText} - ${text}`);
-                    }
-                });
-            }
-            return response.json();
-        })
-        .then(result => {
-            console.log('Solicitud creada:', result);
-            alert('Solicitud enviada correctamente');
-            
-            // Cerrar modal
-            const modal = document.getElementById('cartModal');
-            if (modal) {
-                modal.classList.add('opacity-0', 'pointer-events-none');
-            }
-            
-            // Limpiar carrito personal
-            localStorage.setItem(cartKey, JSON.stringify([]));
-            
-            // Actualizar contador
-            const cartCount = document.getElementById('cartCount');
-            if (cartCount) {
-                cartCount.textContent = '0';
-            }
-            
-            // Redirigir a solicitudes.html
-            console.log('Redirigiendo a solicitudes.html...');
-            setTimeout(() => {
-                window.location.href = 'solicitudes.html';
-            }, 1000);
-        })
-        .catch(error => {
-            console.error('Error en sendRequest:', error);
-            alert(`Error: ${error.message}`);
-        });
-        
-    } catch (error) {
-        console.error('Error en sendRequest:', error);
-        alert(`Error: ${error.message}`);
+
+    // 6. Inicializar módulo del estudiante (stats, notificaciones, bloqueos)
+    if (window.estDash) {
+        window.estDash.inicializar();
+    }
+
+    // 7. Fijar fecha mínima del carrito
+    const manana = new Date();
+    manana.setDate(manana.getDate() + 1);
+    const min = manana.toISOString().split('T')[0];
+    const fechaInput = el('solicitud-fecha-dev');
+    if (fechaInput) { fechaInput.min = min; }
+
+    // 8. Sombra en la barra de filtros cuando se desliza
+    window.addEventListener('scroll', () => {
+        const bar = el('filter-bar');
+        if (!bar) return;
+        bar.classList.toggle('scrolled', window.scrollY > 80);
+    });
+});
+
+/* ------ Menú de notificaciones (click fuera para cerrar) ------------------------------------------------------ */
+document.addEventListener('click', (e) => {
+    // Cerrar panel de notificaciones
+    const notifPanel = document.getElementById('notif-panel');
+    const notifBtn = document.getElementById('notif-btn');
+    if (notifPanel && notifBtn && !notifPanel.contains(e.target) && !notifBtn.contains(e.target)) {
+        notifPanel.classList.remove('open');
+    }
+});
+
+
+/* ------ Panel de Notificaciones ---------------------------------------------------------------------------------------------- */
+function toggleNotifPanel(e) {
+    if (e) e.stopPropagation();
+    const panel = document.getElementById('notif-panel');
+    if (!panel) return;
+    const opening = !panel.classList.contains('open');
+    panel.classList.toggle('open');
+    if (opening && window.estDash) {
+        window.estDash.renderizarNotificaciones();
     }
 }
 
-// Función para eliminar del carrito personal
-window.removeFromCart = function(index) {
-    const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
-    const userId = user._id || user.correo_electronico || 'anonymous';
-    const cartKey = `cart_${btoa(userId)}`;
-    
-    let cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
-    const removedItem = cart[index];
-    cart.splice(index, 1);
-    localStorage.setItem(cartKey, JSON.stringify(cart));
-    
-    console.log('ModUsuarios - Artículo eliminado del carrito personal:', cartKey);
-    
-    // Actualizar UI
-    const cartCount = document.getElementById('cartCount');
-    if (cartCount) {
-        cartCount.textContent = cart.length;
-    }
-    
-    // Recargar artículos del modal
-    const cartModal = document.getElementById('cartModal');
-    if (cartModal && !cartModal.classList.contains('opacity-0')) {
-        // Si el modal está abierto, recargar los artículos
-        const cartItems = document.getElementById('cartItems');
-        if (cartItems) {
-            cartItems.innerHTML = '';
-            cart.forEach((item, idx) => {
-                const itemElement = document.createElement('div');
-                itemElement.className = 'flex items-center justify-between p-3 bg-slate-50 rounded-lg';
-                itemElement.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <span class="text-lg">${item.type === 'activos' ? ' ' : ' '}</span>
-                        </div>
-                        <div>
-                            <h4 class="font-medium text-sm text-slate-800">${item.name}</h4>
-                            <p class="text-xs text-slate-500">${item.type === 'activos' ? 'Activo' : 'Insumo'}</p>
-                        </div>
-                    </div>
-                    <button onclick="removeFromCart(${idx})" class="text-red-500 hover:text-red-700">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                    </button>
-                `;
-                cartItems.appendChild(itemElement);
-            });
-        }
-    }
-    
-    if (window.Utils && window.Utils.showToast) {
-        window.Utils.showToast(`${removedItem.name} eliminado`, 'info');
-    }
-};
+/* ------ Modal Detalle de Ítem ------------------------------------------------------------------------------------------------ */
+function abrirDetalleItem(item) {
+    const modal = document.getElementById('detalleModal');
+    const content = document.getElementById('detalleModalContent');
+    if (!modal || !content) return;
 
-// Función para vaciar carrito personal
-window.clearCart = function() {
-    const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
-    const userId = user._id || user.correo_electronico || 'anonymous';
-    const cartKey = `cart_${btoa(userId)}`;
-    
-    const cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
-    
-    console.log('ModUsuarios - Vaciando carrito personal:', cartKey);
-    
-    if (cart.length === 0) {
-        if (window.Utils && window.Utils.showToast) {
-            window.Utils.showToast('Tu carrito ya está vacío', 'info');
-        }
-        return;
-    }
-    
-    localStorage.setItem(cartKey, JSON.stringify([]));
-    
-    // Actualizar UI
-    const cartCount = document.getElementById('cartCount');
-    if (cartCount) {
-        cartCount.textContent = '0';
-    }
-    
-    // Vaciar lista del modal
-    const cartItems = document.getElementById('cartItems');
-    if (cartItems) {
-        cartItems.innerHTML = '';
-    }
-    
-    if (window.Utils && window.Utils.showToast) {
-        window.Utils.showToast('Carrito vaciado', 'success');
-    }
-};
+    const tipo = item.tipo || 'insumo';
+    const nombre = tipo === 'activo'
+        ? (`${item.marca || ''} ${item.modelo || ''}`).trim() || 'Sin nombre'
+        : (item.nombre || item.NombProducto || 'Sin nombre');
+    const cantidad = tipo === 'activo'
+        ? (item.cantidad ?? 1)
+        : (item.cantidad ?? item.stock_actual ?? 0);
+    const categoria = item.categoria || 'General';
+    const codigo = item.numActivo || item.codigo_insumo || item.codigo || 'N/A';
+    const descripcion = item.caracteristicas || item.descripcion || 'Sin descripción disponible.';
+
+    const stockCfg = cantidad <= 0
+        ? { cls: 'bg-red-100 text-red-700', txt: 'Sin stock' }
+        : cantidad <= 5
+            ? { cls: 'bg-amber-100 text-amber-700', txt: 'Bajo stock' }
+            : { cls: 'bg-emerald-100 text-emerald-700', txt: 'Disponible' };
+
+    const imgUrl = item.imagenUrl || '';
+    const hasImg = imgUrl && !imgUrl.includes('placeholder');
+
+    content.innerHTML = `
+        <div class="relative h-48 bg-slate-900 group">
+            ${hasImg ? `<img src="${imgUrl}" class="w-full h-full object-cover opacity-80 cursor-zoom-in transition-opacity hover:opacity-100" onclick="window.verImagenCompleta(this.src, '${nombre}')" title="Hacer clic para ampliar">` : `<div class="w-full h-full bg-gradient-to-br from-[#002D62] to-[#004daa] flex items-center justify-center"><svg class="w-16 h-16 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-5 flex flex-col justify-end">
+                <div class="flex justify-between items-start mb-1 absolute top-5 left-5 right-5">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-blue-200">${tipo === 'activo' ? '-x- Activo' : '-x- Consumible'} · ${categoria}</span>
+                    <button onclick="closeDetalleModal()" class="w-7 h-7 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center transition">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <h3 class="text-xl font-black leading-snug text-white">${nombre}</h3>
+                <p class="text-blue-100/70 text-xs mt-1">Código: ${codigo}</p>
+            </div>
+        </div>
+        <div class="p-5 space-y-4">
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${stockCfg.cls}">${stockCfg.txt}</span>
+                <span class="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${tipo === 'activo' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}">${tipo === 'activo' ? 'Retornable' : 'Consumible'}</span>
+                <span class="text-xs font-bold text-slate-500">Stock disponible: <strong class="text-slate-800">${cantidad}</strong></span>
+            </div>
+            ${tipo === 'activo' ? `
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-50 rounded-xl p-3">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Marca</p>
+                    <p class="font-bold text-slate-700 text-sm">${item.marca || 'N/A'}</p>
+                </div>
+                <div class="bg-slate-50 rounded-xl p-3">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Modelo</p>
+                    <p class="font-bold text-slate-700 text-sm">${item.modelo || 'N/A'}</p>
+                </div>
+            </div>` : ''}
+            <div class="bg-slate-50 rounded-xl p-4">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Descripción</p>
+                <p class="text-sm text-slate-600 leading-relaxed">${descripcion}</p>
+            </div>
+            <div class="flex gap-2 pt-1">
+                ${cantidad <= 0
+                    ? `<button onclick="closeDetalleModal(); window.estDash?.entrarListaEspera('${item._id}')"
+                            class="flex-1 py-3 border-2 border-utn-blue text-utn-blue font-black text-sm rounded-xl hover:bg-blue-50 transition">
+                            Lista de Espera
+                       </button>`
+                    : `<button onclick="closeDetalleModal(); addToCarritoDesdeDetalle(${JSON.stringify(item).replace(/"/g,'&quot;')}, this)"
+                            class="flex-1 py-3 bg-utn-blue text-white font-black text-sm rounded-xl hover:bg-utn-dark transition shadow-md">
+                            Añadir al Carrito
+                       </button>`
+                }
+                <button onclick="closeDetalleModal()"
+                    class="px-4 py-3 bg-slate-100 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-200 transition">
+                    Cerrar
+                </button>
+            </div>
+        </div>`;
+
+    modal.classList.add('open');
+}
+
+function addToCarritoDesdeDetalle(item, btn) {
+    const tipo = item.tipo || 'insumo';
+    const nombre = tipo === 'activo'
+        ? (`${item.marca||''} ${item.modelo||''}`).trim() || 'Sin nombre'
+        : (item.nombre || item.NombProducto || 'Sin nombre');
+    addToCart(nombre, tipo, item, btn);
+}
+
+function closeDetalleModal() {
+    document.getElementById('detalleModal')?.classList.remove('open');
+}
+
+/* ------ Abrir/Cerrar modal del carrito ------------------------------------------------------------------------------ */
+function openCartModal() {
+    updateCartUI();
+    // Fijar fecha mínima = mañana
+    const manana = new Date();
+    manana.setDate(manana.getDate() + 1);
+    const min = manana.toISOString().split('T')[0];
+    const fechaInput = document.getElementById('solicitud-fecha-dev');
+    if (fechaInput) { fechaInput.min = min; if (!fechaInput.value) fechaInput.value = min; }
+    document.getElementById('cartModal')?.classList.add('open');
+}
+
+function closeCartModal() {
+    document.getElementById('cartModal')?.classList.remove('open');
+}
+
+/* ------ Función global showToast (si no existe en app.js) -------------------------------------- */
+if (typeof showToast === 'undefined') {
+    window.showToast = function(msg, type='success') {
+        if (window.Utils?.showToast) { window.Utils.showToast(msg, type); return; }
+        const t = document.getElementById('toast');
+        const m = document.getElementById('toastMsg');
+        if (!t || !m) return;
+        m.textContent = msg;
+        const bg = type === 'error' ? 'bg-red-700' : type === 'warning' ? 'bg-amber-600' : 'bg-slate-900';
+        t.firstElementChild.className = `${bg} text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold`;
+        t.classList.remove('translate-y-20','opacity-0');
+        t.classList.add('translate-y-0','opacity-100');
+        setTimeout(()=>{ t.classList.add('translate-y-20','opacity-0'); t.classList.remove('translate-y-0','opacity-100'); }, 3000);
+    };
+}
 </script>
+</body>
 </html>

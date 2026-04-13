@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UTN - Portal de Acceso</title>
+    <meta
+      name="description"
+      content="Portal de acceso al sistema de gestión UTN" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="css/UTN.jpg" />
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css" />
+    <script>
+      // Silenciar alerta de Tailwind CDN para evitar ruido en consola
+      const originalWarn = console.warn;
+      console.warn = function() {
+        if (arguments[0] && arguments[0].includes('cdn.tailwindcss.com should not be used in production')) return;
+        originalWarn.apply(console, arguments);
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { utn: { blue: '#002D62', dark: '#001A33', gold: '#F2A900' } }
+                }
+            }
+        }
+    </script>
+  
+    <!-- SweetAlert2 --><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+  <body class="text-slate-800 bg-slate-50 flex items-center justify-center min-h-screen p-4 font-sans">
+    <!-- PANTALLA DE LOGIN SPLIT-SCREEN FULLSCREEN -->
+    <div id="loginPage" class="flex min-h-screen w-full overflow-hidden bg-white fade-in relative z-10">
+      
+        <!-- Panel Lateral Izquierdo (Branding Institucional) -->
+        <div class="hidden lg:flex flex-col justify-center items-center w-[40%] xl:w-[45%] bg-utn-blue text-white p-12 relative overflow-hidden shadow-[10px_0_30px_rgba(0,0,0,0.1)] z-20">
+            <!-- Decorative elements -->
+            <div class="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-utn-gold opacity-10 rounded-full blur-3xl z-0 pointer-events-none"></div>
+            <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-white opacity-5 rounded-full blur-3xl z-0 pointer-events-none"></div>
+            
+            <div class="bg-white p-4 rounded-full mb-8 shadow-2xl z-10 transform hover:scale-105 transition-transform duration-500">
+                <img src="css/UTN.jpg" alt="UTN Logo" class="w-24 h-24 object-contain">
+            </div>
+            
+            <h2 class="text-3xl xl:text-4xl font-bold text-center z-10 leading-tight mb-2">Sistema de Electrónica</h2>
+            <div class="w-16 h-1.5 bg-utn-gold my-6 z-10 rounded-full"></div>
+            <p class="text-blue-100 text-lg text-center font-medium z-10 max-w-md">Control Institucional de Activos e Insumos Universitarios</p>
+            
+            <div class="absolute bottom-10 z-10 text-xs text-blue-300/80 font-bold tracking-widest uppercase">
+                Universidad Técnica Nacional
+            </div>
+        </div>
+
+        <!-- Panel Derecho (Formulario de Acceso) -->
+        <div class="w-full lg:w-[60%] xl:w-[55%] flex flex-col justify-center px-8 sm:px-16 md:px-24 xl:px-32 py-12 relative h-full min-h-screen overflow-y-auto">
+            
+            <div class="w-full max-w-lg mx-auto">
+                <div class="mb-10 text-left">
+                    <h3 class="text-4xl font-extrabold text-utn-blue mb-3 tracking-tight">Iniciar Sesión</h3>
+                    <p class="text-slate-500 text-base font-medium">Ingrese sus credenciales universitarias</p>
+                </div>
+
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Correo Institucional</label>
+                        <input type="text" id="userInput" placeholder="estudiante@utn.ac.cr" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-utn-blue/10 focus:border-utn-blue focus:bg-white outline-none transition-all text-base text-slate-800 font-medium" required />
+                    </div>
+                    
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Contraseña</label>
+                        <input type="password" id="passInput" placeholder="⬢⬢⬢⬢⬢⬢⬢⬢" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-utn-blue/10 focus:border-utn-blue focus:bg-white outline-none transition-all text-base text-slate-800 font-medium" required />
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" id="loginBtn" class="w-full bg-utn-blue hover:bg-utn-dark text-white py-4 rounded-xl font-bold text-sm tracking-widest uppercase shadow-lg shadow-utn-blue/20 active:scale-[0.98] transition-all flex justify-center items-center gap-3">
+                            <span>Acceder al Sistema</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
+                    
+                    <div class="pt-8 mt-8 border-t border-slate-100 flex flex-col items-center">
+                        <p class="text-sm text-slate-500 font-medium mb-3">¿Aún no tiene un usuario?</p>
+                        <button type="button" onclick="goToSignUp()" class="text-utn-blue font-bold text-sm hover:text-utn-gold transition-colors bg-transparent border-b-2 border-transparent hover:border-utn-gold pb-1 px-1">
+                            Crear Cuenta Nueva
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="lg:hidden text-center mt-12 mb-4 text-xs text-slate-400 font-bold tracking-widest uppercase">
+                Universidad Técnica Nacional
+            </div>
+        </div>
+
+    </div>
+
+    <!-- INDICADOR DE CONEXI�N -->
+    <div
+      id="connectionStatus"
+      class="fixed top-4 right-4 z-[300] flex items-center gap-2 bg-white px-3 py-2 rounded-full shadow-md border border-slate-200 text-xs">
+      <div
+        id="dbIndicator"
+        class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+      <span id="dbStatus">Verificando conexión...</span>
+    </div>
+
+    <!-- TOAST DE NOTIFICACIONES -->
+    <div
+      id="toast"
+      class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
+      <div
+        class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
+        <span id="toastMsg">Operación Exitosa</span>
+      </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+      // Configuración global - dinámica para IP en red local
+      const CONFIG = {
+        API_BASE_URL: `http://${window.location.hostname}:4000/api`,
+        DB_STATUS_CHECK_INTERVAL: 30000 // 30 segundos
+      };
+      // Estado de conexión
+      let dbConnected = false;
+      let connectionCheckInterval;
+
+      // Función para mostrar notificaciones
+      function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+        
+        toastMsg.textContent = message;
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        
+        setTimeout(() => {
+          toast.classList.add('translate-y-20', 'opacity-0');
+        }, 3000);
+      }
+
+      // Función para verificar conexión a la base de datos
+        async function checkDBConnection() {
+            const indicator = document.getElementById('dbIndicator');
+            const status = document.getElementById('dbStatus');
+            
+            try {
+                // Verificar si el servidor está corriendo (endpoint público)
+                const response = await fetch(`${CONFIG.API_BASE_URL}/usuarios/login`, {
+                    method: 'OPTIONS',
+                    timeout: 5000
+                });
+                
+                // Si el servidor responde, asumimos que la BD está conectada
+                indicator.classList.remove('bg-yellow-500', 'bg-red-500', 'animate-pulse');
+                indicator.classList.add('bg-green-500');
+                status.textContent = 'Conectado a MongoDB';
+                dbConnected = true;
+                
+            } catch (error) {
+                indicator.classList.remove('bg-yellow-500', 'bg-green-500', 'animate-pulse');
+                indicator.classList.add('bg-red-500');
+                status.textContent = 'Sin conexión a BD';
+                dbConnected = false;
+            }
+        }
+
+      // Función de login
+      async function handleLogin(credentials) {
+        const loginBtn = document.getElementById('loginBtn');
+        
+        try {
+          // Loading state
+          loginBtn.disabled = true;
+          loginBtn.textContent = 'Iniciando sesión...';
+          
+          // Convertir cédula a email si es necesario
+          let correoElectronico = credentials.correo_electronico;
+          if (/^\d{9,12}$/.test(correoElectronico)) {
+            correoElectronico = `${correoElectronico}@utn.ac.cr`;
+          }
+
+          const loginData = {
+            correo_electronico: correoElectronico.toLowerCase().trim(),
+            contrasena: credentials.contrasena
+          };
+
+          console.log(' Intentando login con:', loginData);
+
+          // Usar la ruta correcta del backend
+          const response = await fetch(`${CONFIG.API_BASE_URL}/usuarios/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(loginData)
+          });
+
+          console.log(' Respuesta del servidor:', response.status, response.statusText);
+          
+          const data = await response.json();
+          console.log(' Datos recibidos:', data);
+
+          if (!response.ok) {
+            console.error(' Respuesta no OK:', response.status, response.statusText);
+            console.error(' Datos de error:', data);
+            throw new Error(data.message || 'Error de autenticación');
+          }
+
+          // Guardar en localStorage
+          console.log(' Guardando datos en localStorage...');
+          localStorage.setItem('utn_token', data.token);
+          localStorage.setItem('utn_user', JSON.stringify(data.usuario));
+
+          console.log(' Login exitoso:', data);
+          console.log(' Token guardado:', data.token);
+          console.log(' Usuario guardado:', data.usuario);
+          
+          //  EXTRAER ROL ANTES DEL TIMEOUT
+          const rol = data.usuario.rol ? data.usuario.rol.toLowerCase() : '';
+          console.log(' Rol detectado para redirección:', rol);
+          console.log(' Datos completos del usuario:', data.usuario);
+          
+          // Determinar destino ANTES del timeout
+          let destino = '';
+          if (rol.includes('administrador') || rol.includes('admin')) {
+              destino = 'pages/ModAdmis.html';
+              console.log(' Se redirigirá a ModAdmis.html (Administrador)');
+          } else {
+              destino = 'pages/ModUsuarios.html';
+              console.log(' Se redirigirá a ModUsuarios.html (Usuario normal)');
+          }
+          
+          console.log(' Destino asignado:', destino);
+          console.log(' Tipo de destino:', typeof destino);
+          console.log(' Longitud del destino:', destino.length);
+          
+          // Verificar que se guardaron correctamente
+          const tokenGuardado = localStorage.getItem('utn_token');
+          const userGuardado = localStorage.getItem('utn_user');
+          console.log(' Verificación de guardado:', {
+              token: tokenGuardado ? 'guardado' : 'no guardado',
+              usuario: userGuardado ? 'guardado' : 'no guardado'
+          });
+
+          showToast(`¡Bienvenido ${data.usuario.nombre}!`, 'success');
+          
+          //  REDIRECCI�N INMEDIATA SIN TIMEOUT
+          console.log(' REDIRECCI�N INMEDIATA');
+          console.log(` Destino inmediato: ${destino}`);
+          
+          // Forzar redirección inmediata
+          window.location.href = destino;
+          
+          // Backup por si falla
+          setTimeout(() => {
+              if (window.location.href.includes('login.html')) {
+                  console.log('️ Todavía en login, forzando con replace...');
+                  window.location.replace(destino);
+              }
+          }, 100);
+          
+          console.log(' Preparando redirección...');
+          console.log(' ESTE MENSAJE DEBERÍA APARECER ANTES DE LA REDIRECCI�N');
+          
+          setTimeout(() => {
+              console.log(' Ejecutando redirección...');
+              console.log(' ESTE MENSAJE DEBERÍA APARECER EN EL TIMEOUT');
+              console.log(' Estado final del localStorage:', {
+                  token: localStorage.getItem('utn_token') ? 'existe' : 'no existe',
+                  usuario: localStorage.getItem('utn_user') ? 'existe' : 'no existe'
+              });
+              
+              console.log(' A PUNTO DE EJECUTAR REDIRECCI�N...');
+              console.log(` Destino: ${destino}`);
+              
+              // Forzar la redirección directa
+              try {
+                  console.log(` Redirigiendo a: ${destino}`);
+                  console.log(` Verificando destino: ${destino}`);
+                  console.log(` Tipo de destino:`, typeof destino);
+                  console.log(` Longitud del destino:`, destino.length);
+                  console.log(` CONFIG disponible:`, !!window.CONFIG);
+                  
+                  //  VERIFICACI�N DE EMERGENCIA
+                  if (!destino || destino.length === 0) {
+                      console.log(' ERROR: Destino está vacío, usando valores por defecto');
+                      const rolGuardado = localStorage.getItem('utn_user');
+                      if (rolGuardado) {
+                          const usuario = JSON.parse(rolGuardado);
+                          const rol = usuario.rol ? usuario.rol.toLowerCase() : '';
+                          console.log(' Rol desde localStorage:', rol);
+                          
+                          if (rol.includes('administrador') || rol.includes('admin')) {
+                              destino = 'pages/ModAdmis.html';
+                              console.log(' Destino de emergencia: ModAdmis.html');
+                          } else {
+                              destino = 'pages/ModUsuarios.html';
+                              console.log(' Destino de emergencia: ModUsuarios.html');
+                          }
+                      } else {
+                          destino = 'pages/ModUsuarios.html'; // Default
+                          console.log(' Destino por defecto: ModUsuarios.html');
+                      }
+                  }
+                  
+                  console.log(` Destino final: ${destino}`);
+                  
+                  // Redirección inmediata
+                  window.location.href = destino;
+                  
+                  // Si no funciona en 1 segundo, forzar con replace
+                  setTimeout(() => {
+                      console.log('️ La redirección no funcionó, intentando con replace...');
+                      window.location.replace(destino);
+                  }, 1000);
+                  
+                  console.log(' ESTE MENSAJE NO DEBERÍA APARECER NUNCA (si redirige bien)');
+              } catch (redirectError) {
+                  console.error(' Error en redirección:', redirectError);
+                  // Intentar método alternativo
+                  console.log(' Intentando método alternativo de redirección...');
+                  window.location.replace(destino);
+              }
+
+            }, 500);
+
+        } catch (error) {
+          console.error(' Error de login:', error);
+          showToast(error.message || 'Error al iniciar sesión', 'error');
+        } finally {
+          loginBtn.disabled = false;
+          loginBtn.textContent = 'ACCEDER AL SISTEMA';
+        }
+      }
+
+      // Inicialización
+      document.addEventListener('DOMContentLoaded', () => {
+        // Enfocar en el input de usuario
+        document.getElementById('userInput')?.focus();
+        
+        // Verificar conexión a la BD
+        checkDBConnection();
+        connectionCheckInterval = setInterval(checkDBConnection, CONFIG.DB_STATUS_CHECK_INTERVAL);
+        
+        // Manejo del formulario
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          
+          const username = document.getElementById('userInput').value.trim();
+          const password = document.getElementById('passInput').value;
+          
+          if (!username || !password) {
+            showToast('Por favor complete todos los campos', 'error');
+            return;
+          }
+          
+          handleLogin({ correo_electronico: username, contrasena: password });
+        });
+        
+        // Manejo de teclas
+        document.getElementById('userInput')?.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            document.getElementById('passInput')?.focus();
+          }
+        });
+        
+        document.getElementById('passInput')?.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+          }
+        });
+      });
+
+      // Limpiar intervalo al salir
+      window.addEventListener('beforeunload', () => {
+        if (connectionCheckInterval) {
+          clearInterval(connectionCheckInterval);
+        }
+      });
+
+      // Función para ir a la página de registro
+      function goToSignUp() {
+        window.location.href = 'signup.html';
+      }
+    </script>
+  </body>
+</html>
+

@@ -15,8 +15,22 @@ const stockManager = {
 
             // Lógica para reservar activos y reducir stock de insumos
             if (solicitud.activos && solicitud.activos.length > 0) {
-                console.log(` Reservando ${solicitud.activos.length} activos`);
-                // Aquí iría la lógica para marcar activos como no disponibles
+                console.log(` Verificando ${solicitud.activos.length} activos antes de aprobar`);
+                const Activos = require('../models/activos');
+                
+                // Verificar si algún activo está en mal_estado (fuera de servicio)
+                for (const activoId of solicitud.activos) {
+                    const activo = await Activos.findById(activoId);
+                    if (activo.estadoActivo === 'mal_estado') {
+                        throw new Error(`No se puede aprobar la solicitud. El activo ${activo.numActivo || activoId} está fuera de servicio (mal_estado).`);
+                    }
+                }
+                
+                // Si todos los activos están disponibles, proceder con la aprobación
+                console.log(` Todos los activos están disponibles. Reservando ${solicitud.activos.length} activos`);
+                for (const activoId of solicitud.activos) {
+                    await Activos.findByIdAndUpdate(activoId, { estadoActivo: 'prestado' });
+                }
             }
 
             if (solicitud.insumos && solicitud.insumos.length > 0) {
@@ -83,6 +97,45 @@ const stockManager = {
         }
     },
 
+    // Procesar penalización de solicitud (poner artículos en mal_estado)
+    processPenalty: async (solicitud, observaciones) => {
+        console.log("[StockManager] Procesando penalización de solicitud:", solicitud._id);
+        
+        try {
+            const Activo = require('../models/activos');
+            
+            // Lógica para poner activos en mal_estado
+            if (solicitud.activos && solicitud.activos.length > 0) {
+                console.log(` Poniendo ${solicitud.activos.length} activos en mal_estado`);
+                for (const activoId of solicitud.activos) {
+                    await Activos.findByIdAndUpdate(activoId, {
+                        estadoActivo: 'mal_estado',
+                        observacion_estado: `Artículo puesto fuera de servicio por penalización - Solicitud #${solicitud.folio || 'N/A'} - ${observaciones || 'Sin observaciones'}`
+                    });
+                    console.log(`   Activo ${activoId} marcado como mal_estado`);
+                }
+            }
+            
+            // Lógica para poner insumos en mal_estado
+            if (solicitud.insumos && solicitud.insumos.length > 0) {
+                console.log(` Poniendo ${solicitud.insumos.length} insumos en mal_estado`);
+                for (const item of solicitud.insumos) {
+                    await Insumos.findByIdAndUpdate(item.id_insumo, {
+                        estado: 'mal_estado',
+                        observacion_estado: `Artículo puesto fuera de servicio por penalización - Solicitud #${solicitud.folio || 'N/A'} - ${observaciones || 'Sin observaciones'}`
+                    });
+                    console.log(`   Insumo ${item.id_insumo} marcado como mal_estado`);
+                }
+            }
+            
+            console.log("[StockManager] Penalización procesada correctamente");
+            return true;
+        } catch (error) {
+            console.error("[StockManager] Error en processPenalty:", error);
+            throw error;
+        }
+    },
+
     // Procesar devolución de solicitud
     processReturn: async (solicitud) => {
         console.log(" [StockManager] Procesando devolución de solicitud:", solicitud._id);
@@ -94,7 +147,10 @@ const stockManager = {
             // Lógica para liberar activos y restaurar stock de insumos
             if (solicitud.activos && solicitud.activos.length > 0) {
                 console.log(` Liberando ${solicitud.activos.length} activos`);
-                // Aquí iría la lógica para marcar activos como disponibles
+                const Activos = require('../models/activos');
+                for (const activoId of solicitud.activos) {
+                    await Activos.findByIdAndUpdate(activoId, { estadoActivo: 'disponible' });
+                }
             }
 
             if (solicitud.insumos && solicitud.insumos.length > 0) {

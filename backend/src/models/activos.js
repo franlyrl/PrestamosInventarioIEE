@@ -1,26 +1,27 @@
 const mongoose = require('mongoose');
 
 /**
- * Esquema de Mongoose para la gestión de activos (equipos) del inventario con soporte de imagen.
+ * Esquema de Mongoose para la gestion de activos del inventario.
  */
 const activoSchema = new mongoose.Schema({
     numActivo: {
-        type: Number,
+        type: String,
         unique: true,
         index: true,
-        required: [true, 'El número de activo es obligatorio'],
-        min: [1, 'El número de activo debe ser un número positivo']
+        required: [true, 'El numero de activo/placa es obligatorio'],
+        trim: true
     },
     numSerie: {
         type: String,
-        required: [true, 'El número de serie es obligatorio'],
+        required: [true, 'El numero de serie es obligatorio'],
         unique: true,
         trim: true
     },
     estadoActivo: {
         type: String,
         required: [true, 'El estado del activo es obligatorio'],
-        enum: ['prestado', 'disponible', 'deteriorado', 'dañado'],
+        enum: ['disponible', 'prestado', 'en espera', 'fuera de stock', 'eliminado', 'mal_estado'],
+        default: 'disponible',
         lowercase: true,
         trim: true
     },
@@ -36,16 +37,13 @@ const activoSchema = new mongoose.Schema({
     },
     categoria: {
         type: String,
-        required: [true, 'La categoría es obligatoria'],
+        required: [true, 'La categoria es obligatoria'],
         enum: ['Instrumentos', 'Herramientas'],
         trim: true
     },
-    /** * @property {String} imagenUrl
-     * URL o ruta de la imagen del activo para identificación visual.
-     */
     imagenUrl: {
         type: String,
-        default: 'https://via.placeholder.com/150?text=Sin+Imagen', // Imagen por defecto
+        default: 'https://via.placeholder.com/150?text=Sin+Imagen',
         trim: true
     },
     observaciones: {
@@ -55,8 +53,13 @@ const activoSchema = new mongoose.Schema({
     },
     caracteristicas: {
         type: String,
-        required: [true, 'Las características son obligatorias'],
+        required: [true, 'Las caracteristicas son obligatorias'],
         trim: true
+    },
+    observacion_estado: {
+        type: String,
+        trim: true,
+        default: ''
     }
 }, {
     timestamps: true

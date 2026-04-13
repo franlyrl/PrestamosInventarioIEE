@@ -37,7 +37,7 @@ this.init();
 }
 
 init() {
-console.log('🖥️ Inicializando DesktopUserController...');
+console.log('️ Inicializando DesktopUserController...');
 this.setupContainer();
 this.setupEventListeners();
 this.loadUserSolicitudes();
@@ -226,11 +226,11 @@ const esDocente = rolText.includes('docente') || rolText.includes('profesor');
 // Determinar colores según rol
 let rolColor = '#10b981'; // Verde para estudiantes
 let rolBgGradient = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-let rolIcono = '🎓';
+let rolIcono = '';
 if (esDocente) {
 rolColor = '#f59e0b'; // Naranja para docentes
 rolBgGradient = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
-rolIcono = '👨‍🏫';
+rolIcono = '‍';
 }
 
 return `
@@ -279,7 +279,7 @@ actions.push(`
 <button onclick="window.desktopUserController.verSolicitud('${solicitud._id}')" 
 class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
 style="color: ${rolColor}; hover: background-color: ${rolColor}15;">
-👁️ Ver Detalles
+️ Ver Detalles
 </button>
 `);
 
@@ -290,7 +290,7 @@ actions.push(`
 <button onclick="window.desktopUserController.editarSolicitud('${solicitud._id}')" 
 class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
 style="color: ${rolColor}; hover: background-color: ${rolColor}15;">
-✏️ Editar Solicitud
+️ Editar Solicitud
 </button>
 `);
 }
@@ -317,12 +317,12 @@ const esDocente = rolText.includes('docente') || rolText.includes('profesor');
 // Determinar colores según rol
         let rolColor = '#000000'; // Negro para todos
         let rolBgGradient = 'linear-gradient(135deg, rgba(229, 220, 220, 0) 0%, rgba(132, 128, 128, 0) 100%)';
-        let rolIcono = '🎓';
+        let rolIcono = '';
         
         if (esDocente) {
             rolColor = '#000000'; // Negro también para docentes
             rolBgGradient = 'linear-gradient(135deg, rgba(0, 0, 0, 0) 0%, rgba(51, 51, 51, 0) 100%)';
-            rolIcono = '👨‍🏫';
+            rolIcono = '‍';
         }
 
         return `
@@ -479,7 +479,7 @@ const esDocente = rolText.includes('docente') || rolText.includes('profesor');
         if (estadoFilter) estadoFilter.value = 'todos';
 
         this.applyFilters();
-        this.showToast('🧹 Filtros limpiados', 'success');
+        this.showToast(' Filtros limpiados', 'success');
     }
 
     toggleMenu(solicitudId) {
@@ -498,7 +498,7 @@ const esDocente = rolText.includes('docente') || rolText.includes('profesor');
     }
 
     verSolicitud(solicitudId) {
-        console.log('👁️ Ver solicitud:', solicitudId);
+        console.log('️ Ver solicitud:', solicitudId);
         // Buscar la solicitud en los datos
         const solicitud = this.solicitudes.find(s => s._id === solicitudId);
         if (!solicitud) {
@@ -559,7 +559,7 @@ const esDocente = rolText.includes('docente') || rolText.includes('profesor');
     }
     
     editarSolicitud(solicitudId) {
-        console.log('✏️ Editar solicitud:', solicitudId);
+        console.log('️ Editar solicitud:', solicitudId);
         // Buscar la solicitud en los datos
         const solicitud = this.solicitudes.find(s => s._id === solicitudId);
         if (!solicitud) {
@@ -621,7 +621,7 @@ const esDocente = rolText.includes('docente') || rolText.includes('profesor');
     }
     
     cancelarSolicitud(solicitudId) {
-        console.log(' ❌ Cancelar solicitud:', solicitudId);
+        console.log('  Cancelar solicitud:', solicitudId);
         // Buscar la solicitud en los datos
         const solicitud = this.solicitudes.find(s => s._id === solicitudId);
         if (!solicitud) {
@@ -753,12 +753,12 @@ const esDocente = rolText.includes('docente') || rolText.includes('profesor');
 
     formatEstado(estado) {
         const estados = {
-            'pendiente': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">⏳ Pendiente</span>',
-            'aprobada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">✅ Aprobada</span>',
-            'rechazada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">🚫 Rechazada</span>',
-            'entregado': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">📦 Entregado</span>',
-            'devuelto': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">🔄 Devuelto</span>',
-            'cancelada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">❌ Cancelada</span>'
+            'pendiente': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"> Pendiente</span>',
+            'aprobada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"> Aprobada</span>',
+            'rechazada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800"> Rechazada</span>',
+            'entregado': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"> Entregado</span>',
+            'devuelto': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"> Devuelto</span>',
+            'cancelada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"> Cancelada</span>'
         };
         return estados[estado] || `<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">${estado}</span>`;
     }

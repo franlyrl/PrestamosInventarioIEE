@@ -12,8 +12,10 @@
     <link rel="stylesheet" href="../css/main.css" />
     <link rel="stylesheet" href="../css/pages/solicitudes.css" />
     <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="text-slate-800">
+  
+    <!-- SweetAlert2 --><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+  <body class="text-utn-dark">
     <!-- Header Component -->
     <div id="header-component"></div>
 
@@ -30,7 +32,7 @@
             <div class="mb-8 bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] rounded-2xl p-4 sm:p-6 text-white shadow-xl">
               <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <h1 class="text-2xl sm:text-3xl font-bold">📋 Mis Solicitudes</h1>
+                  <h1 class="text-2xl sm:text-3xl font-bold"> Mis Solicitudes</h1>
                   <p class="text-slate-200 text-sm sm:text-base mt-1">Historial de solicitudes de artículos y activos</p>
                 </div>
                 <div class="flex items-center gap-3">
@@ -45,7 +47,7 @@
 
           <!-- Filtros mejorados -->
           <section class="mb-6 bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-slate-200">
-            <h2 class="text-lg font-semibold mb-4 text-slate-800 flex items-center gap-2">
+            <h2 class="text-lg font-semibold mb-4 text-utn-dark flex items-center gap-2">
               <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011 1v1a1 1 0 012 0h3a1 1 0 011-1V5a1 1 0 01-1H4a1 1 0 00-1v4a1 1 0 001 1h3a1 1 0 011 0V5a1 1 0 01-1H4z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10l3 3m0 10l-3-3" />
@@ -63,7 +65,7 @@
                     type="text"
                     id="busqueda-input"
                     placeholder="Ej: Juan Pérez, SOL-001..."
-                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 pr-10"
+                    class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-utn-dark pr-10"
                   />
                   <svg class="absolute right-3 top-2.5 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 11 14 0 0-11 14 0 0-11-14 0-7 7-11-14 0z" />
@@ -75,13 +77,13 @@
                 <label for="estado-select" class="block text-sm font-medium text-slate-700 mb-2">
                   Estado
                 </label>
-                <select id="estado-select" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900">
+                <select id="estado-select" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-utn-dark">
                   <option value="todos">Todos los estados</option>
-                  <option value="pendiente">⏳ Pendiente</option>
-                  <option value="aprobada">✅ Aprobada</option>
-                  <option value="rechazada">❌ Rechazada</option>
-                  <option value="entregado">📦 Entregado</option>
-                  <option value="devuelto">🔄 Devuelto</option>
+                  <option value="pendiente"> Pendiente</option>
+                  <option value="aprobada"> Aprobada</option>
+                  <option value="rechazada"> Rechazada</option>
+                  <option value="entregado"> Entregado</option>
+                  <option value="devuelto"> Devuelto</option>
                 </select>
               </div>
 
@@ -92,7 +94,7 @@
                 <input
                   type="date"
                   id="fecha-desde"
-                  class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900"
+                  class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-utn-dark"
                 />
               </div>
 
@@ -103,13 +105,13 @@
                 <input
                   type="date"
                   id="fecha-hasta"
-                  class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900"
+                  class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-utn-dark"
                 />
               </div>
             </div>
 
             <div class="flex flex-wrap gap-3 mt-4">
-              <button id="buscar-btn" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md hover:shadow-lg">
+              <button id="buscar-btn" class="px-6 py-2 bg-utn-blue text-white rounded-lg hover:bg-utn-dark transition-colors font-medium shadow-md hover:shadow-lg">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 11 14 0 0-11 14 0 0-11-14 0-7 7-11-14 0z" />
                 </svg>
@@ -129,19 +131,19 @@
           <div class="lg:hidden mb-6 grid grid-cols-4 gap-4">
             <div class="bg-white rounded-lg p-4 shadow-md border border-slate-200">
               <div class="text-center">
-                <p class="text-2xl font-bold text-blue-600" id="pendientes-count-mobile">0</p>
+                <p class="text-2xl font-bold text-utn-blue" id="pendientes-count-mobile">0</p>
                 <p class="text-xs text-slate-600 mt-1">Pendientes</p>
               </div>
             </div>
             <div class="bg-white rounded-lg p-4 shadow-md border border-slate-200">
               <div class="text-center">
-                <p class="text-2xl font-bold text-green-600" id="aprobadas-count-mobile">0</p>
+                <p class="text-2xl font-bold text-utn-blue" id="aprobadas-count-mobile">0</p>
                 <p class="text-xs text-slate-600 mt-1">Aprobadas</p>
               </div>
             </div>
             <div class="bg-white rounded-lg p-4 shadow-md border border-slate-200">
               <div class="text-center">
-                <p class="text-2xl font-bold text-purple-600" id="entregadas-count-mobile">0</p>
+                <p class="text-2xl font-bold text-utn-blue" id="entregadas-count-mobile">0</p>
                 <p class="text-xs text-slate-600 mt-1">Entregadas</p>
               </div>
             </div>
@@ -211,18 +213,19 @@
         .then(response => response.text())
         .then(html => {
           document.getElementById('header-component').innerHTML = html;
-          console.log('✅ Header component cargado en solicitudes.html');
+          console.log(' Header component cargado en solicitudes.html');
         })
-        .catch(error => console.error('❌ Error cargando header:', error));
+        .catch(error => console.error(' Error cargando header:', error));
 
       // Cargar footer
       fetch('../components/footer.html')
         .then(response => response.text())
         .then(html => {
           document.getElementById('footer-component').innerHTML = html;
-          console.log('✅ Footer component cargado en solicitudes.html');
+          console.log(' Footer component cargado en solicitudes.html');
         })
-        .catch(error => console.error('❌ Error cargando footer:', error));
+        .catch(error => console.error(' Error cargando footer:', error));
     </script>
   </body>
 </html>
+

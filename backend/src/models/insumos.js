@@ -1,105 +1,136 @@
 const mongoose = require('mongoose');
 
 /**
- * Esquema de Mongoose para la colección de Insumos.
- * Se ha añadido el soporte para URLs de imágenes.
+ * Esquema de Mongoose para la coleccion de Insumos.
  */
 const insumoSchema = new mongoose.Schema({
-    /** * @property {Number} id_insumo - Identificador único numérico del insumo.
-     */
     id_insumo: {
         type: Number,
         unique: true,
         index: true,
         required: [true, 'El ID es obligatorio'],
-        min: [1, 'El ID del insumo debe ser un número positivo']
+        min: [1, 'El ID del insumo debe ser un numero positivo']
     },
-
-    /** * @property {String} NombProducto - Nombre comercial o técnico del producto.
-     */
+    codigo: {
+        type: String,
+        unique: true,
+        index: true,
+        required: [true, 'El codigo unico es obligatorio'],
+        trim: true
+    },
+    tipo: {
+        type: String,
+        required: [true, 'El tipo de insumo es obligatorio'],
+        enum: ['activo', 'consumible'],
+        default: 'consumible',
+        lowercase: true,
+        trim: true
+    },
     NombProducto: {
         type: String,
         required: [true, 'El nombre del producto es obligatorio'],
         trim: true
     },
-
-    /** * @property {Number} cantidad - Cantidad disponible en inventario.
-     */
     cantidad: {
         type: Number,
         required: [true, 'La cantidad es obligatoria'],
         min: [0, 'La cantidad no puede ser menor a 0']
     },
-
-    /** * @property {String} caracteristicas - Descripción detallada y especificaciones.
-     */
     caracteristicas: {
         type: String,
-        required: [true, 'Las características son obligatorias'],
+        required: [true, 'Las caracteristicas son obligatorias'],
         trim: true
     },
-
-    /** * @property {String} categoria - Categoría a la que pertenece el insumo.
-     */
     categoria: {
         type: String,
-        required: [true, 'La categoría del insumo es obligatoria'],
-        enum: [
-            'Componentes Digitales',
-            'Componentes Analógicos',
-            'Herramientas Menores',
-            'Consumibles de Soldadura',
-            'Otros'
-        ],
+        required: [true, 'La categoria del insumo es obligatoria'],
+        enum: ['Analógico', 'Digital'],
         trim: true
     },
-
-    /** * @property {String} imagenUrl - Enlace a la fotografía o icono del insumo.
-     */
     imagenUrl: {
         type: String,
         trim: true,
-        default: '' // Permite que sea opcional pero existente en el objeto
+        default: ''
     },
-
-    /** * @property {String} estado - Estado del insumo para borrado lógico.
-     */
+    ubicacion: {
+        type: String,
+        trim: true,
+        default: 'Laboratorio de Electronica'
+    },
     estado: {
         type: String,
-        enum: ['activo', 'eliminado'],
-        default: 'activo'
+        enum: ['disponible', 'prestado', 'en espera', 'fuera de stock', 'eliminado', 'mal_estado'],
+        default: 'disponible',
+        lowercase: true,
+        trim: true
     },
-
-    /** * @property {String} justificacion_baja - Justificación cuando se da de baja.
-     */
+    observacion_estado: {
+        type: String,
+        trim: true,
+        default: ''
+    },
     justificacion_baja: {
         type: String,
         trim: true
     },
-
-    /** * @property {Date} fecha_baja - Fecha cuando se dio de baja.
-     */
     fecha_baja: {
         type: Date
     },
-
-    /** * @property {ObjectId} eliminado_por - Usuario que dio de baja.
-     */
     eliminado_por: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Usuario'
-    }
+    },
+    movimientos: [{
+        tipo: {
+            type: String,
+            enum: ['registro', 'edicion', 'ajuste_stock', 'baja', 'reactivacion'],
+            required: true
+        },
+        cantidad_anterior: {
+            type: Number,
+            default: null
+        },
+        cantidad_nueva: {
+            type: Number,
+            default: null
+        },
+        estado_anterior: {
+            type: String,
+            default: null
+        },
+        estado_nuevo: {
+            type: String,
+            default: null
+        },
+        observacion: {
+            type: String,
+            trim: true,
+            default: ''
+        },
+        usuario: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Usuario',
+            default: null
+        },
+        fecha: {
+            type: Date,
+            default: Date.now
+        }
+    }]
 }, {
-    /** @type {Boolean} - Habilita la creación automática de campos createdAt y updatedAt. */
     timestamps: true
 });
 
-/**
- * Modelo de Mongoose para realizar operaciones CRUD sobre Insumos.
- */
-const Insumo = mongoose.model('Insumo', insumoSchema);
+insumoSchema.pre('save', function normalizarEstado() {
+    if (typeof this.cantidad === 'number') {
+        if (this.cantidad <= 0) {
+            this.cantidad = 0;
+            this.estado = 'fuera de stock';
+        } else if (!['prestado', 'en espera', 'eliminado'].includes(this.estado)) {
+            this.estado = 'disponible';
+        }
+    }
+});
 
-/**
- * Exportación del modelo Insumo para su uso en controladores y rutas.
- */
+const Insumo = mongoose.model('Insumo', insumoSchema);
 module.exports = Insumo;

@@ -33,10 +33,10 @@ const updateStock = {
             }
         }
 
-        // Marcar activos como prestados
+        // Marcar activos como prestados (solo si no están en mal_estado)
         if (solicitud.activos?.length > 0) {
             await Activo.updateMany(
-                { _id: { $in: solicitud.activos } },
+                { _id: { $in: solicitud.activos }, estadoActivo: { $ne: 'mal_estado' } },
                 { $set: { estadoActivo: 'prestado' } }
             );
         }
@@ -44,9 +44,9 @@ const updateStock = {
 
     processReturn: async (solicitud) => {
         if (solicitud.activos?.length > 0) {
-            // Liberar activos
+            // Liberar activos (solo si no están en mal_estado)
             await Activo.updateMany(
-                { _id: { $in: solicitud.activos } },
+                { _id: { $in: solicitud.activos }, estadoActivo: { $ne: 'mal_estado' } },
                 { $set: { estadoActivo: 'disponible' } }
             );
         }

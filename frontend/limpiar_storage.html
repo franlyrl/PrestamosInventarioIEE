@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Limpiar Storage</title>
+
+    <!-- SweetAlert2 --><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <h1>Limpiando localStorage...</h1>
@@ -13,8 +15,8 @@
         localStorage.setItem('test_limpieza', 'completado');
         
         // Verificar que se limpió
-        console.log('✅ localStorage limpiado');
-        console.log('📊 Contenido actual:', localStorage);
+        console.log(' localStorage limpiado');
+        console.log(' Contenido actual:', localStorage);
         
         // Redirigir al login
         setTimeout(() => {
@@ -23,3 +25,4 @@
     </script>
 </body>
 </html>
+

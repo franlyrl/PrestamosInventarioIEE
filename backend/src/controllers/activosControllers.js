@@ -9,6 +9,7 @@ const { consultarNombrePorCedula } = require('../utils/registroCivil');
 const Solicitudes = require('../models/solicitudes');
 const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
+const google = require('googlethis');
 
 /**
  * @route GET /api/activos
@@ -16,16 +17,8 @@ const mongoose = require('mongoose');
  */
 exports.getActivos = async (req, res) => {
     try {
-        const activosDisponibles = await Activos.find({ estadoActivo: 'disponible' });
         const todosLosActivos = await Activos.find();
-
-        res.json({
-            total: todosLosActivos.length,
-            disponibles_count: activosDisponibles.length,
-            activosDisponibles,
-            todosLosActivos
-        });
-
+        res.json(todosLosActivos);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener los activos', error: error.message });
     }
@@ -47,7 +40,6 @@ exports.createActivo = async (req, res) => {
         const datos = req.body;
         const categoriasValidas = Activos.schema.path('categoria').enumValues;
 
-        // Validación extendida para incluir imagenUrl opcional
         const validar = obj => {
             const { numActivo, numSerie, marca, modelo, categoria } = obj;
             if (!numActivo || !numSerie || !marca || !modelo || !categoria) return false;
@@ -55,7 +47,6 @@ exports.createActivo = async (req, res) => {
             return true;
         };
 
-        // Manejo de inserción masiva (Bulk)
         if (Array.isArray(datos)) {
             if (datos.length === 0) {
                 return res.status(400).json({ message: 'Array vacío enviado para creación masiva.' });
@@ -73,14 +64,12 @@ exports.createActivo = async (req, res) => {
             });
         }
 
-        // Manejo de inserción individual
         if (!validar(datos)) {
             return res.status(400).json({
                 message: 'Error: faltan campos obligatorios o categoría inválida.'
             });
         }
 
-        // El campo imagenUrl se asigna automáticamente si viene en el body
         const nuevoActivo = new Activos(datos);
         const activoGuardado = await nuevoActivo.save();
 
@@ -146,7 +135,7 @@ exports.deleteActivo = async (req, res) => {
         const activoActualizado = await Activos.findByIdAndUpdate(
             req.params.id,
             {
-                estadoActivo: 'dañado', // O el estado que prefieras para bajas
+                estadoActivo: 'eliminado',
                 observaciones: `BAJA: ${observaciones}`,
                 fecha_baja: new Date(),
                 eliminado_por: req.user._id
@@ -191,7 +180,7 @@ exports.getActivoById = async (req, res) => {
 exports.getActivosByEstado = async (req, res) => {
     try {
         const { estado } = req.params;
-        const activos = await Activos.find({ estadoActivo: estado });
+        const activos = await Activos.find({ estadoActivo: String(estado).toLowerCase() });
         res.json({
             estadoFiltrado: estado,
             total: activos.length,
@@ -256,4 +245,88 @@ exports.searchActivos = async (req, res) => {
 exports.getEnumCategoriasActivos = (req, res) => {
     const categorias = Activos.schema.path('categoria').enumValues;
     res.json(categorias);
+};
+
+/**
+ * @route PATCH /api/activos/:id/mal-estado
+ * @desc Marca un activo como 'mal_estado' con una observación descriptiva del daño.
+ * @access Privado (Solo Admin / Administrativo)
+ */
+exports.marcarMalEstado = async (req, res) => {
+    try {
+        const { observacion } = req.body;
+
+        if (!observacion || observacion.trim().length < 5) {
+            return res.status(400).json({
+                message: 'Se requiere una observación (mín. 5 caracteres) describiendo el problema.'
+            });
+        }
+
+        const activo = await Activos.findByIdAndUpdate(
+            req.params.id,
+            {
+                estadoActivo: 'mal_estado',
+                observacion_estado: observacion.trim(),
+                observaciones: `MAL ESTADO: ${observacion.trim()}`
+            },
+            { new: true, runValidators: true }
+        );
+
+        if (!activo) {
+            return res.status(404).json({ message: 'Activo no encontrado.' });
+        }
+
+        res.json({
+            message: `Activo ${activo.numActivo} marcado como en mal estado.`,
+            data: activo
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar el estado del activo.', error: error.message });
+    }
+};
+
+exports.autoAsignarImagenes = async (req, res) => {
+    try {
+        if (!req.user || !['admin', 'administrador', 'administrativo'].includes(req.user.tipo_rol.toLowerCase())) {
+            return res.status(403).json({ message: 'No autorizado' });
+        }
+
+        const activosSnImagen = await Activos.find({ 
+            $or: [ { imagenUrl: { $exists: false } }, { imagenUrl: "" }, { imagenUrl: { $regex: /placeholder/i } } ],
+            estadoActivo: { $ne: 'eliminado' }
+        });
+
+        if (activosSnImagen.length === 0) {
+            return res.json({ message: "Todo el catálogo ya cuenta con imágenes.", procesados: 0, actualizados: 0 });
+        }
+
+        let actualizados = 0;
+        
+        for (const activo of activosSnImagen) {
+            // Busqueda más precisa usando Google Images con googlethis
+            const query = `${activo.marca} ${activo.modelo}`;
+            
+            try {
+                // Pequeño delay de 500-1500ms para evitar limitación
+                await new Promise(r => setTimeout(r, 500 + Math.random() * 1000));
+                
+                const images = await google.image(query, { safe: false });
+                if (images && images.length > 0) {
+                    activo.imagenUrl = images[0].url;
+                    await activo.save();
+                    actualizados++;
+                }
+            } catch(e) {
+                console.warn(`Error buscando imagen en Google para activo ${query}:`, e.message);
+            }
+        }
+
+        res.json({
+            message: "Auto-asignación inteligente completada con Google Images.",
+            procesados: activosSnImagen.length,
+            actualizados: actualizados
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error interno en auto-asignación', error: error.message });
+    }
 };

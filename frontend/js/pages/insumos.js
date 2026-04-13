@@ -73,8 +73,107 @@ class InsumosController {
         }
 
         if (exportarBtn) {
-            exportarBtn.addEventListener('click', () => this.exportarDatos());
+            exportarBtn.addEventListener('click', () => this.exportarExcelProfesional());
         }
+    }
+
+    async exportarExcelProfesional() {
+        if (!this.insumos || this.insumos.length === 0) {
+            Utils.showToast('No hay datos para exportar', 'error');
+            return;
+        }
+
+        const fecha = new Date().toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' });
+        const totalInsumos = this.insumos.length;
+        const totalUnidades = this.insumos.reduce((sum, i) => sum + (i.cantidad || 0), 0);
+        const categorias = [...new Set(this.insumos.map(i => i.categoria))];
+        const criticos = this.insumos.filter(i => (i.cantidad || 0) === 0);
+        const bajoStock = this.insumos.filter(i => (i.cantidad || 0) > 0 && (i.cantidad || 0) <= 5);
+        const conStock = this.insumos.filter(i => (i.cantidad || 0) > 5);
+
+        const resumenPorCategoria = categorias.map(cat => {
+            const itemsCat = this.insumos.filter(i => i.categoria === cat);
+            return {
+                categoria: cat,
+                cantidad: itemsCat.length,
+                unidades: itemsCat.reduce((sum, i) => sum + (i.cantidad || 0), 0),
+                criticos: itemsCat.filter(i => (i.cantidad || 0) === 0).length
+            };
+        });
+
+        // Contenido HTML Profesional para Excel
+        const excelHtml = `
+            <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body { font-family: 'Calibri', sans-serif; }
+                    .header { background: #00447c; color: white; text-align: center; padding: 20px; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th { background: #00447c; color: white; padding: 10px; border: 1px solid #ddd; }
+                    td { padding: 10px; border: 1px solid #ddd; }
+                    .stat-card { background: #f8fafc; border-left: 5px solid #00447c; padding: 15px; margin: 10px; }
+                    .stat-value { font-size: 20px; font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>REPORTE DE INSUMOS UTN</h1>
+                    <p>Fecha: ${fecha}</p>
+                </div>
+                <div style="display: flex; gap: 20px;">
+                    <div class="stat-card"><h3>Total Items</h3><div class="value">${totalInsumos}</div></div>
+                    <div class="stat-card"><h3>Total Unidades</h3><div class="value">${totalUnidades}</div></div>
+                    <div class="stat-card"><h3>Críticos</h3><div class="value">${criticos.length}</div></div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Cantidad</th>
+                            <th>Características</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${this.insumos.map(i => `
+                            <tr>
+                                <td>${i.NombProducto}</td>
+                                <td>${i.categoria}</td>
+                                <td>${i.cantidad}</td>
+                                <td>${i.caracteristicas || ''}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        `;
+
+        const blob = new Blob([excelHtml], { type: 'application/vnd.ms-excel' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Reporte_Insumos_UTN_${new Date().toISOString().split('T')[0]}.xls`;
+        link.click();
+        Utils.showToast('Reporte generado correctamente', 'success');
+    }
+
+    async showAgregarMasivo() {
+        const modal = document.getElementById('modalAgregarMasivo');
+        if (modal) {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+            this.mostrarTabMasivo('archivo');
+        }
+    }
+
+    mostrarTabMasivo(tab) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        document.querySelectorAll('[id^="tab-"]').forEach(t => t.classList.remove('text-utn-blue', 'border-b-2', 'border-blue-600'));
+        
+        document.getElementById(`contenido-${tab}`)?.classList.remove('hidden');
+        document.getElementById(`tab-${tab}`)?.classList.add('text-utn-blue', 'border-b-2', 'border-blue-600');
     }
 
     async cargarInsumos() {
@@ -162,7 +261,8 @@ class InsumosController {
                 <div class="mb-4">
                     ${insumo.imagenUrl ? `
                         <img src="${insumo.imagenUrl}" alt="${insumo.NombProducto || 'Insumo'}" 
-                             class="insumo-imagen" 
+                             class="insumo-imagen cursor-pointer hover:opacity-80 transition-opacity" 
+                             onclick="event.stopPropagation(); window.verImagenCompleta(this.src, '${(insumo.NombProducto || 'Insumo').replace(/'/g, "\\'")}')"
                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         <div class="insumo-imagen-placeholder" style="display: none;">
                             ${this.getInsumoIcon(insumo)}
@@ -195,10 +295,10 @@ class InsumosController {
                 
                 <div class="insumo-acciones">
                     <button class="btn btn-primary" onclick="insumosController.verDetalles('${insumo._id}')">
-                        👁️ Ver
+                        ️ Ver
                     </button>
                     <button class="btn btn-secondary" onclick="insumosController.editarInsumo('${insumo._id}')">
-                        ✏️ Editar
+                        ️ Editar
                     </button>
                 </div>
             </div>
@@ -232,14 +332,14 @@ class InsumosController {
         const categoria = (insumo.categoria || '').toLowerCase();
         const nombre = (insumo.NombProducto || '').toLowerCase();
 
-        if (categoria.includes('analógico') || nombre.includes('diodo')) return '💊';
-        if (categoria.includes('analógico') || nombre.includes('resistencia')) return '📏';
-        if (categoria.includes('digital') || nombre.includes('microcontrolador')) return '🔲';
-        if (categoria.includes('consumible') || nombre.includes('estaño')) return '🧵';
-        if (categoria.includes('consumible') || nombre.includes('pasta')) return '🍯';
-        if (categoria.includes('herramienta')) return '🔧';
+        if (categoria.includes('analógico') || nombre.includes('diodo')) return '';
+        if (categoria.includes('analógico') || nombre.includes('resistencia')) return '';
+        if (categoria.includes('digital') || nombre.includes('microcontrolador')) return '';
+        if (categoria.includes('consumible') || nombre.includes('estaño')) return '';
+        if (categoria.includes('consumible') || nombre.includes('pasta')) return '';
+        if (categoria.includes('herramienta')) return '';
 
-        return '📦';
+        return '';
     }
 
     async verDetalles(id) {
@@ -349,3 +449,59 @@ class InsumosController {
 
 // Crear instancia global
 window.insumosController = new InsumosController();
+
+// Función global para auto-asignar imágenes
+window.autoAsignarImagenesMasivas = async function(modulo) {
+    Swal.fire({
+        title: 'Asignación Inteligente',
+        html: `
+            <div class="mb-4">
+                <div class="animate-spin w-12 h-12 border-4 border-slate-200 border-t-[#002D62] rounded-full mx-auto mb-4"></div>
+                <p class="text-sm font-bold text-slate-700">Conectando con Wikimedia Commons...</p>
+                <p class="text-xs text-slate-500 mt-2">Buscando y vinculando imágenes automáticamente para los artículos sin foto. Esto puede tomar unos segundos.</p>
+            </div>
+        `,
+        showConfirmButton: false,
+        allowOutsideClick: false
+    });
+
+    try {
+        const token = localStorage.getItem('utn_token');
+        const apiBaseUrl = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+        
+        const response = await fetch(`${apiBaseUrl}/${modulo}/auto-imagenes`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Proceso Completado!',
+                text: `${data.message} Se actualizaron ${data.actualizados} imágenes de ${data.procesados} posibles.`,
+                confirmButtonColor: '#002D62'
+            }).then(() => {
+                if (modulo === 'insumos' && window.insumosController) {
+                    window.insumosController.recargarInsumos();
+                } else {
+                    window.location.reload();
+                }
+            });
+        } else {
+            throw new Error(data.message || 'Error en la respuesta del servidor');
+        }
+    } catch (error) {
+        console.error('Error auto-asignando imágenes:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de Asignación',
+            text: 'Hubo un problema al buscar las imágenes en internet. ' + error.message,
+            confirmButtonColor: '#002D62'
+        });
+    }
+};

@@ -43,12 +43,26 @@ router.put('/:id',
     restrictTo('admin', 'Administrador'),
     activosController.updateActivo
 );
+router.patch('/:id',
+    restrictTo('admin', 'Administrador'),
+    activosController.updateActivo
+);
+router.patch('/:id/mal-estado',
+    restrictTo('admin', 'Administrador', 'administrativo'),
+    activosController.marcarMalEstado
+);
 
 // 3. Baja de Activos (Borrado lógico con observaciones)
 // En lugar de eliminar físicamente el activo, se inactiva y se registra la observación
 router.delete('/:id',
     restrictTo('admin', 'Administrador'),
     activosController.deleteActivo
+);
+
+// 4. Automatización de Imágenes
+router.post('/auto-imagenes',
+    restrictTo('admin', 'Administrador', 'administrativo'),
+    activosController.autoAsignarImagenes
 );
 
 module.exports = router;

@@ -69,7 +69,7 @@ class AuthController {
             };
 
             // DEBUG: Mostrar en consola y en pantalla
-            console.log('🔍 DEBUG - Intentando login con:', credentials);
+            console.log(' DEBUG - Intentando login con:', credentials);
 
             // Mostrar información de debug en la página
             const debugDiv = document.createElement('div');
@@ -84,11 +84,11 @@ class AuthController {
             document.body.appendChild(debugDiv);
 
             // DEBUG: Probar conexión a la API
-            console.log('🌐 Probando conexión a:', `${CONFIG.API_BASE_URL}/usuarios/login`);
+            console.log(' Probando conexión a:', `${CONFIG.API_BASE_URL}/usuarios/login`);
 
             const response = await ApiService.login(credentials);
 
-            console.log('✅ Login response:', response);
+            console.log(' Login response:', response);
 
             // Eliminar debug div
             debugDiv.remove();
@@ -105,8 +105,8 @@ class AuthController {
             }, 1000);
 
         } catch (error) {
-            console.error('❌ Error de login:', error);
-            console.error('❌ Detalles del error:', {
+            console.error(' Error de login:', error);
+            console.error(' Detalles del error:', {
                 message: error.message,
                 stack: error.stack
             });

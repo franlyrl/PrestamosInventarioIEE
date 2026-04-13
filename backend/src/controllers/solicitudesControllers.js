@@ -46,12 +46,12 @@ exports.getSolicitudes = async (req, res) => {
             // 1. Traemos todo del usuario (menos la contraseña por seguridad)
             .populate('usuario', 'id_usuario cedula nombre_completo correo_electronico tipo_rol estado')
             // 2. Traemos los detalles de los activos vinculados
-            .populate('activos', 'marca modelo numActivo estado serie')
+            .populate('activos', 'marca modelo numActivo estado serie imagenUrl')
             // 3. Traemos los detalles de los insumos (manejo especial para $oid)
             .populate({
                 path: 'insumos.id_insumo',
                 model: 'Insumo',
-                select: 'NombProducto'
+                select: 'NombProducto imagenUrl'
             })
             // 4. Orden cronológico (lo más nuevo arriba)
             .sort({ createdAt: -1 })
@@ -61,13 +61,22 @@ exports.getSolicitudes = async (req, res) => {
             .select('-__v')
             .exec();
 
+        // K: Filtro adicional por cédula si se provee como query param
+        const cedulaFiltro = req.query.cedula;
+        let resultados = ObtenerSolicitudes;
+        if (cedulaFiltro) {
+            resultados = ObtenerSolicitudes.filter(s =>
+                s.usuario?.cedula && s.usuario.cedula.includes(cedulaFiltro)
+            );
+        }
+
         console.log('📡 Solicitudes obtenidas de DB (raw):', ObtenerSolicitudes);
         console.log('📦 Insumos en primera solicitud:', ObtenerSolicitudes[0]?.insumos);
         console.log('🔍 Estructura de insumos:', JSON.stringify(ObtenerSolicitudes[0]?.insumos, null, 2));
 
         // 3. MEJORA DE VISUALIZACIÓN: Ordenar historiales en la lista
         // Como es un array de solicitudes, usamos map para ordenar cada una
-        const solicitudesOrdenadas = ObtenerSolicitudes.map(sol => {
+        const solicitudesOrdenadas = resultados.map(sol => {
             if (sol.historico_estados) {
                 sol.historico_estados.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
             }
@@ -101,11 +110,12 @@ exports.createSolicitud = async (req, res) => {
         console.log('👤 ID del usuario desde token:', usuarioId);
 
         // --- DATOS DE LA SOLICITUD (Vienen del Formulario/Body) ---
-        const { activos, insumos, fecha_entrega_esperada } = req.body;
+        const { activos, insumos, observaciones } = req.body;
+        // NOTA: fecha_entrega_esperada REMOVIDO — solo el admin puede asignar fecha de entrega (Área F)
         console.log('📋 Datos recibidos en createSolicitud:', {
             activos,
             insumos,
-            fecha_entrega_esperada,
+            observaciones,
             bodyCompleto: req.body
         });
 
@@ -195,10 +205,10 @@ exports.createSolicitud = async (req, res) => {
         console.log('🔧 Activos procesados para guardar:', activosProcesados);
 
         const nuevaSolicitud = new Solicitudes({
-            usuario: usuarioId, // <--- Usamos usuarioId directamente
+            usuario: usuarioId,
             activos: activosProcesados,
             insumos: insumosProcesados,
-            fecha_entrega_esperada,
+            observaciones,
             estado: 'pendiente',
             historico_estados: [{
                 estado: 'pendiente',
@@ -234,11 +244,11 @@ exports.getSolicitudByIdForStudent = async (req, res) => {
     try {
         const SolicitudxId = await Solicitudes.findById(req.params.id)
             .populate('usuario', 'nombre_completo correo_electronico')
-            .populate('activos', 'marca modelo numActivo')
+            .populate('activos', 'marca modelo numActivo imagenUrl')
             .populate({
                 path: 'insumos.id_insumo',
                 model: 'Insumo',
-                select: 'NombProducto'
+                select: 'NombProducto imagenUrl'
             })
             .lean()
             .select('-__v')
@@ -292,11 +302,11 @@ exports.getSolicitudById = async (req, res) => {
         const SolicitudxId = await Solicitudes.findById(req.params.id)
             // 1. Cambiamos 'estudiante' por 'usuario' (el nombre real del Schema)
             .populate('usuario', 'nombre_completo correo_electronico')
-            .populate('activos', 'marca modelo numActivo')
+            .populate('activos', 'marca modelo numActivo imagenUrl')
             .populate({
                 path: 'insumos.id_insumo',
                 model: 'Insumo',
-                select: 'NombProducto'
+                select: 'NombProducto imagenUrl'
             })
             // Nota: Quitamos los populates del historial porque son datos simples, no IDs.
             .lean()
@@ -345,6 +355,23 @@ exports.actualizarEstadoSolicitud = async (req, res) => {
 
         const MapearEstadoSoli = await Solicitudes.findById(req.params.id);
         if (!MapearEstadoSoli) return res.status(404).json({ message: 'Solicitud no encontrada.' });
+
+        // --- MOTOR DE INVENTARIO ---
+        console.log(' [actualizarEstadoSolicitud] Estado a procesar:', nuevoEstado);
+        try {
+            if (nuevoEstado === 'penalizado') {
+                console.log(' [actualizarEstadoSolicitud] Procesando penalización...');
+                const stockManager = require('../helpers/stockManager');
+                await stockManager.processPenalty(MapearEstadoSoli, observaciones);
+                console.log(' [actualizarEstadoSolicitud] stockManager.processPenalty completado');
+            }
+        } catch (errorStock) {
+            console.error(' [actualizarEstadoSolicitud] Error en motor de inventario:', errorStock);
+            return res.status(400).json({
+                message: 'Error de Inventario',
+                detalles: errorStock.message
+            });
+        }
 
         // --- CASCADA HACIA EL USUARIO ---
         let estadoUsuarioDestino = null;
@@ -420,6 +447,8 @@ exports.deleteSolicitud = async (req, res) => {
             });
         }
 
+        const { motivo_cancelacion } = req.body;
+
         // 4. Cambiar estado a 'cancelada' en lugar de eliminar físicamente
         eliminarSoli.estado = 'cancelada';
         
@@ -427,7 +456,7 @@ exports.deleteSolicitud = async (req, res) => {
         eliminarSoli.historico_estados.push({
             estado: 'cancelada',
             fecha: new Date(),
-            observaciones: 'Solicitud cancelada por el usuario.'
+            observaciones: motivo_cancelacion || 'Solicitud cancelada por el usuario.'
         });
 
         // 6. Guardar los cambios
@@ -459,12 +488,17 @@ exports.deleteSolicitud = async (req, res) => {
     * Criterio: El Admin no puede aprobar una solicitud que no contiene activos ni insumos, para evitar aprobaciones sin sentido.
 */
 exports.gestionarEstadoAdmin = async (req, res) => {
+    console.log('*** GESTIONAR ESTADO ADMIN EJECUTADO ***');
+    console.log('=== INICIO GESTIONAR ESTADO ADMIN ===');
+    console.log('Método:', req.method);
+    console.log('URL:', req.originalUrl);
+    console.log('Headers:', req.headers);
     try {
-        console.log('🔍 Iniciando gestión de estado admin...');
+        console.log(' Iniciando gestión de estado admin...');
         console.log('📥 Body recibido:', req.body);
         console.log('🆔 ID recibido:', req.params.id);
 
-        const { nuevoEstadoAdmin, observaciones } = req.body;
+        const { nuevoEstadoAdmin, observaciones, fecha_recogida_programada, hora_recogida } = req.body;
         const { id } = req.params;
 
         // Nombre único: EstadoSoli
@@ -486,13 +520,28 @@ exports.gestionarEstadoAdmin = async (req, res) => {
         }
 
         // --- 2. MOTOR DE INVENTARIO ---
+        console.log(' [DEBUG] Estado a procesar:', nuevoEstadoAdmin);
         try {
             if (nuevoEstadoAdmin === 'aprobada') {
+                console.log(' [DEBUG] Procesando aprobación...');
                 await stockManager.processApproval(EstadoSoli);
             } else if (nuevoEstadoAdmin === 'devuelto') {
+                console.log(' [DEBUG] Procesando devolución...');
                 await stockManager.processReturn(EstadoSoli);
+            } else if (nuevoEstadoAdmin === 'penalizado') {
+                console.log(' [DEBUG] Procesando penalización...');
+                console.log(' [DEBUG] Llamando a stockManager.processPenalty...');
+                await stockManager.processPenalty(EstadoSoli, observaciones);
+                console.log(' [DEBUG] stockManager.processPenalty completado');
+            } else if (nuevoEstadoAdmin === 'poner-fuera-servicio') {
+                console.log(' [DEBUG] Procesando poner fuera de servicio...');
+                await stockManager.processPenalty(EstadoSoli, observaciones || 'Puesto fuera de servicio manualmente por administrador');
+            } else {
+                console.log(' [DEBUG] Estado no reconocido:', nuevoEstadoAdmin);
             }
+            console.log(' [DEBUG] Motor de inventario completado exitosamente');
         } catch (errorStock) {
+            console.error(' [ERROR] Error en motor de inventario:', errorStock);
             return res.status(400).json({
                 message: 'Error de Inventario',
                 detalles: errorStock.message
@@ -500,14 +549,28 @@ exports.gestionarEstadoAdmin = async (req, res) => {
         }
 
         // --- 3. ACTUALIZACIÓN FINAL ---
-        // Aquí sincronizamos: campo del Schema = nuestra variable local
         EstadoSoli.estado = nuevoEstadoAdmin;
+
+        // E: Guardar fecha y hora de recogida programada por el admin al aprobar
+        if (nuevoEstadoAdmin === 'aprobada') {
+            if (fecha_recogida_programada) EstadoSoli.fecha_recogida_programada = new Date(fecha_recogida_programada);
+            if (hora_recogida) EstadoSoli.hora_recogida = hora_recogida;
+        }
+
+        // F: El admin puede establecer o modificar la fecha de entrega esperada
+        if (req.body.fecha_entrega_esperada) {
+            EstadoSoli.fecha_entrega_esperada = new Date(req.body.fecha_entrega_esperada);
+        }
 
         EstadoSoli.historico_estados.push({
             estado: nuevoEstadoAdmin,
             fecha: new Date(),
             observaciones: observaciones || `El Administrador cambió el estado a ${nuevoEstadoAdmin}.`
         });
+
+        if (req.body.comentario_admin) {
+            EstadoSoli.comentario_admin = req.body.comentario_admin;
+        }
 
         await EstadoSoli.save();
 

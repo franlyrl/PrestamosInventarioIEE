@@ -1,8 +1,14 @@
 const express = require('express');
 const router = express.Router();
+
+console.log('=== ARCHIVO solicitudesRoutes.js CARGADO ===');
 const solicitudesControllers = require('../controllers/solicitudesControllers');
+const { ponerFueraDeServicio } = require('../controllers/ponerFueraDeServicio');
 const { protect } = require('../middlewares/authMiddleware');
 const { restrictTo } = require('../middlewares/roleMiddleware');
+
+console.log(' [ROUTES] Cargando solicitudesRoutes.js...');
+console.log(' [ROUTES] ponerFueraDeServicio importado:', typeof ponerFueraDeServicio);
 
 /**
  * @description Rutas para la gestión de solicitudes de préstamo
@@ -28,7 +34,6 @@ router.post('/', solicitudesControllers.createSolicitud);
 // 2. Visualización de Solicitudes
 // El controlador ya filtra: si es Estudiante solo ve las suyas, si es Admin ve todas.
 router.get('/', solicitudesControllers.getSolicitudes);
-router.get('/:id', solicitudesControllers.getSolicitudById);
 
 // 2.1. Visualización para Estudiantes (solo sus solicitudes)
 // Esta ruta permite a los estudiantes ver cualquier solicitud que les pertenezca
@@ -37,11 +42,54 @@ router.get('/estudiante/:id',
     solicitudesControllers.getSolicitudByIdForStudent
 );
 
+// 2.2. Rutas específicas (deben ir antes de /:id para evitar conflictos)
+router.put('/poner-fuera-servicio/:id',
+    restrictTo('admin', 'Administrador', 'administrativo'),
+    ponerFueraDeServicio
+);
+
+// Ruta de prueba (debe ir antes de /:id)
+router.get('/test-endpoint', (req, res) => {
+    console.log(' [TEST] Ruta de prueba alcanzada');
+    res.json({ 
+        message: 'Endpoint de prueba funcionando correctamente',
+        timestamp: new Date(),
+        routes: Object.keys(router)
+    });
+});
+
+// Ruta de prueba PUT simple
+router.put('/test-put', (req, res) => {
+    console.log('=== TEST PUT ALCANZADO ===');
+    console.log('Body:', req.body);
+    res.json({ 
+        message: 'PUT test funcionando',
+        body: req.body
+    });
+});
+
+// 3.1. Cambiar estado de solicitud (con autenticación) - debe ir antes de /:id
+router.put('/estado/:id', 
+    restrictTo('admin', 'Administrador', 'administrativo'),
+    solicitudesControllers.actualizarEstadoSolicitud
+);
+
+// 3.2. Para cambios de estado generales (PATCH) - debe ir antes de /:id
+router.patch('/:id/estado', (req, res, next) => {
+    console.log('=== RUTA PATCH /:id/estado ALCANZADA ===');
+    console.log('Método:', req.method);
+    console.log('URL:', req.originalUrl);
+    console.log('Body:', req.body);
+    next();
+}, restrictTo('admin', 'Administrador', 'administrativo'),
+    solicitudesControllers.gestionarEstadoAdmin
+);
+
 // 3. Gestión del Estudiante (Cancelar su propia boleta)
 // REGLA DE ORO: Solo si el estado es 'pendiente' y es el dueño.
 router.delete('/:id', solicitudesControllers.deleteSolicitud);
 
-// 3.1. Gestión del Estudiante (Editar su propia solicitud)
+// 3.2. Gestión del Estudiante (Editar su propia solicitud)
 // REGLA DE ORO: Solo si el estado es 'pendiente' o 'aprobada' y es el dueño.
 router.put('/:id', solicitudesControllers.updateSolicitud);
 
@@ -49,15 +97,23 @@ router.put('/:id', solicitudesControllers.updateSolicitud);
 // Estas rutas son para aprobar, rechazar o marcar devoluciones.
 
 // Para aprobaciones/rechazos iniciales y disparar el motor de inventario
-router.put('/admin-gestion/:id',
-    restrictTo('admin', 'Administrador', 'administrativo'),
+router.put('/admin-gestion/:id', (req, res, next) => {
+    console.log('*** RUTA ADMIN-GESTIÓN ALCANZADA ***');
+    console.log('=== RUTA ADMIN-GESTIÓN ALCANZADA ===');
+    console.log('Método:', req.method);
+    console.log('URL:', req.originalUrl);
+    console.log('Params:', req.params);
+    console.log('Body:', req.body);
+    console.log('*** PASANDO AL CONTROLADOR ***');
+    next();
+}, restrictTo('admin', 'Administrador', 'administrativo'),
     solicitudesControllers.gestionarEstadoAdmin
 );
 
-// Para cambios de estado generales (ej. marcar como 'entregado' cuando retiran el equipo)
-router.patch('/:id/estado',
-    restrictTo('admin', 'Administrador', 'administrativo'),
-    solicitudesControllers.gestionarEstadoAdmin
-);
+// 2.3. Visualización por ID (debe ir al final de todo)
+router.get('/:id', solicitudesControllers.getSolicitudById);
+
+console.log(' [ROUTES] Exportando router con', Object.keys(router).length, 'rutas');
+console.log(' [ROUTES] Rutas definidas:', Object.keys(router));
 
 module.exports = router;

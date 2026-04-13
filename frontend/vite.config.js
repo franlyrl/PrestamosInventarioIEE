@@ -11,7 +11,7 @@ export default defineConfig({
     port: 5173, // Puerto específico
     open: true, // Abrir navegador automáticamente
     host: '0.0.0.0', // Escuchar en todas las interfaces
-    // 🔥 Configurar MIME types para archivos estáticos
+    //  Configurar MIME types para archivos estáticos
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         if (req.url && req.url.endsWith('.css')) {

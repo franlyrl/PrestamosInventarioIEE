@@ -15,35 +15,35 @@ class RolManager {
      */
     inicializar(usuario) {
         this.currentUser = usuario;
-        console.log('🔍 RolManager - Usuario:', usuario);
+        console.log(' RolManager - Usuario:', usuario);
 
         if (!usuario) {
-            console.error('❌ RolManager - No hay usuario');
+            console.error(' RolManager - No hay usuario');
             return;
         }
 
         const rol = (usuario.rol || usuario.tipo_rol || '').toLowerCase();
-        console.log('👤 RolManager - Rol detectado:', rol);
+        console.log(' RolManager - Rol detectado:', rol);
 
         // Limpiar vistas
         this.ocultarTodasLasVistas();
 
         // Mostrar vista correspondiente
         if (rol === 'estudiante' || rol === 'docente') {
-            console.log('📚 Mostrando vista ESTUDIANTE');
+            console.log(' Mostrando vista ESTUDIANTE');
             this.mostrarVistaEstudiante();
         } else if (rol === 'administrativo' || rol === 'admin') {
-            console.log('⚙️ Mostrando vista ADMIN');
+            console.log('️ Mostrando vista ADMIN');
             this.mostrarVistaAdmin();
         } else {
             // Por defecto, mostrar vista estudiante
-            console.log('📚 Por defecto, mostrando vista ESTUDIANTE');
+            console.log(' Por defecto, mostrando vista ESTUDIANTE');
             this.mostrarVistaEstudiante();
         }
 
         // Cargar estadísticas para vista admin
         if (rol === 'administrativo' || rol === 'admin') {
-            console.log('📊 Cargando estadísticas para ADMIN');
+            console.log(' Cargando estadísticas para ADMIN');
             this.cargarEstadisticas();
         }
     }
@@ -64,7 +64,7 @@ class RolManager {
      * Muestra vista para estudiantes y docentes
      */
     mostrarVistaEstudiante() {
-        console.log('📚 Mostrando vista para estudiantes/docentes');
+        console.log(' Mostrando vista para estudiantes/docentes');
         if (this.vistaEstudiante) {
             this.vistaEstudiante.classList.remove('hidden');
         }
@@ -83,19 +83,19 @@ class RolManager {
      */
     async cargarInsumosParaEstudiantes() {
         try {
-            console.log('📦 Cargando insumos para estudiantes...');
+            console.log(' Cargando insumos para estudiantes...');
 
             const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`);
             const data = await response.json();
 
             if (response.ok) {
-                console.log('✅ Insumos para estudiantes cargados:', data);
+                console.log(' Insumos para estudiantes cargados:', data);
                 this.mostrarInsumosEstudiantes(data);
             } else {
-                console.error('❌ Error cargando insumos para estudiantes:', data);
+                console.error(' Error cargando insumos para estudiantes:', data);
             }
         } catch (error) {
-            console.error('❌ Error en cargarInsumosParaEstudiantes:', error);
+            console.error(' Error en cargarInsumosParaEstudiantes:', error);
         }
     }
 
@@ -106,7 +106,7 @@ class RolManager {
         const itemsGrid = document.getElementById('itemsGrid');
 
         if (!itemsGrid) {
-            console.error('❌ itemsGrid no encontrado');
+            console.error(' itemsGrid no encontrado');
             return;
         }
 
@@ -143,7 +143,7 @@ class RolManager {
                 <div class="p-6">
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-                            <span class="text-2xl">🧩</span>
+                            <span class="text-2xl"></span>
                         </div>
                         <div class="flex-1">
                             <h3 class="text-lg font-bold text-slate-800">${insumo.nombre_insumo}</h3>
@@ -182,18 +182,18 @@ class RolManager {
      * Solicita un insumo para estudiantes
      */
     solicitarInsumo(insumoId) {
-        console.log('📋 Solicitando insumo:', insumoId);
+        console.log(' Solicitando insumo:', insumoId);
 
         // Aquí puedes agregar la lógica para solicitar el insumo
         // Por ahora, mostramos un mensaje
-        this.mostrarToast('📋 Función de solicitud en desarrollo', 'info');
+        this.mostrarToast(' Función de solicitud en desarrollo', 'info');
     }
 
     /**
      * Muestra vista para administrativos y admin
      */
     mostrarVistaAdmin() {
-        console.log('⚙️ Mostrando vista para administrativos/admin');
+        console.log('️ Mostrando vista para administrativos/admin');
         if (this.vistaAdmin) {
             this.vistaAdmin.classList.remove('hidden');
         }
@@ -209,7 +209,7 @@ class RolManager {
      */
     async cargarEstadisticas() {
         try {
-            console.log('📊 Cargando estadísticas...');
+            console.log(' Cargando estadísticas...');
 
             // Cargar totales
             const response = await fetch(`${window.CONFIG.API_BASE_URL}/estadisticas/totales`);
@@ -221,7 +221,7 @@ class RolManager {
                 document.getElementById('totalSolicitudes').textContent = data.totalSolicitudes || 0;
             }
         } catch (error) {
-            console.error('❌ Error cargando estadísticas:', error);
+            console.error(' Error cargando estadísticas:', error);
             // Valores por defecto
             document.getElementById('totalActivos').textContent = '0';
             document.getElementById('totalInsumos').textContent = '0';
@@ -233,8 +233,8 @@ class RolManager {
      * Abre el módulo de gestión de activos
      */
     abrirModuloActivos() {
-        console.log('🔧 Abriendo módulo de Activos');
-        showToast('🔧 Abriendo gestión de Activos...', 'info');
+        console.log(' Abriendo módulo de Activos');
+        showToast(' Abriendo gestión de Activos...', 'info');
 
         // Redirigir a la página de gestión de activos
         setTimeout(() => {
@@ -246,8 +246,8 @@ class RolManager {
      * Abre el modal para añadir artículos
      */
     abrirModalAgregar() {
-        console.log('➕ Abriendo modal para añadir artículo');
-        showToast('➕ Abriendo formulario para añadir artículo...', 'info');
+        console.log(' Abriendo modal para añadir artículo');
+        showToast(' Abriendo formulario para añadir artículo...', 'info');
 
         // Crear y mostrar modal de agregar artículo
         this.crearModalAgregarArticulo();
@@ -268,7 +268,7 @@ class RolManager {
                 <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
                     <div class="p-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xl font-bold text-slate-800">➕ Añadir Nuevo Artículo</h3>
+                            <h3 class="text-xl font-bold text-slate-800"> Añadir Nuevo Artículo</h3>
                             <button onclick="window.RolManager.cerrarModalAgregar()" class="text-slate-400 hover:text-slate-600">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -391,7 +391,7 @@ class RolManager {
                 descripcion: document.getElementById('descripcionArticulo').value
             };
 
-            console.log('💾 Guardando artículo:', formData);
+            console.log(' Guardando artículo:', formData);
 
             const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`, {
                 method: 'POST',
@@ -405,8 +405,8 @@ class RolManager {
             const data = await response.json();
 
             if (response.ok) {
-                console.log('✅ Artículo guardado:', data);
-                this.mostrarToast('✅ Artículo guardado exitosamente', 'success');
+                console.log(' Artículo guardado:', data);
+                this.mostrarToast(' Artículo guardado exitosamente', 'success');
                 this.cerrarModalAgregar();
 
                 // Actualizar estadísticas si existe la función
@@ -414,12 +414,12 @@ class RolManager {
                     this.cargarEstadisticas();
                 }
             } else {
-                console.error('❌ Error guardando artículo:', data);
-                this.mostrarToast('❌ Error al guardar artículo', 'error');
+                console.error(' Error guardando artículo:', data);
+                this.mostrarToast(' Error al guardar artículo', 'error');
             }
         } catch (error) {
-            console.error('❌ Error en guardarArticulo:', error);
-            this.mostrarToast('❌ Error de conexión', 'error');
+            console.error(' Error en guardarArticulo:', error);
+            this.mostrarToast(' Error de conexión', 'error');
         }
     }
 
@@ -463,7 +463,7 @@ class RolManager {
                 descripcion: document.getElementById('descripcionArticulo').value
             };
 
-            console.log('💾 Guardando artículo:', formData);
+            console.log(' Guardando artículo:', formData);
 
             const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`, {
                 method: 'POST',
@@ -477,8 +477,8 @@ class RolManager {
             const data = await response.json();
 
             if (response.ok) {
-                console.log('✅ Artículo guardado:', data);
-                this.mostrarToast('✅ Artículo guardado exitosamente', 'success');
+                console.log(' Artículo guardado:', data);
+                this.mostrarToast(' Artículo guardado exitosamente', 'success');
                 this.cerrarModalAgregar();
 
                 // Actualizar estadísticas si existe la función
@@ -486,12 +486,12 @@ class RolManager {
                     this.cargarEstadisticas();
                 }
             } else {
-                console.error('❌ Error guardando artículo:', data);
-                this.mostrarToast('❌ Error al guardar artículo', 'error');
+                console.error(' Error guardando artículo:', data);
+                this.mostrarToast(' Error al guardar artículo', 'error');
             }
         } catch (error) {
-            console.error('❌ Error en guardarArticulo:', error);
-            this.mostrarToast('❌ Error de conexión', 'error');
+            console.error(' Error en guardarArticulo:', error);
+            this.mostrarToast(' Error de conexión', 'error');
         }
     }
 
@@ -499,8 +499,8 @@ class RolManager {
      * Abre el módulo de gestión de insumos
      */
     abrirModuloInsumos() {
-        console.log('🧩 Abriendo módulo de Insumos');
-        showToast('🧩 Abriendo gestión de Insumos...', 'info');
+        console.log(' Abriendo módulo de Insumos');
+        showToast(' Abriendo gestión de Insumos...', 'info');
 
         // Redirigir a la página de gestión de insumos
         setTimeout(() => {

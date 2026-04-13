@@ -100,7 +100,7 @@ class ModalController {
         const modalData = {
             title: data.title || 'Confirmar Acción',
             description: data.description || 'Esta acción no se puede deshacer',
-            icon: data.icon || '⚠️',
+            icon: data.icon || '️',
             details: data.details || ''
         };
 
@@ -180,7 +180,7 @@ class ModalController {
             <td><input type="text" class="input-field w-48" placeholder="Características"></td>
             <td>
                 <button onclick="modalController.eliminarFilaMasiva(this)" class="btn btn-secondary btn-sm">
-                    🗑️
+                    ️
                 </button>
             </td>
         `;
@@ -235,7 +235,7 @@ class ModalController {
                 <td><input type="text" class="input-field w-48" placeholder="Características"></td>
                 <td>
                     <button onclick="modalController.eliminarFilaMasiva(this)" class="btn btn-secondary btn-sm">
-                        🗑️
+                        ️
                     </button>
                 </td>
             `;

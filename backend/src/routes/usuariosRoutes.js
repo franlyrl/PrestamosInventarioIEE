@@ -28,6 +28,7 @@ const storage = multer.diskStorage({
 router.post('/registro', usuarioControllers.createUsuario);
 router.post('/login', usuarioControllers.loginUsuario);
 router.get('/perfil', protect, usuarioControllers.getPerfil);
+router.patch('/update-password', protect, usuarioControllers.updatePassword);
 
 // --- 4. RUTAS ADMINISTRATIVAS (Solo Admin) ---
 
@@ -42,6 +43,8 @@ router.get('/rol/:role', usuarioControllers.getUsuariosByRole);
 router.patch('/:id', protect, usuarioControllers.updateUsuario);
 router.patch('/:id/inactivar', protect, restrictTo('admin'), usuarioControllers.inactivarUsuario);
 router.post('/sancionar/:id', protect, restrictTo('admin'), usuarioControllers.sancionarUsuarioPorFalta);
+router.patch('/:id/sancionar', protect, restrictTo('admin'), usuarioControllers.sancionarUsuario);
+router.patch('/:id/levantar-sancion', protect, restrictTo('admin'), usuarioControllers.levantarSancion);
 
 // Ciclo académico
 router.patch('/mantenimiento/cierre-cuatrimestre', protect, restrictTo('admin'), usuarioControllers.cierreCuatrimestre);

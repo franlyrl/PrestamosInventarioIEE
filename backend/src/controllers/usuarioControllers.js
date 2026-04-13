@@ -31,10 +31,9 @@ exports.getUsuarios = async (req, res) => {
  */
 
 exports.createUsuario = async (req, res) => {
-    console.log("Datos recibidos en el Body:", req.body); // <-- AGREGA ESTA LÍNEA
     try {
-        const { cedula, nombre_completo, contrasena, codigo_barras, correo_electronico, tipo_rol } = req.body;
-        console.log("Valor de contrasena:", contrasena); // <-- Y ESTA OTRA
+        const { cedula, nombre_completo, contrasena, correo_electronico, carrera } = req.body;
+        
         // 1. Validación manual de la contraseña (antes del hash)
         if (!contrasena || contrasena.length < 8) {
             return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres.' });
@@ -44,28 +43,49 @@ exports.createUsuario = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const passwordHasheada = await bcrypt.hash(contrasena, salt);
 
-        // 3. Crear el usuario (Solo pasamos el hash al modelo)
+        // H: Detectar rol automáticamente por dominio del correo
+        // @est.utn.ac.cr = estudiante, @utn.ac.cr (sin est.) = docente
+        let tipoRolDetectado = 'estudiante';
+        const correoLower = correo_electronico.toLowerCase().trim();
+        if (correoLower.endsWith('@utn.ac.cr') && !correoLower.endsWith('@est.utn.ac.cr')) {
+            tipoRolDetectado = 'docente';
+        }
+
+        // 3. Crear el usuario
         const nuevoUsuario = new Usuarios({
-            id_usuario: Date.now(), // Generamos un ID único basado en la marca de tiempo
+            id_usuario: Date.now(),
             cedula,
             nombre_completo,
-            correo_electronico,
-            contrasena,        // La versión en texto (opcional si el modelo no es required)
-            // Guardamos en los dos campos que definiste en el Modelo:
-            hash_contraseña: passwordHasheada, // La versión encriptada (con tu regla de 8 chars)
-            codigo_barras,
-            tipo_rol,
-            estado: 'activo'
+            correo_electronico: correoLower,
+            hash_contraseña: passwordHasheada,
+            tipo_rol: tipoRolDetectado, // H: asignado automáticamente
+            estado_usuario: 'activo',
+            estado: 'activo',
+            carrera: carrera || 'N/A'
         });
 
         await nuevoUsuario.save();
 
         res.status(201).json({
             status: 'success',
-            message: 'Usuario registrado. La contraseña fue encriptada exitosamente.'
+            message: '¡Cuenta creada exitosamente! La contraseña fue encriptada y el usuario activado.'
         });
 
     } catch (error) {
+        console.error("❌ Error en registro:", error);
+        
+        // Manejo específico de errores de duplicado (Mongo error code 11000)
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyPattern)[0];
+            let message = 'Ya existe un registro con este dato.';
+            
+            if (field === 'cedula') message = 'La cédula ya está registrada.';
+            if (field === 'correo_electronico') message = 'El correo electrónico ya está registrado.';
+            if (field === 'id_usuario') message = 'Error interno: ID de usuario duplicado. Reintenlo.';
+            
+            return res.status(400).json({ message });
+        }
+
         res.status(500).json({ message: 'Error en el registro', error: error.message });
     }
 };
@@ -132,6 +152,48 @@ exports.getPerfil = async (req, res) => {
         });
     }
 };
+
+/**
+ * @desc Actualiza la contraseña del usuario autenticado
+ */
+exports.updatePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Por favor complete todos los campos' });
+        }
+
+        // 1. Obtener usuario con la contraseña
+        const usuario = await Usuarios.findById(req.user._id).select('+hash_contraseña');
+        
+        // 2. Verificar contraseña actual
+        // Nota: En el modelo se llama hash_contraseña
+        const esValida = await bcrypt.compare(currentPassword, usuario.hash_contraseña);
+        if (!esValida) {
+            return res.status(401).json({ message: 'La contraseña actual es incorrecta' });
+        }
+
+        // 3. Validar longitud de nueva contraseña
+        if (newPassword.length < 8) {
+            return res.status(400).json({ message: 'La nueva contraseña debe tener al menos 8 caracteres' });
+        }
+
+        // 4. Hashear y guardar
+        const salt = await bcrypt.genSalt(10);
+        usuario.hash_contraseña = await bcrypt.hash(newPassword, salt);
+        await usuario.save();
+
+        res.json({
+            ok: true,
+            message: 'Contraseña actualizada correctamente'
+        });
+
+    } catch (error) {
+        console.error('Error al actualizar contraseña:', error);
+        res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    }
+};
 /**
  * @desc Sanciona a un usuario y marca la solicitud como penalizada.
  * Bloquea al usuario para que no pida más ni pueda ser inactivado/borrado.
@@ -149,19 +211,15 @@ exports.sancionarUsuarioPorFalta = async (req, res) => {
             return res.status(404).json({ message: 'No se encontró la solicitud de préstamo.' });
         }
 
-        // 2. Cambiamos el estado de la SOLICITUD (El registro del objeto)
+        // 2. Cambiamos el estado de la SOLICITUD
         solicitud.estado = 'penalizado';
         solicitud.observaciones_admin = req.body.motivo || 'Incumplimiento en la entrega/daño de equipo';
         await solicitud.save();
 
-        // 3. IMPACTO EN EL USUARIO (La sanción real)
-        // Buscamos al dueño de esa solicitud y lo bloqueamos
+        // 3. IMPACTO EN EL USUARIO
         const usuarioSancionado = await Usuarios.findByIdAndUpdate(
-            solicitud.estudiante,
-            {
-                estado: 'sancionado',
-                // Podemos agregar una nota en el perfil del usuario si tienes ese campo
-            },
+            solicitud.usuario,
+            { estado: 'sancionado' },
             { new: true }
         );
 
@@ -176,6 +234,83 @@ exports.sancionarUsuarioPorFalta = async (req, res) => {
 
     } catch (error) {
         res.status(500).json({ message: 'Error al procesar la sanción del usuario.', error: error.message });
+    }
+};
+
+/**
+ * @route PATCH /api/usuarios/:id/sancionar
+ * @desc Sanciona a un usuario directamente por ID con motivo y duración opcional.
+ * @access Privado (Solo Administrador)
+ */
+exports.sancionarUsuario = async (req, res) => {
+    try {
+        const { motivo, dias } = req.body;
+        if (!motivo || motivo.trim().length < 5) {
+            return res.status(400).json({ message: 'Se requiere un motivo válido (mín. 5 caracteres) para la sanción.' });
+        }
+
+        const usuario = await Usuarios.findById(req.params.id);
+        if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+        const fechaInicio = new Date();
+        const fechaFin = dias ? new Date(fechaInicio.getTime() + dias * 24 * 60 * 60 * 1000) : null;
+
+        const actualizado = await Usuarios.findByIdAndUpdate(
+            req.params.id,
+            {
+                estado: 'sancionado',
+                sancion_activa: true,
+                sancion_motivo: motivo.trim(),
+                sancion_fecha_inicio: fechaInicio,
+                sancion_fecha_fin: fechaFin
+            },
+            { new: true }
+        ).select('-hash_contraseña');
+
+        res.json({
+            message: `Usuario ${actualizado.nombre_completo} sancionado correctamente.`,
+            sancion: {
+                motivo: actualizado.sancion_motivo,
+                desde: actualizado.sancion_fecha_inicio,
+                hasta: actualizado.sancion_fecha_fin || 'Permanente hasta desbloqueo manual'
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al sancionar al usuario.', error: error.message });
+    }
+};
+
+/**
+ * @route PATCH /api/usuarios/:id/levantar-sancion
+ * @desc Levanta la sanción de un usuario, reactivando su cuenta.
+ * @access Privado (Solo Administrador)
+ */
+exports.levantarSancion = async (req, res) => {
+    try {
+        const usuario = await Usuarios.findById(req.params.id);
+        if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+        if (!usuario.sancion_activa && usuario.estado !== 'sancionado') {
+            return res.status(400).json({ message: 'Este usuario no tiene una sanción activa.' });
+        }
+
+        const actualizado = await Usuarios.findByIdAndUpdate(
+            req.params.id,
+            {
+                estado: 'activo',
+                sancion_activa: false,
+                sancion_motivo: null,
+                sancion_fecha_inicio: null,
+                sancion_fecha_fin: null
+            },
+            { new: true }
+        ).select('-hash_contraseña');
+
+        res.json({
+            message: `Sanción levantada. El usuario ${actualizado.nombre_completo} puede volver a operar normalmente.`
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al levantar la sanción.', error: error.message });
     }
 };
 
@@ -331,9 +466,24 @@ exports.loginUsuario = async (req, res) => {
             });
         }
 
-        if (usuario.estado === 'sancionado') {
+        // I: Verificar si la sanción expiró automáticamente
+        if (usuario.sancion_activa && usuario.sancion_fecha_fin && new Date() > new Date(usuario.sancion_fecha_fin)) {
+            await Usuarios.findByIdAndUpdate(usuario._id, {
+                estado: 'activo',
+                sancion_activa: false,
+                sancion_motivo: null,
+                sancion_fecha_fin: null
+            });
+            usuario.estado = 'activo';
+            usuario.sancion_activa = false;
+        }
+
+        if (usuario.estado === 'sancionado' || usuario.sancion_activa) {
+            const fechaFin = usuario.sancion_fecha_fin
+                ? `hasta el ${new Date(usuario.sancion_fecha_fin).toLocaleDateString('es-CR')}`
+                : 'hasta que el administrador levante la sanción';
             return res.status(403).json({
-                message: 'Tu cuenta se encuentra sancionada. No puedes acceder al sistema.'
+                message: `Tu cuenta está sancionada ${fechaFin}. Motivo: ${usuario.sancion_motivo || 'Sin motivo registrado'}. No puedes acceder al sistema.`
             });
         }
 
@@ -343,6 +493,7 @@ exports.loginUsuario = async (req, res) => {
         res.status(200).json({
             token,
             usuario: {
+                id: usuario._id,
                 nombre: usuario.nombre_completo,
                 rol: usuario.tipo_rol,
                 carrera: usuario.carrera,

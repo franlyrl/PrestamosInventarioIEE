@@ -7,18 +7,18 @@ class IndexController {
     }
 
     async init() {
-        console.log('🚀 Iniciando IndexController simple...');
+        console.log(' Iniciando IndexController simple...');
         
         // Esperar a que el DOM esté listo antes de configurar filtros y cargar items
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-                console.log('📋 DOM listo - Configurando filtros y cargando items...');
+                console.log(' DOM listo - Configurando filtros y cargando items...');
                 this.setupFiltros(() => this.cargarItems());
             });
         } else {
             // DOM ya está listo, configurar filtros y cargar items
             setTimeout(() => {
-                console.log('📋 DOM ya listo - Configurando filtros y cargando items...');
+                console.log(' DOM ya listo - Configurando filtros y cargando items...');
                 this.setupFiltros(() => this.cargarItems());
             }, 100);
         }
@@ -35,7 +35,7 @@ class IndexController {
             const estadoSelect = document.getElementById('estado-select');
 
             if (buscarBtn && limpiarBtn && busquedaInput && tipoSelect && categoriaSelect && estadoSelect) {
-                console.log('✅ Elementos de filtros encontrados, configurando eventos...');
+                console.log(' Elementos de filtros encontrados, configurando eventos...');
                 
                 buscarBtn.addEventListener('click', () => this.aplicarFiltros());
                 limpiarBtn.addEventListener('click', () => this.limpiarFiltros());
@@ -49,14 +49,14 @@ class IndexController {
                     callback();
                 }
             } else {
-                console.log('❌ No se encontraron todos los elementos de filtros');
+                console.log(' No se encontraron todos los elementos de filtros');
             }
         }, 100);
     }
 
     async cargarItems() {
         try {
-            console.log('📡 Cargando items desde la API...');
+            console.log(' Cargando items desde la API...');
             const token = localStorage.getItem('utn_token');
             
             const [activosResponse, insumosResponse] = await Promise.all([
@@ -72,8 +72,8 @@ class IndexController {
                 let activos = await activosResponse.json();
                 let insumos = await insumosResponse.json();
 
-                console.log('📦 Activos cargados:', activos?.todosLosActivos?.length || 0);
-                console.log('📦 Insumos cargados:', insumos?.length || 0);
+                console.log(' Activos cargados:', activos?.todosLosActivos?.length || 0);
+                console.log(' Insumos cargados:', insumos?.length || 0);
 
                 const activosArray = Array.isArray(activos?.todosLosActivos) ? activos.todosLosActivos : [];
                 const insumosArray = Array.isArray(insumos) ? insumos : [];
@@ -83,7 +83,7 @@ class IndexController {
                     ...insumosArray.map(item => ({ ...item, tipo: 'insumo' }))
                 ];
 
-                console.log('📊 Total items:', this.allItems.length);
+                console.log(' Total items:', this.allItems.length);
 
                 // Forzar valores iniciales
                 const tipoSelect = document.getElementById('tipo-select');
@@ -98,7 +98,7 @@ class IndexController {
                 this.renderItems();
             }
         } catch (error) {
-            console.error('❌ Error cargando items:', error);
+            console.error(' Error cargando items:', error);
         }
     }
 
@@ -180,7 +180,7 @@ class IndexController {
         if (this.filteredItems.length === 0) {
             itemsGrid.innerHTML = `
                 <div class="col-span-full text-center py-8">
-                    <div class="text-slate-400 text-lg">🔍 No se encontraron resultados</div>
+                    <div class="text-slate-400 text-lg"> No se encontraron resultados</div>
                     <div class="text-slate-500 text-sm mt-2">Intenta con otros criterios de búsqueda</div>
                 </div>
             `;
@@ -194,7 +194,7 @@ class IndexController {
             itemsGrid.appendChild(card);
         });
 
-        console.log('✅ Items renderizados:', this.filteredItems.length);
+        console.log(' Items renderizados:', this.filteredItems.length);
     }
 
     crearItemCard(item) {
@@ -202,7 +202,7 @@ class IndexController {
         card.className = 'bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group';
 
         const tipo = item.tipo || 'insumo';
-        const tipoIcon = tipo === 'activo' ? '🔧' : '🧩';
+        const tipoIcon = tipo === 'activo' ? '' : '';
         
         // Para activos: cantidad siempre es 1 (son únicos)
         // Para insumos: usar cantidad o stock_actual
@@ -220,8 +220,8 @@ class IndexController {
         // Para la categoría: mostrar la original pero con indicador visual del tipo
         const categoriaOriginal = item.categoria || 'N/A';
         const categoria = tipo === 'activo' 
-            ? `🔧 ${categoriaOriginal}`
-            : (tipo === 'insumo' ? `🧩 ${categoriaOriginal}` : categoriaOriginal);
+            ? ` ${categoriaOriginal}`
+            : (tipo === 'insumo' ? ` ${categoriaOriginal}` : categoriaOriginal);
 
         const getStockClass = (cantidad) => {
             if (cantidad <= 0) return 'bg-red-100 text-red-600';
@@ -281,8 +281,8 @@ class IndexController {
                 </div>
                 
                 <div class="flex gap-2">
-                    <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-blue-800 transition-all duration-200" onclick="console.log('🛒 Click en solicitar:', '${item._id || item.id_insumo}'); alert('🛒 Solicitud de ${nombre} (${tipo}) - Función en desarrollo')">
-                        🛒 Solicitar
+                    <button class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-blue-800 transition-all duration-200" onclick="console.log(' Click en solicitar:', '${item._id || item.id_insumo}'); alert(' Solicitud de ${nombre} (${tipo}) - Función en desarrollo')">
+                         Solicitar
                     </button>
                 </div>
             </div>
@@ -294,6 +294,6 @@ class IndexController {
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 DOM listo - Inicializando IndexController simple...');
+    console.log(' DOM listo - Inicializando IndexController simple...');
     window.indexController = new IndexController();
 });

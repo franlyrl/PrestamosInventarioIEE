@@ -60,7 +60,12 @@ router.patch('/:id/stock',
 
 router.patch('/:id/reactivar', 
     restrictTo('admin', 'Administrador'), 
-    insumosControllers.reactivarInsumo // reactivar un insumo eliminado
+    insumosControllers.reactivarInsumo
+);
+
+router.patch('/:id/mal-estado',
+    restrictTo('admin', 'Administrador', 'administrativo'),
+    insumosControllers.marcarMalEstado
 );
 
 // 3. Reportes y Alertas (Solo personal autorizado)
@@ -74,6 +79,12 @@ router.get('/reportes/alertas-stock',
 router.delete('/:id', 
     restrictTo('admin', 'Administrador'), 
     insumosControllers.deleteInsumo
+);
+
+// 5. Automatización de Imágenes
+router.post('/auto-imagenes',
+    restrictTo('admin', 'Administrador', 'administrativo'),
+    insumosControllers.autoAsignarImagenes
 );
 
 module.exports = router;

@@ -91,17 +91,35 @@ const Utils = {
 
     // Mostrar toast
     showToast(message, type = 'success') {
-        const toast = document.getElementById('toast');
-        const toastMsg = document.getElementById('toastMsg');
+        const icon = type === 'error' ? 'error' : type === 'warning' ? 'warning' : type === 'info' ? 'info' : 'success';
         
-        toastMsg.textContent = message;
-        toast.classList.remove('translate-y-20', 'opacity-0');
-        toast.classList.add('translate-y-0', 'opacity-100');
-
-        setTimeout(() => {
-            toast.classList.remove('translate-y-0', 'opacity-100');
-            toast.classList.add('translate-y-20', 'opacity-0');
-        }, 3000);
+        // Usar SweetAlert2 si está disponible para un look premium
+        if (window.Swal) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+            Toast.fire({ icon, title: message });
+        } else {
+            // Fallback al toast anterior si Swal no carga
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            if (!toast || !toastMsg) return;
+            toastMsg.textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
     },
 
     // Animar elemento
@@ -144,6 +162,9 @@ const Utils = {
         }
     }
 };
+
+// --- GLOBAL NOTIFICATIONS ---
+window.mostrarToast = (msg, type) => Utils.showToast(msg, type);
 
 // API Service
 const ApiService = {
@@ -208,7 +229,8 @@ const ApiService = {
             });
 
             if (!response.ok) {
-                throw new Error('Error al crear solicitud');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Error al crear solicitud');
             }
 
             return response.json();
@@ -216,6 +238,32 @@ const ApiService = {
             Utils.handleApiError(error);
             throw error;
         }
+    },
+
+    // Crear insumo
+    async createInsumo(insumoData) {
+        try {
+            const response = await Utils.authenticatedFetch(`${CONFIG.API_BASE_URL}/insumos`, {
+                method: 'POST',
+                body: JSON.stringify(insumoData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Error al crear insumo');
+            }
+
+            return response.json();
+        } catch (error) {
+            Utils.handleApiError(error);
+            throw error;
+        }
+    },
+
+    // Crear activos (redirige a insumos con tipo activo según el nuevo estándar)
+    async createActivo(activoData) {
+        // Por consistencia con la nueva estandarización, usamos el mismo endpoint
+        return this.createInsumo({ ...activoData, tipo: 'activo' });
     }
 };
 

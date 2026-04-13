@@ -91,7 +91,7 @@ class DashboardController {
         if (itemsArray.length === 0) {
             grid.innerHTML = `
                 <div class="col-span-full text-center py-12">
-                    <div class="text-6xl mb-4">📦</div>
+                    <div class="text-6xl mb-4"></div>
                     <h3 class="text-xl font-bold text-slate-700 mb-2">No hay ${this.currentType} disponibles</h3>
                     <p class="text-slate-400">Intente recargar los datos o contacte al administrador</p>
                 </div>
@@ -185,16 +185,16 @@ class DashboardController {
         const name = (item.NombProducto || item.nombre || item.name || '').toLowerCase();
 
         // Iconos por categoría
-        if (category.includes('medición') || name.includes('multímetro')) return '🔬';
-        if (category.includes('medición') || name.includes('osciloscopio')) return '📊';
-        if (category.includes('herramienta') || name.includes('soldador')) return '🔥';
-        if (category.includes('electrónica') || name.includes('diodo')) return '💊';
-        if (category.includes('electrónica') || name.includes('resistencia')) return '📏';
-        if (category.includes('consumible') || name.includes('estaño')) return '🧵';
-        if (category.includes('consumible') || name.includes('pasta')) return '🍯';
+        if (category.includes('medición') || name.includes('multímetro')) return '';
+        if (category.includes('medición') || name.includes('osciloscopio')) return '';
+        if (category.includes('herramienta') || name.includes('soldador')) return '';
+        if (category.includes('electrónica') || name.includes('diodo')) return '';
+        if (category.includes('electrónica') || name.includes('resistencia')) return '';
+        if (category.includes('consumible') || name.includes('estaño')) return '';
+        if (category.includes('consumible') || name.includes('pasta')) return '';
 
         // Iconos por defecto
-        return this.currentType === 'activos' ? '🔧' : '📦';
+        return this.currentType === 'activos' ? '' : '';
     }
 
     selectItem(itemId) {

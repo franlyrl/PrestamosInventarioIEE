@@ -14,7 +14,7 @@ class RolManager {
      * Inicializa el gestor de roles
      */
     inicializar(usuario) {
-        console.log('👤 Inicializando RolManager para:', usuario);
+        console.log(' Inicializando RolManager para:', usuario);
         
         this.usuarioActual = usuario;
         
@@ -54,7 +54,7 @@ class RolManager {
      * Muestra vista para estudiantes y docentes
      */
     mostrarVistaEstudiante() {
-        console.log('📚 Mostrando vista para estudiantes/docentes');
+        console.log(' Mostrando vista para estudiantes/docentes');
         if (this.vistaEstudiante) {
             this.vistaEstudiante.classList.remove('hidden');
         }
@@ -64,7 +64,7 @@ class RolManager {
      * Muestra vista para administrativos y admin
      */
     mostrarVistaAdmin() {
-        console.log('⚙️ Mostrando vista para administrativos/admin');
+        console.log('️ Mostrando vista para administrativos/admin');
         if (this.vistaAdmin) {
             this.vistaAdmin.classList.remove('hidden');
         }
@@ -74,8 +74,8 @@ class RolManager {
      * Abre el módulo de gestión de activos
      */
     abrirModuloActivos() {
-        console.log('🔧 Abriendo módulo de Activos');
-        this.mostrarToast('🔧 Abriendo gestión de Activos...', 'info');
+        console.log(' Abriendo módulo de Activos');
+        this.mostrarToast(' Abriendo gestión de Activos...', 'info');
         
         // Redirigir a la página de gestión de activos
         setTimeout(() => {
@@ -87,8 +87,8 @@ class RolManager {
      * Abre el modal para añadir artículos
      */
     abrirModalAgregar() {
-        console.log('➕ Abriendo modal para añadir artículo');
-        this.mostrarToast('➕ Abriendo formulario para añadir artículo...', 'info');
+        console.log(' Abriendo modal para añadir artículo');
+        this.mostrarToast(' Abriendo formulario para añadir artículo...', 'info');
         
         // Crear y mostrar modal de agregar artículo
         this.crearModalAgregarArticulo();
@@ -109,7 +109,7 @@ class RolManager {
                 <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
                     <div class="p-6">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xl font-bold text-slate-800">➕ Añadir Nuevo Artículo</h3>
+                            <h3 class="text-xl font-bold text-slate-800"> Añadir Nuevo Artículo</h3>
                             <button onclick="window.RolManager.cerrarModalAgregar()" class="text-slate-400 hover:text-slate-600">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -232,7 +232,7 @@ class RolManager {
                 descripcion: document.getElementById('descripcionArticulo').value
             };
             
-            console.log('💾 Guardando artículo:', formData);
+            console.log(' Guardando artículo:', formData);
             
             const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`, {
                 method: 'POST',
@@ -246,16 +246,16 @@ class RolManager {
             const data = await response.json();
             
             if (response.ok) {
-                console.log('✅ Artículo guardado:', data);
-                this.mostrarToast('✅ Artículo guardado exitosamente', 'success');
+                console.log(' Artículo guardado:', data);
+                this.mostrarToast(' Artículo guardado exitosamente', 'success');
                 this.cerrarModalAgregar();
             } else {
-                console.error('❌ Error guardando artículo:', data);
-                this.mostrarToast('❌ Error al guardar artículo', 'error');
+                console.error(' Error guardando artículo:', data);
+                this.mostrarToast(' Error al guardar artículo', 'error');
             }
         } catch (error) {
-            console.error('❌ Error en guardarArticulo:', error);
-            this.mostrarToast('❌ Error de conexión', 'error');
+            console.error(' Error en guardarArticulo:', error);
+            this.mostrarToast(' Error de conexión', 'error');
         }
     }
 
@@ -263,8 +263,8 @@ class RolManager {
      * Abre el módulo de gestión de insumos
      */
     abrirModuloInsumos() {
-        console.log('🧩 Abriendo módulo de Insumos');
-        this.mostrarToast('🧩 Abriendo gestión de Insumos...', 'info');
+        console.log(' Abriendo módulo de Insumos');
+        this.mostrarToast(' Abriendo gestión de Insumos...', 'info');
         
         // Redirigir a la página de gestión de insumos
         setTimeout(() => {

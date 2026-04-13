@@ -3,1463 +3,1172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insumos - UTN Sistema de Gestión</title>
-    <meta name="description" content="Gestión de insumos del laboratorio UTN">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="../css/main.css">
-    <link rel="stylesheet" href="../css/pages/insumos.css">
+    <title>Gestión de Insumos - UTN SPIEE</title>
+    <meta name="description" content="Gestión completa de insumos y materiales del laboratorio UTN">
+    <link rel="icon" type="image/jpeg" href="../css/UTN.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- SheetJS (Para parseo rápido de XLSX y CSV en frontend) -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        /* Drawer lateral */
+        #drawer { transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); }
+        #drawer.open { transform: translateX(0); }
+        #drawerOverlay { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        #drawerOverlay.open { opacity: 1; pointer-events: all; }
+        /* Tarjetas */
+        .item-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; transition: all 0.25s; cursor: pointer; }
+        .item-card:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(0,45,98,0.1); border-color: #cbd5e1; }
+        /* Badges de estado */
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .badge-disp { background: #dcfce7; color: #15803d; }
+        .badge-prest { background: #dbeafe; color: #1d4ed8; }
+        .badge-espera { background: #fef9c3; color: #a16207; }
+        .badge-stock { background: #fee2e2; color: #dc2626; }
+        .badge-elim { background: #f1f5f9; color: #64748b; }
+        /* Campo de formulario */
+        .f-label { display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px; }
+        .f-input { width: 100%; padding: 10px 14px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; color: #1e293b; transition: all 0.2s; outline: none; }
+        .f-input:focus { border-color: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.1); background: white; }
+        /* Scroll personalizado */
+        ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: #f1f5f9; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+        @keyframes fadeUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp 0.35s ease both; }
+        /* Stock indicator */
+        .stock-bar { height: 4px; border-radius: 2px; background: #e2e8f0; }
+        .stock-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+    </style>
 </head>
-<body class="text-slate-800">
-    
-    <!-- Header Component -->
+<body class="text-slate-800 min-h-screen flex flex-col">
+
     <div id="header-component"></div>
-    
-    <!-- Contenido Principal -->
-    <main class="container py-6">
-        <div class="flex gap-6">
-            <!-- Sidebar Component -->
-            <div id="sidebar-component"></div>
-            
-            <!-- Contenido de Insumos -->
-            <div class="flex-1">
-                <header class="mb-6">
-                    <h1 class="text-3xl font-bold text-slate-800">📦 Gestión de Insumos</h1>
-                    <p class="text-slate-600">Administra los materiales y consumibles del laboratorio</p>
-                </header>
-                
-                <!-- Filtros y Búsqueda -->
-                <section class="card p-4 mb-6">
-                    <div class="flex flex-wrap gap-4 items-center">
-                        <div class="flex-1 min-w-[200px]">
-                            <input type="text" id="busqueda-input" placeholder="Buscar insumos..." class="input-field w-full">
-                        </div>
-                        <select id="categoria-select" class="input-field w-48">
-                            <option value="todas">Todas las categorías</option>
-                            <option value="Componentes Digitales">Componentes Digitales</option>
-                            <option value="Componentes Analógicos">Componentes Analógicos</option>
-                        </select>
-                        <select id="stock-select" class="input-field w-32">
-                            <option value="todos">Todos</option>
-                            <option value="con-stock">Con Stock</option>
-                            <option value="sin-stock">Sin Stock</option>
-                            <option value="bajo-stock">Bajo Stock</option>
-                        </select>
-                        <button id="limpiar-btn" class="btn btn-secondary">
-                            🔄 Limpiar
-                        </button>
-                    </div>
-                </section>
-                
-                <!-- Acciones Rápidas -->
-                <section class="flex justify-between items-center mb-6">
-                    <div class="flex gap-2">
-                        <button id="agregar-btn" class="btn btn-primary">
-                            ➕ Agregar Insumo
-                        </button>
-                        <button id="agregar-masivo-btn" class="btn btn-secondary">
-                            📦 Agregar Masivo
-                        </button>
-                        <button id="exportar-btn" class="btn btn-secondary">
-                            📥 Exportar
-                        </button>
-                    </div>
-                    <div class="text-sm text-slate-600">
-                        Mostrando <span id="resultados-count">0</span> resultados
-                    </div>
-                </section>
-                
-                <!-- Grid de Insumos -->
-                <section id="insumos-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    <!-- Los insumos se cargarán dinámicamente -->
-                </section>
-                
-                <!-- Loading State -->
-                <div id="loading-state" class="hidden">
-                    <div class="flex justify-center items-center py-12">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                        <p class="ml-4 text-slate-600">Cargando insumos...</p>
+
+    <!-- Encabezado página -->
+    <div class="bg-white border-b border-slate-200 px-6 py-5">
+        <div class="container mx-auto max-w-7xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <a href="ModAdmis.html" class="group flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-[#002D62] text-slate-500 hover:text-white rounded-lg text-[11px] font-black tracking-wide transition-all duration-200 border border-slate-200 hover:border-[#002D62]">
+                        <svg class="w-3.5 h-3.5 transform group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        VOLVER AL PANEL
+                    </a>
+                    <span class="text-slate-300">/</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Inventario</span>
+                </div>
+                <h1 class="text-2xl font-black text-[#002D62]">Gestión de Insumos</h1>
+                <p class="text-sm text-slate-400 mt-0.5">Control de materiales y consumibles</p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-[10px] font-black text-slate-400 uppercase">Total:</span>
+                <span id="totalCount" class="text-2xl font-black text-emerald-600">0</span>
+                <button onclick="abrirModalImportarCSV()" class="ml-3 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-50 transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Importar CSV
+                </button>
+                <button onclick="autoAsignarImagenesMasivas('insumos')" class="px-4 py-2 bg-white border border-slate-200 text-[#002D62] rounded-xl font-bold text-sm hover:bg-slate-50 transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+                    Auto-Asignar
+                </button>
+                <button onclick="exportarExcel()" class="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-50 transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Exportar
+                </button>
+                <button onclick="abrirModalNuevoInsumo()" class="px-4 py-2 bg-[#002D62] text-white rounded-xl font-bold text-sm hover:bg-[#001A33] transition flex items-center gap-2 shadow-sm shadow-blue-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Nuevo Insumo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <main class="container mx-auto max-w-7xl px-6 py-8 flex-grow">
+
+        <!-- Filtros -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                <div class="lg:col-span-2">
+                    <label class="f-label">Búsqueda</label>
+                    <div class="relative">
+                        <input type="text" id="busquedaInput" placeholder="Nombre, código, características..." class="f-input pl-10">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
                     </div>
                 </div>
-                
-                <!-- Empty State -->
-                <div id="empty-state" class="hidden">
-                    <div class="text-center py-12">
-                        <div class="text-6xl mb-4">📦</div>
-                        <h3 class="text-xl font-bold text-slate-700 mb-2">No se encontraron insumos</h3>
-                        <p class="text-slate-500 mb-4">Intenta ajustar los filtros o agrega nuevos insumos</p>
-                        <div class="flex gap-2 justify-center">
-                            <button class="btn btn-primary" onclick="insumosController.showAgregarModal()">
-                                ➕ Agregar Primer Insumo
-                            </button>
-                            <button class="btn btn-secondary" onclick="insumosController.showMasivoModal()">
-                                📦 Agregar Masivo
-                            </button>
-                        </div>
-                    </div>
+                <div>
+                    <label class="f-label">Categoría</label>
+                    <select id="categoriaFiltro" class="f-input">
+                        <option value="">Todas</option>
+                        <option>Componentes Digitales</option>
+                        <option>Componentes Analógicos</option>
+                        <option>Herramientas Menores</option>
+                        <option>Consumibles de Soldadura</option>
+                        <option>Instrumentos</option>
+                        <option>Otros</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="f-label">Estado de Stock</label>
+                    <select id="stockFiltro" class="f-input">
+                        <option value="">Todos</option>
+                        <option value="disponible">Con stock</option>
+                        <option value="bajo">Bajo stock (≤5)</option>
+                        <option value="sin">Sin stock</option>
+                    </select>
+                </div>
+                <div>
+                    <button onclick="limpiarFiltros()" class="w-full px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Limpiar</button>
                 </div>
             </div>
         </div>
+
+        <!-- Grid de insumos -->
+        <div id="insumosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+        <div id="inPagination" class="flex flex-wrap justify-center items-center gap-2 mt-8 mb-4"></div>
+
+        <!-- Estado cargando -->
+        <div id="loadingState" class="flex flex-col items-center justify-center py-24 text-slate-400">
+            <div class="w-10 h-10 border-4 border-slate-200 border-t-emerald-500 rounded-full animate-spin mb-4"></div>
+            <p class="text-sm font-medium">Cargando insumos...</p>
+        </div>
+
+        <!-- Estado vacío -->
+        <div id="emptyState" class="hidden flex flex-col items-center justify-center py-24 text-slate-400">
+            <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            </div>
+            <h3 class="font-bold text-slate-600 mb-1">No se encontraron insumos</h3>
+            <p class="text-sm mb-5">Prueba con otros filtros o registra el primero</p>
+            <button onclick="abrirModalNuevoInsumo()" class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition">+ Nuevo Insumo</button>
+        </div>
     </main>
-    
-    <!-- MODAL PARA AGREGAR INSUMO -->
-    <div id="modalAgregarInsumo" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
-        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
+
+    <!-- ============================================================
+         DRAWER LATERAL - Detalle del Insumo
+    ============================================================ -->
+    <div id="drawerOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110]" onclick="cerrarDrawer()"></div>
+
+    <aside id="drawer" class="fixed right-0 top-0 h-full w-full max-w-lg bg-white z-[120] shadow-2xl flex flex-col overflow-hidden">
+        <!-- Header drawer -->
+        <div class="bg-gradient-to-r from-[#002D62] to-[#004A8C] text-white p-6 flex-shrink-0">
+            <div class="flex items-start justify-between">
+                <div class="flex-1 min-w-0">
+                    <span id="drawerTipo" class="text-[10px] font-black uppercase tracking-widest text-blue-200 opacity-80">Insumo</span>
+                    <h2 id="drawerNombre" class="text-xl font-black mt-1 leading-tight truncate">-</h2>
+                    <p id="drawerCodigo" class="text-sm text-blue-200 mt-1 font-mono">-</p>
+                </div>
+                <button onclick="cerrarDrawer()" class="ml-4 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Cuerpo del drawer (scrollable) -->
+        <div class="flex-1 overflow-y-auto">
+            <!-- Imagen + estado -->
             <div class="p-6 border-b border-slate-100">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-slate-800">➕ Agregar Nuevo Insumo</h2>
-                    <button onclick="cerrarModalAgregarInsumo()" class="text-slate-400 hover:text-slate-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
+                <div class="flex gap-4 items-start">
+                    <div id="drawerImgWrap" class="w-20 h-20 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center flex-shrink-0 border border-slate-200">
+                        <svg id="drawerImgPlaceholder" class="w-9 h-9 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                        <img id="drawerImg" src="" alt="" class="w-full h-full object-cover hidden cursor-zoom-in hover:opacity-90 transition-opacity" onclick="window.verImagenCompleta(this.src, document.getElementById('drawerNombre').textContent)">
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            <span id="drawerEstadoBadge" class="badge badge-disp">Disponible</span>
+                            <span id="drawerCategBadge" class="badge" style="background:#f0fdf4;color:#166534;">-</span>
+                        </div>
+                        <!-- Stock visual -->
+                        <div>
+                            <div class="flex justify-between text-xs font-bold mb-1">
+                                <span class="text-slate-400 uppercase tracking-wide">Stock actual</span>
+                                <span id="drawerStockNum" class="text-slate-700">0 unidades</span>
+                            </div>
+                            <div class="stock-bar"><div id="drawerStockBar" class="stock-fill bg-[#002D62]" style="width:0%"></div></div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <form id="formAgregarInsumo" class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <!-- Información general -->
+            <div class="p-6 border-b border-slate-100">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Información General</h3>
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Nombre del Insumo *</label>
-                        <input type="text" id="nombreInsumo" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mb-1">ID Sistema</p>
+                        <p id="drawerIdSistema" class="font-bold text-slate-700">-</p>
                     </div>
-                    
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Categoría *</label>
-                        <select id="categoriaInsumo" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Selecciona una categoría</option>
-                            <option value="Componentes Digitales">Componentes Digitales</option>
-                            <option value="Componentes Analógicos">Componentes Analógicos</option>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mb-1">Tipo</p>
+                        <p id="drawerTipoVal" class="font-bold text-slate-700 capitalize">-</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mb-1">Ubicación</p>
+                        <p id="drawerUbicacion" class="font-bold text-slate-700">-</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wide mb-1">Registrado</p>
+                        <p id="drawerFecha" class="font-bold text-slate-700">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Características -->
+            <div class="p-6 border-b border-slate-100">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Características</h3>
+                <p id="drawerCaract" class="text-sm text-slate-600 leading-relaxed">-</p>
+            </div>
+
+            <!-- Historial de movimientos -->
+            <div class="p-6">
+                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Historial de Movimientos</h3>
+                <div id="drawerHistorial" class="space-y-3 text-sm text-slate-500">
+                    <p class="italic">Sin movimientos registrados.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones del drawer -->
+        <div class="p-5 border-t border-slate-100 bg-slate-50 flex-shrink-0">
+            <div class="grid grid-cols-2 gap-2">
+                <button id="btnEditarDrawer" onclick="editarDesdeDrawer()" class="py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition text-center flex items-center justify-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    Editar
+                </button>
+                <button id="btnStockDrawer" onclick="ajustarStockDesdeDrawer()" class="py-2.5 bg-white border border-blue-200 text-blue-700 rounded-xl font-bold text-sm hover:bg-blue-50 transition text-center flex items-center justify-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    Stock
+                </button>
+                <button onclick="marcarMalEstadoDesdeDrawer()" class="py-2.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl font-bold text-sm hover:bg-amber-100 transition flex items-center justify-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    Mal Estado
+                </button>
+                <button id="btnElimDrawer" onclick="eliminarDesdeDrawer()" class="py-2.5 bg-white border border-red-200 text-red-600 rounded-xl font-bold text-sm hover:bg-red-50 transition text-center flex items-center justify-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    Baja
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ============================================================
+         MODAL - Importar CSV
+    ============================================================ -->
+    <div id="modalCSV" class="fixed inset-0 z-[200] bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="w-full max-w-5xl flex flex-col max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-all duration-300" id="modalCSVBox">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-emerald-600 to-emerald-800 p-6 text-white flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black">Importar Insumos</h3>
+                        <p class="text-emerald-100 text-xs">Carga masiva desde archivo CSV</p>
+                    </div>
+                </div>
+                <button onclick="cerrarModalCSV()" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 overflow-y-auto flex-grow">
+                <!-- Zona de subida -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-[10px] font-black tracking-[0.2em] uppercase text-slate-400">Archivo de Datos</label>
+                        <button onclick="descargarPlantilla()" class="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Descargar Plantilla CSV
+                        </button>
+                    </div>
+                    <label class="block w-full border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-emerald-50 hover:border-emerald-300 transition-colors rounded-2xl p-8 text-center cursor-pointer group">
+                        <input type="file" id="csvFileInput" accept=".csv, .xlsx" class="hidden" onchange="onCSVFileSelected(event)">
+                        <div class="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center mx-auto mb-3 text-slate-400 group-hover:text-emerald-500 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <p class="text-sm font-bold text-slate-700 mb-1" id="csvFileName">Haz clic para seleccionar el archivo</p>
+                        <p class="text-xs text-slate-400">Admite archivos Excel (.xlsx) o texto (.csv delimitados por comas)</p>
+                    </label>
+                </div>
+
+                <!-- Preview Area -->
+                <div id="csvPreviewArea" class="mb-6 hidden">
+                    <p class="text-[10px] font-black tracking-[0.2em] uppercase text-slate-400 mb-2">Vista Previa (<span id="csvRowCount">0</span> filas detectadas)</p>
+                    <div class="bg-white border text-sm border-slate-200 rounded-xl overflow-x-auto max-h-64 overflow-y-auto">
+                        <table id="csvPreviewTable" class="w-full text-left whitespace-nowrap"></table>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 mt-3 flex items-start gap-2">
+                        <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <p class="text-xs text-blue-700 leading-relaxed">Verifica que las columnas correspondan. El sistema creará un registro por cada fila procesada.</p>
+                    </div>
+                </div>
+
+                <!-- Result Area -->
+                <div id="csvResultArea" class="mb-6 hidden">
+                    <p class="text-[10px] font-black tracking-[0.2em] uppercase text-slate-400 mb-2">Resultado de la Importación</p>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div class="bg-emerald-50 border border-emerald-100 p-3 rounded-xl">
+                            <p class="text-xs font-bold text-emerald-800">Éxitos</p>
+                            <p class="text-xl font-black text-emerald-600" id="csvResultOk">0</p>
+                        </div>
+                        <div class="bg-red-50 border border-red-100 p-3 rounded-xl">
+                            <p class="text-xs font-bold text-red-800">Errores</p>
+                            <p class="text-xl font-black text-red-600" id="csvResultErr">0</p>
+                        </div>
+                    </div>
+                    <ul id="csvErrorList" class="bg-red-50/50 p-3 rounded-xl max-h-32 overflow-y-auto space-y-1 mt-2"></ul>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 flex-shrink-0">
+                <button type="button" onclick="cerrarModalCSV()" class="px-5 py-2.5 font-bold text-sm text-slate-500 hover:bg-slate-200 rounded-xl transition">Cerrar</button>
+                <button type="button" id="btnProcesarCSV" onclick="procesarImportarCSV()" class="px-6 py-2.5 bg-emerald-600 text-white font-bold text-sm rounded-xl hover:bg-emerald-700 transition shadow-sm shadow-emerald-200 flex items-center gap-2">
+                    Importar Datos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL - Nuevo / Editar Insumo
+    ============================================================ -->
+    <div id="modalInsumo" class="fixed inset-0 z-[200] bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-all duration-300" id="modalInsumoBox">
+            <!-- Header modal -->
+            <div class="bg-gradient-to-r from-emerald-700 to-emerald-500 p-6 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    </div>
+                    <div>
+                        <h3 id="modalInsumoTitulo" class="text-lg font-black">Nuevo Insumo</h3>
+                        <p class="text-emerald-100 text-xs">Inventario UTN - SPIEE</p>
+                    </div>
+                </div>
+                <button onclick="cerrarModalInsumo()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Formulario -->
+            <form id="formInsumo" class="p-7 overflow-y-auto max-h-[75vh]">
+                <input type="hidden" id="editandoInsumoId">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Nombre -->
+                    <div class="md:col-span-2">
+                        <label class="f-label">Nombre del artículo *</label>
+                        <input type="text" id="inNombre" required placeholder="Ej: Osciloscopio Digital Rigol DS1054Z" class="f-input">
+                    </div>
+
+                    <!-- Tipo -->
+                    <div>
+                        <label class="f-label">Tipo *</label>
+                        <select id="inTipo" required class="f-input" onchange="actualizarPrefijo()">
+                            <option value="consumible">Consumible (INS-)</option>
+                            <option value="activo">Activo (ACT-)</option>
                         </select>
                     </div>
-                    
+
+                    <!-- Categoría -->
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad *</label>
-                        <input type="number" id="cantidadInsumo" required min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <label class="f-label">Categoría *</label>
+                        <select id="inCategoria" required class="f-input">
+                            <option value="Componentes Digitales">Componentes Digitales</option>
+                            <option value="Componentes Analógicos">Componentes Analógicos</option>
+                            <option value="Herramientas Menores">Herramientas Menores</option>
+                            <option value="Consumibles de Soldadura">Consumibles de Soldadura</option>
+                            <option value="Instrumentos">Instrumentos</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+
+                    <!-- Código -->
+                    <div>
+                        <label class="f-label">Código único *</label>
+                        <div class="relative">
+                            <span id="prefijoInput" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm pointer-events-none">INS-</span>
+                            <input type="text" id="inCodigo" required placeholder="5042" class="f-input pl-12 font-mono">
+                        </div>
+                    </div>
+
+                    <!-- ID Sistema -->
+                    <div>
+                        <label class="f-label">ID Sistema (numérico) *</label>
+                        <input type="number" id="inId" required min="1" placeholder="Ej: 1001" class="f-input">
+                    </div>
+
+                    <!-- Cantidad -->
+                    <div>
+                        <label class="f-label">Cantidad inicial</label>
+                        <input type="number" id="inCantidad" min="0" value="1" class="f-input">
+                    </div>
+
+                    <!-- Ubicación -->
+                    <div>
+                        <label class="f-label">Ubicación</label>
+                        <input type="text" id="inUbicacion" placeholder="Ej: Estante B-12" class="f-input">
+                    </div>
+
+                    <!-- Características -->
+                    <div class="md:col-span-2">
+                        <label class="f-label">Características / Descripción *</label>
+                        <textarea id="inCaract" required rows="3" placeholder="Detalles técnicos, especificaciones, marca, modelo..." class="f-input resize-none"></textarea>
+                    </div>
+
+                    <!-- URL Imagen -->
+                    <div class="md:col-span-2">
+                        <label class="f-label">URL de imagen (opcional)</label>
+                        <input type="text" id="inImagen" placeholder="https://ejemplo.com/imagen.jpg" class="f-input">
                     </div>
                 </div>
-                
-                <div class="mt-4">
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Imagen del Insumo</label>
-                    <input type="file" id="imagenInsumoModal" accept="image/*" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
-                    <div id="imagenPreviewModal" class="mt-2 hidden">
-                        <img src="" alt="Vista previa" class="w-24 h-24 object-cover rounded-lg border border-slate-200">
-                    </div>
-                </div>
-                
-                <div class="mt-4">
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Características *</label>
-                    <textarea id="descripcionInsumo" required rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Describe las características técnicas del insumo..."></textarea>
-                </div>
-                
-                <div class="flex gap-3 mt-6">
-                    <button type="button" onclick="cerrarModalAgregarInsumo()" class="flex-1 py-3 text-sm font-bold bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="flex-1 py-3 text-sm font-bold bg-purple-600 text-white rounded-xl hover:bg-purple-700 shadow-lg shadow-purple-100 transition">
-                        ➕ Agregar Insumo
-                    </button>
+
+                <!-- Acciones -->
+                <div class="mt-6 flex gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="cerrarModalInsumo()" class="flex-1 py-3 border border-slate-200 text-slate-500 font-bold rounded-xl hover:bg-slate-50 transition text-sm">Cancelar</button>
+                    <button type="submit" id="btnGuardarInsumo" class="flex-[2] py-3 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-700 transition text-sm uppercase tracking-widest">Guardar Insumo</button>
                 </div>
             </form>
         </div>
     </div>
-    
-    <!-- MODAL PARA AGREGAR MASIVO -->
-    <div id="modalAgregarMasivo" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
-        <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in max-h-[90vh] overflow-y-auto">
-            <div class="p-6 border-b border-slate-100 sticky top-0 bg-white z-10">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-slate-800">📦 Agregar Insumos Masivamente</h2>
-                    <button onclick="cerrarModalMasivo()" class="text-slate-400 hover:text-slate-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
+
+    <!-- ============================================================
+         MODAL - Ajustar Stock
+    ============================================================ -->
+    <div id="modalStock" class="fixed inset-0 z-[200] bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div class="bg-gradient-to-r from-slate-800 to-slate-700 p-5 text-white flex items-center justify-between">
+                <h3 class="font-black text-lg">Ajustar Stock</h3>
+                <button onclick="cerrarModalStock()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
-            
-            <!-- Tabs de opciones -->
-            <div class="border-b border-slate-100">
-                <div class="flex">
-                    <button onclick="mostrarTabMasivo('archivo')" id="tab-archivo" class="px-6 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600">
-                        📁 Cargar Archivo
-                    </button>
-                    <button onclick="mostrarTabMasivo('tabla')" id="tab-tabla" class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-blue-600">
-                        📊 Tabla de Datos
-                    </button>
-                    <button onclick="mostrarTabMasivo('manual')" id="tab-manual" class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-blue-600">
-                        ✏️ Ingreso Manual
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Contenido de tabs -->
             <div class="p-6">
-                <!-- Tab 1: Cargar Archivo -->
-                <div id="contenido-archivo" class="tab-content">
-                    <div class="text-center py-8">
-                        <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <span class="text-3xl">📁</span>
+                <p id="stockNombreLabel" class="text-sm text-slate-500 mb-4 font-medium">Insumo seleccionado</p>
+                <div class="space-y-4">
+                    <div>
+                        <label class="f-label">Operación</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="btnIncrementar" onclick="setOperacion('incrementar')" class="py-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 font-black text-sm">+ Incrementar</button>
+                            <button id="btnDecrementar" onclick="setOperacion('decrementar')" class="py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 font-black text-sm hover:border-red-400 hover:bg-red-50 hover:text-red-600 transition">- Decrementar</button>
                         </div>
-                        <h3 class="text-lg font-semibold text-slate-800 mb-2">Cargar archivo CSV o Excel</h3>
-                        <p class="text-slate-600 mb-6">Sube un archivo con columnas: nombre, categoria, cantidad, caracteristicas</p>
-                        
-                        <div class="max-w-md mx-auto">
-                            <input type="file" id="archivo-masivo" accept=".csv,.xlsx,.xls" class="hidden">
-                            <button onclick="document.getElementById('archivo-masivo').click()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition">
-                                📤 Seleccionar Archivo
-                            </button>
-                            <div id="archivo-seleccionado" class="mt-3 text-sm text-slate-600"></div>
-                        </div>
-                        
-                        <!-- Plantilla -->
-                        <div class="mt-6 p-4 bg-slate-50 rounded-lg">
-                            <p class="text-sm text-slate-600 mb-2">¿Necesitas una plantilla?</p>
-                            <button onclick="descargarPlantilla()" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                                📥 Descargar Plantilla CSV
-                            </button>
-                        </div>
+                        <input type="hidden" id="operacionStock" value="incrementar">
+                    </div>
+                    <div>
+                        <label class="f-label">Cantidad *</label>
+                        <input type="number" id="cantidadStock" min="1" value="1" class="f-input">
+                    </div>
+                    <div>
+                        <label class="f-label">Motivo (opcional)</label>
+                        <input type="text" id="motivoStock" placeholder="Ej: Compra, préstamo, ajuste..." class="f-input">
                     </div>
                 </div>
-                
-                <!-- Tab 2: Tabla de Datos -->
-                <div id="contenido-tabla" class="tab-content hidden">
-                    <div class="mb-4">
-                        <h3 class="text-lg font-semibold text-slate-800 mb-2">Tabla de Insumos</h3>
-                        <p class="text-slate-600">Agrega múltiples filas con los datos de los insumos</p>
-                    </div>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="w-full border border-slate-200 rounded-lg">
-                            <thead class="bg-slate-50">
-                                <tr>
-                                    <th class="border border-slate-200 px-4 py-2 text-left">Imagen</th>
-                                    <th class="border border-slate-200 px-4 py-2 text-left">Nombre</th>
-                                    <th class="border border-slate-200 px-4 py-2 text-left">Categoría</th>
-                                    <th class="border border-slate-200 px-4 py-2 text-left">Cantidad</th>
-                                    <th class="border border-slate-200 px-4 py-2 text-left">Características</th>
-                                    <th class="border border-slate-200 px-4 py-2">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabla-insumos-masivos">
-                                <!-- Filas se agregarán dinámicamente -->
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="mt-4 flex gap-2">
-                        <button onclick="agregarFilaTabla()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
-                            ➕ Agregar Fila
-                        </button>
-                        <button onclick="limpiarTabla()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
-                            🗑️ Limpiar Todo
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Tab 3: Ingreso Manual -->
-                <div id="contenido-manual" class="tab-content hidden">
-                    <div class="mb-4">
-                        <h3 class="text-lg font-semibold text-slate-800 mb-2">Ingreso Manual Rápido</h3>
-                        <p class="text-slate-600">Ingresa los datos separados por comas o líneas</p>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Nombres (uno por línea)</label>
-                            <textarea id="nombres-manual" rows="6" class="w-full px-3 py-2 border border-slate-300 rounded-lg" placeholder="Resistencia 1k&#10;Capacitor 100uF&#10;LED rojo 5mm"></textarea>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Categoría</label>
-                                <select id="categoria-manual" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
-                                    <option value="Componentes Digitales">Componentes Digitales</option>
-                                    <option value="Componentes Analógicos">Componentes Analógicos</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Cantidad</label>
-                                <input type="number" id="cantidad-manual" value="1" min="1" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Características</label>
-                                <input type="text" id="caracteristicas-manual" value="Componente electrónico" class="w-full px-3 py-2 border border-slate-300 rounded-lg">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">Imagen</label>
-                                <input type="file" id="imagen-manual" accept="image/*" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
-                                <div id="imagen-preview" class="mt-2 hidden">
-                                    <img src="" alt="Vista previa" class="w-20 h-20 object-cover rounded-lg">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-blue-50 p-4 rounded-lg">
-                            <p class="text-sm text-blue-800">
-                                <strong>Ejemplo:</strong> Si ingresas "Resistencia 1k, Capacitor 100uF" y seleccionas "Componentes Analógicos", 
-                                se crearán 2 insumos con esa categoría, cantidad y características.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Botones de acción -->
-            <div class="p-6 border-t border-slate-100">
-                <div class="flex gap-3">
-                    <button onclick="cerrarModalMasivo()" class="flex-1 py-3 text-sm font-bold bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition">
-                        Cancelar
-                    </button>
-                    <button onclick="procesarAgregadoMasivo()" class="flex-1 py-3 text-sm font-bold bg-green-600 text-white rounded-xl hover:bg-green-700 shadow-lg shadow-green-100 transition">
-                        📦 Agregar Insumos Masivamente
-                    </button>
+                <div class="mt-5 flex gap-2">
+                    <button onclick="cerrarModalStock()" class="flex-1 py-2.5 border border-slate-200 text-slate-500 font-bold rounded-xl text-sm hover:bg-slate-50">Cancelar</button>
+                    <button onclick="confirmarAjusteStock()" class="flex-[2] py-2.5 bg-slate-800 text-white font-black rounded-xl text-sm hover:bg-slate-900">Confirmar</button>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Modals Component -->
-    <div id="modals-component"></div>
-    
-    <!-- Toast Component -->
-    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
-        <div class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
-            <span id="toastMsg">Operación Exitosa</span>
-        </div>
-    </div>
-    
-    <!-- JavaScript -->
+
+    <!-- FOOTER -->
+    <div id="footer-component"></div>
+
+    <!-- Scripts -->
     <script src="../js/app.js"></script>
     <script src="../js/main.js"></script>
-    <script src="../js/components/header.js"></script>
-    <script src="../js/components/sidebar.js"></script>
-    <script src="../js/components/modals.js"></script>
-    <script src="../js/pages/insumos.js"></script>
-    <script src="../js/pages/insumos-imagenes.js"></script>
-    
-    <!-- Funciones para el modal de agregar insumo -->
+    <script src="../js/components.js"></script>
+    <script src="../js/auth.js"></script>
+
     <script>
-        // Funciones para el modal de agregar masivo
-        let insumosMasivos = [];
+    // ================================================================
+    // CONTROLADOR DE INSUMOS - Completo y funcional
+    // ================================================================
 
-        function abrirModalMasivo() {
-            const modal = document.getElementById('modalAgregarMasivo');
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modal.classList.add('opacity-100');
-            
-            // Inicializar con una fila en la tabla
-            insumosMasivos = [];
-            mostrarTabMasivo('archivo');
-            limpiarTabla();
-            agregarFilaTabla();
+    const API = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+    let todosLosInsumos = [];
+    let insumoActivo = null; // el que está en el drawer
+
+    function getToken() {
+        return localStorage.getItem('utn_token');
+    }
+
+    function authHeaders() {
+        return { 'Authorization': `Bearer ${getToken()}`, 'Content-Type': 'application/json' };
+    }
+
+    // ----- Bootstrap -----
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Auth check
+        const token = getToken();
+        const user = JSON.parse(localStorage.getItem('utn_user') || 'null');
+        const rol = (user?.tipo_rol || user?.rol || '').toLowerCase();
+        if (!token || !user || (!rol.includes('admin') && !rol.includes('administrativo'))) {
+            window.location.href = '../login.html';
+            return;
         }
 
-        function cerrarModalMasivo() {
-            const modal = document.getElementById('modalAgregarMasivo');
-            modal.classList.remove('opacity-100');
-            modal.classList.add('opacity-0', 'pointer-events-none');
+        await cargarInsumos();
+        setupFiltros();
+
+        // Si llegan con ?action=nuevo, abrir modal directamente
+        if (new URLSearchParams(location.search).get('action') === 'nuevo') {
+            setTimeout(abrirModalNuevoInsumo, 400);
+        }
+    });
+
+    // ----- API CRUD -----
+    async function cargarInsumos() {
+        showLoading(true);
+        try {
+            const res = await fetch(`${API}/insumos`, { headers: { Authorization: `Bearer ${getToken()}` } });
+            if (!res.ok) throw new Error(`Error ${res.status}`);
+            todosLosInsumos = await res.json();
+            todosLosInsumos = Array.isArray(todosLosInsumos) ? todosLosInsumos : [];
+        } catch (e) {
+            console.error('Error cargando insumos:', e);
+            todosLosInsumos = [];
+            mostrarToast('Error al cargar insumos. Verifica tu conexión.', 'error');
+        }
+        showLoading(false);
+        renderInsumos();
+    }
+
+    async function guardarInsumo(data) {
+        const editId = document.getElementById('editandoInsumoId').value;
+        const url = editId ? `${API}/insumos/${editId}` : `${API}/insumos`;
+        const method = editId ? 'PATCH' : 'POST';
+        const res = await fetch(url, { method, headers: authHeaders(), body: JSON.stringify(data) });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.message || `Error ${res.status}`);
+        return body;
+    }
+
+    async function ajustarStock(id, operacion, cantidad, motivo) {
+        const res = await fetch(`${API}/insumos/${id}/stock`, {
+            method: 'PATCH',
+            headers: authHeaders(),
+            body: JSON.stringify({ operacion, cantidad, motivo })
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.message || `Error ${res.status}`);
+        return body;
+    }
+
+    async function darBajaInsumo(id, justificacion) {
+        const res = await fetch(`${API}/insumos/${id}`, {
+            method: 'DELETE',
+            headers: authHeaders(),
+            body: JSON.stringify({ motivo_eliminacion: justificacion })
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.message || `Error ${res.status}`);
+        return body;
+    }
+
+    // ----- PAGINACIÓN & RENDER -----
+    let currentPage = 1;
+    const itemsPerPage = 32;
+
+    function renderInsumos(page = 1) {
+        currentPage = page;
+        const grid = document.getElementById('insumosGrid');
+        const loading = document.getElementById('loadingState');
+        const empty = document.getElementById('emptyState');
+        const count = document.getElementById('totalCount');
+        const paginationContainer = document.getElementById('inPagination');
+
+        const filtrados = filtrarInsumos();
+        count.textContent = filtrados.length;
+        loading.classList.add('hidden');
+
+        if (filtrados.length === 0) {
+            grid.innerHTML = '';
+            paginationContainer.innerHTML = '';
+            empty.classList.remove('hidden');
+            return;
+        }
+        empty.classList.add('hidden');
+
+        const totalPages = Math.ceil(filtrados.length / itemsPerPage);
+        if (currentPage > totalPages) currentPage = totalPages;
+        
+        const start = (currentPage - 1) * itemsPerPage;
+        const paginatedItems = filtrados.slice(start, start + itemsPerPage);
+
+        grid.innerHTML = paginatedItems.map((ins, i) => buildCard(ins, i)).join('');
+        renderPaginationUI(totalPages);
+        
+        // Auto scroll a encabezado tras paginar (si no es la primera carga)
+        if (page !== 1 || window.scrollY > 300) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function renderPaginationUI(totalPages) {
+        const container = document.getElementById('inPagination');
+        if (totalPages <= 1) { container.innerHTML = ''; return; }
+
+        let html = '';
+        html += `<button onclick="renderInsumos(${currentPage - 1})" class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 font-bold text-sm bg-white hover:bg-slate-50 disabled:opacity-30 transition" ${currentPage === 1 ? 'disabled' : ''}>Ant</button>`;
+        
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, currentPage + 2);
+        
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<button onclick="renderInsumos(${i})" class="w-8 h-8 flex items-center justify-center rounded-lg font-bold text-sm transition ${i === currentPage ? 'bg-emerald-600 text-white shadow-md' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}">${i}</button>`;
         }
 
-        function mostrarTabMasivo(tab) {
-            // Ocultar todos los contenidos
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-            
-            // Quitar estilos activos de todos los tabs
-            document.querySelectorAll('[id^="tab-"]').forEach(tabBtn => {
-                tabBtn.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
-                tabBtn.classList.add('text-slate-600');
-            });
-            
-            // Mostrar contenido seleccionado
-            document.getElementById(`contenido-${tab}`).classList.remove('hidden');
-            
-            // Activar tab seleccionado
-            const tabActivo = document.getElementById(`tab-${tab}`);
-            tabActivo.classList.remove('text-slate-600');
-            tabActivo.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
-        }
+        html += `<button onclick="renderInsumos(${currentPage + 1})" class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 font-bold text-sm bg-white hover:bg-slate-50 disabled:opacity-30 transition" ${currentPage === totalPages ? 'disabled' : ''}>Sig</button>`;
+        container.innerHTML = html;
+    }
 
-        // Funciones para la tabla
-        function agregarFilaTabla() {
-            const tbody = document.getElementById('tabla-insumos-masivos');
-            const filaIndex = tbody.children.length;
-            const uniqueId = Date.now() + Math.random();
-            
-            const fila = document.createElement('tr');
-            fila.innerHTML = `
-                <td class="border border-slate-200 px-2 py-1">
-                    <input type="file" class="w-full px-2 py-1 border border-slate-300 rounded text-sm" data-field="imagen" accept="image/*" onchange="previewImagenTabla(this, ${uniqueId})">
-                    <div class="mt-1 hidden" id="preview-${uniqueId}">
-                        <img src="" alt="Vista previa" class="w-12 h-12 object-cover rounded border border-slate-200">
+    function buildCard(ins, i) {
+        const estadoClases = {
+            'disponible': 'badge-disp', 'prestado': 'badge-prest',
+            'en espera': 'badge-espera', 'fuera de stock': 'badge-stock', 'eliminado': 'badge-elim'
+        };
+        const badgeClass = estadoClases[ins.estado] || 'badge-elim';
+        const stockPct = Math.min(100, ((ins.cantidad || 0) / 50) * 100);
+        const stockColor = ins.cantidad <= 0 ? 'bg-red-400' : ins.cantidad <= 5 ? 'bg-amber-400' : 'bg-emerald-400';
+        const img = ins.imagenUrl ? `<img src="${ins.imagenUrl}" alt="${ins.NombProducto}" class="w-full h-full object-cover cursor-zoom-in hover:opacity-90 transition-opacity" onclick="event.stopPropagation(); window.verImagenCompleta(this.src, '${(ins.NombProducto || 'Insumo').replace(/'/g, "\\'")}')" onerror="this.parentNode.innerHTML='<svg class=\'w-7 h-7 text-slate-300\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10\'></path></svg>'">` 
+            : `<svg class="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>`;
+
+        return `
+        <div class="item-card p-5 fade-up" style="animation-delay:${i*40}ms" onclick="abrirDrawer('${ins._id}')">
+            <div class="flex gap-3 mb-4">
+                <div class="w-14 h-14 bg-slate-100 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0 border border-slate-200">${img}</div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-2 mb-1">
+                        <h3 class="font-black text-slate-800 text-sm leading-tight truncate">${ins.NombProducto || 'Sin nombre'}</h3>
+                        <span class="badge ${badgeClass} flex-shrink-0">${ins.estado || 'N/A'}</span>
                     </div>
-                </td>
-                <td class="border border-slate-200 px-2 py-1">
-                    <input type="text" class="w-full px-2 py-1 border border-slate-300 rounded" placeholder="Nombre del insumo" data-field="nombre">
-                </td>
-                <td class="border border-slate-200 px-2 py-1">
-                    <select class="w-full px-2 py-1 border border-slate-300 rounded" data-field="categoria">
-                        <option value="Componentes Digitales">Componentes Digitales</option>
-                        <option value="Componentes Analógicos">Componentes Analógicos</option>
-                    </select>
-                </td>
-                <td class="border border-slate-200 px-2 py-1">
-                    <input type="number" class="w-full px-2 py-1 border border-slate-300 rounded" placeholder="Cantidad" data-field="cantidad" min="1" value="1">
-                </td>
-                <td class="border border-slate-200 px-2 py-1">
-                    <input type="text" class="w-full px-2 py-1 border border-slate-300 rounded" placeholder="Características" data-field="caracteristicas">
-                </td>
-                <td class="border border-slate-200 px-2 py-1 text-center">
-                    <button onclick="eliminarFilaTabla(this)" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm">
-                        🗑️
-                    </button>
-                </td>
-            `;
-            
-            tbody.appendChild(fila);
+                    <p class="text-xs text-slate-400 font-mono">${ins.codigo || '-'}</p>
+                    <p class="text-xs text-slate-400">${ins.categoria || '-'}</p>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="flex justify-between text-xs font-bold mb-1">
+                    <span class="text-slate-400">Stock</span>
+                    <span class="${ins.cantidad <= 0 ? 'text-red-500' : ins.cantidad <=5 ? 'text-amber-500' : 'text-emerald-600'}">${ins.cantidad || 0} uds</span>
+                </div>
+                <div class="stock-bar"><div class="stock-fill ${stockColor}" style="width:${stockPct}%"></div></div>
+            </div>
+            ${ins.caracteristicas ? `<p class="text-xs text-slate-400 line-clamp-2 leading-relaxed">${ins.caracteristicas}</p>` : ''}
+            <div class="mt-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity" style="opacity:1">
+                <button onclick="event.stopPropagation(); abrirDrawer('${ins._id}')" class="flex-1 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition">Ver detalle</button>
+                <button onclick="event.stopPropagation(); abrirModalEditar('${ins._id}')" class="flex-1 py-2 text-xs font-bold text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition">Editar</button>
+            </div>
+        </div>`;
+    }
+
+    // ----- FILTROS -----
+    function setupFiltros() {
+        ['busquedaInput','categoriaFiltro','stockFiltro'].forEach(id => {
+            document.getElementById(id)?.addEventListener('input', () => renderInsumos(1));
+            document.getElementById(id)?.addEventListener('change', () => renderInsumos(1));
+        });
+    }
+
+    function filtrarInsumos() {
+        const q = (document.getElementById('busquedaInput')?.value || '').toLowerCase();
+        const cat = document.getElementById('categoriaFiltro')?.value || '';
+        const stock = document.getElementById('stockFiltro')?.value || '';
+
+        return todosLosInsumos.filter(ins => {
+            if (ins.estado === 'eliminado') return false;
+            if (q && ![(ins.NombProducto||''), (ins.codigo||''), (ins.caracteristicas||'')].some(v => v.toLowerCase().includes(q))) return false;
+            if (cat && ins.categoria !== cat) return false;
+            if (stock === 'disponible' && (ins.cantidad||0) <= 0) return false;
+            if (stock === 'bajo' && ((ins.cantidad||0) <= 0 || (ins.cantidad||0) > 5)) return false;
+            if (stock === 'sin' && (ins.cantidad||0) > 0) return false;
+            return true;
+        });
+    }
+
+    function limpiarFiltros() {
+        document.getElementById('busquedaInput').value = '';
+        document.getElementById('categoriaFiltro').value = '';
+        document.getElementById('stockFiltro').value = '';
+        renderInsumos();
+    }
+
+    // ----- DRAWER LATERAL -----
+    function abrirDrawer(id) {
+        const ins = todosLosInsumos.find(i => i._id === id);
+        if (!ins) return;
+        insumoActivo = ins;
+
+        document.getElementById('drawerNombre').textContent = ins.NombProducto || 'Sin nombre';
+        document.getElementById('drawerCodigo').textContent = ins.codigo || '-';
+        document.getElementById('drawerTipo').textContent = (ins.tipo || 'Insumo').toUpperCase();
+        document.getElementById('drawerTipoVal').textContent = ins.tipo || '-';
+        document.getElementById('drawerIdSistema').textContent = ins.id_insumo || '-';
+        document.getElementById('drawerUbicacion').textContent = ins.ubicacion || 'No especificada';
+        document.getElementById('drawerCaract').textContent = ins.caracteristicas || 'Sin descripción';
+        document.getElementById('drawerStockNum').textContent = `${ins.cantidad || 0} unidades`;
+        document.getElementById('drawerCategBadge').textContent = ins.categoria || '-';
+
+        const estadoBadge = document.getElementById('drawerEstadoBadge');
+        const clases = { 'disponible':'badge-disp','prestado':'badge-prest','en espera':'badge-espera','fuera de stock':'badge-stock','eliminado':'badge-elim' };
+        estadoBadge.className = `badge ${clases[ins.estado] || 'badge-elim'}`;
+        estadoBadge.textContent = ins.estado || '-';
+
+        const pct = Math.min(100, ((ins.cantidad||0)/50)*100);
+        const barColor = (ins.cantidad||0) <= 0 ? '#f87171' : (ins.cantidad||0) <= 5 ? '#fbbf24' : '#34d399';
+        document.getElementById('drawerStockBar').style.cssText = `width:${pct}%; background:${barColor}`;
+
+        // Fecha
+        const fecha = ins.createdAt ? new Date(ins.createdAt).toLocaleDateString('es-CR', {day:'2-digit',month:'short',year:'numeric'}) : '-';
+        document.getElementById('drawerFecha').textContent = fecha;
+
+        // Imagen
+        const img = document.getElementById('drawerImg');
+        const placeholder = document.getElementById('drawerImgPlaceholder');
+        if (ins.imagenUrl) {
+            img.src = ins.imagenUrl;
+            img.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+        } else {
+            img.classList.add('hidden');
+            placeholder.classList.remove('hidden');
         }
 
-        // Función para vista previa de imagen en tabla
-        function previewImagenTabla(input, uniqueId) {
-            console.log('🖼️ Preview imagen tabla llamada con:', { input, uniqueId });
-            
-            const previewDiv = document.getElementById(`preview-${uniqueId}`);
-            const previewImg = previewDiv?.querySelector('img');
-            
-            console.log('🖼️ Elementos encontrados:', {
-                previewDiv: previewDiv,
-                previewImg: previewImg,
-                files: input.files
+        // Historial
+        const hist = document.getElementById('drawerHistorial');
+        if (ins.movimientos && ins.movimientos.length > 0) {
+            hist.innerHTML = ins.movimientos.slice().reverse().slice(0,8).map(m => `
+                <div class="flex gap-3 items-start">
+                    <div class="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0"></div>
+                    <div>
+                        <span class="font-bold text-slate-600 capitalize">${m.tipo}</span>
+                        ${m.cantidad_nueva !== null ? `<span class="text-slate-400"> → ${m.cantidad_nueva} uds</span>` : ''}
+                        <p class="text-xs text-slate-400">${m.observacion || ''}</p>
+                        <p class="text-[10px] text-slate-300">${m.fecha ? new Date(m.fecha).toLocaleDateString('es-CR') : ''}</p>
+                    </div>
+                </div>`).join('');
+        } else {
+            hist.innerHTML = '<p class="italic text-slate-300 text-sm">Sin movimientos registrados.</p>';
+        }
+
+        document.getElementById('drawer').classList.add('open');
+        document.getElementById('drawerOverlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarDrawer() {
+        document.getElementById('drawer').classList.remove('open');
+        document.getElementById('drawerOverlay').classList.remove('open');
+        document.body.style.overflow = '';
+        insumoActivo = null;
+    }
+
+    // ----- MODAL INSUMO -----
+    function abrirModalNuevoInsumo() {
+        document.getElementById('editandoInsumoId').value = '';
+        document.getElementById('modalInsumoTitulo').textContent = 'Nuevo Insumo';
+        document.getElementById('btnGuardarInsumo').textContent = 'Guardar Insumo';
+        document.getElementById('formInsumo').reset();
+        abrirModal('modalInsumo');
+    }
+
+    function abrirModalEditar(id) {
+        const ins = todosLosInsumos.find(i => i._id === id);
+        if (!ins) return;
+        document.getElementById('editandoInsumoId').value = ins._id;
+        document.getElementById('modalInsumoTitulo').textContent = 'Editar Insumo';
+        document.getElementById('btnGuardarInsumo').textContent = 'Actualizar Insumo';
+        document.getElementById('inNombre').value = ins.NombProducto || '';
+        document.getElementById('inTipo').value = ins.tipo || 'consumible';
+        document.getElementById('inCategoria').value = ins.categoria || '';
+        document.getElementById('inCantidad').value = ins.cantidad || 0;
+        document.getElementById('inUbicacion').value = ins.ubicacion || '';
+        document.getElementById('inCaract').value = ins.caracteristicas || '';
+        document.getElementById('inImagen').value = ins.imagenUrl || '';
+        document.getElementById('inId').value = ins.id_insumo || '';
+        // Extraer el código sin el prefijo para la visualización
+        const cod = ins.codigo || '';
+        const sinPrefijo = cod.startsWith('INS-') ? cod.slice(4) : cod.startsWith('ACT-') ? cod.slice(4) : cod;
+        document.getElementById('inCodigo').value = sinPrefijo;
+        actualizarPrefijo();
+        abrirModal('modalInsumo');
+    }
+
+    function cerrarModalInsumo() {
+        cerrarModal('modalInsumo');
+    }
+
+    function editarDesdeDrawer() {
+        if (!insumoActivo) return;
+        const id = insumoActivo._id; // guardar ANTES de que cerrarDrawer() lo ponga en null
+        cerrarDrawer();
+        setTimeout(() => abrirModalEditar(id), 200);
+    }
+
+    // Submit del formulario
+    document.getElementById('formInsumo')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnGuardarInsumo');
+        btn.disabled = true;
+        btn.textContent = 'Guardando...';
+
+        const codigoRaw = document.getElementById('inCodigo').value.trim().toUpperCase();
+        const tipo = document.getElementById('inTipo').value;
+        const prefijo = tipo === 'activo' ? 'ACT-' : 'INS-';
+        const codigo = codigoRaw.startsWith('ACT-') || codigoRaw.startsWith('INS-') ? codigoRaw : `${prefijo}${codigoRaw}`;
+
+        const data = {
+            NombProducto: document.getElementById('inNombre').value.trim(),
+            tipo,
+            categoria: document.getElementById('inCategoria').value,
+            codigo,
+            id_insumo: parseInt(document.getElementById('inId').value),
+            cantidad: parseInt(document.getElementById('inCantidad').value) || 0,
+            ubicacion: document.getElementById('inUbicacion').value.trim() || 'Laboratorio de Electronica',
+            caracteristicas: document.getElementById('inCaract').value.trim(),
+            imagenUrl: document.getElementById('inImagen').value.trim() || ''
+        };
+
+        try {
+            await guardarInsumo(data);
+            mostrarToast(document.getElementById('editandoInsumoId').value ? 'Insumo actualizado ✓' : 'Insumo registrado ✓', 'success');
+            cerrarModalInsumo();
+            await cargarInsumos();
+        } catch (err) {
+            mostrarToast(err.message || 'Error al guardar insumo', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = document.getElementById('editandoInsumoId').value ? 'Actualizar Insumo' : 'Guardar Insumo';
+        }
+    });
+
+    function actualizarPrefijo() {
+        const tipo = document.getElementById('inTipo')?.value;
+        const span = document.getElementById('prefijoInput');
+        if (span) span.textContent = tipo === 'activo' ? 'ACT-' : 'INS-';
+    }
+
+    // ----- MODAL STOCK -----
+    let stockInsumoId = null;
+
+    function ajustarStockDesdeDrawer() {
+        if (!insumoActivo) return;
+        stockInsumoId = insumoActivo._id;
+        const nombre = insumoActivo.NombProducto || 'Insumo';
+        document.getElementById('stockNombreLabel').textContent = nombre;
+        document.getElementById('cantidadStock').value = 1;
+        document.getElementById('motivoStock').value = '';
+        setOperacion('incrementar');
+        abrirModal('modalStock');
+    }
+
+    function setOperacion(op) {
+        document.getElementById('operacionStock').value = op;
+        const btnInc = document.getElementById('btnIncrementar');
+        const btnDec = document.getElementById('btnDecrementar');
+        if (op === 'incrementar') {
+            btnInc.className = 'py-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 font-black text-sm';
+            btnDec.className = 'py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 font-black text-sm hover:border-red-400 hover:bg-red-50 hover:text-red-600 transition';
+        } else {
+            btnDec.className = 'py-2.5 rounded-xl border-2 border-red-500 bg-red-50 text-red-700 font-black text-sm';
+            btnInc.className = 'py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 font-black text-sm hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-600 transition';
+        }
+    }
+
+    function cerrarModalStock() { cerrarModal('modalStock'); }
+
+    async function confirmarAjusteStock() {
+        if (!stockInsumoId) return;
+        const operacion = document.getElementById('operacionStock').value;
+        const cantidad = parseInt(document.getElementById('cantidadStock').value);
+        const motivo = document.getElementById('motivoStock').value.trim();
+        if (!cantidad || cantidad < 1) { mostrarToast('Ingresa una cantidad válida', 'error'); return; }
+        try {
+            await ajustarStock(stockInsumoId, operacion, cantidad, motivo);
+            mostrarToast(`Stock ${operacion === 'incrementar' ? 'aumentado' : 'reducido'} correctamente ✓`, 'success');
+            cerrarModalStock();
+            await cargarInsumos();
+        } catch (err) {
+            mostrarToast(err.message || 'Error al ajustar stock', 'error');
+        }
+    }
+
+    async function marcarMalEstadoDesdeDrawer() {
+        if (!insumoActivo) return;
+        const { value: motivo, isConfirmed } = await Swal.fire({
+            title: 'Reportar Mal Estado',
+            text: 'Indique el problema con este insumo:',
+            input: 'textarea',
+            inputPlaceholder: 'Ej: Vencido, empaque dañado, mala calidad...',
+            showCancelButton: true,
+            confirmButtonColor: '#d97706',
+            confirmButtonText: 'Reportar',
+            cancelButtonText: 'Cancelar',
+            inputValidator: (value) => { if (!value) return '¡El motivo es obligatorio!'; }
+        });
+        if (!isConfirmed) return;
+
+        try {
+            const res = await fetch(`${API}/insumos/${insumoActivo._id}`, {
+                method: 'PATCH',
+                headers: authHeaders(),
+                body: JSON.stringify({ estado: 'fuera de stock', observaciones: motivo })
             });
-            
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-                console.log('📁 Archivo seleccionado:', file);
-                console.log('🔍 Tipo de archivo:', file.type);
-                
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        console.log('✅ Vista previa generada:', e.target.result);
-                        previewImg.src = e.target.result;
-                        previewDiv.classList.remove('hidden');
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    console.log('❌ No es una imagen válida');
-                }
-            } else {
-                console.log('❌ No hay archivo seleccionado');
-                previewDiv.classList.add('hidden');
-            }
+            if (!res.ok) throw new Error('Error al actualizar estado');
+            mostrarToast('Insumo marcado fuera de servicio ✓', 'success');
+            cerrarDrawer();
+            await cargarInsumos();
+        } catch (err) {
+            mostrarToast(err.message || 'Error al actualizar', 'error');
         }
+    }
 
-        function eliminarFilaTabla(boton) {
-            boton.closest('tr').remove();
-        }
-
-        function limpiarTabla() {
-            document.getElementById('tabla-insumos-masivos').innerHTML = '';
-        }
-
-        // Función para procesar archivo CSV/Excel
-        document.getElementById('archivo-masivo').addEventListener('change', async function(e) {
-            const archivo = e.target.files[0];
-            if (archivo) {
-                document.getElementById('archivo-seleccionado').textContent = `📄 ${archivo.name}`;
-                
-                try {
-                    const texto = await archivo.text();
-                    console.log('📄 Contenido del archivo:', texto.substring(0, 200));
-                    
-                    // Dividir líneas y limpiar
-                    const lineas = texto.split('\n')
-                        .map(linea => linea.trim())
-                        .filter(linea => linea && !linea.startsWith('nombre') && !linea.includes('Nombre'));
-                    
-                    console.log('📄 Líneas encontradas:', lineas.length);
-                    console.log('📄 Primera línea de datos:', lineas[0]);
-                    
-                    // Parsear CSV con mejor manejo de comillas
-                    const insumos = [];
-                    
-                    for (let i = 0; i < lineas.length; i++) {
-                        const linea = lineas[i];
-                        console.log(`🔍 Procesando línea ${i + 1}:`, linea);
-                        
-                        // Manejar comillas y separar por coma
-                        const valores = [];
-                        let actual = '';
-                        let entreComillas = false;
-                        
-                        for (let char of linea) {
-                            if (char === '"' && !entreComillas) {
-                                entreComillas = true;
-                            } else if (char === '"' && entreComillas) {
-                                entreComillas = false;
-                            } else if (char === ',' && !entreComillas) {
-                                valores.push(actual.trim());
-                                actual = '';
-                            } else {
-                                actual += char;
-                            }
-                        }
-                        valores.push(actual.trim());
-                        
-                        console.log('📊 Valores parseados:', valores);
-                        
-                        if (valores.length >= 4 && valores[0] && valores[0] !== '') {
-                            const nombre = valores[0].replace(/"/g, '').trim();
-                            const categoria = valores[1].replace(/"/g, '').trim();
-                            const cantidad = parseInt(valores[2]) || 1;
-                            const caracteristicas = valores[3] ? valores[3].replace(/"/g, '').trim() : '';
-                            
-                            console.log('📋 Datos extraídos:', { nombre, categoria, cantidad, caracteristicas });
-                            
-                            // Validar categoría
-                            if (categoria === 'Componentes Digitales' || categoria === 'Componentes Analógicos') {
-                                insumos.push({
-                                    id_insumo: Date.now() + Math.random(),
-                                    NombProducto: nombre,
-                                    categoria: categoria,
-                                    cantidad: cantidad,
-                                    caracteristicas: caracteristicas,
-                                    imagenUrl: ''
-                                });
-                                console.log('✅ Insumo válido agregado');
-                            } else {
-                                console.log('❌ Categoría inválida:', categoria);
-                            }
-                        } else {
-                            console.log('❌ Línea inválida o vacía');
-                        }
-                    }
-                    
-                    console.log(`📁 Total insumos procesados: ${insumos.length}`);
-                    
-                    if (insumos.length > 0) {
-                        console.log('📤 Enviando insumos al backend...', insumos);
-                        // Enviar al backend
-                        await enviarInsumosMasivos(insumos);
-                    } else {
-                        showToast('❌ No se encontraron insumos válidos en el archivo', 'error');
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ Error procesando archivo:', error);
-                    showToast('❌ Error al procesar el archivo', 'error');
-                }
+    // ----- ELIMINAR -----
+    async function eliminarDesdeDrawer() {
+        if (!insumoActivo) return;
+        const result = await Swal.fire({
+            title: 'Dar de baja insumo',
+            html: `<p class="text-slate-500 text-sm mb-4">Esto marcará <strong>${insumoActivo.NombProducto}</strong> como eliminado. El registro se conserva para auditoría.</p>
+                   <input id="swal-motivo" class="swal2-input" placeholder="Justificación (mínimo 10 caracteres)" autofocus>`,
+            confirmButtonText: 'Confirmar Baja',
+            cancelButtonText: 'Cancelar',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            preConfirm: () => {
+                const m = document.getElementById('swal-motivo').value.trim();
+                if (m.length < 10) { Swal.showValidationMessage('Justificación muy corta (mín. 10 caracteres)'); return false; }
+                return m;
             }
         });
+        if (!result.isConfirmed) return;
+        try {
+            await darBajaInsumo(insumoActivo._id, result.value);
+            mostrarToast('Insumo dado de baja ✓', 'success');
+            cerrarDrawer();
+            await cargarInsumos();
+        } catch (err) {
+            mostrarToast(err.message || 'Error al dar de baja', 'error');
+        }
+    }
 
-        // Función para enviar insumos masivos al backend
-        async function enviarInsumosMasivos(insumos) {
+    // ========================  IMPORTAR CSV  ========================
+    function abrirModalImportarCSV() {
+        document.getElementById('csvFileInput').value = '';
+        document.getElementById('csvFileName').textContent = 'Ningún archivo seleccionado';
+        document.getElementById('csvPreviewArea').classList.add('hidden');
+        document.getElementById('csvResultArea').classList.add('hidden');
+        abrirModal('modalCSV');
+    }
+
+    function cerrarModalCSV() { cerrarModal('modalCSV'); }
+
+    function descargarPlantilla() {
+        const bom = '\uFEFF';
+        const encabezado = 'Nombre,Codigo,Tipo,Categoria,Cantidad,Ubicacion,Caracteristicas';
+        const ejemplo1 = 'Resistencia 10k,INS-001,consumible,Componentes Electronicos,100,Laboratorio de Electronica,Resistencia de carbon 10k Ohm 1/4W';
+        const ejemplo2 = 'Cable UTP Cat6,INS-002,consumible,Cables y Conectores,30,Almacen Principal,Cable de red categoria 6 sin blindaje';
+        const csv = bom + [encabezado, ejemplo1, ejemplo2].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const a = Object.assign(document.createElement('a'), {
+            href: URL.createObjectURL(blob),
+            download: 'plantilla_insumos_UTN.csv'
+        });
+        a.click();
+        mostrarToast('Plantilla descargada', 'success');
+    }
+
+    function onCSVFileSelected(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        document.getElementById('csvFileName').textContent = file.name;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const data = new Uint8Array(ev.target.result);
             try {
-                const token = localStorage.getItem('utn_token');
-                const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(insumos)
-                });
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1, raw: false});
                 
-                if (response.ok) {
-                    const result = await response.json();
-                    showToast(`✅ ${result.count || insumos.length} insumos agregados desde archivo`, 'success');
-                    cerrarModalMasivo();
-                    
-                    // Recargar la lista de insumos
-                    if (window.insumosController && window.insumosController.loadInsumos) {
-                        window.insumosController.loadInsumos();
-                    } else {
-                        // Recargar manualmente
-                        setTimeout(async () => {
-                            const token = localStorage.getItem('utn_token');
-                            const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`, {
-                                headers: { 'Authorization': `Bearer ${token}` }
-                            });
-                            if (response.ok) {
-                                const insumosActualizados = await response.json();
-                                renderInsumosDirectamente(insumosActualizados);
-                                setupFiltrosDirectamente(insumosActualizados);
-                            }
-                        }, 1000);
-                    }
-                } else {
-                    const error = await response.json();
-                    showToast(`❌ Error: ${error.message || 'Error al agregar insumos'}`, 'error');
-                }
-            } catch (error) {
-                console.error('❌ Error agregando insumos masivamente:', error);
-                showToast('❌ Error al agregar insumos', 'error');
-            }
-        }
-
-        // Función para descargar plantilla CSV compatible con Excel
-        function descargarPlantilla() {
-            // Crear CSV simple que Excel abra correctamente
-            const csvContent = `Nombre del Insumo,Categoría,Cantidad,Características
-Resistencia 1k 1/4W,Componentes Analógicos,25,Resistencia carbón 1k ohm 1/4W 5% tolerancia
-Capacitor 100uF 16V,Componentes Analógicos,15,Capacitor electrolítico 100uF 16V 85°C
-LED rojo 5mm,Componentes Digitales,50,LED rojo 5mm alta luminosidad 20mA
-Arduino UNO R3,Componentes Digitales,5,Placa de desarrollo Arduino UNO R3 ATmega328
-Protoboard 830 puntos,Componentes Analógicos,10,Protoboard 830 puntos con conexión de alimentación
-Cable USB-A a USB-B,Componentes Digitales,20,Cable USB 2.0 tipo A a B 1.8m
-Pulsador 6mm,Componentes Digitales,30,Pulsador táctil 6x6mm rojo
-Sensor DHT11,Componentes Digitales,12,Sensor temperatura y humedad DHT11 digital
-Buzzer pasivo 12mm,Componentes Analógicos,8,Buzzer pasivo 12mm 2300Hz
-Jumpers macho-hembra,Componentes Analógicos,100,Jumper cables macho-hembra 20cm pack 10 colores
-Display LCD 16x2,Componentes Digitales,6,Display LCD 16x2 caracteres azul con backlight
-Fuente 12V 2A,Componentes Analógicos,3,Fuente de alimentación 12V 2A con jack 5.5mm
-Servomotor SG90,Componentes Digitales,15,Servomotor SG90 180° 4.8V torque 1.8kg/cm
-Fotoresistor LDR,Componentes Analógicos,25,Fotoresistor LDR 5mm luz ambiental
-Transistor 2N2222,Componentes Analógicos,40,Transistor NPN 2N2222 TO-92 800mA
-Potenciómetro 10K,Componentes Analógicos,20,Potenciómetro lineal 10K ohm panel mount
-Relé 5V,Componentes Digitales,10,Módulo relé 5V 1 canal 250VAC 10A
-Zócalo para Arduino,Componentes Digitales,8,Zócalo de expansión para Arduino UNO
-Cinta aisladora,Componentes Analógicos,5,Rollo de cinta aisladora negra 19mm x 10m
-Multímetro básico,Componentes Digitales,2,Multímetro digital básico AC/DC 600V
-Pinzas de punta,Componentes Analógicos,4,Pinzas de punta finas electrónica
-Soldador 30W,Componentes Analógicos,2,Soldador de estaño 30W con punta fina
-Estaño 60/40 1mm,Componentes Analógicos,1,Rollo de estaño 60/40 1mm 100g
-Placa fenólica 10x15,Componentes Analógicos,12,Placa fenólica virgen 10x15cm
-Caja de proyecto,Componentes Analógicos,6,Caja plástica proyecto 150x100x60mm
-Interruptor palanca,Componentes Digitales,15,Interruptor palanca SPDT 125V 6A
-Pila 9V,Componentes Analógicos,20,Pila alcalina 9V con conector
-Conector BNC,Componentes Analógicos,10,Conector BNC panel mount hembra
-Optoacoplador 4N25,Componentes Digitales,18,Optoacoplador 4N25 DIP-6 5kV
-Regulador 7805,Componentes Analógicos,30,Regulador de voltaje 7805 TO-220 5V 1A
-Cristal 16MHz,Componentes Digitales,25,Cristal de cuarzo 16MHz HC-49/4S
-Condensador cerámico 100nF,Componentes Analógicos,50,Condensador cerámico 100nF 50V discoide
-Diodo 1N4007,Componentes Analógicos,40,Diodo rectificador 1N4007 1000V 1A
-Triac BT136,Componentes Analógicos,12,Triac BT136 600V 4A TO-220
-Sensor ultrasónico HC-SR04,Componentes Digitales,8,Sensor distancia ultrasónico HC-SR04 2cm-4m
-Módulo Bluetooth HC-05,Componentes Digitales,5,Módulo Bluetooth HC-05 configuración maestro/esclavo
-Módulo WiFi ESP8266,Componentes Digitales,7,Módulo WiFi ESP8266 ESP-01
-Pantalla OLED 128x64,Componentes Digitales,4,Pantalla OLED I2C 128x64 píxeles azul
-Encoder rotativo,Componentes Digitales,10,Encoder rotativo con botón KY-040
-Sensor de movimiento PIR,Componentes Digitales,9,Sensor movimiento PIR HC-SR501 7m
-Módulo lector RFID,Componentes Digitales,3,Módulo lector RFID RC522 13.56MHz
-Teclado matricial 4x4,Componentes Digitales,6,Teclado matricial 4x4 membrana
-Módulo reloj DS3231,Componentes Digitales,5,Módulo reloj DS3231 RTC con batería
-Sensor de corriente ACS712,Componentes Analógicos,11,Sensor corriente ACS712 5A 185mV/A
-Amplificador operacional LM358,Componentes Analógicos,20,Amplificador operacional LM358 DIP-8
-Convertidor ADC MCP3008,Componentes Digitales,14,Convertidor ADC MCP3008 10-bit 8 canales SPI
-Driver motor L298N,Componentes Digitales,8,Driver motor dual L298N puente H 2A
-Módulo SD card,Componentes Digitales,4,Módulo lector SD card microSD SPI
-Sensor de gas MQ-2,Componentes Analógicos,6,Sensor de gas MQ-2 combustible GLP humo
-Módulo GPS NEO-6M,Componentes Digitales,2,Módulo GPS NEO-6M UART con antena
-Sensor de color TCS3200,Componentes Digitales,5,Sensor de color TCS3200 RGB frecuencia
-Módulo relé 8 canales,Componentes Digitales,3,Módulo 8 relés 5V optoacoplados`;
-            
-            // Crear CSV con BOM UTF-8 para Excel
-            const blob = new Blob(['\ufeff' + csvContent], { 
-                type: 'text/csv;charset=utf-8;' 
-            });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'plantilla_insumos.csv';
-            a.click();
-            window.URL.revokeObjectURL(url);
-            
-            showToast('📥 Plantilla CSV descargada - Excel puede abrirla', 'success');
-        }
-
-        // Función principal para procesar agregado masivo
-        async function procesarAgregadoMasivo() {
-            const tabActivo = document.querySelector('[id^="tab-"].text-blue-600');
-            const tabName = tabActivo.id.replace('tab-', '');
-            
-            let insumos = [];
-            
-            if (tabName === 'archivo') {
-                showToast('📁 Función de archivo en desarrollo', 'info');
-                return;
-            } else if (tabName === 'tabla') {
-                // Procesar tabla
-                const filas = document.querySelectorAll('#tabla-insumos-masivos tr');
-                
-                // Procesar cada fila con su imagen
-                for (let i = 0; i < filas.length; i++) {
-                    const fila = filas[i];
-                    const inputs = fila.querySelectorAll('input, select');
-                    const imagenInput = fila.querySelector('input[type="file"]');
-                    
-                    if (inputs[1].value.trim()) { // inputs[1] es el nombre
-                        let imagenUrl = '';
-                        
-                        // Si hay imagen, subirla
-                        if (imagenInput && imagenInput.files[0]) {
-                            imagenUrl = await window.subirImagen(imagenInput.files[0]);
-                        }
-                        
-                        insumos.push({
-                            id_insumo: Date.now() + Math.random(),
-                            NombProducto: inputs[1].value, // inputs[1] es el nombre (inputs[0] es imagen)
-                            categoria: inputs[2].value, // inputs[2] es categoría
-                            cantidad: parseInt(inputs[3].value) || 1, // inputs[3] es cantidad
-                            caracteristicas: inputs[4].value || 'Sin características', // inputs[4] es características
-                            imagenUrl: imagenUrl
-                        });
-                    }
-                }
-            } else if (tabName === 'manual') {
-                // Procesar ingreso manual
-                const nombres = document.getElementById('nombres-manual').value.split('\n').filter(n => n.trim());
-                const categoria = document.getElementById('categoria-manual').value;
-                const cantidad = parseInt(document.getElementById('cantidad-manual').value) || 1;
-                const caracteristicas = document.getElementById('caracteristicas-manual').value;
-                
-                nombres.forEach(nombre => {
-                    if (nombre.trim()) {
-                        insumos.push({
-                            id_insumo: Date.now() + Math.random(),
-                            NombProducto: nombre.trim(),
-                            categoria: categoria,
-                            cantidad: cantidad,
-                            caracteristicas: caracteristicas,
-                            imagenUrl: ''
-                        });
-                    }
-                });
-            }
-            
-            if (insumos.length === 0) {
-                showToast('❌ No hay insumos para agregar', 'error');
-                return;
-            }
-            
-            try {
-                const token = localStorage.getItem('utn_token');
-                const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(insumos) // Enviar como array para bulk insert
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    showToast(`✅ ${result.count || insumos.length} insumos agregados correctamente`, 'success');
-                    cerrarModalMasivo();
-                    
-                    // Recargar la lista de insumos
-                    if (window.insumosController && window.insumosController.loadInsumos) {
-                        window.insumosController.loadInsumos();
-                    }
-                } else {
-                    const error = await response.json();
-                    showToast(`❌ Error: ${error.message || 'Error al agregar insumos'}`, 'error');
-                }
-            } catch (error) {
-                console.error('Error agregando insumos masivamente:', error);
-                showToast('❌ Error al agregar insumos', 'error');
-            }
-        }
-
-        // Conectar el botón "Agregar Masivo" con nuestro modal
-        const agregarMasivoBtn = document.getElementById('agregar-masivo-btn');
-        if (agregarMasivoBtn) {
-            agregarMasivoBtn.addEventListener('click', abrirModalMasivo);
-        }
-
-        // Conectar el botón "Exportar" con su función
-        const exportarBtn = document.getElementById('exportar-btn');
-        if (exportarBtn) {
-            exportarBtn.addEventListener('click', exportarInsumos);
-        }
-
-        // Función para exportar insumos a Excel con plantilla súper profesional
-        function exportarInsumos() {
-            try {
-                console.log('📥 Iniciando exportación de insumos a Excel con diseño completo...');
-                
-                if (!todosLosInsumos || todosLosInsumos.length === 0) {
-                    showToast('❌ No hay insumos para exportar', 'error');
+                // Limpiar filas vacías
+                const lineas = jsonData.filter(row => row.length > 0 && row.some(cell => cell !== undefined && cell !== ''));
+                if (lineas.length < 2) {
+                    mostrarToast('El archivo está vacío o no tiene datos válidos', 'error');
                     return;
                 }
+                document.getElementById('csvPreviewArea').xlsxData = lineas; // guardar temporalmente para el boton procesar
 
-                const fecha = new Date().toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' });
-                
-                // Calcular estadísticas
-                const totalInsumos = todosLosInsumos.length;
-                const totalUnidades = todosLosInsumos.reduce((sum, i) => sum + (i.cantidad || 0), 0);
-                const categorias = [...new Set(todosLosInsumos.map(i => i.categoria))];
-                const criticos = todosLosInsumos.filter(i => (i.cantidad || 0) === 0);
-                const bajoStock = todosLosInsumos.filter(i => (i.cantidad || 0) > 0 && (i.cantidad || 0) <= 5);
-                const conStock = todosLosInsumos.filter(i => (i.cantidad || 0) > 5);
-                
-                // Resumen por categoría
-                const resumenPorCategoria = categorias.map(cat => {
-                    const itemsCat = todosLosInsumos.filter(i => i.categoria === cat);
-                    return {
-                        categoria: cat,
-                        cantidad: itemsCat.length,
-                        unidades: itemsCat.reduce((sum, i) => sum + (i.cantidad || 0), 0),
-                        criticos: itemsCat.filter(i => (i.cantidad || 0) === 0).length
-                    };
-                });
-
-                // Crear contenido HTML para Excel con diseño completo
-                const excelContent = `
-<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-<head>
-    <meta charset="UTF-8">
-    <!--[if gte mso 9]>
-    <xml>
-        <x:ExcelWorkbook>
-            <x:ExcelWorksheets>
-                <x:ExcelWorksheet>
-                    <x:Name>Reporte Completo UTN</x:Name>
-                    <x:WorksheetOptions>
-                        <x:Print>
-                           <x:ValidPrinterInfo/>
-                           <x:PaperSizeIndex>9</x:PaperSizeIndex>
-                           <x:Scale>80</x:Scale>
-                           <x:HorizontalResolution>600</x:HorizontalResolution>
-                           <x:VerticalResolution>600</x:VerticalResolution>
-                        </x:Print>
-                        <x:Selected/>
-                        <x:Panes>
-                           <x:Pane>
-                              <x:Number>3</x:Number>
-                              <x:ActiveRow>1</x:ActiveRow>
-                              <x:ActiveCol>1</x:ActiveCol>
-                           </x:Pane>
-                        </x:Panes>
-                        <x:ProtectContents>False</x:ProtectContents>
-                        <x:ProtectObjects>False</x:ProtectObjects>
-                        <x:ProtectScenarios>False</x:ProtectScenarios>
-                        <x:AutoFilter/>
-                    </x:WorksheetOptions>
-                </x:ExcelWorksheet>
-            </x:ExcelWorksheets>
-        </x:ExcelWorkbook>
-    </xml>
-    <![endif]-->
-    <style>
-        @page {
-            margin: 0.5in;
-            orientation: landscape;
-        }
-        body {
-            font-family: 'Calibri', sans-serif;
-            margin: 0;
-            padding: 15px;
-            background: white;
-        }
-        .main-header {
-            background: linear-gradient(135deg, #00447c 0%, #0056a3 50%, #0066cc 100%);
-            color: white;
-            padding: 25px;
-            text-align: center;
-            border-radius: 0px 0px 20px 20px;
-            margin: 0 0 30px 0;
-            box-shadow: 0 6px 25px rgba(0, 68, 124, 0.4);
-            position: relative;
-            overflow: hidden;
-        }
-        .main-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -5%;
-            width: 350px;
-            height: 350px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-        }
-        .main-header::after {
-            content: '';
-            position: absolute;
-            top: -30%;
-            left: -5%;
-            width: 200px;
-            height: 200px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
-        }
-        .logo-utn {
-            font-size: 48px;
-            margin-bottom: 15px;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
-            position: relative;
-            z-index: 2;
-        }
-        .main-header h1 {
-            margin: 0;
-            font-size: 32px;
-            font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            position: relative;
-            z-index: 2;
-        }
-        .main-header .subtitle {
-            margin: 10px 0 0 0;
-            font-size: 18px;
-            opacity: 0.95;
-            font-weight: 400;
-            position: relative;
-            z-index: 2;
-        }
-        .main-header .date {
-            margin: 8px 0 0 0;
-            font-size: 15px;
-            opacity: 0.85;
-            font-style: italic;
-            position: relative;
-            z-index: 2;
-        }
-        .section-title {
-            background: linear-gradient(135deg, #00447c 0%, #0056a3 100%);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            margin: 25px 0 15px 0;
-            font-size: 20px;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0, 68, 124, 0.3);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .stat-card {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border: 1px solid #cbd5e1;
-            border-left: 6px solid #00447c;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease;
-        }
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-        }
-        .stat-card.danger {
-            border-left-color: #ef4444;
-            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
-        }
-        .stat-card.warning {
-            border-left-color: #f59e0b;
-            background: linear-gradient(135deg, #fffbeb 0%, #fed7aa 100%);
-        }
-        .stat-card.success {
-            border-left-color: #10b981;
-            background: linear-gradient(135deg, #f0fdf4 0%, #bbf7d0 100%);
-        }
-        .stat-card h3 {
-            margin: 0 0 10px 0;
-            color: #00447c;
-            font-size: 14px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .stat-card .value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1e293b;
-            margin: 0;
-        }
-        .stat-card .description {
-            font-size: 12px;
-            color: #64748b;
-            margin: 5px 0 0 0;
-        }
-        .chart-container {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .chart-placeholder {
-            height: 200px;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #64748b;
-            font-size: 14px;
-            border: 2px dashed #cbd5e1;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 25px;
-        }
-        th {
-            background: linear-gradient(135deg, #00447c 0%, #0056a3 100%);
-            color: white;
-            padding: 16px 12px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            border: 1px solid #003366;
-            position: relative;
-        }
-        th:first-child {
-            border-top-left-radius: 12px;
-        }
-        th:last-child {
-            border-top-right-radius: 12px;
-        }
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 11px;
-            vertical-align: top;
-        }
-        tr:nth-child(even) {
-            background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%);
-        }
-        tr:hover {
-            background: linear-gradient(90deg, #e0f2fe 0%, #f0f9ff 100%);
-            transform: scale(1.01);
-            transition: all 0.2s ease;
-        }
-        .stock-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 9px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        .stock-con {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border: 1px solid #047857;
-        }
-        .stock-bajo {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-            border: 1px solid #b45309;
-        }
-        .stock-sin {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-            border: 1px solid #b91c1c;
-        }
-        .category-tag {
-            background: #f1f5f9;
-            color: #00447c;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 600;
-            border: 1px solid #cbd5e1;
-        }
-        .footer-utn {
-            text-align: center;
-            padding: 25px;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border-top: 4px solid #00447c;
-            border-radius: 20px 20px 0 0;
-            color: #64748b;
-            font-size: 11px;
-            margin-top: 40px;
-            box-shadow: 0 -4px 15px rgba(0, 68, 124, 0.2);
-        }
-        .footer-utn .logo {
-            font-size: 32px;
-            margin-bottom: 15px;
-        }
-        .recommendations {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border: 1px solid #f59e0b;
-            border-left: 6px solid #f59e0b;
-            padding: 20px;
-            border-radius: 12px;
-            margin: 25px 0;
-        }
-        .recommendations h3 {
-            margin: 0 0 15px 0;
-            color: #92400e;
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .recommendations ul {
-            margin: 0;
-            padding-left: 20px;
-        }
-        .recommendations li {
-            margin-bottom: 8px;
-            color: #78350f;
-            font-size: 12px;
-        }
-        .timeline {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .timeline h3 {
-            margin: 0 0 15px 0;
-            color: #00447c;
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .timeline-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            padding: 8px;
-            background: #f8fafc;
-            border-radius: 8px;
-        }
-        .timeline-date {
-            font-weight: 600;
-            color: #00447c;
-            margin-right: 15px;
-            min-width: 80px;
-        }
-        .timeline-text {
-            font-size: 12px;
-            color: #64748b;
-        }
-    </style>
-</head>
-<body>
-    <div class="main-header">
-        <div class="logo-utn">🎓 UTN</div>
-        <h1>📦 REPORTE COMPLETO DE INSUMOS</h1>
-        <div class="subtitle">Universidad Tecnológica Nacional - Sistema de Gestión Integral</div>
-        <div class="date">Fecha de generación: ${fecha}</div>
-    </div>
-    
-    <div class="section-title">
-        📊 PANEL DE CONTROL Y ESTADÍSTICAS
-    </div>
-    
-    <div class="stats-grid">
-        <div class="stat-card">
-            <h3>Total Insumos</h3>
-            <div class="value">${totalInsumos}</div>
-            <div class="description">Items registrados en el sistema</div>
-        </div>
-        <div class="stat-card success">
-            <h3>Unidades en Stock</h3>
-            <div class="value">${totalUnidades}</div>
-            <div class="description">Total de unidades disponibles</div>
-        </div>
-        <div class="stat-card">
-            <h3>Categorías</h3>
-            <div class="value">${categorias.length}</div>
-            <div class="description">Tipos de componentes diferentes</div>
-        </div>
-        <div class="stat-card danger">
-            <h3>Críticos</h3>
-            <div class="value">${criticos.length}</div>
-            <div class="description">Insumos sin stock disponible</div>
-        </div>
-        <div class="stat-card warning">
-            <h3>Bajo Stock</h3>
-            <div class="value">${bajoStock.length}</div>
-            <div class="description">Insumos con stock ≤ 5 unidades</div>
-        </div>
-        <div class="stat-card success">
-            <h3>Stock Óptimo</h3>
-            <div class="value">${conStock.length}</div>
-            <div class="description">Insumos con stock > 5 unidades</div>
-        </div>
-    </div>
-
-    <div class="section-title">
-        📈 ANÁLISIS VISUAL
-    </div>
-    
-    <div class="chart-container">
-        <h3 style="margin: 0 0 15px 0; color: #00447c;">Distribución de Stock por Estado</h3>
-        <div style="display: flex; align-items: center; gap: 20px;">
-            <div style="flex: 1;">
-                <div style="display: flex; height: 30px; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-                    <div style="width: ${((conStock.length / totalInsumos) * 100)}%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 11px;">
-                        ${((conStock.length / totalInsumos) * 100).toFixed(1)}%
-                    </div>
-                    <div style="width: ${((bajoStock.length / totalInsumos) * 100)}%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 11px;">
-                        ${((bajoStock.length / totalInsumos) * 100).toFixed(1)}%
-                    </div>
-                    <div style="width: ${((criticos.length / totalInsumos) * 100)}%; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 11px;">
-                        ${((criticos.length / totalInsumos) * 100).toFixed(1)}%
-                    </div>
-                </div>
-            </div>
-            <div style="display: flex; gap: 15px; font-size: 10px;">
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <div style="width: 12px; height: 12px; background: #10b981; border-radius: 2px;"></div>
-                    <span>Con Stock (${conStock.length})</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <div style="width: 12px; height: 12px; background: #f59e0b; border-radius: 2px;"></div>
-                    <span>Bajo Stock (${bajoStock.length})</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <div style="width: 12px; height: 12px; background: #ef4444; border-radius: 2px;"></div>
-                    <span>Sin Stock (${criticos.length})</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="chart-container">
-        <h3 style="margin: 0 0 15px 0; color: #00447c;">Unidades por Categoría</h3>
-        <div style="display: flex; gap: 15px; align-items: flex-end; height: 150px;">
-            ${resumenPorCategoria.map(cat => {
-                const maxUnidades = Math.max(...resumenPorCategoria.map(r => r.unidades));
-                const height = maxUnidades > 0 ? (cat.unidades / maxUnidades) * 100 : 0;
-                return `
-                <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
-                    <div style="width: 100%; background: linear-gradient(135deg, #00447c 0%, #0056a3 100%); border-radius: 8px 8px 0 0; height: ${height}%; min-height: 5px; position: relative; box-shadow: 0 2px 8px rgba(0,68,124,0.3);">
-                        <div style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 600; color: #00447c;">${cat.unidades}</div>
-                    </div>
-                    <div style="margin-top: 8px; text-align: center; font-size: 9px; font-weight: 600; color: #64748b;">${cat.categoria}</div>
-                </div>
-                `;
-            }).join('')}
-        </div>
-    </div>
-
-    <div class="section-title">
-        📋 RESUMEN POR CATEGORÍA
-    </div>
-    
-    <table>
-        <thead>
-            <tr>
-                <th>Categoría</th>
-                <th>Cantidad de Items</th>
-                <th>Total Unidades</th>
-                <th>Items Críticos</th>
-                <th>% del Total</th>
-                <th>Estado General</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${resumenPorCategoria.map(cat => {
-                const porcentaje = ((cat.cantidad / totalInsumos) * 100).toFixed(1);
-                let estado = 'Óptimo';
-                let estadoClass = 'stock-con';
-                
-                if (cat.criticos > 0) {
-                    estado = 'Crítico';
-                    estadoClass = 'stock-sin';
-                } else if (cat.unidades <= cat.cantidad * 5) {
-                    estado = 'Bajo';
-                    estadoClass = 'stock-bajo';
-                }
-                
-                return `
-                <tr>
-                    <td><span class="category-tag">${cat.categoria}</span></td>
-                    <td style="text-align: center; font-weight: 600;">${cat.cantidad}</td>
-                    <td style="text-align: center; font-weight: 700; color: #00447c;">${cat.unidades}</td>
-                    <td style="text-align: center; color: #ef4444; font-weight: 600;">${cat.criticos}</td>
-                    <td style="text-align: center;">${porcentaje}%</td>
-                    <td style="text-align: center;"><span class="stock-badge ${estadoClass}">${estado}</span></td>
-                </tr>
-                `;
-            }).join('')}
-        </tbody>
-    </table>
-
-    <div class="section-title">
-        📦 DETALLE COMPLETO DE INSUMOS
-    </div>
-    
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre del Insumo</th>
-                <th>Categoría</th>
-                <th>Cantidad</th>
-                <th>Estado Stock</th>
-                <th>Características Técnicas</th>
-                <th>Estado</th>
-                <th>Prioridad</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${todosLosInsumos.map(insumo => {
-                const cantidad = insumo.cantidad || 0;
-                let stockClass = 'stock-con';
-                let stockText = 'Con Stock';
-                let prioridad = 'Baja';
-                let prioridadClass = 'stock-con';
-                
-                if (cantidad === 0) {
-                    stockClass = 'stock-sin';
-                    stockText = 'Sin Stock';
-                    prioridad = 'Alta';
-                    prioridadClass = 'stock-sin';
-                } else if (cantidad <= 5) {
-                    stockClass = 'stock-bajo';
-                    stockText = 'Bajo Stock';
-                    prioridad = 'Media';
-                    prioridadClass = 'stock-bajo';
-                }
-                
-                return `
-                <tr>
-                    <td><strong>${insumo.id_insumo || ''}</strong></td>
-                    <td><strong>${insumo.NombProducto || ''}</strong></td>
-                    <td><span class="category-tag">${insumo.categoria || ''}</span></td>
-                    <td style="text-align: center; font-size: 14px; font-weight: 700; color: #00447c;">${cantidad}</td>
-                    <td style="text-align: center;"><span class="stock-badge ${stockClass}">${stockText}</span></td>
-                    <td style="max-width: 200px;">${insumo.caracteristicas || ''}</td>
-                    <td style="text-align: center;">${insumo.estado || 'activo'}</td>
-                    <td style="text-align: center;"><span class="stock-badge ${prioridadClass}">${prioridad}</span></td>
-                </tr>
-                `;
-            }).join('')}
-        </tbody>
-    </table>
-
-    <div class="section-title">
-        ⚠️ ANÁLISIS DE STOCK CRÍTICO
-    </div>
-    
-    ${criticos.length > 0 ? `
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Insumo Crítico</th>
-                <th>Categoría</th>
-                <th>Última Cantidad</th>
-                <th>Acción Recomendada</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${criticos.map(insumo => `
-                <tr style="background: linear-gradient(90deg, #fef2f2 0%, #fecaca 100%);">
-                    <td><strong>${insumo.id_insumo || ''}</strong></td>
-                    <td style="color: #dc2626; font-weight: 700;">${insumo.NombProducto || ''}</td>
-                    <td><span class="category-tag">${insumo.categoria || ''}</span></td>
-                    <td style="text-align: center; color: #dc2626; font-weight: 700;">0</td>
-                    <td style="text-align: center;"><span class="stock-badge stock-sin">URGENTE</span></td>
-                </tr>
-            `).join('')}
-        </tbody>
-    </table>
-    ` : '<div style="text-align: center; padding: 20px; background: #f0fdf4; border-radius: 12px; color: #16a34a; font-weight: 600;">✅ No hay insumos en estado crítico</div>'}
-
-    <div class="recommendations">
-        <h3>📝 RECOMENDACIONES Y ACCIONES</h3>
-        <ul>
-            <li><strong>Acción Inmediata:</strong> Reabastecer ${criticos.length} insumos críticos sin stock</li>
-            <li><strong>Planificación:</strong> Monitorear ${bajoStock.length} insumos con bajo stock</li>
-            <li><strong>Optimización:</strong> Mantener stock mínimo de 5 unidades para evitar desabastecimiento</li>
-            <li><strong>Revisión:</strong> Evaluar rotación de insumos en categoría "${categorias.length > 0 ? categorias[0] : 'N/A'}"</li>
-            <li><strong>Proyección:</strong> Considerar pedido de ${Math.max(criticos.length * 2, 10)} unidades para próxima compra</li>
-        </ul>
-    </div>
-
-    <div class="timeline">
-        <h3>📅 LÍNEA DE TIEMPO - PRÓXIMAS ACCIONES</h3>
-        <div class="timeline-item">
-            <div class="timeline-date">Hoy</div>
-            <div class="timeline-text">Reabastecer insumos críticos (${criticos.length} items)</div>
-        </div>
-        <div class="timeline-item">
-            <div class="timeline-date">3 días</div>
-            <div class="timeline-text">Revisión de stock bajo (${bajoStock.length} items)</div>
-        </div>
-        <div class="timeline-item">
-            <div class="timeline-date">1 semana</div>
-            <div class="timeline-text">Auditoría general de inventario</div>
-        </div>
-        <div class="timeline-item">
-            <div class="timeline-date">2 semanas</div>
-            <div class="timeline-text">Planificación de compras mensuales</div>
-        </div>
-    </div>
-    
-    <div class="footer-utn">
-        <div class="logo">🎓 UTN</div>
-        <div><strong>Reporte generado automáticamente por Sistema Inteligente</strong></div>
-        <div>Sistema de Gestión de Insumos - Universidad Tecnológica Nacional</div>
-        <div>Para más información, contacte al administrador del sistema | Versión 2.0</div>
-        <div style="margin-top: 10px; font-size: 10px;">📊 Este reporte incluye análisis automático, recomendaciones y proyecciones</div>
-    </div>
-</body>
-</html>`;
-
-                // Crear blob y descargar
-                const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                
-                link.href = url;
-                link.download = `reporte_completo_utn_${new Date().toISOString().split('T')[0]}.xls`;
-                link.style.display = 'none';
-                
-                document.body.appendChild(link);
-                link.click();
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Iniciando insumos.html...');
-            
-            // Verificar autenticación usando la misma lógica que index.html
-            const token = localStorage.getItem('utn_token');
-            const userData = localStorage.getItem('utn_user');
-            
-            console.log('🔍 Verificando sesión en insumos.html:', {
-                token: token ? 'existe' : 'no existe',
-                usuario: userData ? 'existe' : 'no existe'
-            });
-            
-            if (!token || !userData) {
-                console.log('** No hay sesión en insumos.html, redirigiendo a ../index.html...');
-                window.location.href = '../index.html';
-                return;
+                const preview = document.getElementById('csvPreviewTable');
+                const headers = lineas[0];
+                const rows = lineas.slice(1, 6); // max 5 filas
+                preview.innerHTML = `
+                    <thead class="bg-slate-50">
+                        <tr>${headers.map(h => `<th class="px-3 py-2 text-left text-[10px] font-black text-slate-500 uppercase tracking-wide">${String(h||'').trim()}</th>`).join('')}</tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        ${rows.map(r => {
+                            // r puede tener menos columnas que headers, hay que igualarlas
+                            let tds = '';
+                            for(let i=0; i<headers.length; i++) {
+                                tds += `<td class="px-3 py-2 text-xs text-slate-700">${String(r[i]||'').trim()}</td>`;
+                            }
+                            return `<tr>${tds}</tr>`;
+                        }).join('')}
+                        ${lineas.length > 6 ? `<tr><td colspan="${headers.length}" class="px-3 py-2 text-xs text-slate-400 italic">... y ${lineas.length - 6} filas mas</td></tr>` : ''}
+                    </tbody>`;
+                document.getElementById('csvPreviewArea').classList.remove('hidden');
+                document.getElementById('csvRowCount').textContent = lineas.length - 1;
+            } catch (err) {
+                console.error(err);
+                mostrarToast('Error al leer el archivo. Asegúrate que sea .xlsx o .csv válido.', 'error');
             }
-            
-            console.log('** Sesión válida en insumos.html, inicializando...');
-            
-            // Inicializar controlador de insumos
-            setTimeout(async () => {
-                try {
-                    // Crear instancia del controlador
-                    const insumosController = new InsumosController();
-                    console.log('** InsumosController creado:', insumosController);
-                    
-                    // Inicializar el controlador
-                    await insumosController.initialize();
-                    console.log('** InsumosController inicializado');
-                    
-                } catch (error) {
-                    console.error('** Error inicializando insumos:', error);
-                    Utils.showToast('Error al inicializar la página de insumos', 'error');
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    async function procesarImportarCSV() {
+        const dataPreview = document.getElementById('csvPreviewArea').xlsxData;
+        if (!dataPreview || dataPreview.length < 2) { mostrarToast('Selecciona un archivo válido primero', 'error'); return; }
+
+        const token = localStorage.getItem('utn_token');
+        const btn = document.getElementById('btnProcesarCSV');
+        btn.disabled = true;
+        btn.textContent = 'Importando...';
+
+        const lineas = dataPreview;
+        // Normalizar headers (sin tildes, minúsculas)
+        const headers = lineas[0].map(h => String(h||'').trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+
+        let ok = 0, errores = [];
+        for (let i = 1; i < lineas.length; i++) {
+            const cols = lineas[i];
+            const row = {};
+            headers.forEach((h, idx) => row[h] = String(cols[idx]||'').trim());
+
+            // id_insumo numérico único (min > 0)
+            const generatedId = Math.floor(Math.random() * 89999000) + 10000000 + i;
+            const tempIdInsumo = parseInt(row['id_insumo']) || parseInt(row['id']) || generatedId;
+            const tempCodigo = row['codigo'] || row['cod'] || `INS-${Date.now().toString(36)}-${i}`;
+
+            const payload = {
+                id_insumo: tempIdInsumo,
+                codigo: tempCodigo,
+                NombProducto: row['nombre'] || row['nombproducto'] || row['descripcion'] || '',
+                tipo: row['tipo'] || 'consumible',
+                categoria: row['categoria'] || 'Otros',
+                cantidad: parseInt(row['cantidad']) || 0,
+                ubicacion: row['ubicacion'] || 'Laboratorio de Electrónica',
+                caracteristicas: row['caracteristicas'] || row['descripcion'] || 'Sin características'
+            };
+
+            if (!payload.NombProducto || payload.NombProducto.toLowerCase() === 'nombre') { 
+                if (i !== 0 && Object.values(row).join('').trim() !== '') {
+                    errores.push(`Fila ${i + 1}: Faltan datos (Nombre requerido)`);
                 }
-            }, 500);
+                continue; 
+            }
+
+            try {
+                const res = await fetch(`${API}/insumos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) { ok++; } else {
+                    const e = await res.json();
+                    errores.push(`ID ${payload.id_insumo}: ${e.message || 'Error desconocido'}`);
+                }
+            } catch(ex) {
+                errores.push(`ID ${payload.id_insumo}: Error de red`);
+            }
+        }
+
+        const resultEl = document.getElementById('csvResultArea');
+        document.getElementById('csvResultOk').textContent = ok;
+        document.getElementById('csvResultErr').textContent = errores.length;
+        document.getElementById('csvErrorList').innerHTML = errores.map(e => `<li class="text-xs text-red-600">${e}</li>`).join('');
+        resultEl.classList.remove('hidden');
+
+        btn.disabled = false;
+        btn.textContent = 'Importar Datos';
+
+        if (ok > 0) {
+            mostrarToast(`${ok} insumo${ok > 1 ? 's' : ''} importados correctamente`, 'success');
+            await cargarInsumos();
+        }
+        if (errores.length > 0) mostrarToast(`${errores.length} fila${errores.length > 1 ? 's' : ''} con errores`, 'error');
+    }
+
+    // ========================  EXPORTAR CSV (mejorado)  ========================
+    function exportarExcel() {
+        if (!todosLosInsumos.length) { mostrarToast('No hay datos para exportar', 'error'); return; }
+        const rows = todosLosInsumos.filter(i => i.estado !== 'eliminado').map(i => ({
+            'Nombre': i.NombProducto || '', 'Código': i.codigo || '', 'ID': i.id_insumo || '',
+            'Tipo': i.tipo || '', 'Categoría': i.categoria || '', 'Cantidad': i.cantidad || 0,
+            'Estado': i.estado || '', 'Ubicación': i.ubicacion || '', 'Características': i.caracteristicas || ''
+        }));
+        const headers = ['Nombre', 'Código', 'ID', 'Tipo', 'Categoría', 'Cantidad', 'Estado', 'Ubicación', 'Características'];
+        const csvRows = [headers.join(',')];
+        
+        rows.forEach(r => {
+            const rowFields = [
+                r['Nombre'] || '', r['Código'] || '', r['ID'] || '', r['Tipo'] || '', 
+                r['Categoría'] || '', r['Cantidad'] || 0, r['Estado'] || '', 
+                r['Ubicación'] || '', r['Características'] || ''
+            ].map(f => {
+                let s = String(f);
+                if (s.includes('"') || s.includes(',') || s.includes('\n')) {
+                    s = `"${s.replace(/"/g, '""')}"`;
+                }
+                return s;
+            });
+            csvRows.push(rowFields.join(','));
         });
+
+        // Asegurar que abran bien en Excel agregando el BOM \uFEFF al inicio
+        const csvContent = '\uFEFF' + csvRows.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+        const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `insumos_UTN_${new Date().toISOString().split('T')[0]}.csv` });
+        a.click();
+        mostrarToast('Exportación generada ✓', 'success');
+    }
+
+    // ----- HELPERS UI -----
+    function abrirModal(id) {
+        const el = document.getElementById(id);
+        const box = el?.querySelector('[id$="Box"]') || el?.firstElementChild;
+        el?.classList.remove('opacity-0', 'pointer-events-none');
+        box?.classList.remove('scale-95');
+        box?.classList.add('scale-100');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarModal(id) {
+        const el = document.getElementById(id);
+        const box = el?.querySelector('[id$="Box"]') || el?.firstElementChild;
+        el?.classList.add('opacity-0', 'pointer-events-none');
+        box?.classList.add('scale-95');
+        box?.classList.remove('scale-100');
+        document.body.style.overflow = '';
+    }
+
+    function showLoading(show) {
+        document.getElementById('loadingState')?.classList.toggle('hidden', !show);
+    }
+
+    function mostrarToast(msg, tipo = 'success') {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({ toast: true, position: 'top-end', icon: tipo, title: msg, showConfirmButton: false, timer: 2800, timerProgressBar: true });
+        } else {
+            alert(msg);
+        }
+    }
     </script>
 </body>
 </html>

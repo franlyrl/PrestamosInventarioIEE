@@ -1,6 +1,12 @@
-// Evitar duplicación de CONFIG
+/**
+ * UTN - Sistema de Préstamos e Inventario
+ * Script Principal (Mejorado)
+ * Centraliza la lógica de UI y servicios API
+ */
+
+// 1. CONFIGURACIÓN GLOBAL
 if (typeof window.CONFIG === 'undefined') {
-    const CONFIG = {
+    window.CONFIG = {
         API_BASE_URL: 'http://localhost:4000/api',
         ANIMATIONS: {
             FADE_IN: 400,
@@ -12,492 +18,915 @@ if (typeof window.CONFIG === 'undefined') {
             USER: 'utn_user'
         }
     };
-    
-    // Hacer CONFIG global
-    window.CONFIG = CONFIG;
 }
 
-// Utilidades adicionales que no están en app.js
+// 1.5 INYECTAR Y CONFIGURAR SWEETALERT2 TEMPRANO
+(function() {
+    if (!window.Swal && !document.querySelector('script[src*="sweetalert2"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css';
+        document.head.appendChild(link);
 
-const Utils = {
-    // Mostrar loading
-    showLoading(show = true) {
-        const loadingState = document.getElementById('loading-state');
-        if (loadingState) {
-            loadingState.classList.toggle('hidden', !show);
-        }
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+        document.head.appendChild(script);
+    }
+})();
+
+window.SwalUTN = {
+    success(title, text = '') {
+        if (!window.Swal) return alert(title + ': ' + text);
+        return Swal.fire({ icon: 'success', title, text, confirmButtonColor: '#002D62', confirmButtonText: 'Aceptar', borderRadius: '12px', customClass: { popup: 'swal-utn' } });
     },
-
-    // Mostrar empty state
-    showEmpty(show = true, message = 'No se encontraron resultados') {
-        const emptyState = document.getElementById('empty-state');
-        if (emptyState) {
-            emptyState.classList.toggle('hidden', !show);
-            const messageElement = emptyState.querySelector('h3');
-            if (messageElement) {
-                messageElement.textContent = message;
-            }
-        }
+    error(title, text = '') {
+        if (!window.Swal) return alert(title + ': ' + text);
+        return Swal.fire({ icon: 'error', title, text, confirmButtonColor: '#002D62', confirmButtonText: 'Entendido' });
     },
-
-    // Animar elemento
-    animate(element, animation) {
-        element.classList.add(animation);
-        setTimeout(() => {
-            element.classList.remove(animation);
-        }, CONFIG.ANIMATIONS.FADE_IN);
+    warning(title, text = '') {
+        if (!window.Swal) return alert(title + ': ' + text);
+        return Swal.fire({ icon: 'warning', title, text, confirmButtonColor: '#002D62', confirmButtonText: 'Entendido' });
     },
-
-    // Hacer fetch con autenticación
-    async authenticatedFetch(url, options = {}) {
-        const token = appState.getToken();
-        const headers = {
-            'Content-Type': 'application/json',
-            ...options.headers
-        };
-
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        return fetch(url, {
-            ...options,
-            headers
-        });
-    },
-
-    // Manejar errores de API
-    handleApiError(error) {
-        console.error('Error de API:', error);
-        if (error.message.includes('401') || error.message.includes('403')) {
-            Utils.showToast('Sesión expirada, por favor inicie sesión nuevamente', 'error');
-            setTimeout(() => {
-                appState.logout();
-            }, 2000);
-        } else {
-            Utils.showToast('Error en la operación', 'error');
-        }
-    },
-
-    // Actualizar fecha y hora
-    updateDateTime() {
-        const dateTimeElement = document.getElementById('currentDateTime');
-        if (dateTimeElement) {
-            const now = new Date();
-            dateTimeElement.textContent = now.toLocaleString('es-CR', {
-                weekday: 'short',
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-    },
-
-    // Inicializar actualización de tiempo
-    startTimeUpdates() {
-        this.updateDateTime();
-        setInterval(() => this.updateDateTime(), 60000); // Actualizar cada minuto
-    },
-
-    // Actualizar información del usuario
-    updateUserInfo() {
-        const user = appState.getUser();
-        const userInfoElements = document.querySelectorAll('#userInfo');
-        const userMenuElements = document.querySelectorAll('#userMenuName');
-
-        if (user) {
-            const displayName = user.nombre_completo || user.nombre || 'Usuario';
-            userInfoElements.forEach(el => {
-                el.textContent = displayName;
-            });
-            userMenuElements.forEach(el => {
-                el.textContent = displayName;
-            });
-        }
-    },
-
-    // Validar formulario
-    validateForm(formId) {
-        const form = document.getElementById(formId);
-        if (!form) return false;
-
-        const requiredFields = form.querySelectorAll('[required]');
-        let isValid = true;
-
-        requiredFields.forEach(field => {
-            if (!field.value.trim()) {
-                field.classList.add('border-red-500');
-                isValid = false;
-            } else {
-                field.classList.remove('border-red-500');
-            }
-        });
-
-        return isValid;
-    },
-
-    // Limpiar formulario
-    clearForm(formId) {
-        const form = document.getElementById(formId);
-        if (!form) return;
-
-        form.reset();
-        form.querySelectorAll('.border-red-500').forEach(field => {
-            field.classList.remove('border-red-500');
-        });
+    confirm(title, text = '¿Deseas continuar?') {
+        if (!window.Swal) return Promise.resolve({ isConfirmed: confirm(title + '\\n\\n' + text) });
+        return Swal.fire({ icon: 'question', title, text, showCancelButton: true, confirmButtonColor: '#002D62', cancelButtonColor: '#94a3b8', confirmButtonText: 'Aceptar', cancelButtonText: 'Cancelar' });
     }
 };
 
-// API Service
-const ApiService = {
-    // Autenticación
-    async login(credentials) {
-        try {
-            const response = await Utils.authenticatedFetch(`${CONFIG.API_BASE_URL}/usuarios/login`, {
-                method: 'POST',
-                body: JSON.stringify(credentials)
+// 2. UTILIDADES GLOBALES
+if (typeof window.Utils === 'undefined') window.Utils = {};
+Object.assign(window.Utils, {
+    // Obtener iniciales del nombre
+    getInitials(name) {
+        if (!name) return 'U';
+        const parts = name.trim().split(/\s+/);
+        if (parts.length === 0) return 'U';
+        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+        return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+    },
+    // Mostrar/Ocultar Loading
+    showLoading(show = true) {
+        const loading = document.getElementById('loading-state') || document.getElementById('loginPage');
+        if (loading) loading.classList.toggle('hidden', !show);
+    },
+
+    // Mostrar Toast
+    showToast(message, type = 'success') {
+        if (window.Swal) {
+            const iconType = type === 'error' ? 'error' : (type === 'warning' ? 'warning' : 'success');
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                icon: iconType,
+                title: message,
+                customClass: { popup: 'swal-utn-toast' }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Credenciales inválidas');
-            }
-
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            Utils.handleApiError(error);
-            throw error;
+            return;
         }
+
+        // Fallback
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+        if (!toast || !toastMsg) return;
+
+        toastMsg.textContent = message;
+        const bgClass = type === 'error' ? 'bg-red-600' : (type === 'warning' ? 'bg-amber-500' : 'bg-utn-dark');
+        toast.firstElementChild.className = `${bgClass} text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold`;
+
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+        
+        setTimeout(() => {
+            toast.classList.add('translate-y-20', 'opacity-0');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+        }, 3000);
     },
 
-    // Obtener activos
-    async getActivos() {
-        try {
-            const response = await Utils.authenticatedFetch(`${CONFIG.API_BASE_URL}/activos`);
-
-            if (!response.ok) {
-                throw new Error('Error al cargar activos');
-            }
-
-            return response.json();
-        } catch (error) {
-            Utils.handleApiError(error);
-            throw error;
+    // Actualizar Información del Usuario en TODA la página
+    updateUserInfo() {
+        console.log('[DEBUG] Sincronizando datos de usuario...');
+        if (!window.appState) {
+            console.warn('appState no disponible para updateUserInfo');
+            return;
         }
-    },
 
-    // Obtener insumos
-    async getInsumos() {
-        try {
-            const response = await Utils.authenticatedFetch(`${CONFIG.API_BASE_URL}/insumos`);
-
-            if (!response.ok) {
-                throw new Error('Error al cargar insumos');
-            }
-
-            return response.json();
-        } catch (error) {
-            Utils.handleApiError(error);
-            throw error;
+        const user = window.appState.getUser();
+        if (!user) {
+            console.warn('No hay usuario en el estado');
+            return;
         }
-    },
 
-    // Crear activo
-    async createActivo(activoData) {
-        try {
-            const response = await Utils.authenticatedFetch(`${CONFIG.API_BASE_URL}/activos`, {
-                method: 'POST',
-                body: JSON.stringify(activoData)
+        const nombre = user.nombre_completo || user.nombre || 'Usuario';
+        const rol = (user.rol || 'Estudiante').charAt(0).toUpperCase() + (user.rol || 'estudiante').slice(1);
+        const iniciales = this.getInitials(nombre);
+
+        // Actualizar todos los elementos posibles
+        const selectors = {
+            '#nombre_completo': nombre,
+            '#userInfo': nombre,
+            '#userMenuName': nombre,
+            '#dropdownUserName': nombre,
+            '#dropdownUserRole': rol,
+            '#profile-name': nombre,
+            '#profile-role': rol,
+            '#profile-email': user.correo_electronico || user.email || ''
+        };
+
+        Object.entries(selectors).forEach(([selector, value]) => {
+            document.querySelectorAll(selector).forEach(el => {
+                if (el.tagName === 'INPUT') el.value = value;
+                else el.textContent = value;
             });
+        });
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Error al crear activo');
-            }
+        // Actualizar iniciales
+        document.querySelectorAll('.user-initials').forEach(el => {
+            el.textContent = iniciales;
+        });
+        
+        // Actualizar visibilidad de enlaces del menú
+        this.updateMenuRoles(user);
+        
+        console.log(`[DEBUG] UI Actualizada para: ${nombre} (${rol})`);
+    },
 
-            return response.json();
-        } catch (error) {
-            Utils.handleApiError(error);
-            throw error;
+    updateMenuRoles(user) {
+        if (!user) return;
+        const rol = (user.tipo_rol || user.rol || '').toLowerCase();
+        const esAdmin = rol.includes('admin') || rol.includes('administrativo');
+
+        if (esAdmin) {
+            document.getElementById('navInventarioLink')?.classList.remove('hidden');
+            document.getElementById('navAdminLink')?.classList.remove('hidden');
+            // Ocultar campana para admins
+            const nb = document.getElementById('notifBtn');
+            if (nb) nb.style.display = 'none';
+        } else {
+            document.getElementById('navSolicitudesLink')?.classList.remove('hidden');
+            document.getElementById('navPrestamosLink')?.classList.remove('hidden');
+            // Mostrar campana y cargar conteo para estudiantes/docentes
+            window.UTNNotifs?.cargarYMostrarCampana();
         }
     },
 
-    // Obtener solicitudes
-    async getSolicitudes() {
+    // Formatear Fecha
+    formatDate(date) {
+        return new Date(date).toLocaleDateString('es-CR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+});
+
+// ─── SISTEMA GLOBAL DE NOTIFICACIONES UTN ─────────────────────────────────────
+// Funciona en TODAS las páginas. Consulta las solicitudes del estudiante,
+// detecta cambios de estado importantes y alerta al usuario proactivamente.
+window.UTNNotifs = {
+
+    _apiBase: 'http://localhost:4000/api',
+
+    async cargarYMostrarCampana() {
+        const user = JSON.parse(localStorage.getItem('utn_user') || 'null');
+        const token = localStorage.getItem('utn_token') || '';
+        if (!user || !token) return;
+
         try {
-            const response = await Utils.authenticatedFetch(`${CONFIG.API_BASE_URL}/solicitudes`);
+            const resp = await fetch(`${window.CONFIG?.API_BASE_URL || this._apiBase}/solicitudes`, {
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+            });
+            if (!resp.ok) return;
 
-            if (!response.ok) {
-                throw new Error('Error al cargar solicitudes');
-            }
+            const todas = await resp.json();
+            const uid = user._id || user.id;
+            const mis = Array.isArray(todas)
+                ? todas.filter(s => {
+                    const sid = s.usuario?._id || s.usuario?.id || s.usuario;
+                    return sid === uid || String(sid) === String(uid);
+                })
+                : [];
 
-            return response.json();
-        } catch (error) {
-            console.error('Error en getSolicitudes:', error);
-            throw error;
-        }
-    },
+            // Calcular notificaciones pendientes: aprobadas, por vencer, vencidas
+            const ahora = new Date();
+            const alertas = [];
 
-    // Obtener solicitudes del usuario actual
-    async getMisSolicitudes() {
-        try {
-            // Obtener usuario actual
-            const userData = localStorage.getItem('utn_user');
-            const currentUser = userData ? JSON.parse(userData) : null;
+            mis.forEach(s => {
+                const folio = s.folio ? String(s.folio).padStart(3, '0') : s._id?.slice(-4) || '---';
 
-            console.log('🔍 currentUser en getMisSolicitudes:', currentUser);
-            console.log('🔍 Campos de currentUser:', Object.keys(currentUser || {}));
-            console.log('🔍 currentUser._id:', currentUser?._id);
-            console.log('🔍 currentUser.id:', currentUser?.id);
-
-            // Intentar obtener el ID del usuario desde el token
-            let userId = currentUser?._id || currentUser?.id || currentUser?.uid;
-
-            // Si no hay ID en localStorage, intentar extraer del token
-            if (!userId) {
-                const token = localStorage.getItem('utn_token');
-                if (token) {
-                    try {
-                        // Decodificar el token JWT (payload es la segunda parte)
-                        const payload = token.split('.')[1];
-                        const decoded = JSON.parse(atob(payload));
-                        userId = decoded.id || decoded._id || decoded.userId;
-                        console.log('🔑 ID extraído del token:', userId);
-                    } catch (error) {
-                        console.error('Error al decodificar token:', error);
+                if (s.estado === 'aprobada') {
+                    let extra = '';
+                    if (s.fecha_recogida_programada) {
+                        const parts = s.fecha_recogida_programada.split('-');
+                        const fRec = parts.length === 3
+                            ? new Date(parts[0], parts[1] - 1, parts[2]).toLocaleDateString('es-CR', { day: 'numeric', month: 'long', year: 'numeric' })
+                            : s.fecha_recogida_programada;
+                        extra = `Retiro: <strong>${fRec}</strong>${s.hora_recogida ? ' a las <strong>' + s.hora_recogida + '</strong>' : ''}.`;
                     }
+                    if (s.fecha_entrega_esperada) {
+                        const parts2 = s.fecha_entrega_esperada.split('T')[0].split('-');
+                        const fDev = parts2.length === 3
+                            ? new Date(parts2[0], parts2[1] - 1, parts2[2]).toLocaleDateString('es-CR', { day: 'numeric', month: 'long', year: 'numeric' })
+                            : s.fecha_entrega_esperada;
+                        extra += ` Devolución antes del: <strong>${fDev}</strong>.`;
+                    }
+                    alertas.push({ tipo: 'aprobada', folio, extra, solicitud: s });
+                } else if (s.estado === 'entregado' && s.fecha_entrega_esperada) {
+                    const fDev = new Date(s.fecha_entrega_esperada);
+                    const diasRestantes = Math.ceil((fDev - ahora) / (1000 * 60 * 60 * 24));
+                    if (diasRestantes <= 3) {
+                        alertas.push({ tipo: diasRestantes < 0 ? 'vencida' : 'por_vencer', folio, diasRestantes, solicitud: s });
+                    }
+                } else if (s.estado === 'penalizado') {
+                    alertas.push({ tipo: 'penalizado', folio, solicitud: s });
+                }
+            });
+
+            // Actualizar la campana en el nav
+            const campana = document.getElementById('notifBtn');
+            const badge = document.getElementById('notifCount');
+            if (campana) {
+                campana.classList.remove('hidden');
+                campana.style.display = 'flex';
+            }
+            if (badge) {
+                if (alertas.length > 0) {
+                    badge.textContent = alertas.length;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
                 }
             }
 
-            console.log('🔍 userId final a usar:', userId);
+            // Rellenar el dropdown con los avisos actuales
+            this.renderDropdown(alertas);
 
-            if (!userId) {
-                console.error('No hay usuario o ID para cargar solicitudes');
-                return [];
-            }
+            // Mostrar modal proactivo UNA VEZ por sesión si hay alertas importantes
+            this._mostrarAlertaIngreso(alertas);
 
-            // Usar el endpoint general que existe y filtra automáticamente por rol
-            // El backend hace: if (!['admin', 'administrador'].includes(req.user.role)) { filtro = { usuario: req.user.id }; }
-            const url = `${CONFIG.API_BASE_URL}/solicitudes`;
-            console.log('🌐 URL construida:', url);
-            console.log('📋 Backend filtrará automáticamente según el rol del usuario');
-
-            const response = await Utils.authenticatedFetch(url);
-
-            if (!response.ok) {
-                throw new Error('Error al cargar solicitudes del usuario');
-            }
-
-            const data = await response.json();
-            console.log('📡 Datos recibidos de getMisSolicitudes:', data);
-            console.log('👤 Datos con populate de usuario:', data[0]?.usuario);
-
-            // Enriquecer los datos con populate completo si es necesario
-            const enrichedData = await this.enrichUsersWithFullData(data);
-
-            return enrichedData;
-        } catch (error) {
-            console.error('Error en getMisSolicitudes:', error);
-            throw error;
+        } catch (e) {
+            console.warn('[UTNNotifs] Error al cargar notificaciones:', e.message);
         }
     },
 
-    // Enriquecer datos de usuario si viene solo como ID
-    async enrichUsersWithFullData(solicitudes) {
-        try {
-            console.log('🔄 Iniciando enriquecimiento de solicitudes:', solicitudes.length);
+    _mostrarAlertaIngreso(alertas) {
+        if (!alertas.length) return;
+        if (!window.Swal) return;
 
-            const enrichedSolicitudes = await Promise.all(
-                solicitudes.map(async (solicitud, index) => {
-                    console.log(`🔄 Procesando solicitud ${index + 1}:`, solicitud);
+        // Clave de sesión única por conjunto de alertas
+        const claveSession = 'utn_notif_alerted_' + alertas.map(a => a.folio + a.tipo).join('_');
+        if (sessionStorage.getItem(claveSession)) return;
+        sessionStorage.setItem(claveSession, '1');
 
-                    let enrichedSolicitud = { ...solicitud };
+        const aprobadas = alertas.filter(a => a.tipo === 'aprobada');
+        const vencidas  = alertas.filter(a => a.tipo === 'vencida');
+        const porVencer = alertas.filter(a => a.tipo === 'por_vencer');
+        const penalizados = alertas.filter(a => a.tipo === 'penalizado');
 
-                    // Si el usuario es un objeto con $oid, extraer el ID
-                    if (solicitud.usuario && typeof solicitud.usuario === 'object') {
-                        const usuarioId = solicitud.usuario.$oid || solicitud.usuario._id || solicitud.usuario.id;
-                        console.log(`👤 Usuario ID extraído: ${usuarioId}`);
+        // Prioridad: vencida > penalizado > por_vencer > aprobada
+        let tipoAlerta = 'aprobada';
+        if (vencidas.length)    tipoAlerta = 'vencida';
+        else if (penalizados.length) tipoAlerta = 'penalizado';
+        else if (porVencer.length)   tipoAlerta = 'por_vencer';
 
-                        if (usuarioId) {
-                            try {
-                                // Intentar obtener datos completos del usuario
-                                const usuarioCompleto = await this.getUserFullData(usuarioId);
-                                enrichedSolicitud.usuario = usuarioCompleto;
-                                console.log(`✅ Usuario ${index + 1} enriquecido:`, usuarioCompleto);
-                            } catch (error) {
-                                console.error(`❌ Error obteniendo usuario ${usuarioId}:`, error);
-                                // Usar datos básicos del localStorage
-                                const userData = localStorage.getItem('utn_user');
-                                const currentUser = userData ? JSON.parse(userData) : null;
-                                enrichedSolicitud.usuario = {
-                                    _id: usuarioId,
-                                    nombre_completo: currentUser?.nombre_completo || currentUser?.nombre || 'Usuario',
-                                    correo_electronico: currentUser?.correo_electronico || currentUser?.email || ''
-                                };
-                            }
-                        }
-                    }
+        const iconHtml = {
+            aprobada:   `<div class="mx-auto w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-3" style="animation: bounceIn 0.6s ease;"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></div>`,
+            por_vencer: `<div class="mx-auto w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-3"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>`,
+            vencida:    `<div class="mx-auto w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-3"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg></div>`,
+            penalizado: `<div class="mx-auto w-20 h-20 bg-red-100 text-red-700 rounded-full flex items-center justify-center mb-3"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg></div>`
+        };
 
-                    // Enriquecer insumos con nombres reales
-                    if (solicitud.insumos && Array.isArray(solicitud.insumos)) {
-                        console.log(`📦 Procesando ${solicitud.insumos.length} insumos`);
+        const titulos = {
+            aprobada:   '<span class="text-[#002D62] font-black text-xl tracking-tight">¡Tu solicitud fue aprobada!</span>',
+            por_vencer: '<span class="text-amber-700 font-black text-xl">Recordatorio de devolución</span>',
+            vencida:    '<span class="text-red-700 font-black text-xl">Devolución vencida</span>',
+            penalizado: '<span class="text-red-800 font-black text-xl">Cuenta con restricción activa</span>'
+        };
 
-                        const enrichedInsumos = await Promise.all(
-                            solicitud.insumos.map(async (insumo, insumoIndex) => {
-                                console.log(`📦 Insumo ${insumoIndex + 1}:`, insumo);
-
-                                let enrichedInsumo = { ...insumo };
-
-                                // Si id_insumo es un objeto con $oid
-                                if (insumo.id_insumo && typeof insumo.id_insumo === 'object') {
-                                    const insumoId = insumo.id_insumo.$oid || insumo.id_insumo._id || insumo.id_insumo.id;
-                                    console.log(`📦 Insumo ID extraído: ${insumoId}`);
-
-                                    if (insumoId) {
-                                        try {
-                                            const insumoCompleto = await this.getInsumoFullData(insumoId);
-                                            enrichedInsumo.nombre_insumo = insumoCompleto.NombProducto || insumoCompleto.nombre || 'Insumo sin nombre';
-                                            console.log(`✅ Insumo ${insumoIndex + 1} enriquecido:`, insumoCompleto);
-                                        } catch (error) {
-                                            console.error(`❌ Error obteniendo insumo ${insumoId}:`, error);
-                                            enrichedInsumo.nombre_insumo = `Insumo #${insumoId.slice(-6)}`;
-                                        }
-                                    }
-                                }
-
-                                return enrichedInsumo;
-                            })
-                        );
-
-                        enrichedSolicitud.insumos = enrichedInsumos;
-                    }
-
-                    console.log(`✅ Solicitud ${index + 1} final enriquecida:`, enrichedSolicitud);
-                    return enrichedSolicitud;
-                })
-            );
-
-            console.log('✅ Todas las solicitudes enriquecidas:', enrichedSolicitudes);
-            return enrichedSolicitudes;
-        } catch (error) {
-            console.error('Error enriqueciendo usuarios:', error);
-            return solicitudes; // Devolver datos originales si hay error
-        }
-    },
-
-    // Obtener datos completos del usuario por ID
-    async getUserFullData(usuarioId) {
-        try {
-            const response = await Utils.authenticatedFetch(`${CONFIG.API_BASE_URL}/usuarios/${usuarioId}`);
-
-            if (!response.ok) {
-                console.error('Error obteniendo usuario completo:', usuarioId);
-                return { _id: usuarioId, nombre_completo: 'Usuario desconocido' };
+        // Construir bloques de detalle por cada alerta
+        const bloquesHtml = alertas.map(a => {
+            let bg, borde, texto;
+            if (a.tipo === 'aprobada') {
+                bg = 'bg-green-50'; borde = 'border-green-200';
+                texto = `
+                    <p class="text-xs font-black text-green-700 uppercase tracking-widest mb-1">Solicitud #${a.folio} — APROBADA</p>
+                    <p class="text-sm text-slate-700 font-medium leading-relaxed">${a.extra || 'Pase al laboratorio a retirar su equipo.'}</p>
+                    <a href="../pages/solicitudes.html" class="inline-flex items-center gap-1 mt-2 text-xs font-bold text-[#002D62] underline underline-offset-2 hover:no-underline">Ver mi solicitud &rarr;</a>`;
+            } else if (a.tipo === 'vencida') {
+                bg = 'bg-red-50'; borde = 'border-red-200';
+                texto = `
+                    <p class="text-xs font-black text-red-700 uppercase tracking-widest mb-1">Solicitud #${a.folio} — DEVOLUCIÓN VENCIDA</p>
+                    <p class="text-sm text-slate-700 font-medium">Venció hace <strong>${Math.abs(a.diasRestantes)} día(s)</strong>. Por favor devuelva el equipo inmediatamente.</p>`;
+            } else if (a.tipo === 'por_vencer') {
+                bg = 'bg-amber-50'; borde = 'border-amber-200';
+                texto = `
+                    <p class="text-xs font-black text-amber-700 uppercase tracking-widest mb-1">Solicitud #${a.folio} — POR VENCER</p>
+                    <p class="text-sm text-slate-700 font-medium">Debe devolver el equipo en <strong>${a.diasRestantes} día(s)</strong>.</p>`;
+            } else {
+                bg = 'bg-red-50'; borde = 'border-red-200';
+                texto = `
+                    <p class="text-xs font-black text-red-800 uppercase tracking-widest mb-1">Solicitud #${a.folio} — PENALIZADO</p>
+                    <p class="text-sm text-slate-700 font-medium">Tiene una restricción activa. Comuníquese con el administrador del laboratorio.</p>`;
             }
+            return `<div class="text-left ${bg} border ${borde} rounded-2xl p-4 mb-3">${texto}</div>`;
+        }).join('');
 
-            const usuarioCompleto = await response.json();
-            console.log('✅ Usuario completo obtenido:', usuarioCompleto);
-            return usuarioCompleto;
-        } catch (error) {
-            console.error('Error en getUserFullData:', error);
-            return { _id: usuarioId, nombre_completo: 'Error al cargar' };
-        }
-    },
-
-    // Obtener datos completos del insumo por ID
-    async getInsumoFullData(insumoId) {
-        try {
-            const response = await Utils.authenticatedFetch(`${CONFIG.API_BASE_URL}/insumos/${insumoId}`);
-
-            if (!response.ok) {
-                console.error('Error obteniendo insumo completo:', insumoId);
-                return { NombProducto: 'Insumo desconocido' };
+        Swal.fire({
+            title: titulos[tipoAlerta],
+            html: `
+                <div class="py-2">
+                    ${iconHtml[tipoAlerta]}
+                    <p class="text-sm text-slate-500 mb-5 font-medium">Tienes <strong class="text-slate-700">${alertas.length}</strong> aviso(s) importante(s) en tus solicitudes.</p>
+                    <div class="max-h-64 overflow-y-auto pr-1 space-y-1">${bloquesHtml}</div>
+                </div>`,
+            confirmButtonText: 'Ver mis solicitudes',
+            showCancelButton: true,
+            cancelButtonText: 'Cerrar por ahora',
+            confirmButtonColor: '#002D62',
+            cancelButtonColor: '#e2e8f0',
+            customClass: {
+                popup: 'rounded-3xl',
+                confirmButton: 'font-black px-6 py-3 rounded-xl shadow-lg shadow-[#002D62]/20',
+                cancelButton: 'font-bold px-6 py-3 rounded-xl text-slate-600'
+            },
+            showClass:  { popup: 'animate__animated animate__fadeInDown animate__faster' },
+            hideClass:  { popup: 'animate__animated animate__fadeOutUp animate__faster' }
+        }).then(result => {
+            if (result.isConfirmed) {
+                window.location.href = '../pages/solicitudes.html';
             }
-
-            const insumoCompleto = await response.json();
-            console.log('✅ Insumo completo obtenido:', insumoCompleto);
-            return insumoCompleto;
-        } catch (error) {
-            console.error('Error en getInsumoFullData:', error);
-            return { NombProducto: 'Error al cargar' };
-        }
+        });
     },
 
-    // Crear insumo
-    async createInsumo(insumoData) {
-        try {
-            const response = await Utils.authenticatedFetch(`${CONFIG.API_BASE_URL}/insumos`, {
-                method: 'POST',
-                body: JSON.stringify(insumoData)
+    // Renderiza las tarjetas dentro del dropdown de la campana
+    renderDropdown(alertas) {
+        const list = document.getElementById('notif-dropdown-list');
+        if (!list) return;
+
+        if (!alertas || alertas.length === 0) {
+            list.innerHTML = `
+                <div class="p-8 text-center text-slate-400">
+                    <svg class="w-8 h-8 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    <p class="text-xs font-medium">Sin notificaciones pendientes</p>
+                </div>`;
+            return;
+        }
+
+        const estilos = {
+            aprobada:   { bg: 'bg-green-50',  borde: 'border-l-green-500',  icon: 'text-green-600',  path: 'M5 13l4 4L19 7', label: 'Aprobada' },
+            por_vencer: { bg: 'bg-amber-50',  borde: 'border-l-amber-400',  icon: 'text-amber-600',  path: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Por Vencer' },
+            vencida:    { bg: 'bg-red-50',    borde: 'border-l-red-500',    icon: 'text-red-600',    path: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z', label: 'Vencida' },
+            penalizado: { bg: 'bg-red-50',    borde: 'border-l-red-700',    icon: 'text-red-700',    path: 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636', label: 'Penalizado' }
+        };
+        const mensajeFn = {
+            aprobada:   a => `Solicitud <strong>#${a.folio}</strong> aprobada. ${a.extra || 'Pase a retirar el equipo.'}`,
+            por_vencer: a => `Solicitud <strong>#${a.folio}</strong>. Devolver en <strong>${a.diasRestantes} dia(s)</strong>.`,
+            vencida:    a => `Devolucion de <strong>#${a.folio}</strong> vencio hace <strong>${Math.abs(a.diasRestantes)} dia(s)</strong>.`,
+            penalizado: a => `Restriccion activa en solicitud <strong>#${a.folio}</strong>.`
+        };
+
+        list.innerHTML = alertas.map(a => {
+            const est = estilos[a.tipo] || estilos.aprobada;
+            return `<a href="../pages/solicitudes.html" class="flex items-start gap-3 p-4 ${est.bg} border-l-4 ${est.borde} hover:brightness-95 transition-all" style="text-decoration:none;" onclick="document.getElementById('notif-dropdown').style.display='none'">
+                <div class="flex-shrink-0 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-sm mt-0.5">
+                    <svg class="w-3.5 h-3.5 ${est.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="${est.path}"/></svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-0.5">${est.label}</p>
+                    <p class="text-xs text-slate-700 font-medium leading-snug">${mensajeFn[a.tipo]?.(a) || ''}</p>
+                </div>
+            </a>`;
+        }).join('');
+    }
+};
+
+// Toggle del dropdown de notificaciones (campana)
+window.toggleNotifDropdown = function(e) {
+    if (e) e.stopPropagation();
+    const dd = document.getElementById('notif-dropdown');
+    const userDd = document.getElementById('user-dropdown');
+    if (!dd) return;
+    if (userDd && !userDd.classList.contains('hidden')) {
+        userDd.classList.add('hidden');
+        userDd.style.display = 'none';
+    }
+    const isOpen = dd.style.display === 'block';
+    dd.style.display = isOpen ? 'none' : 'block';
+};
+
+// 3. API SERVICE
+if (typeof window.ApiService === 'undefined') window.ApiService = {};
+
+Object.assign(window.ApiService, {
+    async login(credentials) {
+        const res = await window.Utils.authenticatedFetch(`${window.CONFIG.API_BASE_URL}/usuarios/login`, {
+            method: 'POST',
+            body: JSON.stringify(credentials)
+        });
+        if (!res.ok) throw new Error('Credenciales inválidas');
+        return res.json();
+    },
+
+    async getInsumos() {
+        const res = await window.Utils.authenticatedFetch(`${window.CONFIG.API_BASE_URL}/insumos`);
+        return res.json();
+    },
+
+    async getActivos() {
+        const res = await window.Utils.authenticatedFetch(`${window.CONFIG.API_BASE_URL}/activos`);
+        return res.json();
+    }
+});
+
+// 4. FUNCIONES DE NAVEGACIÓN Y MENÚ (ACCESIBLES GLOBALMENTE)
+window.cerrarSesion = async function() {
+    const ans = await window.SwalUTN.confirm('¿Cerrar sesión?', '¿Estás seguro de que quieres cerrar tu sesión?');
+    if (ans.isConfirmed) {
+        // Limpiar todo rastro de sesión
+        localStorage.clear();
+        sessionStorage.clear();
+        if (window.appState) window.appState.logout();
+        
+        // Redirigir y forzar limpieza de historial para que no puedan volver atrás
+        window.location.replace('../login.html');
+    }
+};
+
+window.toggleUserMenu = function(e) {
+    if (e) e.stopPropagation();
+    const dropdown = document.getElementById('user-dropdown');
+    if (!dropdown) return;
+
+    const isHidden = dropdown.classList.contains('hidden');
+    if (isHidden) {
+        dropdown.classList.remove('hidden', 'opacity-0');
+        dropdown.classList.add('opacity-100');
+        dropdown.style.display = 'block';
+    } else {
+        dropdown.classList.add('hidden', 'opacity-0');
+        dropdown.classList.remove('opacity-100');
+        dropdown.style.display = 'none';
+    }
+};
+
+// Cerrar el menú de usuario y el dropdown de notificaciones al hacer clic fuera
+document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('user-dropdown');
+    const btn = document.getElementById('user-menu-btn');
+    if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+        dropdown.classList.add('hidden', 'opacity-0');
+        dropdown.classList.remove('opacity-100');
+        dropdown.style.display = 'none';
+    }
+    // Cerrar también el dropdown de notificaciones
+    const nd = document.getElementById('notif-dropdown');
+    const nc = document.getElementById('notifContainer');
+    if (nd && nc && !nc.contains(e.target)) {
+        nd.style.display = 'none';
+    }
+});
+
+
+window.redirigirInicio = function() {
+    let user = null;
+    try {
+        user = window.appState?.getUser() || JSON.parse(localStorage.getItem('utn_user'));
+    } catch(e) {
+        user = null;
+    }
+
+    if (!user) {
+        window.location.href = window.location.pathname.includes('/pages/') ? '../login.html' : 'login.html';
+        return;
+    }
+    
+    // Calcular rol y destino (el token siempre debería darnos rol o tipo_rol)
+    const rol = (user.tipo_rol || user.rol || '').toLowerCase();
+    const targetPage = (rol.includes('admin') || rol.includes('administrativo')) ? 'ModAdmis.html' : 'ModUsuarios.html';
+    
+    const isInsidePages = window.location.pathname.includes('/pages/');
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+
+    // Evitar recargar la página si ya estamos en el destino
+    if (currentPage === targetPage) {
+        return;
+    }
+    
+    // Navegar de forma segura
+    if (isInsidePages) {
+        window.location.href = targetPage;
+    } else {
+        window.location.href = `pages/${targetPage}`;
+    }
+};
+
+window.verImagenCompleta = function(url, titulo) {
+    if (!url || url.includes('placeholder') || url === '') {
+        window.SwalUTN.warning('Sin Imagen', 'Este artículo no tiene una fotografía asociada.');
+        return;
+    }
+
+    // Usamos estilos EN LÍNEA para garantizar que los cambios se reflejen sin depender de caché de CSS
+    const htmlContent = `
+        <div style="position: relative; background: #002D62; padding: 1.5rem; text-align: center; border-bottom: 5px solid #F2A900; border-radius: 1.5rem 1.5rem 0 0;">
+            <button onclick="Swal.close()" style="
+                position: absolute;
+                right: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: #ef4444;
+                color: white;
+                border: none;
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.2s;
+                font-weight: bold;
+                box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+                z-index: 100;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <h3 style="color: white !important; font-size: 1.25rem; font-weight: 800; text-transform: uppercase; margin: 0; font-family: 'Inter', sans-serif;">Detalles del Artículo</h3>
+        </div>
+        <div style="padding: 2rem; background: white; display: flex; flex-direction: column; align-items: center; border-radius: 0 0 1.5rem 1.5rem;">
+            <div style="width: 100%; height: 320px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; background: #f8fafc; border-radius: 1rem; border: 1px solid #f1f5f9; overflow: hidden;">
+                <img src="${url}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+            </div>
+            <h3 style="font-size: 1.5rem; font-weight: 800; color: #1e293b; margin-bottom: 2rem; text-align: center; font-family: 'Inter', sans-serif;">${titulo}</h3>
+            
+            <button onclick="Swal.close()" style="
+                background: #F2A900 !important; 
+                color: #002D62 !important; 
+                font-size: 1rem !important; 
+                font-weight: 900 !important; 
+                text-transform: uppercase; 
+                letter-spacing: 0.1em; 
+                padding: 1rem 4rem !important; 
+                border-radius: 1rem !important; 
+                border: none !important; 
+                cursor: pointer; 
+                box-shadow: 0 8px 20px rgba(242, 169, 0, 0.4);
+                transition: transform 0.2s ease;">
+                Cerrar Vista
+            </button>
+        </div>
+    `;
+
+    Swal.fire({
+        html: htmlContent,
+        showConfirmButton: false,
+        width: '500px', // Reducido de 600px para quitar la sensación de zoom
+        padding: '0',
+        background: 'transparent',
+        showCloseButton: false,
+        backdrop: 'rgba(0,45,98,0.85)',
+        customClass: {
+            popup: 'animate__animated animate__zoomIn animate__faster'
+        }
+    });
+};
+
+
+// 5. INICIALIZACIÓN Y EVENTOS
+document.addEventListener('click', () => {
+    const dropdown = document.getElementById('user-dropdown');
+    if (dropdown && !dropdown.classList.contains('hidden')) {
+        dropdown.classList.add('hidden', 'opacity-0');
+        dropdown.style.display = 'none';
+    }
+});
+
+// Sincronización automática cuando el Header se carga dinámicamente
+let isUpdating = false;
+
+const observer = new MutationObserver((mutations) => {
+    if (isUpdating) return; // Evitar bucles infinitos
+    
+    let shouldUpdate = false;
+    mutations.forEach((mutation) => {
+        if (mutation.addedNodes.length > 0) {
+            // Verificar si los nodos añadidos pertenecen a componentes que inyectamos
+            mutation.addedNodes.forEach(node => {
+                if (node.id === 'header-component' || node.id === 'footer-component' || 
+                    (node.parentElement && (node.parentElement.id === 'header-component' || node.parentElement.id === 'footer-component'))) {
+                    shouldUpdate = true;
+                }
             });
-
-            if (!response.ok) {
-                throw new Error('Error al crear insumo');
-            }
-
-            return response.json();
-        } catch (error) {
-            Utils.handleApiError(error);
-            throw error;
         }
-    },
+    });
 
-    // Crear solicitud
-    async createSolicitud(solicitudData) {
-        try {
-            const response = await Utils.authenticatedFetch(`${CONFIG.API_BASE_URL}/solicitudes`, {
-                method: 'POST',
-                body: JSON.stringify(solicitudData)
+    if (shouldUpdate) {
+        console.log('[DEBUG] Componente detectado, sincronizando...');
+        isUpdating = true;
+        
+        // Usar un pequeño delay para asegurar que el DOM se asentó
+        setTimeout(() => {
+            window.Utils.updateUserInfo();
+            
+            // Vincular botones de inicio si aparecen
+            document.querySelectorAll('#inicioBtn, .btn-inicio').forEach(btn => {
+                if (!btn.onclick) btn.onclick = (e) => { e.preventDefault(); window.redirigirInicio(); };
             });
+            
+            isUpdating = false;
+        }, 50);
+    }
+});
+observer.observe(document.body, { childList: true, subtree: true });
 
-            if (!response.ok) {
-                throw new Error('Error al crear solicitud');
-            }
+// 6. LÓGICA GLOBAL DEL CARRITO
+window.cart = [];
 
-            return response.json();
-        } catch (error) {
-            Utils.handleApiError(error);
-            throw error;
+/**
+ * Añadir artículo al carrito
+ */
+window.addToCart = async function(itemName, itemType, itemData, btn = null) {
+    // Verificar si el usuario está bloqueado (solo Estudiantes)
+    const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
+    if (user.bloqueado === true) {
+        window.Utils?.showToast('Tu cuenta tiene una restricción activa. No puedes solicitar equipos.', 'error');
+        return;
+    }
+
+    if (itemType === 'activo') {
+        // Evitar duplicados de Activos
+        const existe = window.cart.find(c => c.type === 'activo' && c.data?._id === itemData?._id);
+        if (existe) {
+            window.Utils?.showToast('Este activo ya está en tu carrito.', 'warning');
+            return;
         }
-    },
+        if (btn) window.animateFlyToCart(btn, itemData?.imagenUrl);
+        window.cart.push({ name: itemName, type: itemType, data: itemData, quantity: 1 });
+        window.updateCartUI();
+        window.Utils?.showToast('1 activo añadido a tu lista.', 'success');
+    } else {
+        // Modalidad multi-selección para Insumos
+        const maxStock = itemData.cantidad !== undefined ? itemData.cantidad : (itemData.stock_actual || 0);
+        const yaEnCarrito = window.cart.find(c => c.data?._id === itemData?._id);
+        const qtyActual = yaEnCarrito ? yaEnCarrito.quantity : 0;
+        const disponible = maxStock - qtyActual;
 
-    // Creación masiva de insumos
-    async createInsumosMasivos(insumosData) {
-        try {
-            const response = await Utils.authenticatedFetch(`${CONFIG.API_BASE_URL}/insumos/bulk`, {
-                method: 'POST',
-                body: JSON.stringify(insumosData)
-            });
+        if (disponible <= 0) {
+            window.Utils?.showToast('Ya has seleccionado todo el stock disponible en tu carrito.', 'warning');
+            return;
+        }
 
-            if (!response.ok) {
-                throw new Error('Error al crear insumos masivamente');
+        const result = await Swal.fire({
+            title: 'Cantidad a solicitar',
+            html: `<p class="mb-4 text-sm text-slate-600">Stock disponible para solicitar: <strong>${disponible}</strong></p>
+                   <input type="number" id="swal-input-qty" class="swal2-input max-w-[150px] mx-auto text-center font-black" value="1" min="1" max="${disponible}" step="1">`,
+            showCancelButton: true,
+            confirmButtonText: 'Añadir',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#F2A900',
+            cancelButtonColor: '#94a3b8',
+            customClass: { confirmButton: 'text-[#002D62] font-black w-32 shadow-lg shadow-[#F2A900]/20', cancelButton: 'font-bold' },
+            preConfirm: () => {
+                const qtyStr = document.getElementById('swal-input-qty').value;
+                const parseado = parseInt(qtyStr, 10);
+                if (isNaN(parseado) || parseado < 1 || parseado > disponible) {
+                    Swal.showValidationMessage(`Ingresa un valor entre 1 y ${disponible}`);
+                }
+                return parseado;
             }
+        });
 
-            return response.json();
-        } catch (error) {
-            Utils.handleApiError(error);
-            throw error;
+        if (result.isConfirmed && typeof result.value === 'number') {
+            const qty = result.value;
+            if (btn) window.animateFlyToCart(btn, itemData?.imagenUrl);
+            
+            if (yaEnCarrito) {
+                yaEnCarrito.quantity += qty;
+            } else {
+                window.cart.push({ name: itemName, type: itemType, data: itemData, quantity: qty });
+            }
+            window.updateCartUI();
+            window.Utils?.showToast(`Añadido(s) ${qty} unidad(es)`, 'success');
         }
     }
 };
 
-// Exportar para uso global - Evitar duplicación
-try {
-    if (typeof window !== 'undefined') {
-        if (!window.CONFIG) {
-            window.CONFIG = CONFIG;
-        }
-        // Utils y AppState ya se exportan desde app.js
-        if (!window.Utils) {
-            window.Utils = Utils;
-        }
-        if (!window.ApiService) {
-            window.ApiService = ApiService;
-        }
+/**
+ * Animación de vuelo al carrito
+ */
+window.animateFlyToCart = function(btn, imgUrl = null) {
+    const cartIcon = document.getElementById('cartBtn');
+    if (!cartIcon) return;
+
+    const flyItem = document.createElement('div');
+    flyItem.className = 'fly-item';
+    
+    const hasImg = imgUrl && !imgUrl.includes('placeholder');
+    flyItem.innerHTML = hasImg 
+        ? `<img src="${imgUrl}" class="w-full h-full object-cover rounded-full border border-white shadow-sm">`
+        : `<svg class="w-5 h-5 text-[#002D62]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>`;
+    
+    const btnRect = btn.getBoundingClientRect();
+    flyItem.style.left = `${btnRect.left + (btnRect.width / 2) - 20}px`;
+    flyItem.style.top = `${btnRect.top + (btnRect.height / 2) - 20}px`;
+    
+    document.body.appendChild(flyItem);
+    flyItem.offsetHeight;
+
+    const cartRect = cartIcon.getBoundingClientRect();
+    flyItem.style.left = `${cartRect.left + (cartRect.width / 2) - 20}px`;
+    flyItem.style.top = `${cartRect.top + (cartRect.height / 2) - 20}px`;
+    flyItem.style.width = '40px';
+    flyItem.style.height = '40px';
+    flyItem.style.opacity = '0';
+    flyItem.style.transform = 'scale(0.2) rotate(45deg)';
+
+    setTimeout(() => {
+        flyItem.remove();
+        cartIcon.classList.add('scale-110', 'bg-white/30');
+        setTimeout(() => cartIcon.classList.remove('scale-110', 'bg-white/30'), 300);
+    }, 800);
+};
+
+/**
+ * Actualizar Interfaz del Carrito
+ */
+window.updateCartUI = function() {
+    const cartCount = document.getElementById('cartCount');
+    const cartItems = document.getElementById('cartItems');
+    const cartTotal = document.getElementById('cartTotal');
+
+    if (cartCount) cartCount.textContent = window.cart.length;
+    if (!cartItems || !cartTotal) return;
+
+    if (window.cart.length === 0) {
+        cartItems.innerHTML = `
+            <div class="py-10 text-center">
+                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                </div>
+                <p class="text-slate-400 text-sm font-medium">El carrito está vacío</p>
+            </div>`;
+        cartTotal.textContent = '0';
+        return;
     }
-} catch (error) {
-    console.warn('Error exportando variables globales:', error);
-}
+
+    cartItems.innerHTML = '';
+    window.cart.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between p-3 bg-white border border-slate-100 rounded-2xl shadow-sm animate-fade-in-up';
+        
+        const imgUrl = item.data?.imagenUrl || '';
+        const hasImg = imgUrl && !imgUrl.includes('placeholder');
+        
+        div.innerHTML = `
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-slate-50 rounded-xl overflow-hidden flex items-center justify-center border border-slate-100">
+                    ${hasImg ? `<img src="${imgUrl}" class="w-full h-full object-contain">` : `<svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`}
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm text-slate-800 line-clamp-1">${item.name}</h4>
+                    <p class="text-[10px] uppercase font-black tracking-widest text-[#F2A900]">${item.type === 'activo' ? 'Activo' : 'Insumo Digital'}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="flex items-center bg-slate-100 rounded-lg p-0.5">
+                    <button onclick="window.decreaseQuantity(${index})" class="w-7 h-7 flex items-center justify-center hover:bg-white rounded-md transition-colors text-slate-600">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+                    </button>
+                    <span class="w-8 text-center text-xs font-bold text-slate-700">${item.quantity}</span>
+                    <button onclick="window.increaseQuantity(${index})" class="w-7 h-7 flex items-center justify-center hover:bg-white rounded-md transition-colors text-slate-600">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    </button>
+                </div>
+                <button onclick="window.removeFromCart(${index})" class="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+            </div>`;
+        cartItems.appendChild(div);
+    });
+
+    cartTotal.textContent = window.cart.length;
+};
+
+window.removeFromCart = function(index) {
+    window.cart.splice(index, 1);
+    window.updateCartUI();
+};
+
+window.increaseQuantity = function(index) {
+    const item = window.cart[index];
+    if (item.type !== 'activo') {
+        const maxStock = item.data.cantidad !== undefined ? item.data.cantidad : (item.data.stock_actual || 0);
+        if (item.quantity < maxStock) {
+            item.quantity++;
+            window.updateCartUI();
+        } else {
+            window.Utils?.showToast('Límite de stock alcanzado para este insumo', 'warning');
+        }
+    } else {
+        window.Utils?.showToast('Los activos se solicitan individualmente', 'info');
+    }
+};
+
+window.decreaseQuantity = function(index) {
+    if (window.cart[index].quantity > 1) {
+        window.cart[index].quantity--;
+    } else {
+        window.cart.splice(index, 1);
+    }
+    window.updateCartUI();
+};
+
+window.clearCart = function() {
+    window.cart = [];
+    window.updateCartUI();
+};
+
+window.openCartModal = function() {
+    const modal = document.getElementById('cartModal');
+    if (modal) {
+        modal.classList.add('open');
+        window.updateCartUI();
+    }
+};
+
+window.closeCartModal = function() {
+    const modal = document.getElementById('cartModal');
+    if (modal) modal.classList.remove('open');
+};
+
+/**
+ * Enviar Solicitud (Lógica Unificada)
+ */
+window.sendRequest = async function() {
+    if (window.cart.length === 0) {
+        window.Utils?.showToast('El carrito está vacío.', 'warning');
+        return;
+    }
+
+    const motivo = document.getElementById('solicitud-motivo')?.value?.trim();
+    const observaciones = document.getElementById('solicitud-observaciones')?.value?.trim();
+
+    if (!motivo) {
+        window.Utils?.showToast('Por favor indica el motivo del préstamo.', 'warning');
+        document.getElementById('solicitud-motivo')?.focus();
+        return;
+    }
+
+    try {
+        const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
+        const token = localStorage.getItem('utn_token');
+
+        const activos = window.cart.filter(i => i.type === 'activo').map(i => ({
+            _id: i.data._id,
+            nombre: i.name,
+            modelo: i.data.modelo || '',
+            numActivo: i.data.numActivo || ''
+        }));
+
+        const insumos = window.cart.filter(i => i.type !== 'activo').map(i => ({
+            id_insumo: i.data._id,
+            cantidad: i.quantity,
+            nombre_insumo: i.name
+        }));
+
+        const data = {
+            usuario_solicitante: user.nombre_completo || user.nombre || 'Usuario',
+            correo_solicitante: user.correo_electronico || user.email,
+            activos,
+            insumos,
+            observaciones: motivo,
+            comentario_estudiante: observaciones,
+            fecha_prestamo: new Date()
+        };
+
+        const res = await fetch(`${window.CONFIG?.API_BASE_URL}/solicitudes`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            window.Utils?.showToast('¡Solicitud enviada con éxito!', 'success');
+            window.clearCart();
+            window.closeCartModal();
+            setTimeout(() => {
+                window.location.href = 'solicitudes.html';
+            }, 1500);
+        } else {
+            const err = await res.json();
+            throw new Error(err.message || 'Error al enviar solicitud');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        window.Utils?.showToast(error.message, 'error');
+    }
+};

@@ -97,7 +97,7 @@
             <div id="vistaAdmin" class="hidden">
                 <!-- HEADER DE GESTIÓN -->
                 <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                    <h1 class="text-2xl font-bold text-slate-800 mb-2">📋 Panel de Administración</h1>
+                    <h1 class="text-2xl font-bold text-slate-800 mb-2"> Panel de Administración</h1>
                     <p class="text-slate-600">Gestión completa de inventario y recursos del laboratorio</p>
                 </div>
 
@@ -109,7 +109,7 @@
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
                                 <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                                    <span class="text-2xl">🔧</span>
+                                    <span class="text-2xl"></span>
                                 </div>
                                 <div>
                                     <h3 class="text-lg font-bold text-slate-800">Gestión de Activos</h3>
@@ -128,7 +128,7 @@
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
                                 <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-                                    <span class="text-2xl">🧩</span>
+                                    <span class="text-2xl"></span>
                                 </div>
                                 <div>
                                     <h3 class="text-lg font-bold text-slate-800">Gestión de Insumos</h3>
@@ -149,7 +149,7 @@
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
                                 <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-                                    <span class="text-2xl">➕</span>
+                                    <span class="text-2xl"></span>
                                 </div>
                                 <div>
                                     <h3 class="text-lg font-bold text-slate-800">Añadir Artículo</h3>
@@ -170,7 +170,7 @@
                         <div class="flex items-center justify-between">
                             <div class="flex items-center">
                                 <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-                                    <span class="text-2xl">📊</span>
+                                    <span class="text-2xl"></span>
                                 </div>
                                 <div>
                                     <h3 class="text-lg font-bold text-slate-800">Carga Masiva</h3>
@@ -189,7 +189,7 @@
             <div id="vistaEstudiante" class="hidden">    
                 <!-- Navbar Principal del ESTUDIANTE -->
                 <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                    <h1 class="text-3xl font-bold text-slate-800 mb-2">Bienvenido(a) <span id="nombre_completo"></span>👋 </h1>
+                    <h1 class="text-3xl font-bold text-slate-800 mb-2">Bienvenido(a) <span id="nombre_completo"></span> </h1>
                     <p class="text-slate-600">Al Sistema de Prestamos y Inventario de equipos Electronico y Tecnologico de la Sede del Pacìfico</p>
                     <br>
 
@@ -213,8 +213,8 @@
                         </div>
                         <select id="tipo-select" class="input-field w-48">
                             <option value="todos">Todos los tipos</option>
-                            <option value="activo">🔧 Activos</option>
-                            <option value="insumo" data-type="insumos">🧩 Insumos</option>
+                            <option value="activo"> Activos</option>
+                            <option value="insumo" data-type="insumos"> Insumos</option>
                         </select>
                         <!-- Para mostrar las categorías con etiquetas de "Activos" o "Insumos", se pueden usar data attributes y estilos personalizados -->
                         <select id="categoria-select" class="input-field w-48">
@@ -234,10 +234,10 @@
                             <option value="sin-stock">Sin Stock</option>
                         </select>
                         <button id="limpiar-busqueda" class="btn btn-secondary">
-                            🔄 Limpiar
+                             Limpiar
                         </button>
                         <button id="buscar-btn" class="btn btn-primary">
-                            🔍 Buscar
+                             Buscar
                         </button>
                     </div>
                 </section>
@@ -255,7 +255,7 @@
                         </h2>
                         <div class="flex gap-2">
                             <button id="refresh-btn" class="bg-white border border-slate-200 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                                🔄 Actualizar
+                                 Actualizar
                             </button>
                         </div>
                     </div>
@@ -278,7 +278,7 @@
         <div class="bg-white w-full max-w-screen-xl rounded-lg shadow-lg overflow-hidden border border-slate-200 fade-in max-h-[80vh] overflow-y-auto">
             <div class="p-2 border-b border-slate-200 bg-white">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-base font-semibold text-slate-900">➕ Agregar Nuevo Artículo</h2>
+                    <h2 class="text-base font-semibold text-slate-900"> Agregar Nuevo Artículo</h2>
                     <button onclick="cerrarModalAgregarArticulo()" class="text-slate-500 hover:text-slate-700 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -296,11 +296,11 @@
                         <label class="text-xs font-medium text-gray-700">Agregar Artículos</label>
                         <div class="flex gap-1">
                             <button type="button" onclick="agregarNuevoArticulo('insumo')" class="px-2 py-1 bg-green-600 text-white text-xs rounded border border-green-700 hover:bg-green-700 transition-colors flex items-center gap-1">
-                                <span>📦</span>
+                                <span></span>
                                 <span>Agregar Insumo</span>
                             </button>
                             <button type="button" onclick="agregarNuevoArticulo('activo')" class="px-2 py-1 bg-blue-600 text-white text-xs rounded border border-blue-700 hover:bg-blue-700 transition-colors flex items-center gap-1">
-                                <span>🔧</span>
+                                <span></span>
                                 <span>Agregar Activo</span>
                             </button>
                         </div>
@@ -320,7 +320,7 @@
                         Cancelar
                     </button>
                     <button type="button" onclick="enviarMultiplesArticulos()" class="flex-1 py-1 text-xs font-medium bg-purple-600 text-white rounded border border-purple-700 hover:bg-purple-700 transition">
-                        ➕ Agregar Artículos
+                         Agregar Artículos
                     </button>
                 </div>
                     <div>
@@ -394,7 +394,7 @@
         <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in max-h-[90vh] overflow-y-auto">
             <div class="p-6 border-b border-slate-100 sticky top-0 bg-white z-10">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-slate-800">📦 Agregar Insumos Masivamente</h2>
+                    <h2 class="text-xl font-bold text-slate-800"> Agregar Insumos Masivamente</h2>
                     <button onclick="cerrarModalMasivo()" class="text-slate-400 hover:text-slate-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -410,13 +410,13 @@
             <div class="border-b border-slate-100">
                 <div class="flex">
                     <button onclick="mostrarTabMasivo('archivo')" id="tab-archivo" class="px-6 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600">
-                        📁 Cargar Archivo
+                         Cargar Archivo
                     </button>
                     <button onclick="mostrarTabMasivo('tabla')" id="tab-tabla" class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-blue-600">
-                        📊 Tabla de Datos
+                         Tabla de Datos
                     </button>
                     <button onclick="mostrarTabMasivo('manual')" id="tab-manual" class="px-6 py-3 text-sm font-medium text-slate-600 hover:text-blue-600">
-                        ✏️ Ingreso Manual
+                        ️ Ingreso Manual
                     </button>
                 </div>
             </div>
@@ -429,7 +429,7 @@
                 <div id="contenido-archivo" class="tab-content">
                     <div class="text-center py-8">
                         <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <span class="text-3xl">📁</span>
+                            <span class="text-3xl"></span>
                         </div>
                         <h3 class="text-lg font-semibold text-slate-800 mb-2">Cargar archivo CSV o Excel</h3>
                         <p class="text-slate-600 mb-6">Sube un archivo con columnas: nombre, categoria, cantidad, caracteristicas</p>
@@ -437,7 +437,7 @@
                         <div class="max-w-md mx-auto">
                             <input type="file" id="archivo-masivo" accept=".csv,.xlsx,.xls" class="hidden">
                             <button onclick="document.getElementById('archivo-masivo').click()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition">
-                                📤 Seleccionar Archivo
+                                 Seleccionar Archivo
                             </button>
                             <div id="archivo-seleccionado" class="mt-3 text-sm text-slate-600"></div>
                         </div>
@@ -446,7 +446,7 @@
                         <div class="mt-6 p-4 bg-slate-50 rounded-lg">
                             <p class="text-sm text-slate-600 mb-2">¿Necesitas una plantilla?</p>
                             <button onclick="descargarPlantilla()" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                                📥 Descargar Plantilla CSV
+                                 Descargar Plantilla CSV
                             </button>
                         </div>
                     </div>
@@ -485,10 +485,10 @@
                     <div class="mt-4 flex gap-2"> <!-- Estos botones permiten al usuario agregar nuevas filas a la tabla,
                         eliminar filas existentes o limpiar toda la tabla, facilitando la gestión de los datos antes de enviarlos al sistema. -->
                         <button onclick="agregarFilaTabla()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
-                            ➕ Agregar Fila
+                             Agregar Fila
                         </button>
                         <button onclick="limpiarTabla()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
-                            🗑️ Limpiar Todo
+                            ️ Limpiar Todo
                         </button>
                     </div>
                 </div>
@@ -547,7 +547,7 @@
                         Cancelar
                     </button>
                     <button onclick="procesarAgregadoMasivo()" class="flex-1 py-3 text-sm font-bold bg-green-600 text-white rounded-xl hover:bg-green-700 shadow-lg shadow-green-100 transition">
-                        📦 Agregar Insumos Masivamente
+                         Agregar Insumos Masivamente
                     </button>
                 </div>
             </div>
@@ -563,7 +563,7 @@
     <div id="confirmModal" class="fixed inset-0 z-[200] bg-black/50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
             <div class="p-6 text-center border-b border-slate-100">
-                <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl" id="modalIcon">🔬</div>
+                <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl" id="modalIcon"></div>
                 <h3 class="text-xl font-bold utn-text">Confirmar Solicitud</h3>
                 <p class="text-xs text-slate-400 mt-1">Se generará una boleta electrónica digital</p>
             </div>
@@ -598,7 +598,7 @@
         <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 fade-in">
             <div class="p-6 border-b border-slate-100">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-slate-800">🛒 Carrito de Solicitudes</h2>
+                    <h2 class="text-xl font-bold text-slate-800"> Carrito de Solicitudes</h2>
                     <button onclick="closeCartModal()" class="text-slate-400 hover:text-slate-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -620,10 +620,10 @@
                     
                     <div class="flex gap-3">
                         <button onclick="clearCart()" class="flex-1 py-3 text-sm font-bold bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition">
-                            🗑️ Vaciar Carrito
+                            ️ Vaciar Carrito
                         </button>
                         <button onclick="sendRequest()" class="flex-1 py-3 text-sm font-bold bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition">
-                            📤 Enviar Solicitud
+                             Enviar Solicitud
                         </button>
                     </div>
                 </div>
@@ -681,18 +681,18 @@
 
         <!-- Inicializar indexController -->
         <script>
-            console.log('🔍 Verificando si indexController existe...');
+            console.log(' Verificando si indexController existe...');
             console.log('window.indexController:', !!window.indexController);
             
             document.addEventListener('DOMContentLoaded', () => {
-                console.log('🚀 DOMContentLoaded - Inicializando indexController desde index.html...');
+                console.log(' DOMContentLoaded - Inicializando indexController desde index.html...');
                 console.log('window.indexController disponible:', !!window.indexController);
                 
                 if (window.indexController) {
-                    console.log('✅ IndexController ya está inicializado');
+                    console.log(' IndexController ya está inicializado');
                     window.indexController.initialized = true;
                 } else {
-                    console.log('❌ indexController no encontrado en window');
+                    console.log(' indexController no encontrado en window');
                 }
             });
             
@@ -700,7 +700,7 @@
             setTimeout(() => {
                 console.log('⏰ Timeout - Verificando indexController...');
                 if (window.indexController && !window.indexController.initialized) {
-                    console.log('🚀 IndexController ya existe y está inicializado');
+                    console.log(' IndexController ya existe y está inicializado');
                     window.indexController.initialized = true;
                 }
             }, 1000);
@@ -710,7 +710,7 @@
         <!-- Script de Verificación y Conexión -->
         <script>
             // Usar CONFIG global ya definido en js/main.js para evitar duplicación
-            console.log('✅ CONFIG global disponible:', window.CONFIG);
+            console.log(' CONFIG global disponible:', window.CONFIG);
             
             // Estado de la aplicación
             let currentUser = null;
@@ -757,18 +757,18 @@
 
             // Función para verificar autenticación
             async function checkAuthentication() {
-                console.log('🔍 Iniciando checkAuthentication...');
+                console.log(' Iniciando checkAuthentication...');
                 
                 const token = localStorage.getItem('utn_token');
                 const userData = localStorage.getItem('utn_user');
                 
-                console.log('🔍 Datos en localStorage:', {
+                console.log(' Datos en localStorage:', {
                     token: token ? 'existe' : 'no existe',
                     userData: userData ? 'existe' : 'no existe'
                 });
                 
                 if (!token || !userData) {
-                    console.log('🚫 No hay token o usuario, redirigiendo a login...');
+                    console.log(' No hay token o usuario, redirigiendo a login...');
                     // Solo redirigir si NO estamos ya en login.html
                     if (!window.location.pathname.includes('login.html')) {
                         window.location.href = 'login.html';
@@ -779,25 +779,25 @@
                 try {
                     // Token válido, cargar datos del usuario (sin verificar en backend por ahora)
                     currentUser = JSON.parse(userData);
-                    console.log('👤 Usuario cargado:', currentUser);
+                    console.log(' Usuario cargado:', currentUser);
                     
                     // Ocultar pantalla de verificación
                     const loginPage = document.getElementById('loginPage');
                     const mainApp = document.getElementById('mainApp');
                     
-                    console.log('🔍 Elementos DOM:', {
+                    console.log(' Elementos DOM:', {
                         loginPage: loginPage ? 'encontrado' : 'no encontrado',
                         mainApp: mainApp ? 'encontrado' : 'no encontrado'
                     });
                     
                     if (loginPage) {
                         loginPage.classList.add('hidden');
-                        console.log('✅ loginPage ocultado');
+                        console.log(' loginPage ocultado');
                     }
                     
                     if (mainApp) {
                         mainApp.classList.remove('hidden');
-                        console.log('✅ mainApp mostrado');
+                        console.log(' mainApp mostrado');
                     }
                     
                     // Actualizar UI
@@ -807,12 +807,12 @@
                     // 5. Inicializar vista según rol del usuario
                     setTimeout(() => {
                         const rol = currentUser.rol.toLowerCase();
-                        console.log('👤 Rol detectado:', rol);
+                        console.log(' Rol detectado:', rol);
                         
                         const vistaAdmin = document.getElementById('vistaAdmin');
                         const vistaEstudiante = document.getElementById('vistaEstudiante');
                         
-                        console.log('🔍 Elementos encontrados:', {
+                        console.log(' Elementos encontrados:', {
                             vistaAdmin: vistaAdmin ? 'encontrado' : 'no encontrado',
                             vistaEstudiante: vistaEstudiante ? 'encontrado' : 'no encontrado'
                         });
@@ -820,25 +820,25 @@
                         // Ocultar ambas vistas primero
                         if (vistaAdmin) {
                             vistaAdmin.classList.add('hidden');
-                            console.log('✅ vistaAdmin ocultada');
+                            console.log(' vistaAdmin ocultada');
                         }
                         if (vistaEstudiante) {
                             vistaEstudiante.classList.add('hidden');
-                            console.log('✅ vistaEstudiante ocultada');
+                            console.log(' vistaEstudiante ocultada');
                         }
                         
                         // Mostrar vista según rol
                         if (['administrativo', 'admin'].includes(rol)) {
-                            console.log('⚙️ Mostrando vista para administrativos/admin');
+                            console.log('️ Mostrando vista para administrativos/admin');
                             if (vistaAdmin) {
                                 vistaAdmin.classList.remove('hidden');
-                                console.log('✅ vistaAdmin mostrada');
+                                console.log(' vistaAdmin mostrada');
                             }
                         } else {
-                            console.log('📚 Mostrando vista para estudiantes/docentes');
+                            console.log(' Mostrando vista para estudiantes/docentes');
                             if (vistaEstudiante) {
                                 vistaEstudiante.classList.remove('hidden');
-                                console.log('✅ vistaEstudiante mostrada');
+                                console.log(' vistaEstudiante mostrada');
                             }
                             // Inicializar funcionalidad de estudiantes
                             inicializarFuncionalidadEstudiante();
@@ -851,12 +851,12 @@
                     return true;
                     
                 } catch (error) {
-                    console.error('❌ Error de autenticación:', error);
-                    console.error('❌ Detalles del error:', error.message, error.stack);
+                    console.error(' Error de autenticación:', error);
+                    console.error(' Detalles del error:', error.message, error.stack);
                     
                     // Limpiar datos inválidos solo si no estamos en login.html
                     if (!window.location.pathname.includes('login.html')) {
-                        console.log('🧹 Limpiando datos inválidos y redirigiendo...');
+                        console.log(' Limpiando datos inválidos y redirigiendo...');
                         localStorage.removeItem('utn_token');
                         localStorage.removeItem('utn_user');
                         window.location.href = 'login.html';
@@ -935,7 +935,7 @@
 
             // Función para inicializar funcionalidad de estudiantes
             function inicializarFuncionalidadEstudiante() {
-                console.log('📚 Inicializando funcionalidad para estudiantes...');
+                console.log(' Inicializando funcionalidad para estudiantes...');
                 
                 // Configurar tabs
                 document.querySelectorAll('.tab-button').forEach(button => {
@@ -982,15 +982,15 @@
                 const grid = vistaEstudiante ? vistaEstudiante.querySelector('#itemsGrid') : document.getElementById('itemsGrid');
                 
                 if (!grid) {
-                    console.log('⚠️ itemsGrid no encontrado, omitiendo carga inicial');
+                    console.log('️ itemsGrid no encontrado, omitiendo carga inicial');
                     return;
                 }
                 
-                console.log('✅ itemsGrid encontrado, mostrando mensaje inicial');
+                console.log(' itemsGrid encontrado, mostrando mensaje inicial');
                 
                 grid.innerHTML = `
                     <div class="col-span-full text-center py-12">
-                        <div class="text-4xl mb-4">🔧</div>
+                        <div class="text-4xl mb-4"></div>
                         <h3 class="text-lg font-medium text-slate-600 mb-2">Selecciona una categoría</h3>
                         <p class="text-sm text-slate-400">Haz click en "Activos" o "Insumos" para ver los productos disponibles</p>
                     </div>
@@ -1004,9 +1004,9 @@
                 const vistaEstudiante = document.getElementById('vistaEstudiante');
                 const grid = vistaEstudiante ? vistaEstudiante.querySelector('#itemsGrid') : document.getElementById('itemsGrid');
                 
-                console.log('🔍 Iniciando carga de activos...');
-                console.log('🔑 Token disponible:', token ? 'Sí' : 'No');
-                console.log('🌐 URL:', `${window.CONFIG.API_BASE_URL}/activos`);
+                console.log(' Iniciando carga de activos...');
+                console.log(' Token disponible:', token ? 'Sí' : 'No');
+                console.log(' URL:', `${window.CONFIG.API_BASE_URL}/activos`);
                 
                 try {
                     // Ocultar el grid con animación de salida
@@ -1028,7 +1028,7 @@
                     }, 200);
                     
                     // Cargar activos
-                    console.log('📡 Enviando petición a:', `${window.CONFIG.API_BASE_URL}/activos`);
+                    console.log(' Enviando petición a:', `${window.CONFIG.API_BASE_URL}/activos`);
                     
                     const activosResponse = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
                         headers: {
@@ -1037,7 +1037,7 @@
                         }
                     });
                     
-                    console.log('📡 Respuesta recibida:', {
+                    console.log(' Respuesta recibida:', {
                         status: activosResponse.status,
                         statusText: activosResponse.statusText,
                         ok: activosResponse.ok
@@ -1045,14 +1045,14 @@
                     
                     if (activosResponse.ok) {
                         const activos = await activosResponse.json();
-                        console.log('📦 Datos recibidos:', activos);
-                        console.log('📊 Total de activos:', activos?.total || 0);
-                        console.log('📊 Activos disponibles:', activos?.activosDisponibles?.length || 0);
-                        console.log('📊 Todos los activos:', activos?.todosLosActivos?.length || 0);
+                        console.log(' Datos recibidos:', activos);
+                        console.log(' Total de activos:', activos?.total || 0);
+                        console.log(' Activos disponibles:', activos?.activosDisponibles?.length || 0);
+                        console.log(' Todos los activos:', activos?.todosLosActivos?.length || 0);
                         
                         // Extraer el array correcto de activos
                         const activosArray = activos.todosLosActivos || activos.activosDisponibles || [];
-                        console.log('📇 Array a renderizar:', activosArray);
+                        console.log(' Array a renderizar:', activosArray);
                         
                         // Ocultar loading
                         grid.style.opacity = '0';
@@ -1078,13 +1078,13 @@
                         
                     } else {
                         const errorData = await activosResponse.json().catch(() => ({}));
-                        console.error('❌ Error en respuesta:', errorData);
+                        console.error(' Error en respuesta:', errorData);
                         throw new Error(errorData.message || 'Error al cargar activos');
                     }
                     
                 } catch (error) {
-                    console.error('❌ Error cargando activos:', error);
-                    console.error('❌ Detalles del error:', {
+                    console.error(' Error cargando activos:', error);
+                    console.error(' Detalles del error:', {
                         message: error.message,
                         stack: error.stack,
                         name: error.name
@@ -1094,7 +1094,7 @@
                     
                     grid.innerHTML = `
                         <div class="col-span-full text-center py-12">
-                            <div class="text-4xl mb-4">❌</div>
+                            <div class="text-4xl mb-4"></div>
                             <h3 class="text-lg font-medium text-slate-600 mb-2">Error al cargar activos</h3>
                             <p class="text-sm text-slate-400 mb-2">${error.message}</p>
                             <p class="text-sm text-slate-400">Intenta recargar la página</p>
@@ -1137,13 +1137,13 @@
                     }
                     
                 } catch (error) {
-                    console.error('❌ Error cargando insumos:', error);
+                    console.error(' Error cargando insumos:', error);
                     showToast('Error al cargar insumos', 'error');
                     
                     const grid = document.getElementById('itemsGrid');
                     grid.innerHTML = `
                         <div class="col-span-full text-center py-12">
-                            <div class="text-4xl mb-4">❌</div>
+                            <div class="text-4xl mb-4"></div>
                             <h3 class="text-lg font-medium text-slate-600 mb-2">Error al cargar insumos</h3>
                             <p class="text-sm text-slate-400">Intenta recargar la página</p>
                         </div>
@@ -1156,21 +1156,21 @@
                 const grid = document.getElementById('itemsGrid');
                 grid.innerHTML = '';
                 
-                console.log('🔍 renderItems llamado con:', { items, type });
-                console.log('📊 Tipo de items:', typeof items);
-                console.log('📊 Es array:', Array.isArray(items));
-                console.log('📊 Items length:', items?.length);
+                console.log(' renderItems llamado con:', { items, type });
+                console.log(' Tipo de items:', typeof items);
+                console.log(' Es array:', Array.isArray(items));
+                console.log(' Items length:', items?.length);
                 
                 // Validar que items sea un array
                 if (!items || !Array.isArray(items)) {
-                    console.warn('⚠️ Items no es un array, usando array vacío');
+                    console.warn('️ Items no es un array, usando array vacío');
                     items = [];
                 }
                 
                 if (items.length === 0) {
                     grid.innerHTML = `
                         <div class="col-span-full text-center py-12">
-                            <div class="text-4xl mb-4">${type === 'activos' ? '🔧' : '📦'}</div>
+                            <div class="text-4xl mb-4">${type === 'activos' ? '' : ''}</div>
                             <h3 class="text-lg font-medium text-slate-600 mb-2">No hay ${type === 'activos' ? 'activos' : 'insumos'} disponibles</h3>
                             <p class="text-sm text-slate-400">Intenta recargar la página</p>
                         </div>
@@ -1178,7 +1178,7 @@
                     return;
                 }
                 
-                console.log(`📦 Renderizando ${items.length} ${type}...`);
+                console.log(` Renderizando ${items.length} ${type}...`);
                 
                 items.forEach((item, index) => {
                 const card = document.createElement('div');
@@ -1268,7 +1268,7 @@
 
             <button onclick="event.stopPropagation(); addToCart('${nombre}', '${type}', ${JSON.stringify(item).replace(/"/g, '&quot;')})" 
                                     class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 rounded-lg font-medium transition-colors">
-                🛒 Añadir
+                 Añadir
             </button>
         </div>
     `;
@@ -1276,7 +1276,7 @@
     grid.appendChild(card);
 });
                 
-                console.log(`✅ Renderizado completado: ${items.length} ${type}`);
+                console.log(` Renderizado completado: ${items.length} ${type}`);
             }
 
             // Función para abrir modal
@@ -1443,15 +1443,15 @@
                             });
 
                             if (response.ok) {
-                                showToast('✅ Insumo agregado correctamente', 'success');
+                                showToast(' Insumo agregado correctamente', 'success');
                                 cerrarModalAgregarInsumo();
                             } else {
                                 const error = await response.json();
-                                showToast(`❌ Error: ${error.message}`, 'error');
+                                showToast(` Error: ${error.message}`, 'error');
                             }
                         } catch (error) {
                             console.error('Error agregando insumo:', error);
-                            showToast('❌ Error al agregar insumo', 'error');
+                            showToast(' Error al agregar insumo', 'error');
                         }
                     });
                 }
@@ -1459,59 +1459,59 @@
 
             // Inicialización
             document.addEventListener('DOMContentLoaded', async () => {
-                console.log('🚀 Iniciando aplicación...');
+                console.log(' Iniciando aplicación...');
                 
                 // Evitar múltiples inicializaciones
                 if (isInitialized) {
-                    console.log('⚠️ La aplicación ya fue inicializada, evitando doble inicialización');
+                    console.log('️ La aplicación ya fue inicializada, evitando doble inicialización');
                     return;
                 }
                 
                 try {
                     // Verificar autenticación primero
-                    console.log('🔍 Verificando autenticación...');
+                    console.log(' Verificando autenticación...');
                     const isAuthenticated = await checkAuthentication();
                     
-                    console.log('📋 ¿Autenticado?', isAuthenticated);
+                    console.log(' ¿Autenticado?', isAuthenticated);
                     
                     if (isAuthenticated) {
                         // Marcar como inicializado
                         isInitialized = true;
                         
                         // Cargar componentes
-                        console.log('🔧 Cargando componentes...');
+                        console.log(' Cargando componentes...');
                         try {
                             // Cargar header component
                             const headerResponse = await fetch('components/header.html');
                             const headerHtml = await headerResponse.text();
                             document.getElementById('header-component').innerHTML = headerHtml;
-                            console.log('✅ Header component cargado');
+                            console.log(' Header component cargado');
                             
                             // IMPORTANTE: Llamar a updateUserInfo() después de cargar el header
                             if (typeof updateUserInfo === 'function') {
-                                console.log('🔄 Llamando a updateUserInfo() desde index.html...');
+                                console.log(' Llamando a updateUserInfo() desde index.html...');
                                 updateUserInfo();
                                 
                                 // Configurar eventos del dropdown después de cargar el header
                                 setTimeout(() => {
-                                    console.log('🔧 Configurando eventos del dropdown...');
+                                    console.log(' Configurando eventos del dropdown...');
                                     const userMenuBtn = document.getElementById('user-menu-btn');
                                     const userDropdown = document.getElementById('user-dropdown');
                                     
-                                    console.log('🔍 Elementos encontrados:', {
+                                    console.log(' Elementos encontrados:', {
                                         userMenuBtn: !!userMenuBtn,
                                         userDropdown: !!userDropdown
                                     });
                                     
                                     if (userMenuBtn && userDropdown) {
-                                        console.log('✅ Botón y dropdown encontrados');
+                                        console.log(' Botón y dropdown encontrados');
                                         
                                         // Configurar menú según rol
                                         const userData = localStorage.getItem('utn_user');
                                         const currentUser = userData ? JSON.parse(userData) : null;
                                         const userRole = currentUser?.rol || currentUser?.rol_nombre || currentUser?.tipo_rol || 'Estudiante';
                                         
-                                        console.log('👤 Rol detectado:', userRole);
+                                        console.log(' Rol detectado:', userRole);
                                         
                                         const solicitudesMenuText = document.getElementById('solicitudes-menu-text');
                                         const solicitudesMenuDesc = document.getElementById('solicitudes-menu-desc');
@@ -1521,12 +1521,12 @@
                                             if (solicitudesMenuText) solicitudesMenuText.textContent = 'Solicitudes';
                                             if (solicitudesMenuDesc) solicitudesMenuDesc.textContent = 'Gestionar todas las solicitudes';
                                             if (reportesMenuItem) reportesMenuItem.classList.remove('hidden');
-                                            console.log('👨‍💼 Menú configurado para administrador');
+                                            console.log('‍ Menú configurado para administrador');
                                         } else {
                                             if (solicitudesMenuText) solicitudesMenuText.textContent = 'Mis Solicitudes';
                                             if (solicitudesMenuDesc) solicitudesMenuDesc.textContent = 'Historial completo';
                                             if (reportesMenuItem) reportesMenuItem.classList.add('hidden');
-                                            console.log('👨‍🎓 Menú configurado para estudiante/docente');
+                                            console.log('‍ Menú configurado para estudiante/docente');
                                         }
                                         
                                         // Remover eventos anteriores para evitar conflictos
@@ -1537,9 +1537,9 @@
                                         newBtn.addEventListener('click', (e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
-                                            console.log('🖱️ Click en botón de usuario - EVENTO DISPARADO');
+                                            console.log('️ Click en botón de usuario - EVENTO DISPARADO');
                                             
-                                            console.log('🔍 Estado actual del dropdown:', {
+                                            console.log(' Estado actual del dropdown:', {
                                                 hidden: userDropdown.classList.contains('hidden'),
                                                 opacity: userDropdown.classList.contains('opacity-100')
                                             });
@@ -1547,11 +1547,11 @@
                                             if (userDropdown.classList.contains('hidden')) {
                                                 userDropdown.classList.remove('hidden');
                                                 userDropdown.classList.add('opacity-100');
-                                                console.log('📂 Menú abierto - clases:', userDropdown.className);
+                                                console.log(' Menú abierto - clases:', userDropdown.className);
                                             } else {
                                                 userDropdown.classList.add('hidden');
                                                 userDropdown.classList.remove('opacity-100');
-                                                console.log('📁 Menú cerrado - clases:', userDropdown.className);
+                                                console.log(' Menú cerrado - clases:', userDropdown.className);
                                             }
                                         });
                                         
@@ -1560,20 +1560,20 @@
                                             if (!newBtn.contains(e.target) && !userDropdown.contains(e.target)) {
                                                 userDropdown.classList.add('hidden');
                                                 userDropdown.classList.remove('opacity-100');
-                                                console.log('📁 Menú cerrado por click fuera');
+                                                console.log(' Menú cerrado por click fuera');
                                             }
                                         });
                                         
-                                        console.log('✅ Eventos del dropdown configurados correctamente');
+                                        console.log(' Eventos del dropdown configurados correctamente');
                                     } else {
-                                        console.log('❌ No se encontraron elementos del dropdown');
+                                        console.log(' No se encontraron elementos del dropdown');
                                     }
                                 }, 1000); // Aumentado a 1 segundo para asegurar carga completa
                             } else {
-                                console.log('❌ updateUserInfo() no está disponible');
+                                console.log(' updateUserInfo() no está disponible');
                             }
                         } catch (error) {
-                            console.error('❌ Error cargando header component:', error);
+                            console.error(' Error cargando header component:', error);
                         }
                         
                         // Iniciar verificación de conexión a BD
@@ -1646,7 +1646,7 @@
                         });
                     }
                 } catch (error) {
-                    console.error('❌ Error inicializando aplicación:', error);
+                    console.error(' Error inicializando aplicación:', error);
                     showToast('Error al iniciar la aplicación', 'error');
                 }
             });
@@ -1660,18 +1660,18 @@
 
             // Función para verificar autenticación
             async function checkAuthentication() {
-                console.log('🔍 Iniciando checkAuthentication...');
+                console.log(' Iniciando checkAuthentication...');
                 
                 const token = localStorage.getItem('utn_token');
                 const userData = localStorage.getItem('utn_user');
                 
-                console.log('🔍 Datos en localStorage:', {
+                console.log(' Datos en localStorage:', {
                     token: token ? 'existe' : 'no existe',
                     userData: userData ? 'existe' : 'no existe'
                 });
                 
                 if (!token || !userData) {
-                    console.log('🚫 No hay token o usuario, redirigiendo a login...');
+                    console.log(' No hay token o usuario, redirigiendo a login...');
                     if (!window.location.pathname.includes('login.html')) {
                         window.location.href = 'login.html';
                     }
@@ -1680,7 +1680,7 @@
                 
                 try {
                     currentUser = JSON.parse(userData);
-                    console.log('👤 Usuario cargado:', currentUser);
+                    console.log(' Usuario cargado:', currentUser);
                     
                     const loginPage = document.getElementById('loginPage');
                     const mainApp = document.getElementById('mainApp');
@@ -1713,7 +1713,7 @@
                     return true;
                     
                 } catch (error) {
-                    console.error('❌ Error de autenticación:', error);
+                    console.error(' Error de autenticación:', error);
                     if (!window.location.pathname.includes('login.html')) {
                         localStorage.removeItem('utn_token');
                         localStorage.removeItem('utn_user');
@@ -1742,7 +1742,7 @@
             }
 
             function inicializarFuncionalidadEstudiante() {
-                console.log('📚 Inicializando funcionalidad para estudiantes...');
+                console.log(' Inicializando funcionalidad para estudiantes...');
                 loadInitialData();
             }
 
@@ -1753,7 +1753,7 @@
                 if (grid) {
                     grid.innerHTML = `
                         <div class="col-span-full text-center py-12">
-                            <div class="text-4xl mb-4">🔧</div>
+                            <div class="text-4xl mb-4"></div>
                             <h3 class="text-lg font-medium text-slate-600 mb-2">Cargando...</h3>
                             <p class="text-sm text-slate-400">Espera un momento...</p>
                         </div>
@@ -1775,7 +1775,7 @@
                 const cartTotal = document.getElementById('cartTotal');
                 
                 if (!cartCount || !cartItems || !cartTotal) {
-                    console.log('❌ Elementos del carrito no encontrados');
+                    console.log(' Elementos del carrito no encontrados');
                     return;
                 }
                 
@@ -1790,7 +1790,7 @@
                     itemElement.innerHTML = `
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <span class="text-lg">${item.type === 'activos' ? '🔧' : '📦'}</span>
+                                <span class="text-lg">${item.type === 'activos' ? '' : ''}</span>
                             </div>
                             <div>
                                 <h4 class="font-medium text-sm text-slate-800">${item.name}</h4>
@@ -1830,7 +1830,7 @@
                 const removedItem = cart[index];
                 cart.splice(index, 1);
                 updateCartUI();
-                showToast(`🗑️ ${removedItem.name} eliminado`, 'info');
+                showToast(`️ ${removedItem.name} eliminado`, 'info');
             }
             
             // Incrementar cantidad
@@ -1838,7 +1838,7 @@
                 cart[index].quantity += 1;
                 updateCartUI();
                 const itemName = cart[index].name;
-                showToast(`➕ ${itemName} (${cart[index].quantity})`, 'success');
+                showToast(` ${itemName} (${cart[index].quantity})`, 'success');
             }
             
             // Decrementar cantidad
@@ -1847,7 +1847,7 @@
                     cart[index].quantity -= 1;
                     updateCartUI();
                     const itemName = cart[index].name;
-                    showToast(`➖ ${itemName} (${cart[index].quantity})`, 'success');
+                    showToast(` ${itemName} (${cart[index].quantity})`, 'success');
                 } else {
                     // Si la cantidad es 1, eliminar el item
                     removeFromCart(index);
@@ -1857,13 +1857,13 @@
             // Vaciar carrito
             function clearCart() {
                 if (cart.length === 0) {
-                    showToast('🛒 El carrito ya está vacío', 'info');
+                    showToast(' El carrito ya está vacío', 'info');
                     return;
                 }
                 
                 cart = [];
                 updateCartUI();
-                showToast('🗑️ Carrito vaciado', 'success');
+                showToast('️ Carrito vaciado', 'success');
             }
             
             // Obtener items del carrito (para confirmarPedido)
@@ -1898,7 +1898,7 @@
             // Enviar solicitud
             async function sendRequest() {
                 if (cart.length === 0) {
-                    showToast('🛒 El carrito está vacío', 'warning');
+                    showToast(' El carrito está vacío', 'warning');
                     return;
                 }
                 
@@ -1933,9 +1933,9 @@
                     };
                     
                  // Enviar a la API
-                    console.log('📤 Enviando solicitud a:', `${window.CONFIG.API_BASE_URL}/solicitudes`);
-                    console.log('📦 Datos enviados:', requestData);
-                    console.log('🔑 Token disponible:', localStorage.getItem('utn_token') ? 'Sí' : 'No');
+                    console.log(' Enviando solicitud a:', `${window.CONFIG.API_BASE_URL}/solicitudes`);
+                    console.log(' Datos enviados:', requestData);
+                    console.log(' Token disponible:', localStorage.getItem('utn_token') ? 'Sí' : 'No');
                     
                     const response = await fetch(`${window.CONFIG.API_BASE_URL}/solicitudes`, {
                         method: 'POST',
@@ -1946,12 +1946,12 @@
                         body: JSON.stringify(requestData)
                     });
                     
-                    console.log('🌐 Respuesta del servidor:', response.status, response.statusText);
+                    console.log(' Respuesta del servidor:', response.status, response.statusText);
                     
                     if (response.ok) {
                         const result = await response.json();
-                        console.log('✅ Solicitud creada:', result);
-                        showToast(`📤 Solicitud enviada con éxito. ID: ${result._id || 'generada'}`, 'success');
+                        console.log(' Solicitud creada:', result);
+                        showToast(` Solicitud enviada con éxito. ID: ${result._id || 'generada'}`, 'success');
                         
                         // Vaciar carrito y cerrar modal
                         cart = [];
@@ -1968,14 +1968,14 @@
                     } else {
                         // Obtener detalles del error
                         const errorData = await response.json().catch(() => ({}));
-                        console.error('❌ Error del servidor:', {
+                        console.error(' Error del servidor:', {
                             status: response.status,
                             statusText: response.statusText,
                             data: errorData
                         });
                         
                         // Mostrar detalles completos del error
-                        console.log('🔍 Detalles completos del error 403:', JSON.stringify(errorData, null, 2));
+                        console.log(' Detalles completos del error 403:', JSON.stringify(errorData, null, 2));
                         
                         // Mensaje específico para 403
                         if (response.status === 403) {
@@ -1983,7 +1983,7 @@
  　　　　　　　　　　　　　// Si es por solicitud pendiente, mostrar mensaje específico
                             if (errorMessage.includes('pendiente') && errorData.folio) {
                                 const folio = errorData.folio;
-                                showToast(`⏳ Ya tienes una solicitud pendiente (Folio: ${folio}). Debes esperar a que se apruebe o rechace.`, 'warning');
+                                showToast(` Ya tienes una solicitud pendiente (Folio: ${folio}). Debes esperar a que se apruebe o rechace.`, 'warning');
                                 
                                 // Opcional: Preguntar si quiere ver sus solicitudes
                                 setTimeout(() => {
@@ -2002,8 +2002,8 @@
                     }
                     
                 } catch (error) {
-                    console.error('❌ Error enviando solicitud:', error);
-                    showToast('❌ Error al enviar la solicitud', 'error');
+                    console.error(' Error enviando solicitud:', error);
+                    showToast(' Error al enviar la solicitud', 'error');
                 }
             }
             
@@ -2025,41 +2025,41 @@
     <script>
         // Función para cargar el footer
         async function loadFooter() {
-            console.log('🔄 Iniciando carga del footer...');
+            console.log(' Iniciando carga del footer...');
             
             try {
                 const footerElement = document.getElementById('footer-component');
                 if (!footerElement) {
-                    console.error('❌ Elemento footer-component no encontrado');
+                    console.error(' Elemento footer-component no encontrado');
                     return;
                 }
                 
-                console.log('📡 Haciendo fetch a components/footer.html...');
+                console.log(' Haciendo fetch a components/footer.html...');
                 const footerResponse = await fetch('components/footer.html');
                 
                 if (!footerResponse.ok) {
-                    console.error('❌ Error en la respuesta:', footerResponse.status, footerResponse.statusText);
+                    console.error(' Error en la respuesta:', footerResponse.status, footerResponse.statusText);
                     throw new Error(`Error ${footerResponse.status}: ${footerResponse.statusText}`);
                 }
                 
                 const footerHtml = await footerResponse.text();
-                console.log('📄 Footer HTML recibido, longitud:', footerHtml.length);
-                console.log('📄 Preview del footer:', footerHtml.substring(0, 200) + '...');
+                console.log(' Footer HTML recibido, longitud:', footerHtml.length);
+                console.log(' Preview del footer:', footerHtml.substring(0, 200) + '...');
                 
                 footerElement.innerHTML = footerHtml;
-                console.log('✅ Footer component cargado exitosamente');
+                console.log(' Footer component cargado exitosamente');
                 
                 // Verificar que el footer se haya insertado
                 const footer = footerElement.querySelector('footer');
                 if (footer) {
-                    console.log('✅ Footer element encontrado en el DOM');
+                    console.log(' Footer element encontrado en el DOM');
                 } else {
-                    console.error('❌ No se encontró el footer element después de insertar');
+                    console.error(' No se encontró el footer element después de insertar');
                 }
                 
             } catch (error) {
-                console.error('❌ Error cargando footer component:', error);
-                console.error('❌ Detalles del error:', error.message, error.stack);
+                console.error(' Error cargando footer component:', error);
+                console.error(' Detalles del error:', error.message, error.stack);
                 
                 // Footer de respaldo si falla la carga
                 const footerElement = document.getElementById('footer-component');
@@ -2073,15 +2073,15 @@
                             </div>
                         </footer>
                     `;
-                    console.log('🔄 Footer de respaldo cargado');
+                    console.log(' Footer de respaldo cargado');
                 }
             }
         }
         
         // Cargar footer cuando el DOM esté listo
-        console.log('🔧 Configurando carga del footer...');
+        console.log(' Configurando carga del footer...');
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('📋 DOMContentLoaded - Iniciando carga del footer...');
+            console.log(' DOMContentLoaded - Iniciando carga del footer...');
             loadFooter();
         });
         
@@ -2093,7 +2093,7 @@
         }, 500);
         
         // Intentar cargar inmediatamente también
-        console.log('🚀 Intentando carga inmediata del footer...');
+        console.log(' Intentando carga inmediata del footer...');
         loadFooter();
     </script>
 </html>

@@ -14,7 +14,7 @@ class ActivosManager {
      */
     async cargarActivos() {
         try {
-            console.log('🔧 Cargando activos...');
+            console.log(' Cargando activos...');
             
             const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos`);
             const data = await response.json();
@@ -22,14 +22,14 @@ class ActivosManager {
             if (response.ok) {
                 // Extraer el array de activos de la respuesta
                 this.activos = data.todosLosActivos || data.activos || [];
-                console.log('✅ Activos cargados:', this.activos);
+                console.log(' Activos cargados:', this.activos);
                 this.mostrarActivos();
             } else {
-                console.error('❌ Error cargando activos:', data);
+                console.error(' Error cargando activos:', data);
                 this.mostrarError('Error al cargar activos');
             }
         } catch (error) {
-            console.error('❌ Error en cargarActivos:', error);
+            console.error(' Error en cargarActivos:', error);
             this.mostrarError('Error de conexión al cargar activos');
         }
     }
@@ -50,7 +50,7 @@ class ActivosManager {
         if (this.activos.length === 0) {
             grid.innerHTML = `
                 <div class="col-span-full text-center py-12">
-                    <div class="text-6xl mb-4">🔧</div>
+                    <div class="text-6xl mb-4"></div>
                     <h3 class="text-xl font-bold text-slate-700 mb-2">No hay activos registrados</h3>
                     <p class="text-slate-500 mb-4">Agrega tu primer activo usando el botón "Agregar Activo"</p>
                 </div>
@@ -77,11 +77,11 @@ class ActivosManager {
         card.dataset.estado = activo.estadoActivo || activo.estado || '';
         
         const categoriaIcon = {
-            'Instrumentos': '🔧',
-            'Herramientas': '🔨',
-            'Equipos': '⚡',
-            'Medición': '📊'
-        }[activo.categoria] || '📦';
+            'Instrumentos': '',
+            'Herramientas': '',
+            'Equipos': '',
+            'Medición': ''
+        }[activo.categoria] || '';
         
         const estadoColor = {
             'disponible': 'bg-green-100 text-green-700',
@@ -113,10 +113,10 @@ class ActivosManager {
                 <span class="text-xs text-slate-500">ID: ${activo._id || activo.id || 'N/A'}</span>
                 <div class="flex gap-2">
                     <button onclick="window.ActivosManager.editarActivo('${activo._id}')" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                        ✏️ Editar
+                        ️ Editar
                     </button>
                     <button onclick="window.ActivosManager.eliminarActivo('${activo._id}')" class="text-red-600 hover:text-red-700 text-sm font-medium">
-                        🗑️ Eliminar
+                        ️ Eliminar
                     </button>
                 </div>
             </div>
@@ -161,7 +161,7 @@ class ActivosManager {
                 observaciones: document.getElementById('ubicacionActivo').value || 'Sin observaciones particulares'
             };
             
-            console.log('💾 Guardando activo:', formData);
+            console.log(' Guardando activo:', formData);
             
             const id = document.getElementById('idActivo').value;
             const url = id ? 
@@ -182,17 +182,17 @@ class ActivosManager {
             const data = await response.json();
             
             if (response.ok) {
-                console.log('✅ Activo guardado:', data);
-                this.mostrarToast('✅ Activo guardado exitosamente', 'success');
+                console.log(' Activo guardado:', data);
+                this.mostrarToast(' Activo guardado exitosamente', 'success');
                 this.cerrarModal();
                 this.cargarActivos();
             } else {
-                console.error('❌ Error guardando activo:', data);
-                this.mostrarToast('❌ Error al guardar activo', 'error');
+                console.error(' Error guardando activo:', data);
+                this.mostrarToast(' Error al guardar activo', 'error');
             }
         } catch (error) {
-            console.error('❌ Error en guardarActivo:', error);
-            this.mostrarToast('❌ Error de conexión', 'error');
+            console.error(' Error en guardarActivo:', error);
+            this.mostrarToast(' Error de conexión', 'error');
         }
     }
 
@@ -201,7 +201,7 @@ class ActivosManager {
      */
     async editarActivo(id) {
         try {
-            console.log('📝 Editando activo:', id);
+            console.log(' Editando activo:', id);
             
             const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos/${id}`);
             const activo = await response.json();
@@ -218,14 +218,14 @@ class ActivosManager {
                 document.getElementById('ubicacionActivo').value = activo.observaciones || '';
                 
                 this.abrirModal();
-                this.mostrarToast('📝 Modo edición activado', 'info');
+                this.mostrarToast(' Modo edición activado', 'info');
             } else {
-                console.error('❌ Error cargando activo para editar:', data);
-                this.mostrarToast('❌ Error al cargar activo', 'error');
+                console.error(' Error cargando activo para editar:', data);
+                this.mostrarToast(' Error al cargar activo', 'error');
             }
         } catch (error) {
-            console.error('❌ Error en editarActivo:', error);
-            this.mostrarToast('❌ Error de conexión', 'error');
+            console.error(' Error en editarActivo:', error);
+            this.mostrarToast(' Error de conexión', 'error');
         }
     }
 
@@ -235,7 +235,7 @@ class ActivosManager {
     async eliminarActivo(id) {
         if (confirm('¿Estás seguro de eliminar este activo? Esta acción no se puede deshacer.')) {
             try {
-                console.log('🗑️ Eliminando activo:', id);
+                console.log('️ Eliminando activo:', id);
                 
                 const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos/${id}`, {
                     method: 'DELETE',
@@ -247,16 +247,16 @@ class ActivosManager {
                 const data = await response.json();
                 
                 if (response.ok) {
-                    console.log('✅ Activo eliminado:', data);
-                    this.mostrarToast('✅ Activo eliminado exitosamente', 'success');
+                    console.log(' Activo eliminado:', data);
+                    this.mostrarToast(' Activo eliminado exitosamente', 'success');
                     this.cargarActivos();
                 } else {
-                    console.error('❌ Error eliminando activo:', data);
-                    this.mostrarToast('❌ Error al eliminar activo', 'error');
+                    console.error(' Error eliminando activo:', data);
+                    this.mostrarToast(' Error al eliminar activo', 'error');
                 }
             } catch (error) {
-                console.error('❌ Error en eliminarActivo:', error);
-                this.mostrarToast('❌ Error de conexión', 'error');
+                console.error(' Error en eliminarActivo:', error);
+                this.mostrarToast(' Error de conexión', 'error');
             }
         }
     }
@@ -303,7 +303,7 @@ class ActivosManager {
      * Inicializar el módulo
      */
     inicializar() {
-        console.log('🧩 Inicializando módulo de Activos');
+        console.log(' Inicializando módulo de Activos');
         this.cargarActivos();
         
         // Configurar eventos

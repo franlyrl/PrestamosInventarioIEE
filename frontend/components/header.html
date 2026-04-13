@@ -1,532 +1,152 @@
-<!-- Header Component -->
-<header class="bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] text-white shadow-xl border-b border-[#004a8c]/20">
-    <div class="container mx-auto px-2 sm:px-4 md:px-6 lg:px-8">
-        <div class="flex justify-between items-center py-2 sm:py-3 md:py-4 gap-2 sm:gap-4">
+<!-- Header Component (Clean & Standardized) -->
+<header class="bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] text-white shadow-xl border-b border-[#004a8c]/20 sticky top-0 z-[100]">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-3 md:py-4 gap-4">
             <!-- Logo y Branding -->
-            <div class="flex items-center gap-2 sm:gap-4 md:gap-6">
-                <a href="../pages/ModAdmis.html" class="block w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white rounded-lg shadow-lg flex items-center justify-center transform hover:scale-105 transition-transform overflow-hidden hover:shadow-xl">
-                    <img src="../css/UTN.jpg" alt="UTN Logo - Inicio" class="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 object-contain">
-                </a>
-                <div class="text-center sm:text-left">
-                    <h1 class="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold tracking-tight">SPIEE-SP</h1>
-                    <p class="text-[10px] sm:text-xs md:text-sm font-bold medium" style="color: #e6e3e0;">Sistema Prestamos de equipo ElectroTecno</p>
+            <a href="#" onclick="window.redirigirInicio(); return false;" class="flex items-center gap-4 hover:opacity-90 transition-opacity group">
+                <div class="block w-10 h-10 md:w-12 md:h-12 bg-white rounded-lg shadow-lg flex items-center justify-center transform group-hover:scale-105 transition-transform overflow-hidden">
+                    <img src="../css/UTN.jpg" alt="UTN Logo" class="w-8 h-8 md:w-10 md:h-10 object-contain">
                 </div>
-            </div>
+                <div class="hidden sm:block">
+                    <h1 class="text-base md:text-xl font-bold tracking-tight">UTN - SPIEE</h1>
+                    <p class="text-[10px] md:text-sm font-medium text-blue-100/70">Sistema de Préstamos e Inventario</p>
+                </div>
+            </a>
             
             <!-- Navegación y Acciones -->
-            <div class="flex items-center gap-1 sm:gap-2 md:gap-4">
-                <!-- Carrito de Solicitudes -->
-                <div class="relative">
-                    <button id="cartBtn" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs md:text-sm lg:text-base font-medium transition-all duration-200 flex items-center gap-0.5 sm:gap-1 md:gap-2 hover:scale-105">
-                        <span class="text-[10px] sm:text-xs md:text-sm lg:text-base">🛒</span>
-                        <span class="hidden md:inline text-xs sm:text-sm md:text-base">Solicitudes</span>
-                        <span id="cartCount" class="bg-white text-[10px] sm:text-xs md:text-sm px-1 sm:px-1.5 md:px-2 py-0.25 sm:py-0.5 rounded-full font-bold text-black">0</span>
-                    </button>
-                </div>
+            <div class="flex items-center gap-2 md:gap-4">
+                <!-- Carrito (Solo visible para estudiantes) -->
+                <button id="cartBtn" onclick="window.openCartModal()" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-3 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 hover:scale-105">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <span id="cartCount" class="bg-[#F2A900] text-[#002D62] text-[10px] font-black min-w-[20px] h-5 rounded-full flex items-center justify-center shadow-sm transition-transform duration-300">0</span>
+                </button>
                 
-                <!-- Info Usuario - Ocultar en móvil, mostrar en tablet/desktop -->
-                <div class="hidden md:flex items-center gap-1 sm:gap-2 md:gap-4">
-                    <div class="text-right">
-                        <p class="text-[10px] sm:text-xs md:text-sm font-semibold text-white" id="userInfo">Usuario</p>
-                        <p class="text-[10px] sm:text-xs md:text-sm flex items-center gap-1" id="currentDateTime" style="color: #ffffff;">
-                            <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 md:w-2 md:h-2 rounded-full animate-pulse" style="background-color: #139d2c;"></span>
-                            <span class="hidden sm:inline">Conectado</span>
-                        </p>
+                <!-- Notificaciones (Global) -->
+                <div class="relative" id="notifContainer">
+                    <button id="notifBtn" onclick="window.toggleNotifDropdown(event)" class="hidden bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 p-2 md:px-3 md:py-2 rounded-xl text-sm font-medium transition-all items-center gap-2 hover:scale-105 relative" title="Mis notificaciones">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <span id="notifCount" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md hidden">0</span>
+                    </button>
+
+                    <!-- Dropdown de Notificaciones -->
+                    <div id="notif-dropdown" class="hidden absolute right-0 mt-3 w-84 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[9999]" style="max-height: 460px; display:none; width: 320px;">
+                        <div class="bg-gradient-to-r from-[#002D62] to-[#0047a3] p-4 flex items-center justify-between">
+                            <div>
+                                <p class="text-white font-black text-sm">Notificaciones</p>
+                                <p class="text-blue-200 text-[10px] font-medium">Avisos de tus solicitudes</p>
+                            </div>
+                            <!-- Botón dorado VER TODAS -->
+                            <a href="../pages/notificaciones.html" onclick="document.getElementById('notif-dropdown').style.display='none'" class="flex items-center gap-1.5 bg-[#F2A900] hover:bg-[#d99500] text-[#002D62] text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg transition-all hover:scale-105 shadow-md shadow-[#F2A900]/30" style="text-decoration:none;">
+                                <svg style="width:10px;height:10px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 10h16M4 14h16M4 18h7"/></svg>
+                                Ver Todas
+                            </a>
+                        </div>
+                        <div id="notif-dropdown-list" class="overflow-y-auto" style="max-height: 300px;">
+                            <div class="p-8 text-center text-slate-400">
+                                <svg class="w-8 h-8 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                <p class="text-xs font-medium">Sin notificaciones</p>
+                            </div>
+                        </div>
+                        <div class="border-t border-slate-100 p-3">
+                            <a href="../pages/solicitudes.html" onclick="document.getElementById('notif-dropdown').style.display='none'" class="flex items-center justify-center gap-2 w-full py-2.5 bg-[#002D62] hover:bg-[#001A33] text-white text-xs font-black rounded-xl transition-colors tracking-wide" style="text-decoration:none;">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                Ir a Mis Solicitudes
+                            </a>
+                        </div>
                     </div>
                 </div>
-                
                 <!-- Menú Usuario -->
                 <div class="relative">
-                    <button id="user-menu-btn" onclick="toggleUserMenu()" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs md:text-sm lg:text-base font-medium transition-all duration-200 flex items-center gap-0.5 sm:gap-1 md:gap-2 hover:scale-105">
-                        <div class="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 bg-white/20 rounded-full flex items-center justify-center">
-                            <span class="text-[10px] sm:text-xs md:text-sm lg:text-base">👤</span>
+                    <button id="user-menu-btn" onclick="window.toggleUserMenu(event)" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-3 hover:scale-105">
+                        <div class="w-8 h-8 bg-[#f2a900] rounded-full flex items-center justify-center border border-white/30 text-[#002d62] shadow-inner font-black text-xs user-initials">
+                            U
                         </div>
-                        <span id="userMenuName" class="hidden sm:inline text-[10px] sm:text-xs md:text-sm lg:text-base">Usuario</span>
-                        <svg class="w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
+                        <span id="userMenuName" class="hidden sm:inline font-bold">Cargando...</span>
+                        <svg class="w-4 h-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     
-                    <!-- Dropdown Menu Mejorado -->
-                    <div id="user-dropdown" class="hidden absolute right-0 mt-1 sm:mt-2 w-36 sm:w-44 md:w-48 lg:w-56 bg-white rounded-lg sm:rounded-xl md:rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-[99999] transform transition-all duration-200 opacity-0" style="z-index: 99999 !important;">
-                        <!-- Header del Dropdown -->
-                        <div class="bg-gradient-to-r from-[#004a8c] to-[#0066cc] p-1.5 sm:p-2 md:p-3 lg:p-4 text-white">
-                            <p class="text-[10px] sm:text-xs md:text-sm lg:text-base font-semibold" id="dropdownUserName">Usuario</p>
-                            <p class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm" id="dropdownUserRole">Cargando rol...</p>
+                    <!-- Dropdown Menu -->
+                    <div id="user-dropdown" class="hidden absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[9999] opacity-0 transition-all duration-300">
+                        <div class="bg-slate-50 border-b border-slate-100 p-5">
+                            <p class="text-sm font-bold text-slate-800 truncate" id="dropdownUserName">Nombre Usuario</p>
+                            <p class="text-[10px] font-bold text-utn-blue uppercase tracking-widest mt-1" id="dropdownUserRole">Estudiante</p>
                         </div>
                         
-                        <!-- Opciones del Menú -->
-                        <div class="py-1 sm:py-1.5 md:py-2">
-                            <!-- Inicio - Para todos los roles -->
-                            <a href="#" id="inicioBtn" class="flex items-center gap-1 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-[10px] sm:text-xs md:text-sm lg:text-base text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                                <div class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
-                                    <span style="color: #004a8c;" class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm"></span>
+                        <div class="py-2">
+                            <a href="#" onclick="window.redirigirInicio(); return false;" class="group flex items-center gap-3 px-5 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                                    <svg class="w-4 h-4 text-slate-500 group-hover:text-utn-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                                 </div>
-                                <div>
-                                    <p class="font-medium text-[10px] sm:text-xs md:text-sm lg:text-base">Inicio</p>
-                                    <p class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm text-slate-500 hidden sm:block">Panel Principal</p>
-                                </div>
+                                <span class="font-bold">Inicio</span>
                             </a>
-                            
-                            <!-- Mi Perfil - Siempre visible para todos los roles -->
-                            <a href="../pages/perfil.html" class="flex items-center gap-1 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-[10px] sm:text-xs md:text-sm lg:text-base text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                                <div class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
-                                    <span style="color: #004a8c;" class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm">👤</span>
+                            <a href="../pages/perfil.html" class="group flex items-center gap-3 px-5 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                                    <svg class="w-4 h-4 text-slate-500 group-hover:text-utn-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                 </div>
-                                <div>
-                                    <p class="font-medium text-[10px] sm:text-xs md:text-sm lg:text-base">Mi Perfil</p>
-                                    <p class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm text-slate-500 hidden sm:block">Gestionar cuenta</p>
-                                </div>
+                                <span class="font-bold">Mi Perfil</span>
                             </a>
-                            
-                            <!-- Solicitudes - Nombre diferente según rol -->
-                            <a href="../pages/solicitudes.html" class="flex items-center gap-1 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-[10px] sm:text-xs md:text-sm lg:text-base text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                                <div class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
-                                    <span style="color: #2563eb;" class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm">📋</span>
+                        <!-- Mis Solicitudes (solo para estudiantes) -->
+                            <a href="../pages/solicitudes.html" id="navSolicitudesLink" class="group flex items-center gap-3 px-5 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors hidden">
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-yellow-100 flex items-center justify-center transition-colors">
+                                    <svg class="w-4 h-4 text-slate-500 group-hover:text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                 </div>
-                                <div>
-                                    <p class="font-medium text-[10px] sm:text-xs md:text-sm lg:text-base" id="solicitudes-menu-text">Mis Solicitudes</p>
-                                    <p class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm text-slate-500 hidden sm:block" id="solicitudes-menu-desc">Historial completo</p>
-                                </div>
+                                <span class="font-bold">Mis Solicitudes</span>
                             </a>
-                            
-                            <!-- Reportes - Solo para administradores -->
-                            <a href="../pages/reportes.html" id="reportes-menu-item" class="hidden flex items-center gap-1 sm:gap-2 md:gap-3 px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-[10px] sm:text-xs md:text-sm lg:text-base text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                                <div class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center" style="background-color: #f0f8ff;">
-                                    <span style="color: #2563eb;" class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm">📊</span>
+                            <!-- Mis Préstamos (solo para estudiantes) -->
+                            <a href="../pages/mis-prestamos.html" id="navPrestamosLink" class="group flex items-center gap-3 px-5 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors hidden">
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                                    <svg class="w-4 h-4 text-slate-500 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 </div>
-                                <div>
-                                    <p class="font-medium text-[10px] sm:text-xs md:text-sm lg:text-base">Reportes</p>
-                                    <p class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm text-slate-500 hidden sm:block">Ver estadísticas</p>
-                                </div>
+                                <span class="font-bold">Mis Préstamos</span>
                             </a>
+                            <!-- Resumen Inventario (solo admin/administrativo) -->
+                            <a href="../pages/inventario.html" id="navInventarioLink" class="group flex items-center gap-3 px-5 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors hidden">
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-emerald-100 flex items-center justify-center transition-colors">
+                                    <svg class="w-4 h-4 text-slate-500 group-hover:text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                </div>
+                                <span class="font-bold">Resumen Inventario</span>
+                            </a>
+                            <a href="../pages/ModAdmis.html" id="navAdminLink" class="group flex items-center gap-3 px-5 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors hidden">
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                                    <svg class="w-4 h-4 text-slate-500 group-hover:text-utn-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </div>
+                                <span class="font-bold">Panel Admin</span>
+                            </a>
+
                         </div>
                         
-                        <!-- Separador -->
-                        <div class="border-t border-slate-200"></div>
+                        <div class="border-t border-slate-100 my-1"></div>
                         
-                        <!-- Cerrar Sesión -->
-                        <button id="logoutBtn" onclick="window.cerrarSesion()" class="flex items-center gap-1 sm:gap-2 md:gap-3 w-full px-1.5 sm:px-2 md:px-3 lg:px-4 py-1 sm:py-1.5 md:py-2 lg:py-3 text-[10px] sm:text-xs md:text-sm lg:text-base text-red-600 hover:bg-red-50 transition-colors">
-                            <div class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-8 lg:h-8 rounded-lg flex items-center justify-center bg-red-100">
-                                <span style="color: #dc2626;" class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm">🚪</span>
-                            </div>
-                            <div class="text-left">
-                                <p class="font-medium text-[10px] sm:text-xs md:text-sm lg:text-base">Cerrar Sesión</p>
-                                <p class="text-[8px] sm:text-[10px] md:text-xs lg:text-sm text-slate-500 hidden sm:block">Salir del sistema</p>
-                            </div>
-                        </button>
+                        <div class="p-2">
+                            <button onclick="window.cerrarSesion()" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors font-bold">
+                                <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                </div>
+                                Cerrar Sesión
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </header>
-
 <script>
-// Función global para cerrar sesión
-window.cerrarSesion = function() {
-    console.log('Cerrando sesión...');
-    
-    if (confirm('¿Estás seguro de que quieres cerrar tu sesión?')) {
-        // Limpiar localStorage
-        localStorage.removeItem('utn_token');
-        localStorage.removeItem('utn_user');
-        
-        // Redirigir a login
-        window.location.href = 'login.html';
-    }
-};
+// Mostrar enlaces según rol del usuario
+(function() {
+    try {
+        const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
+        const rol = (user.tipo_rol || user.rol || '').toLowerCase();
+        const esAdmin = rol.includes('admin') || rol.includes('administrativo');
 
-// Función global para toggle del menú
-window.toggleUserMenu = function() {
-    console.log('toggleUserMenu() llamada');
-    
-    const userDropdown = document.getElementById('user-dropdown');
-    if (!userDropdown) {
-        console.log('ERROR: No se encontró el dropdown');
-        return;
-    }
-    
-    if (userDropdown.classList.contains('hidden')) {
-        // Mostrar dropdown
-        userDropdown.classList.remove('hidden');
-        userDropdown.classList.remove('opacity-0');
-        userDropdown.classList.add('opacity-100');
-        console.log('Menú abierto');
-    } else {
-        // Ocultar dropdown
-        userDropdown.classList.add('hidden');
-        userDropdown.classList.add('opacity-0');
-        userDropdown.classList.remove('opacity-100');
-        console.log('Menú cerrado');
-    }
-};
-
-// Función para redirigir al inicio según el rol
-window.redirigirInicio = function() {
-    console.log('redirigirInicio() llamada');
-    
-    const userData = localStorage.getItem('utn_user');
-    console.log('userData en localStorage:', userData ? 'existe' : 'no existe');
-    
-    const user = userData ? JSON.parse(userData) : null;
-    console.log('Usuario parseado:', user);
-    
-    if (!user) {
-        console.log('No hay usuario, redirigiendo a login.html');
-        window.location.href = 'login.html';
-        return;
-    }
-    
-    // Determinar destino según el rol
-    const rol = user.rol ? user.rol.toLowerCase() : '';
-    console.log('Rol detectado:', rol);
-    
-    if (rol.includes('administrador') || rol.includes('admin')) {
-        console.log('Es administrador, redirigiendo a ModAdmis.html');
-        window.location.href = '../pages/ModAdmis.html';
-    } else {
-        console.log('Es usuario normal, redirigiendo a ModUsuarios.html');
-        window.location.href = '../pages/ModUsuarios.html';
-    }
-};
-
-// Asignar evento al botón de inicio
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOMContentLoaded - Asignando evento al botón de inicio');
-    
-    const inicioBtn = document.getElementById('inicioBtn');
-    console.log('inicioBtn encontrado:', !!inicioBtn);
-    
-    if (inicioBtn) {
-        inicioBtn.addEventListener('click', function(e) {
-            console.log('Click en botón de inicio detectado');
-            e.preventDefault();
-            redirigirInicio();
-        });
-        console.log('Evento asignado al botón de inicio');
-    } else {
-        console.log('ERROR: No se encontró el botón de inicio');
-    }
-});
-
-// NO ejecutar updateUserInfo automáticamente aquí
-// La función se ejecutará desde la página que carga el header (como en perfil.html)
-
-// Función updateUserInfo disponible para que las páginas la llamen
-function updateUserInfo() {
-    console.log('👤 updateUserInfo() llamada desde header...');
-    
-    // Obtener currentUser de localStorage
-    const userData = localStorage.getItem('utn_user');
-    const currentUser = userData ? JSON.parse(userData) : null;
-    
-    console.log('👤 currentUser en updateUserInfo():', currentUser);
-    
-    if (currentUser) {
-        const userInfo = document.getElementById('userInfo');
-        const userMenuName = document.getElementById('userMenuName');
-        const dropdownUserName = document.getElementById('dropdownUserName');
-        const dropdownUserRole = document.getElementById('dropdownUserRole');
-        const cartBtn = document.getElementById('cartBtn');
-        
-        // Obtener el rol del usuario
-        const userRole = currentUser.rol || currentUser.rol_nombre || currentUser.tipo_rol || 'Estudiante';
-        console.log('🔍 Rol del usuario:', userRole);
-        
-        // Configurar menú según rol
-        const solicitudesMenuText = document.getElementById('solicitudes-menu-text');
-        const solicitudesMenuDesc = document.getElementById('solicitudes-menu-desc');
-        const reportesMenuItem = document.getElementById('reportes-menu-item');
-        
-        console.log('🔍 Elementos del menú encontrados:', {
-            solicitudesMenuText: !!solicitudesMenuText,
-            solicitudesMenuDesc: !!solicitudesMenuDesc,
-            reportesMenuItem: !!reportesMenuItem
-        });
-        
-        if (userRole === 'admin' || userRole === 'administrador') {
-            // Para administradores
-            console.log('👨‍💼 Configurando menú para administrador...');
-            if (solicitudesMenuText) {
-                solicitudesMenuText.textContent = 'Solicitudes';
-                console.log('✅ Texto cambiado a "Solicitudes"');
-            }
-            if (solicitudesMenuDesc) {
-                solicitudesMenuDesc.textContent = 'Gestionar todas las solicitudes';
-                console.log('✅ Descripción cambiada para admin');
-            }
-            if (reportesMenuItem) {
-                reportesMenuItem.classList.remove('hidden');
-                console.log('✅ Reportes visible para admin');
-            }
-            console.log('👨‍💼 Menú configurado para administrador');
+        if (esAdmin) {
+            document.getElementById('navInventarioLink')?.classList.remove('hidden');
+            document.getElementById('navAdminLink')?.classList.remove('hidden');
         } else {
-            // Para estudiantes y docentes
-            console.log('👨‍🎓 Configurando menú para estudiante/docente...');
-            if (solicitudesMenuText) {
-                solicitudesMenuText.textContent = 'Mis Solicitudes';
-                console.log('✅ Texto cambiado a "Mis Solicitudes"');
-            }
-            if (solicitudesMenuDesc) {
-                solicitudesMenuDesc.textContent = 'Historial completo';
-                console.log('✅ Descripción cambiada para estudiante');
-            }
-            if (reportesMenuItem) {
-                reportesMenuItem.classList.add('hidden');
-                console.log('✅ Reportes oculto para estudiante');
-            }
-            console.log('👨‍🎓 Menú configurado para estudiante/docente');
+            // Es estudiante o docente
+            document.getElementById('navSolicitudesLink')?.classList.remove('hidden');
+            document.getElementById('navPrestamosLink')?.classList.remove('hidden');
         }
-        
-        // Ocultar carrito solo para administradores
-        if (cartBtn) {
-            if (userRole === 'admin' || userRole === 'administrador') {
-                cartBtn.style.display = 'none';
-                console.log('🛒 Carrito oculto para administrador');
-            } else {
-                cartBtn.style.display = 'flex';
-                console.log('🛒 Carrito visible para estudiante/docente');
-            }
-        }
-        
-        // Usar el campo correcto de la base de datos (colección usuarios)
-        const nombreCompleto = currentUser.nombre_completo || currentUser.nombre || 'Usuario';
-        
-        if (userInfo) {
-            userInfo.textContent = nombreCompleto;
-            console.log('✅ userInfo actualizado:', nombreCompleto);
-        }
-        
-        if (userMenuName) {
-            userMenuName.textContent = nombreCompleto;
-            console.log('✅ userMenuName actualizado:', nombreCompleto);
-        }
-        
-        if (dropdownUserName) {
-            dropdownUserName.textContent = nombreCompleto;
-            console.log('✅ dropdownUserName actualizado:', nombreCompleto);
-        }
-        
-        if (dropdownUserRole) {
-            dropdownUserRole.textContent = userRole;
-            console.log('✅ dropdownUserRole actualizado:', userRole);
-        }
-    } else {
-        console.log('❌ No hay currentUser para actualizar');
-    }
-}
-
-console.log('🔥 Header cargado - updateUserInfo() disponible para ser llamada desde la página');
-
-// Configurar evento del dropdown del usuario
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Header DOM cargado, configurando eventos...');
-    
-    // Función para configurar el menú
-    function configurarMenuUsuario() {
-        const userMenuBtn = document.getElementById('user-menu-btn');
-        const userDropdown = document.getElementById('user-dropdown');
-        
-        console.log('Elementos del menú:', {
-            userMenuBtn: !!userMenuBtn,
-            userDropdown: !!userDropdown
-        });
-        
-        if (userMenuBtn && userDropdown) {
-            console.log('Botón y dropdown encontrados, configurando eventos...');
-            
-            // Remover eventos anteriores para evitar duplicados
-            userMenuBtn.removeEventListener('click', toggleMenu);
-            
-            // Añadir evento
-            userMenuBtn.addEventListener('click', toggleMenu);
-            
-            console.log('Evento de menú configurado');
-        } else {
-            console.log('No se encontraron elementos del menú, reintentando en 500ms...');
-            setTimeout(configurarMenuUsuario, 500);
-        }
-    }
-    
-    // Función para abrir/cerrar menú
-    function toggleMenu(e) {
-        e.stopPropagation();
-        console.log('Click en botón de usuario');
-        
-        const userDropdown = document.getElementById('user-dropdown');
-        if (userDropdown) {
-            if (userDropdown.classList.contains('hidden')) {
-                // Mostrar dropdown
-                userDropdown.classList.remove('hidden');
-                userDropdown.classList.remove('opacity-0');
-                userDropdown.classList.add('opacity-100');
-                console.log('Menú abierto');
-            } else {
-                // Ocultar dropdown
-                userDropdown.classList.add('hidden');
-                userDropdown.classList.add('opacity-0');
-                userDropdown.classList.remove('opacity-100');
-                console.log('Menú cerrado');
-            }
-        }
-    }
-    
-    // Configurar menú inmediatamente
-    configurarMenuUsuario();
-    
-    // También configurar cuando el header se cargue dinámicamente
-    setTimeout(configurarMenuUsuario, 1000);
-    
-    // Cerrar menú al hacer clic fuera
-    document.addEventListener('click', (e) => {
-        const userDropdown = document.getElementById('user-dropdown');
-        const userMenuBtn = document.getElementById('user-menu-btn');
-        
-        if (userDropdown && !userDropdown.classList.contains('hidden') && 
-            !userDropdown.contains(e.target) && !userMenuBtn.contains(e.target)) {
-            userDropdown.classList.add('hidden');
-            userDropdown.classList.remove('opacity-100');
-            console.log('Menú cerrado por click fuera');
-        }
-    });
-    
-    // Llamar a updateUserInfo
-    console.log('🔥 Llamando a updateUserInfo()...');
-    updateUserInfo();
-    
-    // Forzar actualización después de 1 segundo por si acaso
-    setTimeout(() => {
-        console.log('🔥 Forzando segunda actualización del menú...');
-        updateUserInfo();
-    }, 1000);
-    
-    // Configurar carrito después de que el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM cargado, configurando carrito del header...');
-    
-    const cartBtn = document.getElementById('cartBtn');
-    if (cartBtn) {
-        cartBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Clic en carrito del header - EVENTO DEL HEADER');
-            console.log('Buscando modal del carrito...');
-            
-            // Buscar el modal del carrito en la página
-            const cartModal = document.getElementById('cartModal');
-            console.log('Modal encontrado:', !!cartModal);
-            
-            if (cartModal) {
-                console.log('Modal encontrado, abriendo...');
-                console.log('Clases del modal antes:', cartModal.className);
-                
-                cartModal.classList.remove('opacity-0', 'pointer-events-none');
-                
-                console.log('Clases del modal después:', cartModal.className);
-                
-                // Actualizar UI del carrito
-                if (typeof updateCartUI === 'function') {
-                    console.log('Actualizando UI del carrito desde header...');
-                    updateCartUI();
-                }
-                
-                // Forzar que el modal esté visible
-                setTimeout(() => {
-                    cartModal.style.display = 'flex';
-                    cartModal.style.opacity = '1';
-                    cartModal.style.pointerEvents = 'auto';
-                    console.log('Modal forzado a ser visible');
-                }, 10);
-                
-            } else {
-                console.log('Modal del carrito no encontrado');
-            }
-        });
-        console.log('Evento del carrito configurado en header');
-    } else {
-        console.log('Botón del carrito no encontrado en header');
-    }
-});
-});
-
-// Función global para actualizar el carrito
-window.updateCartUI = function() {
-    const cartCount = document.getElementById('cartCount');
-    const cartItems = document.getElementById('cartItems');
-    const cartTotal = document.getElementById('cartTotal');
-    
-    // Obtener usuario actual y carrito personal con clave única
-    const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
-    const userId = user._id || user.correo_electronico || 'anonymous';
-    const cartKey = `cart_${btoa(userId)}`;
-    
-    let cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
-    
-    console.log('Header - Actualizando UI del carrito personal con clave:', cartKey);
-    console.log('Header - Artículos encontrados:', cart);
-    
-    // Actualizar contador (prioridad alta)
-    if (cartCount) {
-        cartCount.textContent = cart.length;
-        console.log('Contador actualizado a:', cart.length);
-    } else {
-        console.log('No se encontró el elemento cartCount');
-    }
-    
-    // Actualizar lista de items si existe el contenedor
-    if (cartItems) {
-        cartItems.innerHTML = '';
-        cart.forEach((item, index) => {
-            const itemElement = document.createElement('div');
-            itemElement.className = 'flex items-center justify-between p-3 bg-slate-50 rounded-lg';
-            itemElement.innerHTML = `
-                <div class="flex items-center gap-3 flex-1">
-                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <span class="text-lg">${item.type === 'activos' ? '📱' : '📦'}</span>
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="font-medium text-sm text-slate-800">${item.name}</h4>
-                        <p class="text-xs text-slate-500">${item.type === 'activos' ? 'Activo' : 'Insumo'}</p>
-                        ${item.data.caracteristicas ? `<p class="text-xs text-slate-400 mt-1">${item.data.caracteristicas}</p>` : ''}
-                        ${item.data.descripcion ? `<p class="text-xs text-slate-400">${item.data.descripcion}</p>` : ''}
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-sm font-medium text-slate-600">Qty: ${item.quantity || 1}</span>
-                    <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                    </button>
-                </div>
-            `;
-            cartItems.appendChild(itemElement);
-        });
-    }
-};
-
-// Función global para eliminar del carrito
-window.removeFromCart = function(index) {
-    // Obtener usuario actual y carrito personal con clave única
-    const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
-    const userId = user._id || user.correo_electronico || 'anonymous';
-    const cartKey = `cart_${btoa(userId)}`;
-    
-    let cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
-    const removedItem = cart[index];
-    cart.splice(index, 1);
-    localStorage.setItem(cartKey, JSON.stringify(cart));
-    
-    console.log('Header - Artículo eliminado del carrito personal:', cartKey);
-    
-    if (typeof updateCartUI === 'function') {
-        updateCartUI();
-    }
-    
-    // Mostrar notificación si Utils está disponible
-    if (window.Utils && window.Utils.showToast) {
-        window.Utils.showToast(`Eliminado: ${removedItem.name}`, 'info');
-    }
-};
+    } catch(e) {}
+})();
 </script>

@@ -58,14 +58,14 @@ window.subirImagen = async function(file) {
         
         if (response.ok) {
             const data = await response.json();
-            console.log('✅ Imagen subida:', data);
+            console.log(' Imagen subida:', data);
             return data.imageUrl; // URL de la imagen subida
         } else {
-            console.error('❌ Error al subir imagen:', response.statusText);
+            console.error(' Error al subir imagen:', response.statusText);
             return null;
         }
     } catch (error) {
-        console.error('❌ Error en la subida de imagen:', error);
+        console.error(' Error en la subida de imagen:', error);
         return null;
     }
 };

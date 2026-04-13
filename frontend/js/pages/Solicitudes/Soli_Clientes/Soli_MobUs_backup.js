@@ -104,12 +104,12 @@ class MobileUserController {
             });
         }
 
-        console.log('✅ Event listeners configurados');
+        console.log(' Event listeners configurados');
     }
 
     async loadUserSolicitudes() {
         try {
-            console.log('🔄 Cargando solicitudes del usuario...');
+            console.log(' Cargando solicitudes del usuario...');
             
             const userData = localStorage.getItem('utn_user');
             const currentUser = JSON.parse(userData);
@@ -145,12 +145,12 @@ class MobileUserController {
                 return solicitudUsuario === nombreUsuario || solicitudEmail === emailUsuario;
             });
 
-            console.log(`✅ Se encontraron ${this.solicitudes.length} solicitudes para este usuario`);
+            console.log(` Se encontraron ${this.solicitudes.length} solicitudes para este usuario`);
             this.renderSolicitudes();
             this.updateStatistics();
             
         } catch (error) {
-            console.error('❌ Error cargando solicitudes:', error);
+            console.error(' Error cargando solicitudes:', error);
             this.showError('Error al cargar las solicitudes: ' + error.message);
         }
     }
@@ -205,12 +205,12 @@ class MobileUserController {
         // Determinar colores según rol
         let rolColor = '#000000'; // Negro para todos
         let rolBgGradient = 'linear-gradient(135deg, rgba(229, 220, 220, 0) 0%, rgba(132, 128, 128, 0) 100%)';
-        let rolIcono = '🎓';
+        let rolIcono = '';
         
         if (esDocente) {
             rolColor = '#000000'; // Negro también para docentes
             rolBgGradient = 'linear-gradient(135deg, rgba(0, 0, 0, 0) 0%, rgba(51, 51, 51, 0) 100%)';
-            rolIcono = '👨‍🏫';
+            rolIcono = '‍';
         }
 
         return `
@@ -269,7 +269,7 @@ class MobileUserController {
             <button onclick="window.mobileUserController.verDetalles('${solicitud._id}')" 
                 class="w-full text-left px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-2"
                 style="color: #004a8c; hover: background-color: #004a8c15;">
-                <span class="text-xs sm:text-sm">👁️</span> Ver Detalles
+                <span class="text-xs sm:text-sm">️</span> Ver Detalles
             </button>
         `);
 
@@ -280,7 +280,7 @@ class MobileUserController {
                     <button onclick="window.mobileUserController.gestionarSolicitud('${solicitud._id}')" 
                         class="w-full text-left px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-2"
                         style="color: #004a8c; hover: background-color: #004a8c15;">
-                        <span class="text-xs sm:text-sm">✏️</span> Editar Solicitud
+                        <span class="text-xs sm:text-sm">️</span> Editar Solicitud
                     </button>
                 `);
             }
@@ -385,7 +385,7 @@ class MobileUserController {
         if (estadoFilter) estadoFilter.value = 'todos';
 
         this.applyFilters();
-        this.showToast('🧹 Filtros limpiados', 'success');
+        this.showToast(' Filtros limpiados', 'success');
     }
 
     toggleMenu(solicitudId) {
@@ -436,12 +436,12 @@ window.mobileUserController = null;
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 DOM listo - Inicializando MobileUserController...');
+    console.log(' DOM listo - Inicializando MobileUserController...');
     
     // Esperar a que solicitudesController esté disponible
     const waitForSolicitudesController = () => {
         if (window.solicitudesController) {
-            console.log('✅ SolicitudesController disponible, creando MobileUserController...');
+            console.log(' SolicitudesController disponible, creando MobileUserController...');
             
             // Agregar estilos CSS para asegurar altura completa
             const style = document.createElement('style');

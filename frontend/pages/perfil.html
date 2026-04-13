@@ -3,282 +3,310 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil - UTN Sistema de Gestión</title>
-    <meta name="description" content="Perfil de usuario del sistema UTN">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="../css/main.css">
-    <link rel="stylesheet" href="../css/pages/perfil.css">
+    <title>Mi Perfil - UTN SPIEE</title>
+    <link rel="icon" type="image/jpeg" href="../css/UTN.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { utn: { blue: '#002D62', dark: '#001A33', gold: '#F2A900' } } } }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        .field-label { display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px; }
+        .card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; }
+    </style>
+
+    <!-- SweetAlert2 --><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body class="text-slate-800">
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
     
-    <!-- Header Component -->
+    <!-- NAV: Header Component -->
     <div id="header-component"></div>
     
-    <!-- Contenido Principal -->
-    <main class="container py-6">
-        <div class="flex gap-6">
-            <!-- Sidebar Component -->
-            <div id="sidebar-component"></div>
-            
-            <!-- Contenido del Perfil -->
-            <div class="flex-1 max-w-4xl">
-                <header class="mb-6">
-                    <h1 class="text-3xl font-bold text-slate-800">👤 Mi Perfil</h1>
-                    <p class="text-slate-600">Gestiona tu información personal y preferencias</p>
-                </header>
-                
-                <!-- Información Personal -->
-                <section class="card p-6 mb-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-bold text-slate-800">Información Personal</h2>
-                        <button id="editar-perfil-btn" class="btn btn-secondary">
-                            ✏️ Editar
-                        </button>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Nombre Completo</label>
-                            <p id="nombre-completo" class="text-slate-900 font-medium">-</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Cédula</label>
-                            <p id="cedula" class="text-slate-900 font-medium">-</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Correo Electrónico</label>
-                            <p id="correo" class="text-slate-900 font-medium">-</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Código de Barras</label>
-                            <p id="codigo-barras" class="text-slate-900 font-medium">-</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Rol</label>
-                            <p id="rol" class="text-slate-900 font-medium">-</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Estado</label>
-                            <p id="estado" class="text-slate-900 font-medium">-</p>
-                        </div>
-                    </div>
-                </section>
-                
-                <!-- Estadísticas del Usuario -->
-                <section class="card p-6 mb-6">
-                    <h2 class="text-xl font-bold text-slate-800 mb-6">📊 Mis Estadísticas</h2>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div class="text-center p-4 bg-blue-50 rounded-lg">
-                            <div class="text-3xl mb-2">📋</div>
-                            <h3 class="text-2xl font-bold text-blue-600" id="total-solicitudes">0</h3>
-                            <p class="text-sm text-slate-600">Total Solicitudes</p>
-                        </div>
-                        <div class="text-center p-4 bg-green-50 rounded-lg">
-                            <div class="text-3xl mb-2">📦</div>
-                            <h3 class="text-2xl font-bold text-green-600" id="activos-en-uso">0</h3>
-                            <p class="text-sm text-slate-600">Activos en Uso</p>
-                        </div>
-                        <div class="text-center p-4 bg-yellow-50 rounded-lg">
-                            <div class="text-3xl mb-2">⏳</div>
-                            <h3 class="text-2xl font-bold text-yellow-600" id="solicitudes-pendientes">0</h3>
-                            <p class="text-sm text-slate-600">Pendientes</p>
-                        </div>
-                        <div class="text-center p-4 bg-purple-50 rounded-lg">
-                            <div class="text-3xl mb-2">✅</div>
-                            <h3 class="text-2xl font-bold text-purple-600" id="devoluciones-tiempo">0</h3>
-                            <p class="text-sm text-slate-600">Devoluciones a Tiempo</p>
-                        </div>
-                    </div>
-                </section>
-                
-                <!-- Historial de Actividad -->
-                <section class="card p-6 mb-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-bold text-slate-800">📜 Historial de Actividad</h2>
-                        <button id="ver-todo-btn" class="btn btn-secondary">
-                            Ver Todo
-                        </button>
-                    </div>
-                    
-                    <div class="space-y-3" id="actividad-reciente">
-                        <!-- La actividad se cargará dinámicamente -->
-                    </div>
-                </section>
-                
-                <!-- Preferencias -->
-                <section class="card p-6 mb-6">
-                    <h2 class="text-xl font-bold text-slate-800 mb-6">⚙️ Preferencias</h2>
-                    
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="font-medium text-slate-900">Notificaciones por Email</h3>
-                                <p class="text-sm text-slate-600">Recibir notificaciones sobre solicitudes y devoluciones</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="notificaciones-email" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                            </label>
-                        </div>
-                        
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="font-medium text-slate-900">Recordatorios de Devolución</h3>
-                                <p class="text-sm text-slate-600">Recibir recordatorios antes de la fecha de devolución</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="recordatorios-devolucion" class="sr-only peer" checked>
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                            </label>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Idioma</label>
-                            <select id="idioma-select" class="input-field w-48">
-                                <option value="es">Español</option>
-                                <option value="en">English</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-6">
-                        <button id="guardar-preferencias-btn" class="btn btn-primary">
-                            💾 Guardar Preferencias
-                        </button>
-                    </div>
-                </section>
-                
-                <!-- Cambio de Contraseña -->
-                <section class="card p-6">
-                    <h2 class="text-xl font-bold text-slate-800 mb-6">🔒 Cambiar Contraseña</h2>
-                    
-                    <div class="space-y-4 max-w-md">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Contraseña Actual</label>
-                            <input type="password" id="password-actual" class="input-field w-full" placeholder="Ingresa tu contraseña actual">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Nueva Contraseña</label>
-                            <input type="password" id="password-nueva" class="input-field w-full" placeholder="Ingresa tu nueva contraseña">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Confirmar Nueva Contraseña</label>
-                            <input type="password" id="password-confirmacion" class="input-field w-full" placeholder="Confirma tu nueva contraseña">
-                        </div>
-                        
-                        <button id="cambiar-password-btn" class="btn btn-primary">
-                            🔒 Cambiar Contraseña
-                        </button>
-                    </div>
-                </section>
+    <!-- Encabezado de Página Institucional -->
+    <div class="bg-white border-b border-slate-200 px-6 py-5">
+        <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <button type="button" onclick="window.redirigirInicio()" class="group flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-[#002D62] text-slate-500 hover:text-white rounded-lg text-[11px] font-black tracking-wide transition-all duration-200 border border-slate-200 hover:border-[#002D62]">
+                        <svg class="w-3.5 h-3.5 transform group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        VOLVER AL INICIO
+                    </button>
+                    <span class="text-slate-300">/</span>
+                    <span class="w-2 h-2 rounded-full bg-[#F2A900] inline-block"></span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Cuenta</span>
+                </div>
+                <h1 class="text-2xl font-black text-[#002D62]">Mi Perfil</h1>
+                <p class="text-sm text-slate-500 mt-0.5">Consulta y gestiona tu información institucional</p>
             </div>
-        </div>
-    </main>
-    
-    <!-- Modals Component -->
-    <div id="modals-component"></div>
-    
-    <!-- Toast Component -->
-    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[200]">
-        <div class="bg-slate-900 text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
-            <span id="toastMsg">Operación Exitosa</span>
+
         </div>
     </div>
     
-    <!-- JavaScript -->
+    <!-- Contenido Principal -->
+    <main class="container mx-auto max-w-6xl px-6 py-8 flex-grow">
+        <div class="max-w-5xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-7">
+                
+                <!-- Tarjeta de Usuario -->
+                <div class="lg:col-span-1 space-y-5">
+                    <div class="card p-8 text-center">
+                        <div class="w-24 h-24 bg-[#002D62] rounded-full mx-auto mb-5 flex items-center justify-center text-[#F2A900] text-4xl font-black user-initials shadow-lg">
+                            U
+                        </div>
+                        <h2 id="profile-name" class="text-lg font-black text-slate-800">Usuario</h2>
+                        <p id="profile-role" class="text-[10px] font-black text-[#002D62] uppercase tracking-[0.3em] mt-1.5">Rol</p>
+                        <div class="mt-5 pt-5 border-t border-slate-100">
+                            <p id="profile-email" class="text-sm text-slate-400 font-medium truncate">email@utn.ac.cr</p>
+                        </div>
+                        <div class="mt-4 flex items-center justify-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                            <span class="text-xs font-bold text-green-600">Cuenta Activa</span>
+                        </div>
+                    </div>
+
+                    <!-- Actividad -->
+                    <div class="card p-6">
+                        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-5">Actividad</h3>
+                        <div class="grid grid-cols-2 gap-5">
+                            <div class="text-center">
+                                <p class="text-3xl font-black text-[#002D62]" id="total-solicitudes">0</p>
+                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">Solicitudes</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-3xl font-black text-[#002D62]" id="activos-en-uso">0</p>
+                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">En Uso</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalles -->
+                <div class="lg:col-span-2 space-y-5">
+                    <!-- Información de la Cuenta -->
+                    <section class="card p-7">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-[#002D62]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                </div>
+                                <h3 class="text-base font-black text-slate-800">Detalles de la Cuenta</h3>
+                            </div>
+                            <button class="text-xs font-black text-[#002D62] hover:underline uppercase tracking-widest">Editar</button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="field-label">Identificación</label>
+                                <p id="cedula" class="text-base font-bold text-slate-700">-</p>
+                            </div>
+                            <div>
+                                <label class="field-label">Estado de Cuenta</label>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                    <p id="estado" class="text-base font-bold text-slate-700">Activo</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Seguridad -->
+                    <section class="card p-7">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center">
+                                <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            </div>
+                            <h3 class="text-base font-black text-slate-800">Seguridad</h3>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <button id="cambiar-password-btn" class="group p-5 bg-slate-50 hover:bg-[#002D62] rounded-xl border border-slate-200 text-left transition-all duration-200">
+                                <p class="font-bold text-sm text-slate-800 group-hover:text-white">Cambiar Contraseña</p>
+                                <p class="text-xs text-slate-400 group-hover:text-white/60 mt-1">Actualiza tu clave de acceso</p>
+                            </button>
+                            <button id="sesiones-activas-btn" class="group p-5 bg-slate-50 hover:bg-[#002D62] rounded-xl border border-slate-200 text-left transition-all duration-200">
+                                <p class="font-bold text-sm text-slate-800 group-hover:text-white">Sesiones Activas</p>
+                                <p class="text-xs text-slate-400 group-hover:text-white/60 mt-1">Ver dispositivos conectados</p>
+                            </button>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- SECCI-N: Estado de cuenta e historial reciente -->
+    <main class="container mx-auto max-w-6xl px-6 pb-10 flex-grow" id="extra-sections">
+        <!-- Esta sección se inyecta dinámicamente con JS -->
+    </main>
+
+    <!-- Footer Component -->
+    <div id="footer-component"></div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 transition-all duration-500 pointer-events-none z-[9999]">
+        <div class="bg-utn-dark text-white text-[10px] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border border-slate-700 uppercase tracking-widest font-bold">
+            <span id="toastMsg">Operación Exitosa</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/app.js"></script>
     <script src="../js/main.js"></script>
-    <script src="../js/components/header.js"></script>
-    <script src="../js/components/sidebar.js"></script>
-    <script src="../js/components/modals.js"></script>
+    <script src="../js/components.js"></script>
     <script src="../js/pages/perfil.js"></script>
-    
-    <!-- Carga del Header Component -->
+
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            // Cargar header component
+            const user = JSON.parse(localStorage.getItem('utn_user'));
+            if (!user) { window.location.href = '../login.html'; return; }
+
+            // Cargar componentes
             try {
-                const headerResponse = await fetch('../components/header.html');
-                const headerHtml = await headerResponse.text();
-                document.getElementById('header-component').innerHTML = headerHtml;
-                console.log('✅ Header component cargado en perfil.html');
-                
-                // Actualizar información del usuario
-                const userData = localStorage.getItem('utn_user');
-                if (userData) {
-                    const currentUser = JSON.parse(userData);
-                    const userInfo = document.getElementById('userInfo');
-                    const userMenuName = document.getElementById('userMenuName');
-                    const dropdownUserName = document.getElementById('dropdownUserName');
-                    const dropdownUserRole = document.getElementById('dropdownUserRole');
-                    
-                    const nombreCompleto = currentUser.nombre_completo || currentUser.nombre || 'Usuario';
-                    
-                    if (userInfo) userInfo.textContent = nombreCompleto;
-                    if (userMenuName) userMenuName.textContent = nombreCompleto;
-                    if (dropdownUserName) dropdownUserName.textContent = nombreCompleto;
-                    if (dropdownUserRole) dropdownUserRole.textContent = currentUser.rol || 'Estudiante';
-                }
-                
-                // Configurar logout
-                const logoutBtn = document.getElementById('logoutBtn');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', () => {
-                        localStorage.removeItem('utn_token');
-                        localStorage.removeItem('utn_user');
-                        window.location.href = '../index.html';
-                    });
-                }
-                
-                // Configurar menú usuario
-                const userMenuBtn = document.getElementById('user-menu-btn');
-                const userDropdown = document.getElementById('user-dropdown');
-                if (userMenuBtn && userDropdown) {
-                    userMenuBtn.addEventListener('click', () => {
-                        userDropdown.classList.toggle('hidden');
-                    });
-                    
-                    // Cerrar al hacer click fuera
-                    document.addEventListener('click', (e) => {
-                        if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-                            userDropdown.classList.add('hidden');
-                        }
-                    });
-                }
-                
-            } catch (error) {
-                console.error('❌ Error cargando header component:', error);
-            }
+                const [hRes, fRes] = await Promise.all([
+                    fetch('../components/header.html'),
+                    fetch('../components/footer.html')
+                ]);
+                document.getElementById('header-component').innerHTML = await hRes.text();
+                document.getElementById('footer-component').innerHTML = await fRes.text();
+            } catch(e) {}
+            if (window.Utils) window.Utils.updateUserInfo();
+
+            // Inicializar controlador si existe
+            if (window.perfilController) window.perfilController.initialize();
+
+            // Cargar datos adicionales del estudiante
+            await cargarDatosEstudiante(user);
         });
-    </script>
-    
-    <!-- Inicialización -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Iniciando perfil.html...');
-            
-            // Verificar autenticación usando la misma lógica que index.html
+
+        async function cargarDatosEstudiante(user) {
             const token = localStorage.getItem('utn_token');
-            const userData = localStorage.getItem('utn_user');
-            
-            console.log('🔍 Verificando sesión en perfil.html:', {
-                token: token ? 'existe' : 'no existe',
-                usuario: userData ? 'existe' : 'no existe'
-            });
-            
-            if (!token || !userData) {
-                console.log('🚫 No hay sesión en perfil.html, redirigiendo a ../index.html...');
-                window.location.href = '../index.html';
-                return;
+            const apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+            const seccion = document.getElementById('extra-sections');
+
+            try {
+                const resp = await fetch(`${apiBase}/solicitudes`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!resp.ok) return;
+
+                const data = await resp.json();
+                const uid = user._id;
+                const mias = Array.isArray(data)
+                    ? data.filter(s => s.usuario?._id === uid || s.usuario === uid)
+                    : [];
+
+                const ahora = new Date();
+                const activas = mias.filter(s => s.estado === 'entregado');
+                const vencidas = activas.filter(s => s.fecha_entrega_esperada && new Date(s.fecha_entrega_esperada) < ahora);
+                const bloqueado = vencidas.length > 0 || mias.some(s => s.estado === 'penalizado');
+
+                // Actualizar contadores del perfil
+                const totalEl = document.getElementById('total-solicitudes');
+                const enUsoEl = document.getElementById('activos-en-uso');
+                if (totalEl) totalEl.textContent = mias.length;
+                if (enUsoEl) enUsoEl.textContent = activas.length;
+
+                // Actualizar estado de cuenta
+                const estadoEl = document.getElementById('estado');
+                const estadoDot = estadoEl?.previousElementSibling;
+                if (estadoEl) {
+                    estadoEl.textContent = bloqueado ? 'Bloqueado' : 'Activo';
+                    estadoEl.className = bloqueado ? 'text-base font-bold text-red-600' : 'text-base font-bold text-slate-700';
+                }
+                if (estadoDot) {
+                    estadoDot.className = bloqueado ? 'w-2 h-2 rounded-full bg-red-500' : 'w-2 h-2 rounded-full bg-green-500 animate-pulse';
+                }
+
+                // Badge de cuenta en la tarjeta lateral
+                const badgeEl = document.querySelector('.mt-4.flex.items-center.justify-center.gap-2 span:last-child');
+                if (badgeEl) {
+                    badgeEl.textContent = bloqueado ? 'Cuenta con Restricción' : 'Cuenta Activa';
+                    badgeEl.className = bloqueado ? 'text-xs font-bold text-red-600' : 'text-xs font-bold text-green-600';
+                }
+
+                // Inyectar sección de préstamos activos e historial reciente
+                const recientes = mias.slice(0, 5); // -altimas 5
+                const estadoColors = {
+                    pendiente: 'bg-yellow-50 text-yellow-700',
+                    aprobada: 'bg-green-50 text-green-700',
+                    rechazada: 'bg-red-50 text-red-700',
+                    entregado: 'bg-blue-50 text-blue-700',
+                    cancelada: 'bg-slate-100 text-slate-500',
+                    devuelto: 'bg-indigo-50 text-indigo-700',
+                    penalizado: 'bg-red-100 text-red-800'
+                };
+                const estadoLabels = {
+                    pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada',
+                    entregado: 'Entregado', cancelada: 'Cancelada', devuelto: 'Devuelto', penalizado: 'Penalizado'
+                };
+
+                seccion.innerHTML = `
+                    ${bloqueado ? `<div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center gap-3 max-w-5xl mx-auto">
+                        <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <p class="text-sm font-bold text-red-700">Tu cuenta tiene restricciones activas. Tienes ${vencidas.length} devolución(es) vencida(s). Visita el laboratorio para regularizar tu situación.</p>
+                    </div>` : ''}
+
+                    <div class="max-w-5xl mx-auto space-y-6">
+                        ${activas.length > 0 ? `
+                        <section class="card p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-black text-slate-800">Préstamos Activos <span class="text-utn-blue">(${activas.length})</span></h3>
+                                <a href="mis-prestamos.html" class="text-xs font-black text-utn-blue hover:underline uppercase tracking-widest">Ver todos</a>
+                            </div>
+                            <div class="space-y-2">
+                                ${activas.map(s => {
+                                    const fechaDev = s.fecha_entrega_esperada ? new Date(s.fecha_entrega_esperada) : null;
+                                    const venc = fechaDev && fechaDev < ahora;
+                                    return `<div class="flex items-center justify-between py-2.5 px-3 rounded-xl ${venc ? 'bg-red-50' : 'bg-slate-50'} text-sm">
+                                        <div>
+                                            <span class="font-bold text-slate-700">#${s._id.slice(-6)}</span>
+                                            <span class="text-slate-400 ml-2">${(s.activos?.length || 0) + (s.insumos?.length || 0)} ítem(s)</span>
+                                        </div>
+                                        ${fechaDev ? `<span class="text-xs font-bold ${venc ? 'text-red-600' : 'text-slate-500'}">Dev: ${fechaDev.toLocaleDateString('es-CR')}</span>` : ''}
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        </section>` : ''}
+
+                        <section class="card p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-black text-slate-800">Historial Reciente</h3>
+                                <a href="solicitudes.html" class="text-xs font-black text-utn-blue hover:underline uppercase tracking-widest">Ver todo el historial</a>
+                            </div>
+                            ${recientes.length === 0 ? `<p class="text-sm text-slate-400 italic text-center py-4">Sin solicitudes registradas</p>` : `
+                            <div class="space-y-2">
+                                ${recientes.map(s => `
+                                <div class="flex items-center justify-between py-2.5 px-3 rounded-xl bg-slate-50">
+                                    <div class="flex items-center gap-3">
+                                        <span class="font-mono text-xs text-slate-400">#${s._id.slice(-6)}</span>
+                                        <span class="text-xs text-slate-600">${new Date(s.createdAt).toLocaleDateString('es-CR')}</span>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${estadoColors[s.estado] || 'bg-slate-100 text-slate-500'}">${estadoLabels[s.estado] || s.estado}</span>
+                                </div>`).join('')}
+                            </div>`}
+                        </section>
+
+                        <div class="flex gap-3">
+                            <a href="solicitudes.html" class="flex-1 flex items-center justify-center gap-2 py-3 bg-utn-blue text-white font-black rounded-xl hover:bg-utn-dark transition shadow-md text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                Mis Solicitudes
+                            </a>
+                            <a href="mis-prestamos.html" class="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 text-slate-700 font-black rounded-xl hover:bg-slate-50 transition text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                Mis Préstamos
+                            </a>
+                        </div>
+                    </div>`;
+
+            } catch(e) {
+                console.warn('Error cargando datos del estudiante en perfil:', e);
             }
-            
-            console.log('✅ Sesión válida en perfil.html, inicializando...');
-            
-            // Inicializar página de perfil
-            window.perfilController?.initialize();
-        });
+        }
     </script>
 </body>
 </html>
+

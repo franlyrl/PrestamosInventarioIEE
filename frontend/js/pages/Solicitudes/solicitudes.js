@@ -112,13 +112,13 @@ class SolicitudesController {
     async cargarSolicitudes() {
         try {
             Utils.showLoading(true);
-            console.log('🔄 Cargando solicitudes del sistema...');
+            console.log(' Cargando solicitudes del sistema...');
 
             // Cargar TODAS las solicitudes del sistema (para administradores)
             const response = await ApiService.getSolicitudes();
-            console.log('📡 Respuesta de getSolicitudes:', response);
+            console.log(' Respuesta de getSolicitudes:', response);
             this.solicitudes = response.data || response;
-            console.log('✅ Solicitudes cargadas:', this.solicitudes.length, 'solicitudes');
+            console.log(' Solicitudes cargadas:', this.solicitudes.length, 'solicitudes');
 
             // Ocultar loading
             Utils.showLoading(false);
@@ -128,7 +128,7 @@ class SolicitudesController {
             this.renderSolicitudes();
             this.updateEstadisticas();
 
-            console.log('✅ Controller completó todo el renderizado');
+            console.log(' Controller completó todo el renderizado');
 
         } catch (error) {
             console.error('Error cargando solicitudes:', error);
@@ -406,7 +406,7 @@ class SolicitudesController {
                             </div>
                         </div>
                         <!-- DEBUG: Verificando z-index del menú móvil -->
-                        <script>console.log('🔍 Menú móvil creado con z-index: 999999 para solicitud:', '${solicitud._id}');</script>
+                        <script>console.log(' Menú móvil creado con z-index: 999999 para solicitud:', '${solicitud._id}');</script>
                     </td>
                 </tr>
             `;
@@ -421,37 +421,37 @@ class SolicitudesController {
                 // Botones para administradores (versión móvil)
                 return `
                     <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                        👁️ Ver
+                        ️ Ver
                     </button>
                     <button onclick="editarSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                        ✏️ Editar
+                        ️ Editar
                     </button>
                     <div class="border-t my-1"></div>
                     <a href="#" onclick="aprobarSolicitud('${solicitudId}'); return false;" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                        ✅ Aprobar
+                         Aprobar
                     </a>
                     <button onclick="rechazarSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                        ❌ Rechazar
+                         Rechazar
                     </button>
                     <button onclick="entregarSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                        📦 Entregar
+                         Entregar
                     </button>
                     <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                        🔄 Devolver
+                         Devolver
                     </button>
                     <div class="border-t my-1"></div>
                     <button onclick="eliminarSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-red-50 text-red-600 flex items-center gap-1">
-                        🗑️ Eliminar
+                        ️ Eliminar
                     </button>
                 `;
             } else {
                 // Botones para usuarios no administrativos (versión móvil)
                 let botonesHTML = `
                     <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                        👁️ Ver
+                        ️ Ver
                     </button>
                     <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                        🔄 Devolver
+                         Devolver
                     </button>
                 `;
 
@@ -460,7 +460,7 @@ class SolicitudesController {
                     botonesHTML += `
                         <div class="border-t my-1"></div>
                         <button onclick="eliminarSolicitud(&quot;${solicitudId}&quot;)" class="w-full text-left px-2 py-1 text-xs hover:bg-red-50 text-red-600 flex items-center gap-1">
-                            🗑️ Eliminar mi solicitud
+                            ️ Eliminar mi solicitud
                         </button>
                     `;
                 }
@@ -473,42 +473,42 @@ class SolicitudesController {
                 // Botones para administradores (todos los botones)
                 return `
                     <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
-                        👁️ Ver detalles
+                        ️ Ver detalles
                     </button>
                     <button onclick="editarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
-                        ✏️ Editar
+                        ️ Editar
                     </button>
                     <div class="border-t border-slate-200 my-1"></div>
                     <a href="#" onclick="aprobarSolicitud('${solicitudId}'); return false;" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
-                        ✅ Aprobar
+                         Aprobar
                     </a>
                     <button onclick="rechazarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-2">
-                        ❌ Rechazar
+                         Rechazar
                     </button>
                     <button onclick="entregarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
-                        📦 Entregar
+                         Entregar
                     </button>
                     <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
-                        🔄 Devolver
+                         Devolver
                     </button>
                     <div class="border-t border-slate-200 my-1"></div>
                     <button onclick="eliminarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
-                        🗑️ Eliminar    
+                        ️ Eliminar    
                     </button>
                 `;
             } else {
                 // Botones para estudiantes y docentes (solo los básicos)
                 let botonesHTML = `
                     <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
-                        👁️ Ver detalles
+                        ️ Ver detalles
                     </button>
                     <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
-                        🔄 Devolver
+                         Devolver
                     </button>
                 `;
 
                 // Añadir botón eliminar solo si es mi solicitud y está en estado permitido
-                console.log('🔍 Verificando botón eliminar para estudiante:', {
+                console.log(' Verificando botón eliminar para estudiante:', {
                     puedeEliminar,
                     esMiSolicitud,
                     estado: solicitudActual?.estado,
@@ -516,15 +516,15 @@ class SolicitudesController {
                 });
                 
                 if (puedeEliminar) {
-                    console.log('✅ Añadiendo botón eliminar para estudiante');
+                    console.log(' Añadiendo botón eliminar para estudiante');
                     botonesHTML += `
                         <div class="border-t border-slate-200 my-1"></div>
                         <button onclick="eliminarSolicitud(&quot;${solicitudId}&quot;)" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
-                            🗑️ Eliminar mi solicitud
+                            ️ Eliminar mi solicitud
                         </button>
                     `;
                 } else {
-                    console.log('❌ No se añade botón eliminar:', {
+                    console.log(' No se añade botón eliminar:', {
                         puedeEliminar,
                         esMiSolicitud,
                         estado: solicitudActual?.estado
@@ -539,16 +539,16 @@ class SolicitudesController {
     getElementosInfo(solicitud) {
         const elementos = [];
 
-        console.log('🔍 Procesando elementos de solicitud:', solicitud._id);
-        console.log('📦 Insumos:', solicitud.insumos);
-        console.log('🔧 Activos:', solicitud.activos);
+        console.log(' Procesando elementos de solicitud:', solicitud._id);
+        console.log(' Insumos:', solicitud.insumos);
+        console.log(' Activos:', solicitud.activos);
 
         // Procesar activos
         if (solicitud.activos && solicitud.activos.length > 0) {
             solicitud.activos.forEach((activo, index) => {
-                console.log(`🔧 Procesando activo ${index + 1}:`, activo);
+                console.log(` Procesando activo ${index + 1}:`, activo);
                 elementos.push({
-                    icono: '🔧',
+                    icono: '',
                     nombre: activo.nombre || activo.marca || activo.codigo_activo || 'Activo',
                     cantidad: 1,
                     detalles: activo.modelo || activo.descripcion || ''
@@ -559,7 +559,7 @@ class SolicitudesController {
         // Procesar insumos con más detalles
         if (solicitud.insumos && solicitud.insumos.length > 0) {
             solicitud.insumos.forEach((insumo, index) => {
-                console.log(`📦 Procesando insumo ${index + 1}:`, insumo);
+                console.log(` Procesando insumo ${index + 1}:`, insumo);
                 
                 // Intentar obtener el nombre de múltiples formas
                 let nombreInsumo = 'Insumo';
@@ -578,10 +578,10 @@ class SolicitudesController {
                                    'Insumo';
                 }
                 
-                console.log(`📝 Nombre final del insumo: ${nombreInsumo}`);
+                console.log(` Nombre final del insumo: ${nombreInsumo}`);
 
                 elementos.push({
-                    icono: '📦',
+                    icono: '',
                     nombre: nombreInsumo,
                     cantidad: insumo.cantidad || 1,
                     detalles: insumo.caracteristicas || insumo.descripcion || ''
@@ -589,7 +589,7 @@ class SolicitudesController {
             });
         }
 
-        console.log('✅ Elementos procesados:', elementos);
+        console.log(' Elementos procesados:', elementos);
         return elementos;
     }
 
@@ -666,7 +666,7 @@ class SolicitudesController {
         // Mostrar modal con detalles
         window.modalController?.showModal('confirmModal', {
             title: 'Detalles de la Solicitud',
-            icon: '📋',
+            icon: '',
             details: `
                 <div class="space-y-2">
                     <div class="flex justify-between">
@@ -838,7 +838,7 @@ class SolicitudesController {
             <button onclick="window.solicitudesController.verDetalles('${solicitud._id}')" 
                 class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
                 style="color: #004a8c; hover: background-color: #004a8c15;">
-                👁️ Ver Detalles
+                ️ Ver Detalles
             </button>
         `);
 
@@ -849,7 +849,7 @@ class SolicitudesController {
                     <button onclick="window.solicitudesController.gestionarSolicitud('${solicitud._id}')" 
                         class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
                         style="color: #004a8c; hover: background-color: #004a8c15;">
-                        ✏️ Editar Solicitud
+                        ️ Editar Solicitud
                     </button>
                 `);
             }
@@ -968,7 +968,7 @@ window.toggleMenu = function(solicitudId, event) {
 
 // Función para ver detalles de una solicitud
 window.verSolicitud = function(solicitudId) {
-    console.log('👁️ Ver detalles de solicitud:', solicitudId);
+    console.log('️ Ver detalles de solicitud:', solicitudId);
     
     // Buscar la solicitud en los datos cargados
     const solicitud = window.solicitudesController?.solicitudes?.find(s => s._id === solicitudId);
@@ -984,7 +984,7 @@ window.verSolicitud = function(solicitudId) {
     modal.innerHTML = `
         <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-slate-800">📋 Detalles de Solicitud</h3>
+                <h3 class="text-xl font-bold text-slate-800"> Detalles de Solicitud</h3>
                 <button onclick="this.closest('.fixed').remove()" class="text-slate-400 hover:text-slate-600">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>

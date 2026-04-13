@@ -1,4 +1,7 @@
-// Controlador de la página de Activos
+/**
+ * ActivosController
+ * Gestiona la lógica de la página de Activos
+ */
 class ActivosController {
     constructor() {
         this.activos = [];
@@ -7,29 +10,63 @@ class ActivosController {
             categoria: 'todas',
             estado: 'todos'
         };
-        this.currentPage = 1;
-        this.itemsPerPage = 12;
+        this.isLoaded = false;
     }
 
+    /**
+     * Inicializa la página
+     */
     async initialize() {
-        await this.cargarActivos();
-        this.setupEventListeners();
-        this.renderActivos();
+        console.log('ActivosController: Inicializando...');
+        try {
+            await this.cargarActivos();
+            this.setupEventListeners();
+            this.renderActivos();
+            this.isLoaded = true;
+            console.log('ActivosController: Inicialización completada');
+        } catch (error) {
+            console.error('ActivosController Error:', error);
+            window.Utils?.showToast('Error al inicializar la página de activos', 'error');
+        }
     }
 
-    setupEventListeners() {
-        console.log('🔧 Configurando event listeners...');
+    /**
+     * Carga los activos desde la API
+     */
+    async cargarActivos() {
+        try {
+            const token = localStorage.getItem('utn_token');
+            const response = await fetch(`${window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api'}/activos`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
 
-        // Búsqueda
+            if (!response.ok) throw new Error('Error al cargar activos');
+            
+            const data = await response.json();
+            this.activos = Array.isArray(data) ? data : (data.todosLosActivos || []);
+            console.log(`ActivosController: ${this.activos.length} activos cargados`);
+        } catch (error) {
+            console.error('Error cargando activos:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Configura los eventos del DOM
+     */
+    setupEventListeners() {
+        // Búsqueda en tiempo real
         const busquedaInput = document.getElementById('busqueda-input');
         if (busquedaInput) {
             busquedaInput.addEventListener('input', (e) => {
-                this.filtros.busqueda = e.target.value;
+                this.filtros.busqueda = e.target.value.toLowerCase();
                 this.renderActivos();
             });
         }
 
-        // Categoría
+        // Filtro de categoría
         const categoriaSelect = document.getElementById('categoria-select');
         if (categoriaSelect) {
             categoriaSelect.addEventListener('change', (e) => {
@@ -38,7 +75,7 @@ class ActivosController {
             });
         }
 
-        // Estado
+        // Filtro de estado
         const estadoSelect = document.getElementById('estado-select');
         if (estadoSelect) {
             estadoSelect.addEventListener('change', (e) => {
@@ -47,462 +84,399 @@ class ActivosController {
             });
         }
 
-        // Botones
-        const buscarBtn = document.getElementById('buscar-btn');
+        // Botón Limpiar
         const limpiarBtn = document.getElementById('limpiar-btn');
-        const agregarBtn = document.getElementById('agregar-btn');
-        const agregarMasivoBtn = document.getElementById('agregar-masivo-btn');
-        const exportarBtn = document.getElementById('exportar-btn');
-
-        console.log('🔍 Botones encontrados:', {
-            buscarBtn: !!buscarBtn,
-            limpiarBtn: !!limpiarBtn,
-            agregarBtn: !!agregarBtn,
-            agregarMasivoBtn: !!agregarMasivoBtn,
-            exportarBtn: !!exportarBtn
-        });
-
-        if (buscarBtn) {
-            buscarBtn.addEventListener('click', () => this.renderActivos());
-        }
-
         if (limpiarBtn) {
             limpiarBtn.addEventListener('click', () => this.limpiarFiltros());
         }
 
-        const canManageActivos = this.userHasActivosPermission();
-        console.log('👤 ¿Puede gestionar activos?', canManageActivos);
-
-        if (agregarBtn) {
-            if (!canManageActivos) {
-                agregarBtn.classList.add('hidden');
-            } else {
-                agregarBtn.addEventListener('click', () => {
-                    window.modalController?.showAgregarActivo();
-                });
-            }
-        }
-
+        // Botón Agregar Masivo
+        const agregarMasivoBtn = document.getElementById('agregar-masivo-btn');
         if (agregarMasivoBtn) {
-            if (!canManageActivos) {
-                agregarMasivoBtn.classList.add('hidden');
-            } else {
-                agregarMasivoBtn.addEventListener('click', () => {
-                    console.log('📦 Click en botón agregar masivo');
-                    window.abrirModalMasivo();
-                });
-            }
-        }
-
-        if (exportarBtn) {
-            exportarBtn.addEventListener('click', () => this.exportarDatos());
+            agregarMasivoBtn.addEventListener('click', () => this.abrirModalMasivo());
         }
     }
 
-    userHasActivosPermission() {
-        const userData = localStorage.getItem('utn_user');
-        if (!userData) return false;
-
-        const user = JSON.parse(userData);
-        const rol = (user.rol || user.role || user.tipo_rol || '').toLowerCase();
-        return ['admin', 'administrador', 'administrativo'].includes(rol);
-    }
-
-    async cargarActivos() {
-        try {
-            Utils.showLoading(true);
-            const response = await ApiService.getActivos();
-            this.activos = response.data || response;
-            Utils.showLoading(false);
-        } catch (error) {
-            console.error('Error cargando activos:', error);
-            Utils.showToast('Error al cargar activos', 'error');
-            Utils.showLoading(false);
-        }
-    }
-
-    renderActivos() {
-        const grid = document.getElementById('activos-grid');
-        const emptyState = document.getElementById('empty-state');
-        const resultadosCount = document.getElementById('resultados-count');
-
-        if (!grid) return;
-
-        const activosFiltrados = this.filtrarActivos();
-
-        // Actualizar contador
-        if (resultadosCount) {
-            resultadosCount.textContent = activosFiltrados.length;
-        }
-
-        // Mostrar/ocultar empty state
-        if (emptyState) {
-            emptyState.classList.toggle('hidden', activosFiltrados.length > 0);
-        }
-
-        if (activosFiltrados.length === 0) {
-            grid.innerHTML = '';
-            return;
-        }
-
-        grid.innerHTML = activosFiltrados.map((activo, index) =>
-            this.createActivoCard(activo, index)
-        ).join('');
-    }
-
-    filtrarActivos() {
+    /**
+     * Filtra la lista de activos según los criterios actuales
+     */
+    getActivosFiltrados() {
         return this.activos.filter(activo => {
-            const coincideBusqueda = !this.filtros.busqueda ||
-                (activo.marca && activo.marca.toLowerCase().includes(this.filtros.busqueda.toLowerCase())) ||
-                (activo.modelo && activo.modelo.toLowerCase().includes(this.filtros.busqueda.toLowerCase())) ||
-                (activo.caracteristicas && activo.caracteristicas.toLowerCase().includes(this.filtros.busqueda.toLowerCase()));
+            const matchBusqueda = !this.filtros.busqueda || 
+                activo.modelo?.toLowerCase().includes(this.filtros.busqueda) ||
+                activo.numSerie?.toLowerCase().includes(this.filtros.busqueda) ||
+                activo.marca?.toLowerCase().includes(this.filtros.busqueda);
 
-            const coincideCategoria = this.filtros.categoria === 'todas' ||
+            const matchCategoria = this.filtros.categoria === 'todas' || 
                 activo.categoria === this.filtros.categoria;
 
-            const coincideEstado = this.filtros.estado === 'todos' ||
-                activo.estado_activo === this.filtros.estado;
+            const matchEstado = this.filtros.estado === 'todos' || 
+                activo.estadoActivo === this.filtros.estado;
 
-            return coincideBusqueda && coincideCategoria && coincideEstado;
+            return matchBusqueda && matchCategoria && matchEstado;
         });
     }
 
     /**
-     * Genera el HTML para una tarjeta de activo
-     * Corregido para mostrar Marca + Modelo si el campo 'nombre' está vacío
+     * Renderiza las tarjetas de activos
      */
-    createActivoCard(activo, index) {
-        // Definición de colores y estilos por estado
-        const statusStyles = {
-            'disponible': 'bg-emerald-100 text-emerald-700 border-emerald-200',
-            'prestado': 'bg-amber-100 text-amber-700 border-amber-200',
-            'mantenimiento': 'bg-red-100 text-red-700 border-red-200',
-            'extraviado': 'bg-slate-200 text-slate-700 border-slate-300'
-        };
+    renderActivos() {
+        const grid = document.getElementById('activos-grid');
+        const emptyState = document.getElementById('empty-state');
+        const countSpan = document.getElementById('resultados-count');
+        
+        if (!grid) return;
 
-        const estado_activo = (activo.estado || 'disponible').toLowerCase();
-        const statusClass = statusStyles[estado_activo] || statusStyles['disponible'];
-        const isAvailable = estado_activo === 'disponible';
+        const filtrados = this.getActivosFiltrados();
+        
+        // Actualizar contador
+        if (countSpan) countSpan.textContent = filtrados.length;
 
-        // CORRECCIÓN: Lógica para el título de la tarjeta
-        // Usamos modelo_activo como nombre principal (donde está el nombre real)
-        const nombreDisplay = activo.modelo_activo || `${activo.marca || ''} ${activo.modelo || ''}`.trim() || "Activo sin identificación";
+        // Mostrar u ocultar estado vacío
+        if (filtrados.length === 0) {
+            grid.innerHTML = '';
+            emptyState?.classList.remove('hidden');
+            return;
+        }
 
-        return `
-        <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col h-full group" 
-             style="animation: fadeIn 0.5s ease forwards; animation-delay: ${index * 50}ms">
-            
-            <!-- Cabecera: Estado y ID -->
-            <div class="flex justify-between items-start mb-4">
-                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${statusClass}">
-                    ${activo.estado_activo || 'Disponible'}
-                </span>
-                <span class="text-[10px] font-bold text-slate-300 uppercase">
-                    ID: ${activo.codigo_activo || 'N/A'}
-                </span>
-            </div>
+        emptyState?.classList.add('hidden');
+        
+        grid.innerHTML = filtrados.map(activo => `
+            <div class="card overflow-hidden group hover:shadow-xl transition-all duration-300 animate-fade-in" data-id="${activo._id}">
+                ${activo.imagenUrl && !activo.imagenUrl.includes('placeholder') ? `
+                    <div class="h-40 w-full overflow-hidden bg-white border-b border-slate-100 flex items-center justify-center p-2 cursor-pointer group/img" onclick="event.stopPropagation(); window.verImagenCompleta('${activo.imagenUrl}', '${(activo.modelo || activo.marca || 'Activo').replace(/'/g, "\\'")}')">
+                        <img src="${activo.imagenUrl}" alt="${activo.modelo}" class="max-h-full object-contain group-hover/img:scale-110 transition-transform duration-500">
+                    </div>
+                ` : `
+                    <div class="h-2 bg-gradient-to-r ${this.getEstadoGradient(activo.estadoActivo)}"></div>
+                `}
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-slate-100 text-slate-500">
+                            ${activo.categoria}
+                        </span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded ${this.getEstadoBadgeClass(activo.estadoActivo)}">
+                            ${activo.estadoActivo}
+                        </span>
+                    </div>
+                    
+                    <h3 class="font-bold text-slate-800 text-lg mb-1 group-hover:text-utn-blue transition-colors">
+                        ${activo.modelo || 'Sin Modelo'}
+                    </h3>
+                    <p class="text-slate-500 text-xs mb-4 flex items-center gap-2">
+                        <span class="font-bold text-slate-400">S/N:</span> ${activo.numSerie || 'N/A'}
+                    </p>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="bg-slate-50 p-2 rounded-lg">
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Marca</span>
+                            <span class="text-sm font-semibold text-slate-700">${activo.marca || 'Genérico'}</span>
+                        </div>
+                        <div class="bg-slate-50 p-2 rounded-lg">
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold">Código</span>
+                            <span class="text-sm font-semibold text-slate-700">${activo.numActivo || 'N/A'}</span>
+                        </div>
+                    </div>
 
-            <!-- Imagen -->
-            <div class="relative aspect-video mb-5 bg-slate-50 rounded-2xl flex items-center justify-center overflow-hidden border border-slate-50">
-                ${activo.imagen_activo ?
-                `<img src="${activo.imagen_activo}" 
-                          alt="${nombreDisplay}"
-                          class="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
-                          onerror="this.src='https://via.placeholder.com/150?text=Sin+Imagen'">` :
-                `<span class="text-4xl opacity-40">${getIconByCategory(activo.categoria)}</span>`
-            }
-            </div>
-
-            <!-- Información Principal -->
-            <div class="flex-grow">
-                <h3 class="font-bold text-slate-800 leading-tight mb-1 group-hover:text-blue-600 transition-colors uppercase text-sm">
-                    ${nombreDisplay}
-                </h3>
-                <p class="text-[11px] font-medium text-slate-400 mb-3">
-                    Categoría: ${activo.categoria || 'General'}
-                </p>
-                
-                <div class="space-y-2 mb-4">
-                    <div class="flex items-center gap-2">
-                        <span class="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">SERIE</span>
-                        <span class="text-[11px] text-slate-600 font-mono">${activo.codigo_activo || 'N/A'}</span>
+                    <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 duration-300">
+                        <button onclick="window.activosController.editarActivo('${activo._id}')" class="flex-1 py-2 text-xs font-bold bg-slate-100 text-slate-600 rounded-lg hover:bg-utn-blue hover:text-white transition">
+                            Editar
+                        </button>
+                        <button onclick="window.activosController.eliminarActivo('${activo._id}')" class="p-2 text-xs font-bold bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
                     </div>
                 </div>
             </div>
-
-            <!-- Botones vinculados al ActivosController -->
-            <div class="pt-4 border-t border-slate-50 flex gap-2">
-                <button onclick="window.activosController.verDetalles('${activo._id}')" 
-                    class="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-600 text-[10px] font-bold py-3 rounded-xl transition-colors uppercase">
-                    Detalles
-                </button>
-                
-                <button onclick="window.activosController.solicitarPrestamo('${activo._id}')" 
-                    ${!isAvailable ? 'disabled' : ''}
-                    class="flex-[1.5] ${isAvailable ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-100' : 'bg-slate-200 cursor-not-allowed'} 
-                           text-white text-[10px] font-bold py-3 rounded-xl shadow-lg transition-all uppercase">
-                    ${isAvailable ? 'Solicitar' : 'No disponible'}
-                </button>
-if (buscarBtn) {
-    buscarBtn.addEventListener('click', () => this.renderActivos());
-}
-
-if (limpiarBtn) {
-    limpiarBtn.addEventListener('click', () => this.limpiarFiltros());
-}
-
-const canManageActivos = this.userHasActivosPermission();
-
-if (agregarBtn) {
-    if (!canManageActivos) {
-        agregarBtn.classList.add('hidden');
-    } else {
-        agregarBtn.addEventListener('click', () => {
-            window.modalController?.showAgregarActivo();
-        });
-    }
-}
-
-if (agregarMasivoBtn) {
-    if (!canManageActivos) {
-        agregarMasivoBtn.classList.add('hidden');
-    } else {
-        agregarMasivoBtn.addEventListener('click', () => {
-            window.abrirModalMasivo();
-        });
-    }
-}
-
-if (exportarBtn) {
-    exportarBtn.addEventListener('click', () => this.exportarDatos());
-}
-
-userHasActivosPermission() {
-    const userData = localStorage.getItem('utn_user');
-    if (!userData) return false;
-
-    const user = JSON.parse(userData);
-    const rol = (user.rol || user.role || user.tipo_rol || '').toLowerCase();
-    return ['admin', 'administrador', 'administrativo'].includes(rol);
-}
-
-async cargarActivos() {
-    try {
-        Utils.showLoading(true);
-        const response = await ApiService.getActivos();
-        this.activos = response.data || response;
-        Utils.showLoading(false);
-    } catch (error) {
-        console.error('Error cargando activos:', error);
-        Utils.showToast('Error al cargar activos', 'error');
-        Utils.showLoading(false);
-    }
-}
-
-renderActivos() {
-    const grid = document.getElementById('activos-grid');
-    const emptyState = document.getElementById('empty-state');
-    const resultadosCount = document.getElementById('resultados-count');
-
-    if (!grid) return;
-
-    const activosFiltrados = this.filtrarActivos();
-
-    // Actualizar contador
-    if (resultadosCount) {
-        resultadosCount.textContent = activosFiltrados.length;
+        `).join('');
     }
 
-    // Mostrar/ocultar empty state
-    if (emptyState) {
-        emptyState.classList.toggle('hidden', activosFiltrados.length > 0);
-    }
-
-    if (activosFiltrados.length === 0) {
-        grid.innerHTML = '';
-        return;
-    }
-
-    grid.innerHTML = activosFiltrados.map((activo, index) =>
-        this.createActivoCard(activo, index)
-    ).join('');
-}
-
-filtrarActivos() {
-    return this.activos.filter(activo => {
-        const coincideBusqueda = !this.filtros.busqueda ||
-            (activo.marca && activo.marca.toLowerCase().includes(this.filtros.busqueda.toLowerCase())) ||
-            (activo.modelo && activo.modelo.toLowerCase().includes(this.filtros.busqueda.toLowerCase())) ||
-            (activo.caracteristicas && activo.caracteristicas.toLowerCase().includes(this.filtros.busqueda.toLowerCase()));
-
-        const coincideCategoria = this.filtros.categoria === 'todas' ||
-            activo.categoria === this.filtros.categoria;
-
-        const coincideEstado = this.filtros.estado === 'todos' ||
-            activo.estado_activo === this.filtros.estado;
-
-        return coincideBusqueda && coincideCategoria && coincideEstado;
-    });
-}
-
-            </div>
-        </div>
-        `;
-    }
-
-    async verDetalles(id) {
-        const activo = this.activos.find(a => a._id === id);
-        if (!activo) return;
-
-        // Mostrar modal con detalles
-        window.modalController?.showModal('confirmModal', {
-            title: 'Detalles del Activo',
-            icon: this.getActivoIcon(activo),
-            details: `
-            < div class="space-y-2" >
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">Nombre:</span>
-                        <span class="font-bold text-slate-700">${activo.nombre || 'N/A'}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">Código:</span>
-                        <span class="font-bold text-slate-700">${activo.numActivo || 'N/A'}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">Marca:</span>
-                        <span class="font-bold text-slate-700">${activo.marca || 'N/A'}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">Modelo:</span>
-                        <span class="font-bold text-slate-700">${activo.modelo || 'N/A'}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">Estado:</span>
-                        <span class="font-bold text-slate-700">${activo.estadoActivo || 'N/A'}</span>
-                    </div>
-                    ${activo.caracteristicas ? `
-                        <div class="border-t pt-2 mt-2">
-                            <span class="text-slate-400 font-bold">Características:</span>
-                            <p class="text-slate-700 mt-1">${activo.caracteristicas}</p>
-                        </div>
-                    ` : ''
-                }
-                </div >
-            `
-        });
-    }
-
-    async editarActivo(id) {
-        const activo = this.activos.find(a => a._id === id);
-        if (!activo) return;
-
-        // Lógica para editar activo
-        console.log('Editar activo:', activo);
-        Utils.showToast('Función de edición en desarrollo', 'info');
-    }
-
-    limpiarFiltros() {
-        this.filtros = {
-            busqueda: '',
-            categoria: 'todas',
-            estado: 'todos'
+    /**
+     * Estilos CSS para el estado
+     */
+    getEstadoBadgeClass(estado) {
+        const classes = {
+            'disponible': 'bg-green-100 text-green-700',
+            'prestado': 'bg-blue-100 text-blue-700',
+            'mantenimiento': 'bg-yellow-100 text-yellow-700',
+            'deteriorado': 'bg-orange-100 text-orange-700',
+            'dañado': 'bg-red-100 text-red-700'
         };
-
-        // Limpiar inputs
-        const busquedaInput = document.getElementById('busqueda-input');
-        const categoriaSelect = document.getElementById('categoria-select');
-        const estadoSelect = document.getElementById('estado-select');
-
-        if (busquedaInput) busquedaInput.value = '';
-        if (categoriaSelect) categoriaSelect.value = 'todas';
-        if (estadoSelect) estadoSelect.value = 'todos';
-
-        this.renderActivos();
+        return classes[estado?.toLowerCase()] || 'bg-slate-100 text-slate-700';
     }
 
-    exportarDatos() {
-        const activosFiltrados = this.filtrarActivos();
+    getEstadoGradient(estado) {
+        const gradients = {
+            'disponible': 'from-green-400 to-green-600',
+            'prestado': 'from-blue-400 to-blue-600',
+            'mantenimiento': 'from-yellow-400 to-yellow-600',
+            'deteriorado': 'from-orange-400 to-orange-600',
+            'dañado': 'from-red-400 to-red-600'
+        };
+        return gradients[estado?.toLowerCase()] || 'from-slate-400 to-slate-600';
+    }
 
-        if (activosFiltrados.length === 0) {
-            Utils.showToast('No hay datos para exportar', 'error');
-            return;
+    /**
+     * Limpia filtros
+     */
+    limpiarFiltros() {
+        this.filtros = { busqueda: '', categoria: 'todas', estado: 'todos' };
+        
+        const b = document.getElementById('busqueda-input');
+        const c = document.getElementById('categoria-select');
+        const e = document.getElementById('estado-select');
+        
+        if (b) b.value = '';
+        if (c) c.value = 'todas';
+        if (e) e.value = 'todos';
+        
+        this.renderActivos();
+        window.Utils?.showToast('Filtros limpiados', 'success');
+    }
+
+    /**
+     * Funciones de Modal
+     */
+    abrirModalMasivo() {
+        const modal = document.getElementById('modalAgregarMasivo');
+        if (modal) {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+            this.mostrarTabMasivo('archivo');
+            this.limpiarTabla();
+            this.agregarFilaTabla();
+        }
+    }
+
+    cerrarModalMasivo() {
+        const modal = document.getElementById('modalAgregarMasivo');
+        if (modal) {
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+    }
+
+    mostrarTabMasivo(tab) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        document.querySelectorAll('[id^="tab-"]').forEach(t => {
+            t.classList.remove('text-utn-blue', 'border-b-2', 'border-blue-600');
+            t.classList.add('text-slate-600');
+        });
+        
+        document.getElementById(`contenido-${tab}`)?.classList.remove('hidden');
+        const activeTab = document.getElementById(`tab-${tab}`);
+        if (activeTab) {
+            activeTab.classList.remove('text-slate-600');
+            activeTab.classList.add('text-utn-blue', 'border-b-2', 'border-blue-600');
+        }
+    }
+
+    limpiarTabla() {
+        const tbody = document.getElementById('tabla-activos-masivos');
+        if (tbody) tbody.innerHTML = '';
+    }
+
+    agregarFilaTabla() {
+        const tbody = document.getElementById('tabla-activos-masivos');
+        if (!tbody) return;
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="border border-slate-200 px-2 py-1"><input type="text" class="w-full px-2 py-1 border border-slate-300 rounded" placeholder="Nombre" data-field="nombre"></td>
+            <td class="border border-slate-200 px-2 py-1"><input type="text" class="w-full px-2 py-1 border border-slate-300 rounded" placeholder="Código" data-field="codigo"></td>
+            <td class="border border-slate-200 px-2 py-1"><input type="text" class="w-full px-2 py-1 border border-slate-300 rounded" placeholder="Marca" data-field="marca"></td>
+            <td class="border border-slate-200 px-2 py-1"><input type="text" class="w-full px-2 py-1 border border-slate-300 rounded" placeholder="Modelo" data-field="modelo"></td>
+            <td class="border border-slate-200 px-2 py-1">
+                <select class="w-full px-2 py-1 border border-slate-300 rounded" data-field="categoria">
+                    <option value="Instrumentos">Instrumentos</option>
+                    <option value="Herramientas">Herramientas</option>
+                </select>
+            </td>
+            <td class="border border-slate-200 px-2 py-1">
+                <select class="w-full px-2 py-1 border border-slate-300 rounded" data-field="estado">
+                    <option value="disponible">Disponible</option>
+                    <option value="prestado">Prestado</option>
+                    <option value="mantenimiento">Mantenimiento</option>
+                </select>
+            </td>
+            <td class="border border-slate-200 px-2 py-1 text-center">
+                <button onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-700">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    async procesarArchivo(file) {
+        if (!file) return;
+        const fileName = file.name.toLowerCase();
+        
+        try {
+            if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                this.procesarJSON(json);
+            } else if (fileName.endsWith('.csv')) {
+                const text = await file.text();
+                this.procesarCSV(text);
+            } else {
+                window.Utils?.showToast('Formato no soportado', 'error');
+            }
+        } catch (error) {
+            console.error('Error procesando archivo:', error);
+            window.Utils?.showToast('Error al procesar archivo', 'error');
+        }
+    }
+
+    procesarCSV(text) {
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+        const data = lines.map(l => l.split(','));
+        this.procesarJSON(data);
+    }
+
+    procesarJSON(rows) {
+        // Ignorar encabezados si parecen serlo
+        if (rows.length > 0 && (rows[0][0]?.toLowerCase().includes('nombre') || rows[0][0]?.toLowerCase().includes('codigo'))) {
+            rows.shift();
         }
 
-        // Crear CSV
-        const headers = ['Nombre', 'Código', 'Marca', 'Modelo', 'Categoría', 'Estado'];
-        const csvContent = [
-            headers.join(','),
-            ...activosFiltrados.map(activo => [
-                activo.nombre || '',
-                activo.numActivo || '',
-                activo.marca || '',
-                activo.modelo || '',
-                activo.categoria || '',
-                activo.estadoActivo || ''
-            ].join(','))
-        ].join('\n');
+        const activos = rows.map(row => ({
+            numActivo: row[1] || `ACT-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            numSerie: row[1] || '',
+            marca: row[2] || 'Genérico',
+            modelo: row[0] || 'Nuevo Activo',
+            categoria: row[4] || 'Instrumentos',
+            estadoActivo: row[5]?.toLowerCase() || 'disponible',
+            caracteristicas: `Importado desde archivo el ${new Date().toLocaleDateString()}`
+        })).filter(a => a.modelo && a.numActivo);
 
-        // Descargar archivo
-        const blob = new Blob([csvContent], { type: 'text/csv' });
+        if (activos.length > 0) {
+            this.enviarMasivo(activos);
+        } else {
+            window.Utils?.showToast('No se encontraron datos válidos', 'error');
+        }
+    }
+
+    async enviarMasivo(activos) {
+        try {
+            window.Utils?.showLoading(true);
+            const token = localStorage.getItem('utn_token');
+            let exitos = 0;
+
+            for (const activo of activos) {
+                const response = await fetch(`${window.CONFIG?.API_BASE_URL}/activos`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(activo)
+                });
+                if (response.ok) exitos++;
+            }
+
+            window.Utils?.showLoading(false);
+            window.Utils?.showToast(`${exitos} activos agregados correctamente`, 'success');
+            this.cerrarModalMasivo();
+            await this.cargarActivos();
+            this.renderActivos();
+        } catch (error) {
+            console.error('Error en envío masivo:', error);
+            window.Utils?.showLoading(false);
+            window.Utils?.showToast('Error en el proceso masivo', 'error');
+        }
+    }
+
+    async procesarAgregadoMasivo() {
+        const tabActivo = document.querySelector('[id^="tab-"].text-utn-blue')?.id.replace('tab-', '');
+        
+        if (tabName === 'tabla') {
+            const activos = [];
+            document.querySelectorAll('#tabla-activos-masivos tr').forEach(tr => {
+                const inputs = tr.querySelectorAll('input, select');
+                if (inputs[0].value) {
+                    activos.push({
+                        modelo: inputs[3].value || inputs[0].value,
+                        numActivo: inputs[1].value,
+                        numSerie: inputs[1].value,
+                        marca: inputs[2].value,
+                        categoria: inputs[4].value,
+                        estadoActivo: inputs[5].value,
+                        caracteristicas: 'Ingreso manual masivo'
+                    });
+                }
+            });
+            if (activos.length > 0) await this.enviarMasivo(activos);
+        } else if (tabName === 'manual') {
+            const nombres = document.getElementById('nombres-manual')?.value.split('\n').filter(n => n.trim());
+            const categoria = document.getElementById('categoria-manual')?.value;
+            const estado = document.getElementById('estado-manual')?.value;
+            const marca = document.getElementById('marca-manual')?.value;
+            
+            if (!nombres || nombres.length === 0) return;
+
+            const activos = nombres.map(n => ({
+                modelo: n,
+                numActivo: `ACT-${Date.now()}-${Math.random().toString(36).substr(2,5)}`,
+                numSerie: 'N/A',
+                marca: marca || 'Genérico',
+                categoria: categoria || 'Instrumentos',
+                estadoActivo: estado || 'disponible',
+                caracteristicas: 'Ingreso manual rápido'
+            }));
+            await this.enviarMasivo(activos);
+        }
+    }
+
+    descargarPlantilla() {
+        const csv = "Nombre,Codigo,Marca,Modelo,Categoria,Estado\nOsciloscopio,OSC-001,Tektronix,TBS1052,Instrumentos,disponible";
+        const blob = new Blob([csv], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `activos_${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = 'plantilla_activos.csv';
         a.click();
-        window.URL.revokeObjectURL(url);
-
-        Utils.showToast('Datos exportados exitosamente', 'success');
     }
 
-    // Recargar activos
-    async recargarActivos() {
-        await this.cargarActivos();
-        this.renderActivos();
+    editarActivo(id) {
+        console.log('Editar activo:', id);
+        window.Utils?.showToast('Edición en desarrollo', 'info');
     }
 
-    checkAvailability(activo) {
-        return activo.estado_activo === 'disponible';
-    }
+    async eliminarActivo(id) {
+        const ans = await window.SwalUTN.confirm('¿Eliminar activo?', '¿Estás seguro de que deseas eliminar este activo de forma permanente?');
+        if (!ans.isConfirmed) return;
+        
+        try {
+            const token = localStorage.getItem('utn_token');
+            const response = await fetch(`${window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api'}/activos/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
 
-    getActivoIcon(activo) {
-        const categoria = (activo.categoria || '').toLowerCase();
-        const nombre = (activo.nombre_activo || '').toLowerCase();
-
-        if (categoria.includes('medición') || nombre.includes('multímetro')) return '🔬';
-        if (categoria.includes('medición') || nombre.includes('osciloscopio')) return '📊';
-        if (categoria.includes('herramienta') || nombre.includes('soldador')) return '🔥';
-        if (categoria.includes('instrumento')) return '⚡';
-        if (categoria.includes('equipo')) return '🖥️';
-
-        return '🔧';
-    }
-
-    async solicitarPrestamo(id) {
-        const activo = this.activos.find(a => a._id === id);
-        if (!activo) return;
-
-        if (!this.checkAvailability(activo)) {
-            Utils.showToast('Este activo no está disponible', 'error');
-            return;
+            if (response.ok) {
+                window.Utils?.showToast('Activo eliminado', 'success');
+                await this.cargarActivos();
+                this.renderActivos();
+            }
+        } catch (error) {
+            console.error('Error eliminando activo:', error);
+            window.Utils?.showToast('Error al eliminar activo', 'error');
         }
-
-        // Lógica para solicitar préstamo
-        console.log('Solicitando préstamo de activo:', activo);
-        Utils.showToast('Función de préstamo en desarrollo', 'info');
     }
-
-/**
- * Retorna un emoji representativo según la categoría
- */
-function getIconByCategory(categoria) {
-    const cat = (categoria || '').toLowerCase();
-    if (cat.includes('instrumento')) return '📟';
-    if (cat.includes('herramienta')) return '🛠️';
-    if (cat.includes('comput')) return '💻';
-    if (cat.includes('red')) return '🌐';
-    return '📦';
 }
 
-// Crear instancia global
+// Hacer el controlador global
 window.activosController = new ActivosController();
-console.log('✅ ActivosController creado y asignado a window');
+
+// Inicializar cuando el DOM esté listo, pero esperar a main.js
+document.addEventListener('DOMContentLoaded', () => {
+    // Si main.js ya cargó, inicializar. Si no, esperar se maneja por el MutationObserver de main.js o carga secuencial.
+    console.log('Activos Page Script Loaded');
+    setTimeout(() => {
+        if (!window.activosController.isLoaded) {
+            window.activosController.initialize();
+        }
+    }, 500);
+});

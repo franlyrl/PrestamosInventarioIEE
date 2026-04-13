@@ -1,15 +1,47 @@
-/**
+﻿/**
  * @file insumoControllers.js
- * @description Gestión de materiales consumibles (resistencias, estaño, componentes, etc.) con soporte de imágenes.
+ * @description Gestion de insumos con estandarizacion de estados y trazabilidad.
  */
 const Insumos = require('../models/insumos');
-const Usuarios = require('../models/usuarios');
-const mongoose = require('mongoose');
+const google = require('googlethis');
 
-/**
- * @route GET /api/insumos
- * @desc Obtiene la lista completa de insumos disponibles en el inventario.
- */
+const ROLES_AUTORIZADOS = ['admin', 'administrador', 'Administrador', 'administrativo'];
+
+const normalizarTexto = (valor = '') => String(valor).trim();
+
+const normalizarEstadoPorCantidad = (cantidad, estadoActual = 'disponible') => {
+    const cantidadNumero = Number(cantidad);
+    if (!Number.isFinite(cantidadNumero) || cantidadNumero <= 0) {
+        return 'fuera de stock';
+    }
+
+    const estado = normalizarTexto(estadoActual).toLowerCase();
+    if (['prestado', 'en espera', 'eliminado'].includes(estado)) {
+        return estado;
+    }
+    return 'disponible';
+};
+
+const construirCodigo = ({ codigo, tipo }) => {
+    const codigoLimpio = normalizarTexto(codigo).toUpperCase();
+    const tipoLimpio = normalizarTexto(tipo).toLowerCase() === 'activo' ? 'activo' : 'consumible';
+    if (!codigoLimpio) return codigoLimpio;
+
+    if (codigoLimpio.startsWith('ACT-') || codigoLimpio.startsWith('INS-')) {
+        return codigoLimpio;
+    }
+
+    const prefijo = tipoLimpio === 'activo' ? 'ACT-' : 'INS-';
+    return `${prefijo}${codigoLimpio}`;
+};
+
+const registrarMovimiento = (insumo, payload = {}) => {
+    if (!insumo.movimientos) {
+        insumo.movimientos = [];
+    }
+    insumo.movimientos.push(payload);
+};
+
 exports.getInsumos = async (req, res) => {
     try {
         const insumos = await Insumos.find();
@@ -19,78 +51,108 @@ exports.getInsumos = async (req, res) => {
     }
 };
 
-/**
- * @desc Registra un nuevo insumo.
- * Valida: Rol administrativo, Campos obligatorios (Nombre, Características, Categoría).
- * Soporta creación individual o masiva (bulk).
- */
 exports.createInsumo = async (req, res) => {
     try {
-        // 1. FILTRO DE SEGURIDAD (Solo administrativos)
-        const rolesAutorizados = ['admin', 'administrador', 'Administrador', 'administrativo'];
-
-        if (!req.user || !rolesAutorizados.includes(req.user.tipo_rol)) {
+        if (!req.user || !ROLES_AUTORIZADOS.includes(req.user.tipo_rol)) {
             return res.status(403).json({
-                message: 'Acceso denegado: No tienes permisos para añadir insumos.',
+                message: 'Acceso denegado: No tienes permisos para anadir insumos.',
                 debug: `rol actual: ${req.user?.tipo_rol}`
             });
         }
 
         const datos = req.body;
         const categoriasValidas = Insumos.schema.path('categoria').enumValues;
+        const tiposValidos = Insumos.schema.path('tipo').enumValues;
 
         const validarObjeto = obj => {
-            const { NombProducto, caracteristicas, categoria } = obj;
-            if (!NombProducto || !caracteristicas || !categoria) {
+            const { NombProducto, caracteristicas, categoria, codigo, tipo } = obj;
+            if (!NombProducto || !caracteristicas || !categoria || !codigo || !tipo) {
                 return false;
             }
             if (!categoriasValidas.includes(categoria)) {
                 return false;
             }
+            if (!tiposValidos.includes(String(tipo).toLowerCase())) {
+                return false;
+            }
             return true;
         };
 
+        const prepararDatos = item => {
+            const payload = { ...item };
+            payload.tipo = normalizarTexto(payload.tipo).toLowerCase();
+            payload.codigo = construirCodigo(payload);
+            payload.cantidad = Math.max(0, Number(payload.cantidad || 0));
+            payload.ubicacion = normalizarTexto(payload.ubicacion || 'Laboratorio de Electronica');
+            payload.estado = normalizarEstadoPorCantidad(payload.cantidad, payload.estado);
+            return payload;
+        };
+
         if (Array.isArray(datos)) {
-            // bulk insert
             if (datos.length === 0) {
-                return res.status(400).json({ message: 'Array vacío enviado para creación masiva.' });
+                return res.status(400).json({ message: 'Array vacio enviado para creacion masiva.' });
             }
+
+            const lote = [];
             for (const item of datos) {
                 if (!validarObjeto(item)) {
-                    return res.status(400).json({ message: 'Uno o más objetos del array no son válidos.' });
+                    return res.status(400).json({
+                        message: 'Uno o mas objetos del array no son validos (faltan campos obligatorios o enum invalido).'
+                    });
                 }
+
+                const preparado = prepararDatos(item);
+                preparado.movimientos = [{
+                    tipo: 'registro',
+                    cantidad_anterior: null,
+                    cantidad_nueva: preparado.cantidad,
+                    estado_anterior: null,
+                    estado_nuevo: preparado.estado,
+                    observacion: 'Registro inicial masivo del insumo.',
+                    usuario: req.user?._id || null,
+                    fecha: new Date()
+                }];
+                lote.push(preparado);
             }
-            const insertados = await Insumos.insertMany(datos);
+
+            const insertados = await Insumos.insertMany(lote);
             return res.status(201).json({
-                message: 'Insumos registrados con éxito (bulk)',
+                message: 'Insumos registrados con exito (bulk).',
                 count: insertados.length,
                 data: insertados
             });
-        } else {
-            // single insert
-            if (!validarObjeto(datos)) {
-                return res.status(400).json({
-                    message: 'Error: El nombre, las características y la categoría son campos obligatorios ó categoría inválida.'
-                });
-            }
-            
-            console.log('📋 Datos recibidos en backend:', datos);
-            console.log('🖼️ URL de imagen recibida:', datos.imagenUrl);
-            console.log('🔍 Tipo de imagenUrl:', typeof datos.imagenUrl);
-            
-            const nuevoInsumo = new Insumos(datos);
-            const insumoGuardado = await nuevoInsumo.save();
-            
-            console.log('✅ Insumo guardado en BD:', insumoGuardado);
-            console.log('🖼️ URL de imagen guardada:', insumoGuardado.imagenUrl);
+        }
 
-            return res.status(201).json({
-                message: "Insumo registrado con éxito",
-                data: insumoGuardado
+        if (!validarObjeto(datos)) {
+            return res.status(400).json({
+                message: 'Error: Codigo, Tipo, Nombre, Caracteristicas y Categoria son campos obligatorios.'
             });
         }
 
+        const payload = prepararDatos(datos);
+        const nuevoInsumo = new Insumos(payload);
+        registrarMovimiento(nuevoInsumo, {
+            tipo: 'registro',
+            cantidad_anterior: null,
+            cantidad_nueva: payload.cantidad,
+            estado_anterior: null,
+            estado_nuevo: payload.estado,
+            observacion: 'Registro inicial del insumo.',
+            usuario: req.user?._id || null,
+            fecha: new Date()
+        });
+
+        const insumoGuardado = await nuevoInsumo.save();
+
+        return res.status(201).json({
+            message: 'Insumo registrado con exito',
+            data: insumoGuardado
+        });
     } catch (error) {
+        if (error.code === 11000 && error.keyPattern?.codigo) {
+            return res.status(409).json({ message: 'El codigo ingresado ya existe. Debe ser unico.' });
+        }
+
         res.status(500).json({
             message: 'Error interno al registrar el insumo',
             error: error.message
@@ -98,31 +160,65 @@ exports.createInsumo = async (req, res) => {
     }
 };
 
-/**
- * @route PUT /api/insumos/:id
- * @desc Actualiza los detalles o el stock de un insumo existente.
- */
 exports.updateInsumo = async (req, res) => {
     try {
-        const insumoActualizado = await Insumos.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true, runValidators: true }
-        );
-
-        if (!insumoActualizado) {
+        const insumo = await Insumos.findById(req.params.id);
+        if (!insumo) {
             return res.status(404).json({ message: 'Insumo no encontrado' });
         }
+
+        const estadoAnterior = insumo.estado;
+        const cantidadAnterior = insumo.cantidad;
+
+        const camposPermitidos = [
+            'id_insumo',
+            'codigo',
+            'tipo',
+            'NombProducto',
+            'cantidad',
+            'caracteristicas',
+            'categoria',
+            'imagenUrl',
+            'ubicacion',
+            'estado'
+        ];
+
+        for (const campo of camposPermitidos) {
+            if (Object.prototype.hasOwnProperty.call(req.body, campo)) {
+                insumo[campo] = req.body[campo];
+            }
+        }
+
+        insumo.tipo = normalizarTexto(insumo.tipo).toLowerCase();
+        insumo.codigo = construirCodigo({ codigo: insumo.codigo, tipo: insumo.tipo });
+
+        if (req.body.cantidad !== undefined) {
+            insumo.cantidad = Math.max(0, Number(req.body.cantidad));
+            insumo.estado = normalizarEstadoPorCantidad(insumo.cantidad, req.body.estado || insumo.estado);
+        }
+
+        registrarMovimiento(insumo, {
+            tipo: 'edicion',
+            cantidad_anterior: cantidadAnterior,
+            cantidad_nueva: insumo.cantidad,
+            estado_anterior: estadoAnterior,
+            estado_nuevo: insumo.estado,
+            observacion: normalizarTexto(req.body.motivo_movimiento || 'Edicion manual del insumo.'),
+            usuario: req.user?._id || null,
+            fecha: new Date()
+        });
+
+        const insumoActualizado = await insumo.save();
         res.json(insumoActualizado);
     } catch (error) {
+        if (error.code === 11000 && error.keyPattern?.codigo) {
+            return res.status(409).json({ message: 'El codigo ingresado ya existe. Debe ser unico.' });
+        }
+
         res.status(400).json({ message: 'Error al actualizar el insumo', error: error.message });
     }
 };
 
-/**
- * @route GET /api/insumos/:id
- * @desc Devuelve un insumo por su ID.
- */
 exports.getInsumoById = async (req, res) => {
     try {
         const insumo = await Insumos.findById(req.params.id);
@@ -135,10 +231,6 @@ exports.getInsumoById = async (req, res) => {
     }
 };
 
-/**
- * @route DELETE /api/insumos/:id
- * @desc Da de baja un insumo (Borrado lógico con justificación).
- */
 exports.deleteInsumo = async (req, res) => {
     try {
         const { motivo_eliminacion } = req.body;
@@ -151,24 +243,35 @@ exports.deleteInsumo = async (req, res) => {
 
         if (!motivo_eliminacion || motivo_eliminacion.trim().length < 10) {
             return res.status(400).json({
-                message: 'Se requiere una justificación (mín. 10 caracteres) para la baja del insumo.'
+                message: 'Se requiere una justificacion (min. 10 caracteres) para la baja del insumo.'
             });
         }
 
-        const insumoActualizado = await Insumos.findByIdAndUpdate(
-            req.params.id,
-            {
-                estado: 'eliminado',
-                justificacion_baja: motivo_eliminacion,
-                fecha_baja: new Date(),
-                eliminado_por: req.user._id
-            },
-            { new: true }
-        );
-
-        if (!insumoActualizado) {
+        const insumo = await Insumos.findById(req.params.id);
+        if (!insumo) {
             return res.status(404).json({ message: 'El insumo no existe.' });
         }
+
+        const estadoAnterior = insumo.estado;
+        const cantidadAnterior = insumo.cantidad;
+
+        insumo.estado = 'eliminado';
+        insumo.justificacion_baja = motivo_eliminacion;
+        insumo.fecha_baja = new Date();
+        insumo.eliminado_por = req.user._id;
+
+        registrarMovimiento(insumo, {
+            tipo: 'baja',
+            cantidad_anterior: cantidadAnterior,
+            cantidad_nueva: cantidadAnterior,
+            estado_anterior: estadoAnterior,
+            estado_nuevo: 'eliminado',
+            observacion: motivo_eliminacion,
+            usuario: req.user?._id || null,
+            fecha: new Date()
+        });
+
+        const insumoActualizado = await insumo.save();
 
         res.json({
             message: 'Insumo dado de baja correctamente.',
@@ -178,7 +281,6 @@ exports.deleteInsumo = async (req, res) => {
                 motivo: insumoActualizado.justificacion_baja
             }
         });
-
     } catch (error) {
         res.status(500).json({
             message: 'Error al procesar la baja del insumo.',
@@ -187,9 +289,6 @@ exports.deleteInsumo = async (req, res) => {
     }
 };
 
-/**
- * @desc Obtiene insumos filtrados por una categoría del enum.
- */
 exports.getInsumosByCategoria = async (req, res) => {
     try {
         const { cat } = req.params;
@@ -200,24 +299,15 @@ exports.getInsumosByCategoria = async (req, res) => {
     }
 };
 
-/**
- * @desc Retorna la lista de todas las categorías definidas en el ENUM del Schema.
- */
 exports.getEnumCategorias = (req, res) => {
     try {
         const categorias = Insumos.schema.path('categoria').enumValues;
-        res.json({
-            total: categorias.length,
-            categorias: categorias
-        });
+        res.json({ total: categorias.length, categorias });
     } catch (error) {
-        res.status(500).json({ message: 'Error al extraer las categorías', error: error.message });
+        res.status(500).json({ message: 'Error al extraer las categorias', error: error.message });
     }
 };
 
-/**
- * @desc Obtiene todos los insumos que pertenecen a una categoría específica con validación.
- */
 exports.getInsumosPorCategoria = async (req, res) => {
     try {
         const { categoria } = req.params;
@@ -225,12 +315,12 @@ exports.getInsumosPorCategoria = async (req, res) => {
 
         if (!categoriasValidas.includes(categoria)) {
             return res.status(400).json({
-                message: `La categoría '${categoria}' no es válida.`,
+                message: `La categoria '${categoria}' no es valida.`,
                 opcionesValidas: categoriasValidas
             });
         }
 
-        const insumos = await Insumos.find({ categoria: categoria });
+        const insumos = await Insumos.find({ categoria });
         res.json({
             categoriaSeleccionada: categoria,
             total: insumos.length,
@@ -241,22 +331,16 @@ exports.getInsumosPorCategoria = async (req, res) => {
     }
 };
 
-/**
- * @desc Busca insumos por nombre o características usando regex.
- */
 exports.searchInsumos = async (req, res) => {
     try {
         const { q } = req.query;
-        if (!q || q.trim() === "") {
+        if (!q || q.trim() === '') {
             return res.json([]);
         }
 
         const regex = new RegExp(q, 'i');
         const insumos = await Insumos.find({
-            $or: [
-                { NombProducto: regex },
-                { caracteristicas: regex }
-            ]
+            $or: [{ NombProducto: regex }, { caracteristicas: regex }, { codigo: regex }]
         });
 
         res.json(insumos);
@@ -268,13 +352,10 @@ exports.searchInsumos = async (req, res) => {
     }
 };
 
-/**
- * @desc Filtra los insumos por su estado (Disponible, Vencido, etc.)
- */
 exports.getInsumosByEstado = async (req, res) => {
     try {
         const { estado } = req.params;
-        const insumos = await Insumos.find({ estado: estado });
+        const insumos = await Insumos.find({ estado: estado.toLowerCase() });
         res.json({
             estadoFiltrado: estado,
             total: insumos.length,
@@ -285,23 +366,20 @@ exports.getInsumosByEstado = async (req, res) => {
     }
 };
 
-/**
- * @route PATCH /api/insumos/:id/stock
- * @desc Actualiza solo la cantidad de un insumo.
- */
 exports.updateStock = async (req, res) => {
     try {
-        const { cantidad, operacion } = req.body;
+        const cantidad = Number(req.body.cantidad);
+        const { operacion } = req.body;
 
-        if (!cantidad || !operacion) {
+        if (!Number.isFinite(cantidad) || cantidad <= 0 || !operacion) {
             return res.status(400).json({
-                message: 'Se requieren los campos "cantidad" y "operacion"'
+                message: 'Se requieren los campos "cantidad" (numero > 0) y "operacion"'
             });
         }
 
         if (!['incrementar', 'decrementar'].includes(operacion)) {
             return res.status(400).json({
-                message: 'La operación debe ser "incrementar" o "decrementar"'
+                message: 'La operacion debe ser "incrementar" o "decrementar"'
             });
         }
 
@@ -309,6 +387,9 @@ exports.updateStock = async (req, res) => {
         if (!insumo) {
             return res.status(404).json({ message: 'Insumo no encontrado' });
         }
+
+        const cantidadAnterior = insumo.cantidad;
+        const estadoAnterior = insumo.estado;
 
         const nuevaCantidad = operacion === 'incrementar'
             ? insumo.cantidad + cantidad
@@ -321,6 +402,19 @@ exports.updateStock = async (req, res) => {
         }
 
         insumo.cantidad = nuevaCantidad;
+        insumo.estado = normalizarEstadoPorCantidad(nuevaCantidad, insumo.estado);
+
+        registrarMovimiento(insumo, {
+            tipo: 'ajuste_stock',
+            cantidad_anterior: cantidadAnterior,
+            cantidad_nueva: insumo.cantidad,
+            estado_anterior: estadoAnterior,
+            estado_nuevo: insumo.estado,
+            observacion: normalizarTexto(req.body.motivo || `Ajuste de stock (${operacion}).`),
+            usuario: req.user?._id || null,
+            fecha: new Date()
+        });
+
         const actualizado = await insumo.save();
 
         res.json({
@@ -335,10 +429,6 @@ exports.updateStock = async (req, res) => {
     }
 };
 
-/**
- * @route PATCH /api/insumos/:id/reactivar
- * @desc Reactiva un insumo que fue eliminado.
- */
 exports.reactivarInsumo = async (req, res) => {
     try {
         const insumo = await Insumos.findById(req.params.id);
@@ -346,10 +436,24 @@ exports.reactivarInsumo = async (req, res) => {
             return res.status(404).json({ message: 'Insumo no encontrado' });
         }
 
-        insumo.estado = 'activo';
+        const estadoAnterior = insumo.estado;
+
+        insumo.estado = normalizarEstadoPorCantidad(insumo.cantidad, 'disponible');
         insumo.justificacion_baja = null;
         insumo.fecha_baja = null;
         insumo.eliminado_por = null;
+
+        registrarMovimiento(insumo, {
+            tipo: 'reactivacion',
+            cantidad_anterior: insumo.cantidad,
+            cantidad_nueva: insumo.cantidad,
+            estado_anterior: estadoAnterior,
+            estado_nuevo: insumo.estado,
+            observacion: normalizarTexto(req.body?.motivo || 'Reactivacion manual del insumo.'),
+            usuario: req.user?._id || null,
+            fecha: new Date()
+        });
+
         const reactivado = await insumo.save();
 
         res.json({
@@ -364,10 +468,6 @@ exports.reactivarInsumo = async (req, res) => {
     }
 };
 
-/**
- * @route GET /api/insumos/estadisticas
- * @desc Retorna estadísticas del inventario.
- */
 exports.getEstadisticas = async (req, res) => {
     try {
         const totalInsumos = await Insumos.countDocuments();
@@ -380,30 +480,26 @@ exports.getEstadisticas = async (req, res) => {
         ]);
 
         res.json({
-            totalInsumos: totalInsumos,
+            totalInsumos,
             cantidadTotal: cantidadTotal[0]?.total || 0,
-            porCategoria: porCategoria
+            porCategoria
         });
     } catch (error) {
         res.status(500).json({
-            message: 'Error al obtener estadísticas',
+            message: 'Error al obtener estadisticas',
             error: error.message
         });
     }
 };
 
-/**
- * @route GET /api/insumos/bajo-stock
- * @desc Retorna insumos con stock por debajo del límite.
- */
 exports.getBajoStock = async (req, res) => {
     try {
-        const limite = parseInt(req.query.limite) || 5;
-        const insumosBajos = await Insumos.find({ cantidad: { $lte: limite } })
+        const limite = parseInt(req.query.limite, 10) || 5;
+        const insumosBajos = await Insumos.find({ cantidad: { $lte: limite }, estado: { $ne: 'eliminado' } })
             .sort({ cantidad: 1 });
 
         res.json({
-            limite: limite,
+            limite,
             total: insumosBajos.length,
             data: insumosBajos
         });
@@ -415,18 +511,15 @@ exports.getBajoStock = async (req, res) => {
     }
 };
 
-/**
- * @route GET /api/reportes/alertas-stock
- * @desc Genera un reporte de insumos con stock crítico.
- */
 exports.getAlertasStock = async (req, res) => {
     try {
-        const UMBRAL_CRITICO = parseInt(req.query.umbral) || 5;
+        const UMBRAL_CRITICO = parseInt(req.query.umbral, 10) || 5;
 
         const insumosBajos = await Insumos.find({
-            cantidad: { $lte: UMBRAL_CRITICO }
+            cantidad: { $lte: UMBRAL_CRITICO },
+            estado: { $ne: 'eliminado' }
         })
-            .select('id_insumo NombProducto cantidad categoria imagenUrl')
+            .select('id_insumo codigo NombProducto cantidad categoria ubicacion imagenUrl estado')
             .sort({ cantidad: 1 });
 
         return res.status(200).json({
@@ -436,7 +529,6 @@ exports.getAlertasStock = async (req, res) => {
             criterio: `Insumos con ${UMBRAL_CRITICO} unidades o menos.`,
             data: insumosBajos
         });
-
     } catch (error) {
         return res.status(500).json({
             ok: false,
@@ -445,3 +537,82 @@ exports.getAlertasStock = async (req, res) => {
         });
     }
 };
+
+exports.autoAsignarImagenes = async (req, res) => {
+    try {
+        if (!req.user || !['admin', 'administrador', 'administrativo'].includes(req.user.tipo_rol.toLowerCase())) {
+            return res.status(403).json({ message: 'No autorizado' });
+        }
+
+        const insumosSnImagen = await Insumos.find({ 
+            $or: [ { imagenUrl: { $exists: false } }, { imagenUrl: "" } ],
+            estado: { $ne: 'eliminado' }
+        });
+
+        if (insumosSnImagen.length === 0) {
+            return res.json({ message: "Todo el catÃ¡logo ya cuenta con imÃ¡genes.", procesados: 0, actualizados: 0 });
+        }
+
+        let actualizados = 0;
+        
+        for (const insumo of insumosSnImagen) {
+            // Busqueda mÃ¡s precisa usando Google Images con googlethis
+            const query = insumo.NombProducto;
+            
+            try {
+                // PequeÃ±o delay de 500-1500ms para evitar bloqueos por rate-limit de Google al procesar cientos masivamente
+                await new Promise(r => setTimeout(r, 500 + Math.random() * 1000));
+                
+                const images = await google.image(query, { safe: false });
+                if (images && images.length > 0) {
+                    insumo.imagenUrl = images[0].url;
+                    await insumo.save();
+                    actualizados++;
+                }
+            } catch(e) {
+                console.warn(`Error buscando imagen en Google para ${query}:`, e.message);
+            }
+        }
+
+        res.json({
+            message: "Auto-asignaciÃ³n inteligente completada con Google Images.",
+            procesados: insumosSnImagen.length,
+            actualizados: actualizados
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error interno en auto-asignaciÃ³n', error: error.message });
+    }
+};
+
+
+/**
+ * @route PATCH /api/insumos/:id/mal-estado
+ * @desc Marca un insumo como 'mal_estado' con observacion descriptiva.
+ */
+exports.marcarMalEstado = async (req, res) => {
+    try {
+        if (!req.user || !ROLES_AUTORIZADOS.includes(req.user.tipo_rol)) {
+            return res.status(403).json({ message: 'No autorizado.' });
+        }
+        const { observacion } = req.body;
+        if (!observacion || observacion.trim().length < 5) {
+            return res.status(400).json({ message: 'Se requiere una observacion (min. 5 caracteres).' });
+        }
+        const insumo = await Insumos.findById(req.params.id);
+        if (!insumo) return res.status(404).json({ message: 'Insumo no encontrado.' });
+        const estadoAnterior = insumo.estado;
+        insumo.estado = 'mal_estado';
+        insumo.observacion_estado = observacion.trim();
+        registrarMovimiento(insumo, {
+            tipo: 'edicion', cantidad_anterior: insumo.cantidad, cantidad_nueva: insumo.cantidad,
+            estado_anterior: estadoAnterior, estado_nuevo: 'mal_estado',
+            observacion: 'Marcado en mal estado: ' + observacion.trim(),
+            usuario: req.user?._id || null, fecha: new Date()
+        });
+        const actualizado = await insumo.save();
+        res.json({ message: 'Insumo "' + actualizado.NombProducto + '" marcado como en mal estado.', data: actualizado });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al actualizar estado del insumo.', error: error.message });
+    }
+};
+

@@ -14,21 +14,21 @@ class InsumosManager {
      */
     async cargarInsumos() {
         try {
-            console.log('📦 Cargando insumos...');
+            console.log(' Cargando insumos...');
             
             const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`);
             const data = await response.json();
             
             if (response.ok) {
                 this.insumos = data;
-                console.log('✅ Insumos cargados:', this.insumos);
+                console.log(' Insumos cargados:', this.insumos);
                 this.mostrarInsumos();
             } else {
-                console.error('❌ Error cargando insumos:', data);
+                console.error(' Error cargando insumos:', data);
                 this.mostrarError('Error al cargar insumos');
             }
         } catch (error) {
-            console.error('❌ Error en cargarInsumos:', error);
+            console.error(' Error en cargarInsumos:', error);
             this.mostrarError('Error de conexión al cargar insumos');
         }
     }
@@ -65,8 +65,8 @@ class InsumosManager {
                 <td class="px-6 py-4 text-sm font-medium ${stockClass}">${insumo.stock_actual}</td>
                 <td class="px-6 py-4 text-sm">${stockText}</td>
                 <td class="px-6 py-4 text-sm">
-                    <button onclick="window.InsumosManager.editarInsumo('${insumo._id}')" class="text-blue-600 hover:text-blue-800 font-medium">✏️ Editar</button>
-                    <button onclick="window.InsumosManager.eliminarInsumo('${insumo._id}')" class="text-red-600 hover:text-red-800 font-medium">🗑️ Eliminar</button>
+                    <button onclick="window.InsumosManager.editarInsumo('${insumo._id}')" class="text-blue-600 hover:text-blue-800 font-medium">️ Editar</button>
+                    <button onclick="window.InsumosManager.eliminarInsumo('${insumo._id}')" class="text-red-600 hover:text-red-800 font-medium">️ Eliminar</button>
                 </td>
             `;
             
@@ -113,7 +113,7 @@ class InsumosManager {
                 descripcion: document.getElementById('descripcionInsumo').value
             };
             
-            console.log('💾 Guardando insumo:', formData);
+            console.log(' Guardando insumo:', formData);
             
             const id = document.getElementById('idInsumo').value;
             const url = id ? 
@@ -133,17 +133,17 @@ class InsumosManager {
             const data = await response.json();
             
             if (response.ok) {
-                console.log('✅ Insumo guardado:', data);
-                this.mostrarToast('✅ Insumo guardado exitosamente', 'success');
+                console.log(' Insumo guardado:', data);
+                this.mostrarToast(' Insumo guardado exitosamente', 'success');
                 this.cerrarModal();
                 this.cargarInsumos();
             } else {
-                console.error('❌ Error guardando insumo:', data);
-                this.mostrarToast('❌ Error al guardar insumo', 'error');
+                console.error(' Error guardando insumo:', data);
+                this.mostrarToast(' Error al guardar insumo', 'error');
             }
         } catch (error) {
-            console.error('❌ Error en guardarInsumo:', error);
-            this.mostrarToast('❌ Error de conexión', 'error');
+            console.error(' Error en guardarInsumo:', error);
+            this.mostrarToast(' Error de conexión', 'error');
         }
     }
 
@@ -152,7 +152,7 @@ class InsumosManager {
      */
     async editarInsumo(id) {
         try {
-            console.log('📝 Editando insumo:', id);
+            console.log(' Editando insumo:', id);
             
             const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos/${id}`);
             const insumo = await response.json();
@@ -169,14 +169,14 @@ class InsumosManager {
                 document.getElementById('descripcionInsumo').value = insumo.descripcion;
                 
                 this.abrirModal();
-                this.mostrarToast('📝 Modo edición activado', 'info');
+                this.mostrarToast(' Modo edición activado', 'info');
             } else {
-                console.error('❌ Error cargando insumo para editar:', data);
-                this.mostrarToast('❌ Error al cargar insumo', 'error');
+                console.error(' Error cargando insumo para editar:', data);
+                this.mostrarToast(' Error al cargar insumo', 'error');
             }
         } catch (error) {
-            console.error('❌ Error en editarInsumo:', error);
-            this.mostrarToast('❌ Error de conexión', 'error');
+            console.error(' Error en editarInsumo:', error);
+            this.mostrarToast(' Error de conexión', 'error');
         }
     }
 
@@ -186,7 +186,7 @@ class InsumosManager {
     async eliminarInsumo(id) {
         if (confirm('¿Estás seguro de eliminar este insumo? Esta acción no se puede deshacer.')) {
             try {
-                console.log('🗑️ Eliminando insumo:', id);
+                console.log('️ Eliminando insumo:', id);
                 
                 const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos/${id}`, {
                     method: 'DELETE'
@@ -195,16 +195,16 @@ class InsumosManager {
                 const data = await response.json();
                 
                 if (response.ok) {
-                    console.log('✅ Insumo eliminado:', data);
-                    this.mostrarToast('✅ Insumo eliminado exitosamente', 'success');
+                    console.log(' Insumo eliminado:', data);
+                    this.mostrarToast(' Insumo eliminado exitosamente', 'success');
                     this.cargarInsumos();
                 } else {
-                    console.error('❌ Error eliminando insumo:', data);
-                    this.mostrarToast('❌ Error al eliminar insumo', 'error');
+                    console.error(' Error eliminando insumo:', data);
+                    this.mostrarToast(' Error al eliminar insumo', 'error');
                 }
             } catch (error) {
-                console.error('❌ Error en eliminarInsumo:', error);
-                this.mostrarToast('❌ Error de conexión', 'error');
+                console.error(' Error en eliminarInsumo:', error);
+                this.mostrarToast(' Error de conexión', 'error');
             }
         }
     }
@@ -250,7 +250,7 @@ class InsumosManager {
      * Inicializar el módulo
      */
     inicializar() {
-        console.log('🧩 Inicializando módulo de Insumos');
+        console.log(' Inicializando módulo de Insumos');
         this.cargarInsumos();
         
         // Configurar eventos
