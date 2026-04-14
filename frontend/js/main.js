@@ -671,14 +671,26 @@ window.addToCart = async function(itemName, itemType, itemData, btn = null) {
         return;
     }
 
+    // Verificar límite máximo de 2 artículos totales
+    const totalEnCarrito = window.cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    if (totalEnCarrito >= 2) {
+        window.Utils?.showToast('Máximo 2 artículos por solicitud. Elimina uno para agregar otro.', 'warning');
+        return;
+    }
+
     if (itemType === 'activo') {
         // Permitir múltiples activos del mismo tipo con cantidad
         const yaEnCarrito = window.cart.find(c => c.type === 'activo' && c.data?._id === itemData?._id);
         const qtyActual = yaEnCarrito ? yaEnCarrito.quantity : 0;
         
+        // Calcular total actual en carrito
+        const totalActual = window.cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        
         // Verificar stock disponible del activo (si aplica)
         const maxDisponible = itemData.cantidad || itemData.stock || 10; // Default 10 si no hay stock definido
-        const disponible = maxDisponible - qtyActual;
+        // Limitar por el máximo de 2 artículos totales
+        const maxPorLimite = 2 - (totalActual - qtyActual);
+        const disponible = Math.min(maxDisponible - qtyActual, maxPorLimite);
         
         if (disponible <= 0) {
             window.Utils?.showToast('No hay más unidades disponibles de este activo.', 'warning');
@@ -810,7 +822,9 @@ window.updateCartUI = function() {
     const cartItems = document.getElementById('cartItems');
     const cartTotal = document.getElementById('cartTotal');
 
-    if (cartCount) cartCount.textContent = window.cart.length;
+    // Calcular total sumando cantidades de todos los items
+    const totalCantidad = window.cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    if (cartCount) cartCount.textContent = totalCantidad;
     if (!cartItems || !cartTotal) return;
 
     if (window.cart.length === 0) {
@@ -860,7 +874,7 @@ window.updateCartUI = function() {
         cartItems.appendChild(div);
     });
 
-    cartTotal.textContent = window.cart.length;
+    cartTotal.textContent = totalCantidad;
 };
 
 window.removeFromCart = function(index) {
@@ -936,7 +950,8 @@ window.sendRequest = async function() {
             _id: i.data._id,
             nombre: i.name,
             modelo: i.data.modelo || '',
-            numActivo: i.data.numActivo || ''
+            numActivo: i.data.numActivo || '',
+            cantidad: i.quantity || 1
         }));
 
         const insumos = window.cart.filter(i => i.type !== 'activo').map(i => ({

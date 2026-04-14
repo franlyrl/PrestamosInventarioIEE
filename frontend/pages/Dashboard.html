@@ -216,6 +216,211 @@
 
                 </div>
 
+                <!-- BOTÓN DE AYUDA FLOTANTE -->
+                <div class="fixed bottom-6 right-6 z-[9999]">
+                    <button onclick="toggleHelpModal()" class="w-14 h-14 bg-gradient-to-r from-[#002D62] to-[#004a8f] hover:from-[#F2A900] hover:to-[#d4a017] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- MODAL DE AYUDA CON PESTAÑAS -->
+                <div id="helpModal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
+                        <!-- Header -->
+                        <div class="bg-gradient-to-r from-[#002D62] to-[#004a8f] p-4 flex items-center justify-between">
+                            <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Centro de Ayuda SPIEE
+                            </h3>
+                            <button onclick="toggleHelpModal()" class="text-white/80 hover:text-white transition">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Tabs -->
+                        <div class="flex border-b border-slate-200 bg-slate-50">
+                            <button onclick="showHelpTab('uso')" id="tab-uso" class="flex-1 py-3 px-4 text-sm font-bold text-[#002D62] border-b-2 border-[#002D62] bg-white transition">
+                                📖 Cómo Usar
+                            </button>
+                            <button onclick="showHelpTab('reglas')" id="tab-reglas" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">
+                                📋 Reglas
+                            </button>
+                            <button onclick="showHelpTab('faq')" id="tab-faq" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">
+                                ❓ FAQ
+                            </button>
+                            <button onclick="showHelpTab('contacto')" id="tab-contacto" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">
+                                📞 Contacto
+                            </button>
+                        </div>
+                        
+                        <!-- Contenido de Tabs -->
+                        <div class="p-5 overflow-y-auto max-h-[50vh]">
+                            <!-- Tab: Cómo Usar -->
+                            <div id="content-uso" class="space-y-4">
+                                <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                                    <span class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">1</span>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800">Busca equipos</h4>
+                                        <p class="text-sm text-slate-600">Usa el buscador universal para encontrar activos o insumos por nombre, categoría o estado.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                                    <span class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">2</span>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800">Añade al carrito</h4>
+                                        <p class="text-sm text-slate-600">Haz clic en "+" para agregar hasta 2 artículos (activos o insumos) a tu solicitud.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                                    <span class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">3</span>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800">Confirma tu solicitud</h4>
+                                        <p class="text-sm text-slate-600">Revisa los artículos, selecciona fecha de devolución y envía tu solicitud.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                                    <span class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">4</span>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800">Espera aprobación</h4>
+                                        <p class="text-sm text-slate-600">Un administrador revisará tu solicitud y te contactará para la entrega.</p>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                    <p class="text-sm text-amber-800">💡 <strong>Tip:</strong> Puedes combinar activos (equipos) e insumos (componentes) en una misma solicitud.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Tab: Reglas -->
+                            <div id="content-reglas" class="space-y-3 hidden">
+                                <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+                                    <h4 class="font-bold text-red-800 text-sm">Límite de artículos</h4>
+                                    <p class="text-sm text-red-700">Máximo 2 artículos por solicitud. Puedes hacer solicitudes adicionales cuando la primera sea aprobada o rechazada.</p>
+                                </div>
+                                <div class="p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-lg">
+                                    <h4 class="font-bold text-yellow-800 text-sm">Tiempo de préstamo</h4>
+                                    <p class="text-sm text-yellow-700">Los activos deben devolverse en la fecha acordada. El retraso puede resultar en bloqueo temporal.</p>
+                                </div>
+                                <div class="p-3 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                                    <h4 class="font-bold text-green-800 text-sm">Cuidado de equipos</h4>
+                                    <p class="text-sm text-green-700">Los equipos son propiedad institucional. Cualquier daño por negligencia debe ser reportado.</p>
+                                </div>
+                                <div class="p-3 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                                    <h4 class="font-bold text-blue-800 text-sm">Una solicitud a la vez</h4>
+                                    <p class="text-sm text-blue-700">No puedes crear nuevas solicitudes mientras tengas una pendiente de aprobación.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Tab: FAQ -->
+                            <div id="content-faq" class="space-y-4 hidden">
+                                <details class="group">
+                                    <summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
+                                        <span class="font-bold text-slate-700 text-sm">¿Cuánto tiempo tarda la aprobación?</span>
+                                        <svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                        </svg>
+                                    </summary>
+                                    <p class="p-3 text-sm text-slate-600">Generalmente 24-48 horas hábiles. Recibirás un correo cuando sea aprobada o rechazada.</p>
+                                </details>
+                                <details class="group">
+                                    <summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
+                                        <span class="font-bold text-slate-700 text-sm">¿Puedo modificar mi solicitud?</span>
+                                        <svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                        </svg>
+                                    </summary>
+                                    <p class="p-3 text-sm text-slate-600">Solo si está en estado "pendiente". Contacta al administrador si necesitas cambios.</p>
+                                </details>
+                                <details class="group">
+                                    <summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
+                                        <span class="font-bold text-slate-700 text-sm">¿Qué pasa si mi solicitud es rechazada?</span>
+                                        <svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                        </svg>
+                                    </summary>
+                                    <p class="p-3 text-sm text-slate-600">Podrás hacer una nueva solicitud. El motivo del rechazo aparecerá en tu historial.</p>
+                                </details>
+                                <details class="group">
+                                    <summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
+                                        <span class="font-bold text-slate-700 text-sm">¿Dónde recojo los equipos?</span>
+                                        <svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                        </svg>
+                                    </summary>
+                                    <p class="p-3 text-sm text-slate-600">El lugar de entrega será coordinado por correo cuando tu solicitud sea aprobada.</p>
+                                </details>
+                            </div>
+                            
+                            <!-- Tab: Contacto -->
+                            <div id="content-contacto" class="space-y-4 hidden">
+                                <div class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+                                    <h4 class="font-bold text-slate-800 mb-2">Administrador de Inventario</h4>
+                                    <p class="text-sm text-slate-600 mb-3">Para dudas sobre préstamos, disponibilidad o problemas técnicos:</p>
+                                    <a href="mailto:hmoram@utn.ac.cr" class="inline-flex items-center gap-2 px-4 py-2 bg-[#002D62] text-white rounded-lg text-sm font-bold hover:bg-[#004a8f] transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        </svg>
+                                        hmoram@utn.ac.cr
+                                    </a>
+                                </div>
+                                <div class="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg border border-emerald-100">
+                                    <h4 class="font-bold text-slate-800 mb-2">Soporte Técnico</h4>
+                                    <p class="text-sm text-slate-600 mb-3">Problemas con el sistema o tu cuenta:</p>
+                                    <div class="flex items-center gap-2 text-sm text-slate-700">
+                                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                        </svg>
+                                        +506 2435-5000
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-slate-50 rounded-lg text-center">
+                                    <p class="text-xs text-slate-500">Horario de atención: Lunes a Viernes, 8:00 AM - 5:00 PM</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    function toggleHelpModal() {
+                        const modal = document.getElementById('helpModal');
+                        if (modal.classList.contains('hidden')) {
+                            modal.classList.remove('hidden');
+                            modal.classList.add('flex');
+                        } else {
+                            modal.classList.add('hidden');
+                            modal.classList.remove('flex');
+                        }
+                    }
+                    
+                    function showHelpTab(tabName) {
+                        // Ocultar todos los contenidos
+                        document.querySelectorAll('[id^="content-"]').forEach(el => el.classList.add('hidden'));
+                        document.getElementById('content-' + tabName).classList.remove('hidden');
+                        
+                        // Resetear estilos de tabs
+                        document.querySelectorAll('[id^="tab-"]').forEach(el => {
+                            el.classList.remove('text-[#002D62]', 'border-b-2', 'border-[#002D62]', 'bg-white');
+                            el.classList.add('text-slate-500');
+                        });
+                        
+                        // Activar tab seleccionado
+                        const activeTab = document.getElementById('tab-' + tabName);
+                        activeTab.classList.remove('text-slate-500');
+                        activeTab.classList.add('text-[#002D62]', 'border-b-2', 'border-[#002D62]', 'bg-white');
+                    }
+                    
+                    // Cerrar al hacer clic fuera
+                    document.getElementById('helpModal').addEventListener('click', function(e) {
+                        if (e.target === this) toggleHelpModal();
+                    });
+                </script>
+
                 <!-- BUSCADOR UNIVERSAL-->
                 <!-- El buscador universal permite a los estudiantes y docentes buscar tanto activos como insumos 
                 de manera rápida y eficiente, utilizando filtros para refinar los resultados según el tipo, categoría y estado de los artículos.-->
@@ -2346,7 +2551,7 @@ function parseCSVLine(line) {
                         // Mensaje específico para 403
                         if (response.status === 403) {
                             const errorMessage = errorData.message || errorData.error || 'No tienes permisos para crear solicitudes.';
- 㬬㬬㬬㬬㬬㬬㬬㬬㬬㬬㬬㬬㬬// Si es por solicitud pendiente, mostrar mensaje específico
+                            // Si es por solicitud pendiente, mostrar mensaje específico
                             if (errorMessage.includes('pendiente') && errorData.folio) {
                                 const folio = errorData.folio;
                                 showToast(` Ya tienes una solicitud pendiente (Folio: ${folio}). Debes esperar a que se apruebe o rechace.`, 'warning');
@@ -2359,7 +2564,7 @@ function parseCSVLine(line) {
                                 }, 1000);
                                 return; // No lanzar error para que no se muestre el toast de error
                             }
- 㬬㬬㬬㬬㬬㬬㬬㬬㬬㬬㬬㬬㬬throw new Error(errorMessage);
+                            throw new Error(errorMessage);
                         } else if (response.status === 401) {
                             throw new Error('Tu sesión ha expirado. Inicia sesión nuevamente.');
                         } else {
