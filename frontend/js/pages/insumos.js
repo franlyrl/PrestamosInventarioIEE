@@ -220,6 +220,10 @@ class InsumosController {
 
     filtrarInsumos() {
         return this.insumos.filter(insumo => {
+            // Excluir insumos de prueba
+            const nombre = insumo.NombProducto || '';
+            if (nombre.includes('Capacitor Electrolítico 47uF')) return false;
+
             const coincideBusqueda = !this.filtros.busqueda ||
                 (insumo.NombProducto && insumo.NombProducto.toLowerCase().includes(this.filtros.busqueda.toLowerCase())) ||
                 (insumo.caracteristicas && insumo.caracteristicas.toLowerCase().includes(this.filtros.busqueda.toLowerCase()));
