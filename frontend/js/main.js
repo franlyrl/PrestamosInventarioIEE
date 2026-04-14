@@ -150,6 +150,20 @@ Object.assign(window.Utils, {
         // Actualizar visibilidad de enlaces del menú
         this.updateMenuRoles(user);
         
+        // Mostrar/ocultar carrito según rol (solo estudiantes y docentes)
+        const rolLower = (user.rol || '').toLowerCase();
+        const esEstudiante = rolLower.includes('estudiante');
+        const esDocente = rolLower.includes('docente') || rolLower.includes('profesor');
+        const esAdmin = rolLower.includes('admin') || rolLower.includes('administrativo');
+        const cartBtn = document.getElementById('cartBtn');
+        if (cartBtn) {
+            if ((esEstudiante || esDocente) && !esAdmin) {
+                cartBtn.classList.remove('hidden');
+            } else {
+                cartBtn.classList.add('hidden');
+            }
+        }
+        
         console.log(`[DEBUG] UI Actualizada para: ${nombre} (${rol})`);
     },
 
@@ -658,16 +672,52 @@ window.addToCart = async function(itemName, itemType, itemData, btn = null) {
     }
 
     if (itemType === 'activo') {
-        // Evitar duplicados de Activos
-        const existe = window.cart.find(c => c.type === 'activo' && c.data?._id === itemData?._id);
-        if (existe) {
-            window.Utils?.showToast('Este activo ya está en tu carrito.', 'warning');
+        // Permitir múltiples activos del mismo tipo con cantidad
+        const yaEnCarrito = window.cart.find(c => c.type === 'activo' && c.data?._id === itemData?._id);
+        const qtyActual = yaEnCarrito ? yaEnCarrito.quantity : 0;
+        
+        // Verificar stock disponible del activo (si aplica)
+        const maxDisponible = itemData.cantidad || itemData.stock || 10; // Default 10 si no hay stock definido
+        const disponible = maxDisponible - qtyActual;
+        
+        if (disponible <= 0) {
+            window.Utils?.showToast('No hay más unidades disponibles de este activo.', 'warning');
             return;
         }
-        if (btn) window.animateFlyToCart(btn, itemData?.imagenUrl);
-        window.cart.push({ name: itemName, type: itemType, data: itemData, quantity: 1 });
-        window.updateCartUI();
-        window.Utils?.showToast('1 activo añadido a tu lista.', 'success');
+
+        const result = await Swal.fire({
+            title: 'Cantidad a solicitar',
+            html: `<p class="mb-2 text-sm text-slate-600">Activo: <strong>${itemName}</strong></p>
+                   <p class="mb-4 text-xs text-slate-500">Disponible: ${disponible} unidad(es)</p>
+                   <input type="number" id="swal-input-qty" class="swal2-input max-w-[150px] mx-auto text-center font-black" value="1" min="1" max="${disponible}" step="1">`,
+            showCancelButton: true,
+            confirmButtonText: 'Añadir',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#F2A900',
+            cancelButtonColor: '#94a3b8',
+            customClass: { confirmButton: 'text-[#002D62] font-black w-32 shadow-lg shadow-[#F2A900]/20', cancelButton: 'font-bold' },
+            preConfirm: () => {
+                const qtyStr = document.getElementById('swal-input-qty').value;
+                const parseado = parseInt(qtyStr, 10);
+                if (isNaN(parseado) || parseado < 1 || parseado > disponible) {
+                    Swal.showValidationMessage(`Ingresa un valor entre 1 y ${disponible}`);
+                }
+                return parseado;
+            }
+        });
+
+        if (result.isConfirmed && typeof result.value === 'number') {
+            const qty = result.value;
+            if (btn) window.animateFlyToCart(btn, itemData?.imagenUrl);
+            
+            if (yaEnCarrito) {
+                yaEnCarrito.quantity += qty;
+            } else {
+                window.cart.push({ name: itemName, type: itemType, data: itemData, quantity: qty });
+            }
+            window.updateCartUI();
+            window.Utils?.showToast(`Añadido(s) ${qty} activo(s) "${itemName}"`, 'success');
+        }
     } else {
         // Modalidad multi-selección para Insumos
         const maxStock = itemData.cantidad !== undefined ? itemData.cantidad : (itemData.stock_actual || 0);

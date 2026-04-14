@@ -117,7 +117,8 @@
                         <option value="disponible">Disponible</option>
                         <option value="prestado">Prestado</option>
                         <option value="en espera">En espera</option>
-                        <option value="fuera de stock">Fuera de servicio</option>
+                        <option value="fuera de stock">Fuera de stock</option>
+                        <option value="fuera de servicio">Fuera de servicio</option>
                     </select>
                 </div>
                 <div>
@@ -380,7 +381,10 @@
                     <button onclick="aplicarEstado('en espera')" class="w-full py-3 text-left px-4 rounded-xl border-2 border-transparent hover:border-amber-300 hover:bg-amber-50 text-sm font-bold text-slate-700 transition flex items-center gap-3">
                         <span class="w-3 h-3 rounded-full bg-amber-400"></span> En espera
                     </button>
-                    <button onclick="aplicarEstado('fuera de stock')" class="w-full py-3 text-left px-4 rounded-xl border-2 border-transparent hover:border-red-300 hover:bg-red-50 text-sm font-bold text-slate-700 transition flex items-center gap-3">
+                    <button onclick="aplicarEstado('fuera de stock')" class="w-full py-3 text-left px-4 rounded-xl border-2 border-transparent hover:border-purple-300 hover:bg-purple-50 text-sm font-bold text-slate-700 transition flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-purple-400"></span> Fuera de stock
+                    </button>
+                    <button onclick="aplicarEstado('fuera de servicio')" class="w-full py-3 text-left px-4 rounded-xl border-2 border-transparent hover:border-red-300 hover:bg-red-50 text-sm font-bold text-slate-700 transition flex items-center gap-3">
                         <span class="w-3 h-3 rounded-full bg-red-400"></span> Fuera de servicio
                     </button>
                 </div>

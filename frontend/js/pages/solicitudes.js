@@ -250,16 +250,7 @@ class SolicitudesController {
                         <button title="Cancelar solicitud" onclick="event.stopPropagation(); window.solicitudesController.cancelar('${s._id}')" class="p-2 hover:bg-red-50 rounded-lg transition text-slate-400 hover:text-red-600">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
-                    
-                const correoAdministrador = s.usuario?.correo_electronico || 'hmoram@utn.ac.cr';
-                const btnCorreo = correoAdministrador ?
-
-                        <a href="mailto:admin@utn.ac.cr?subject=Contacto%20de%20Estudiante%20-%20Solicitud%20%23${s.folio ? String(s.folio).padStart(3, '0') : '---'}&body=Estudiante:%20${encodeURIComponent(s.usuario?.nombre_completo || '')}%2C%0A%0ACorreo:%20${encodeURIComponent(s.usuario?.correo_electronico || '')}%2C%0A%0AC%C3%A9dula:%20${encodeURIComponent(s.usuario?.cedula || '')}%2C%0A%0ASolicitud:%20%23${s.folio ? String(s.folio).padStart(3, '0') : '---'}%2C%0A%0AMotivo:%20Deseo%20contactar%20al%20administrador%20respecto%20a%20mi%20solicitud%20%23${s.folio ? String(s.folio).padStart(3, '0') : '---'}%2C%0A%0APor%20favor,%20comun%C3%ADquese%20conmigo%20a%20la%20brevedad%20posible.%2C%0A%0A%0ADatos%20de%20contacto:%2C%0A%0A-%20Tel%C3%A9fono:%20[agregar%20si%20aplica]%2C%0A-%20Horario%20disponible:%20[agregar%20si%20aplica]%2C%0A%0AGracias.%2C%0A%0A%0A${encodeURIComponent(s.usuario?.nombre_completo || '')}" 
-               title="Contactar Administrador" target="_blank"
-               onclick="event.stopPropagation()"
-               class="p-2 hover:bg-blue-50 rounded-lg transition text-slate-400 hover:text-blue-600">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                        </button>` : ''}
+                        ` : ''}
                         ${this.isAdmin && s.estado === 'pendiente' ? `
                         <button title="Aprobar" onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'aprobada')" class="p-2 hover:bg-green-50 rounded-lg transition text-green-600">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -323,14 +314,7 @@ class SolicitudesController {
                 ${alertaDev}
                 <div class="flex gap-2 mt-3">
                     <button onclick="event.stopPropagation(); window.solicitudesController.verDetalles('${s._id}')" class="flex-1 py-2 text-xs font-bold text-utn-blue bg-blue-50 rounded-xl hover:bg-blue-100 transition">Ver Detalle</button>
-                    ${s.estado === 'pendiente' && !this.isAdmin ? `<button onclick="event.stopPropagation(); window.solicitudesController.cancelar('${s._id}')" class="px-3 py-2 text-xs font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition">Cancelar</button>
-                    <a href="mailto:hmoram@utn.ac.cr?subject=Contacto%20de%20Estudiante%20-%20Solicitud%20%23${s.folio ? String(s.folio).padStart(3, '0') : '---'}&body=Estudiante:%20${encodeURIComponent(s.usuario?.nombre_completo || '')}%2C%0A%0ACorreo:%20${encodeURIComponent(s.usuario?.correo_electronico || '')}%2C%0A%0AC%C3%A9dula:%20${encodeURIComponent(s.usuario?.cedula || '')}%2C%0A%0AMotivo:%20Soy%20el%20estudiante%20y%20deseo%20contactar%20al%20administrador%20respecto%20a%20mi%20solicitud%20%23${s.folio ? String(s.folio).padStart(3, '0') : '---'}%2C%0A%0APor%20favor,%20comun%C3%ADquese%20conmigo%20a%20la%20brevedad%20posible.%2C%0A%0A%0ADatos%20de%20contacto:%2C%0A%0A-%20Tel%C3%A9fono:%20[agregar%20si%20aplica]%2C%0A-%20Horario%20disponible:%20[agregar%20si%20aplica]%2C%0A%0AGracias.%2C%0A%0A%0A${encodeURIComponent(s.usuario?.nombre_completo || '')}" 
-                       title="Contactar Administrador" target="_blank"
-                       onclick="event.stopPropagation()"
-                       class="px-3 py-2 text-xs font-bold text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition inline-flex items-center justify-center">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                       Contactar Admin
-                    </a>` : ''}
+                    ${s.estado === 'pendiente' && !this.isAdmin ? `<button onclick="event.stopPropagation(); window.solicitudesController.cancelar('${s._id}')" class="px-3 py-2 text-xs font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition">Cancelar</button>` : ''}
                     
                     <!-- E: Botón de correo según rol (igual que desktop) -->
                     ${this.isAdmin && s.usuario?.correo_electronico ? `
@@ -370,10 +354,57 @@ class SolicitudesController {
 
     // ─── Helpers ─────────────────────────────────────────────────────────────────
     formatItems(s) {
-        const parts = [];
-        if (s.activos?.length) parts.push(`${s.activos.length} Activo(s)`);
-        if (s.insumos?.length) parts.push(`${s.insumos.length} Insumo(s)`);
-        return parts.join(', ') || 'Sin elementos';
+        const items = [];
+        
+        // Procesar activos con detalles
+        if (s.activos?.length) {
+            s.activos.forEach(activo => {
+                // Obtener nombre del activo
+                let nombre = 'Activo';
+                if (typeof activo === 'object') {
+                    nombre = activo.nombre || activo.marca || activo.modelo || activo.codigo_activo || 'Activo';
+                }
+                // Obtener cantidad (por defecto 1 si no especificada)
+                const cantidad = activo.cantidad || activo.quantity || 1;
+                
+                if (cantidad > 1) {
+                    items.push(`${cantidad}x ${nombre}`);
+                } else {
+                    items.push(nombre);
+                }
+            });
+        }
+        
+        // Procesar insumos con detalles
+        if (s.insumos?.length) {
+            s.insumos.forEach(insumo => {
+                let nombre = 'Insumo';
+                let cantidad = 1;
+                
+                if (typeof insumo === 'object') {
+                    // Intentar obtener nombre de diferentes propiedades
+                    if (insumo.id_insumo && typeof insumo.id_insumo === 'object') {
+                        nombre = insumo.id_insumo.NombProducto || insumo.id_insumo.nombre || insumo.id_insumo.descripcion || 'Insumo';
+                    } else {
+                        nombre = insumo.nombre || insumo.descripcion || insumo.caracteristicas || 'Insumo';
+                    }
+                    cantidad = insumo.cantidad || insumo.quantity || 1;
+                }
+                
+                if (cantidad > 1) {
+                    items.push(`${cantidad}x ${nombre}`);
+                } else {
+                    items.push(nombre);
+                }
+            });
+        }
+        
+        if (items.length === 0) return '<span class="text-slate-400 italic">Sin elementos</span>';
+        
+        // Retornar lista HTML con los items
+        return `<ul class="space-y-0.5">
+            ${items.map(item => `<li class="truncate">• ${item}</li>`).join('')}
+        </ul>`;
     }
 
     getStatusLabel(estado) {

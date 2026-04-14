@@ -68,11 +68,13 @@ window.loadComponents = async function() {
         const allowedPages = ['activos.html', 'insumos.html', 'ModUsuarios.html', 'estudiante-dashboard.html'];
         const currentPage = window.location.pathname.split('/').pop();
         const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
-        const isAdmin = ['admin', 'administrador', 'administrativo'].some(r => (user.rol || '').toLowerCase().includes(r));
+        const userRol = (user.rol || '').toLowerCase();
+        const isEstudiante = userRol.includes('estudiante');
+        const isDocente = userRol.includes('docente') || userRol.includes('profesor');
+        const isAdmin = ['admin', 'administrador', 'administrativo'].some(r => userRol.includes(r));
 
-        // El carrito solo se carga si es una página permitida
-        // O si el admin está en inventario (por si quiere ver el diseño como pidió)
-        const shouldLoadCart = allowedPages.includes(currentPage) || (allowedPages.includes(currentPage) && isAdmin);
+        // El carrito solo se carga si es estudiante o docente (no admin) y está en una página permitida
+        const shouldLoadCart = (isEstudiante || isDocente) && allowedPages.includes(currentPage);
 
         if (shouldLoadCart) {
             let cartContainer = document.getElementById('cart-container');
