@@ -597,3 +597,64 @@ exports.updateSolicitud = async (req, res) => {
         });
     }
 };
+
+/**
+ * @desc Restaura los artículos de una solicitud penalizada a estado disponible
+ * @route PUT /api/solicitudes/restaurar-articulos/:id
+ * @access Private (Admin/Administrativo)
+ */
+exports.restaurarArticulos = async (req, res) => {
+    try {
+        const solicitud = await Solicitudes.findById(req.params.id)
+            .populate('activos')
+            .populate('insumos.id_insumo');
+
+        if (!solicitud) {
+            return res.status(404).json({ message: 'Solicitud no encontrada' });
+        }
+
+        const Activo = require('../models/activos');
+        const Insumos = require('../models/insumos');
+
+        // Restaurar activos a disponible
+        if (solicitud.activos && solicitud.activos.length > 0) {
+            for (const activo of solicitud.activos) {
+                await Activo.findByIdAndUpdate(
+                    typeof activo === 'object' ? activo._id : activo,
+                    {
+                        estadoActivo: 'disponible',
+                        observacion_estado: `Restaurado desde solicitud #${solicitud.folio || 'N/A'}`
+                    }
+                );
+            }
+        }
+
+        // Restaurar insumos a disponible
+        if (solicitud.insumos && solicitud.insumos.length > 0) {
+            for (const item of solicitud.insumos) {
+                const insumoId = typeof item.id_insumo === 'object' ? item.id_insumo._id : item.id_insumo;
+                await Insumos.findByIdAndUpdate(
+                    insumoId,
+                    {
+                        estado: 'disponible',
+                        observacion_estado: `Restaurado desde solicitud #${solicitud.folio || 'N/A'}`
+                    }
+                );
+            }
+        }
+
+        res.json({
+            message: 'Artículos restaurados a disponible correctamente.',
+            solicitudId: solicitud._id,
+            activosRestaurados: solicitud.activos?.length || 0,
+            insumosRestaurados: solicitud.insumos?.length || 0
+        });
+
+    } catch (error) {
+        console.error('Error al restaurar artículos:', error);
+        res.status(500).json({
+            message: 'Error al restaurar los artículos',
+            error: error.message
+        });
+    }
+};

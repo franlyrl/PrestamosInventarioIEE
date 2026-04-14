@@ -43,6 +43,12 @@ router.put('/poner-fuera-servicio/:id',
     ponerFueraDeServicio
 );
 
+// Ruta para restaurar artículos de una solicitud penalizada a disponible
+router.put('/restaurar-articulos/:id',
+    restrictTo('admin', 'Administrador', 'administrativo'),
+    solicitudesControllers.restaurarArticulos
+);
+
 // Ruta de prueba (debe ir antes de /:id)
 router.get('/test-endpoint', (req, res) => {
     res.json({ 

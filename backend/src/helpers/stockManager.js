@@ -81,11 +81,12 @@ const stockManager = {
     processPenalty: async (solicitud, observaciones) => {
         try {
             const Activo = require('../models/activos');
+            const Insumos = require('../models/insumos');
             
             // Lógica para poner activos en fuera de servicio
             if (solicitud.activos && solicitud.activos.length > 0) {
                 for (const activoId of solicitud.activos) {
-                    await Activos.findByIdAndUpdate(activoId, {
+                    await Activo.findByIdAndUpdate(activoId, {
                         estadoActivo: 'fuera de servicio',
                         observacion_estado: `fuera de servicio por penalizacion - Solicitud #${solicitud.folio || 'N/A'}`
                     });

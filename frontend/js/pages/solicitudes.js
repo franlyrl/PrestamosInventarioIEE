@@ -268,6 +268,16 @@ class SolicitudesController {
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
                         </button>` : ''}
                         ${this.isAdmin && s.estado === 'penalizado' ? `
+                        <button title="Levantar sanción" onclick="event.stopPropagation(); window.solicitudesController.levantarSancionUsuario('${s._id}')" class="p-2 hover:bg-green-50 rounded-lg transition text-green-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </button>
+                        <button title="Restaurar artículos" onclick="event.stopPropagation(); window.solicitudesController.restaurarArticulos('${s._id}')" class="p-2 hover:bg-blue-50 rounded-lg transition text-blue-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                        </button>
                         <button title="Poner fuera de servicio" onclick="event.stopPropagation(); window.solicitudesController.ponerFueraDeServicio('${s._id}')" class="p-2 hover:bg-red-50 rounded-lg transition text-red-600">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -338,12 +348,26 @@ class SolicitudesController {
                     ${this.isAdmin && s.estado === 'pendiente' ? `<button onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'aprobada')" class="px-3 py-2 text-xs font-bold text-green-600 bg-green-50 rounded-xl hover:bg-green-100 transition">Aprobar</button>` : ''}
                     ${this.isAdmin && s.estado === 'aprobada' ? `<button onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'entregado')" class="px-3 py-2 text-xs font-bold text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition">Entregar</button>` : ''}
                     ${this.isAdmin && s.estado === 'entregado' ? `<button onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'devuelto')" class="px-3 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition">Devuelto</button>` : ''}
-                    ${this.isAdmin && s.estado === 'penalizado' ? `<button onclick="event.stopPropagation(); window.solicitudesController.ponerFueraDeServicio('${s._id}')" class="px-3 py-2 text-xs font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition inline-flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                        Fuera de Servicio
-                    </button>` : ''}
+                    ${this.isAdmin && s.estado === 'penalizado' ? `<div class="flex flex-wrap gap-1">
+                        <button onclick="event.stopPropagation(); window.solicitudesController.levantarSancionUsuario('${s._id}')" class="px-3 py-2 text-xs font-bold text-green-600 bg-green-50 rounded-xl hover:bg-green-100 transition inline-flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Quitar Restricción
+                        </button>
+                        <button onclick="event.stopPropagation(); window.solicitudesController.restaurarArticulos('${s._id}')" class="px-3 py-2 text-xs font-bold text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition inline-flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            Restaurar
+                        </button>
+                        <button onclick="event.stopPropagation(); window.solicitudesController.ponerFueraDeServicio('${s._id}')" class="px-3 py-2 text-xs font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition inline-flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            Fuera de Servicio
+                        </button>
+                    </div>` : ''}
                 </div>
             </div>`;
 
@@ -589,7 +613,17 @@ class SolicitudesController {
                         Penalizar
                     </button>
                     ` : ''}
-                    
+                    ${this.isAdmin && s.estado === 'penalizado' ? `
+                    <button onclick="document.getElementById('detalle-solicitud-modal').remove(); window.solicitudesController.levantarSancionUsuario('${s._id}')"
+                        class="flex-1 min-w-[120px] py-2.5 bg-green-50 text-green-700 font-black text-sm rounded-xl hover:bg-green-100 transition">
+                        Quitar Restricción
+                    </button>
+                    <button onclick="document.getElementById('detalle-solicitud-modal').remove(); window.solicitudesController.restaurarArticulos('${s._id}')"
+                        class="flex-1 min-w-[120px] py-2.5 bg-blue-50 text-blue-700 font-black text-sm rounded-xl hover:bg-blue-100 transition">
+                        Restaurar Artículos
+                    </button>
+                    ` : ''}
+
                     ${s.estado === 'pendiente' && !this.isAdmin ? `
                     <button onclick="document.getElementById('detalle-solicitud-modal').remove(); window.solicitudesController.cancelar('${s._id}')"
                         class="flex-1 py-2.5 bg-red-50 text-red-700 font-black text-sm rounded-xl hover:bg-red-100 transition">
@@ -801,6 +835,92 @@ class SolicitudesController {
                 this._toast('Error al actualizar: ' + (err.message || ''), 'error');
             }
         } catch(e) { this._toast('Error de conexión.', 'error'); }
+    }
+
+    // ─── Admin: Levantar sanción del usuario ──────────────────────
+    async levantarSancionUsuario(id) {
+        const s = this.solicitudes.find(s => s._id === id);
+        if (!s) return;
+        if (!this.isAdmin) return;
+
+        // Pedir comentario/motivo para levantar la sanción (obligatorio)
+        const { value: comentario, isConfirmed } = await Swal.fire({
+            title: 'Levantar Sanción',
+            text: '¿Confirmas que deseas quitar la restricción al usuario? Podrá realizar solicitudes nuevamente.',
+            input: 'textarea',
+            inputLabel: 'Motivo / Comentario (obligatorio)',
+            inputPlaceholder: 'Ej: El estudiante devolvió los artículos en buen estado...',
+            inputValidator: (value) => {
+                if (!value || value.trim() === '') {
+                    return 'Debes ingresar un comentario para levantar la sanción';
+                }
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Sí, levantar sanción',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#10B981',
+            cancelButtonColor: '#6B7280'
+        });
+
+        if (!isConfirmed) return;
+
+        try {
+            const resp = await fetch(`${this.apiBase}/usuarios/${s.usuario._id || s.usuario}/levantar-sancion`, {
+                method: 'PATCH',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ comentario: comentario || '' })
+            });
+
+            if (resp.ok) {
+                window.SwalUTN.success('Restricción removida', 'El usuario ya puede realizar solicitudes.');
+                console.log('[DEBUG] Sanción levantada, cambiando estado de solicitud...');
+                // Cambiar estado de la solicitud a devuelto
+                await this.cambiarEstado(id, 'devuelto');
+                console.log('[DEBUG] Estado cambiado, recargando página...');
+                // Forzar recarga completa de la página para asegurar actualización
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                const err = await resp.json().catch(() => ({}));
+                window.SwalUTN.error('Error', err.message || 'No se pudo levantar la sanción');
+            }
+        } catch (error) {
+            window.SwalUTN.error('Error', 'Error de conexión al levantar sanción');
+        }
+    }
+
+    // ─── Admin: Restaurar artículos a disponible ────────────────────
+    async restaurarArticulos(id) {
+        const s = this.solicitudes.find(s => s._id === id);
+        if (!s) return;
+        if (!this.isAdmin) return;
+
+        const result = await window.SwalUTN.confirm(
+            'Restaurar Artículos',
+            '¿Confirmas que deseas poner todos los artículos de esta solicitud como disponibles?'
+        );
+        if (!result.isConfirmed) return;
+
+        try {
+            const resp = await fetch(`${this.apiBase}/solicitudes/restaurar-articulos/${id}`, {
+                method: 'PUT',
+                headers: this.headers
+            });
+
+            if (resp.ok) {
+                window.SwalUTN.success('Artículos restaurados', 'Los artículos están disponibles nuevamente.');
+                await this.initialize();
+            } else {
+                const err = await resp.json().catch(() => ({}));
+                window.SwalUTN.error('Error', err.message || 'No se pudo restaurar los artículos');
+            }
+        } catch (error) {
+            window.SwalUTN.error('Error', 'Error de conexión al restaurar artículos');
+        }
     }
 
     // ─── Admin: Poner fuera de servicio ─────────────────────────────

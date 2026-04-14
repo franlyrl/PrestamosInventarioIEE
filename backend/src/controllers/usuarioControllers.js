@@ -219,7 +219,12 @@ exports.sancionarUsuarioPorFalta = async (req, res) => {
         // 3. IMPACTO EN EL USUARIO
         const usuarioSancionado = await Usuarios.findByIdAndUpdate(
             solicitud.usuario,
-            { estado: 'sancionado' },
+            {
+                estado: 'sancionado',
+                sancion_activa: true,
+                sancion_motivo: req.body.motivo || 'Incumplimiento en la entrega/daño de equipo',
+                sancion_fecha_inicio: new Date()
+            },
             { new: true }
         );
 
@@ -287,22 +292,47 @@ exports.sancionarUsuario = async (req, res) => {
  */
 exports.levantarSancion = async (req, res) => {
     try {
+        console.log('DEBUG levantarSancion - INICIO - ID:', req.params.id);
+        
         const usuario = await Usuarios.findById(req.params.id);
         if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado.' });
 
-        if (!usuario.sancion_activa && usuario.estado !== 'sancionado') {
+        // Verificar si tiene sanción activa tradicional
+        const tieneSancionActiva = usuario.estado === 'sancionado' || usuario.sancion_activa;
+
+        // Verificar si tiene solicitudes penalizadas (caso de usuarios antiguos o inconsistencias)
+        const solicitudesPenalizadas = await Solicitudes.find({
+            usuario: req.params.id,
+            estado: 'penalizado'
+        });
+        const tieneSolicitudesPenalizadas = solicitudesPenalizadas.length > 0;
+
+        console.log('DEBUG levantarSancion - Estado:', usuario.estado);
+        console.log('DEBUG levantarSancion - Sancion_activa:', usuario.sancion_activa);
+        console.log('DEBUG levantarSancion - Solicitudes penalizadas:', solicitudesPenalizadas.length);
+        console.log('DEBUG levantarSancion - tieneSancionActiva:', tieneSancionActiva);
+        console.log('DEBUG levantarSancion - tieneSolicitudesPenalizadas:', tieneSolicitudesPenalizadas);
+
+        if (!tieneSancionActiva && !tieneSolicitudesPenalizadas) {
             return res.status(400).json({ message: 'Este usuario no tiene una sanción activa.' });
+        }
+
+        // Guardar el comentario de levantamiento si se proporciona
+        const updateData = {
+            estado: 'activo',
+            sancion_activa: false,
+            sancion_motivo: null,
+            sancion_fecha_inicio: null,
+            sancion_fecha_fin: null
+        };
+        
+        if (req.body.comentario) {
+            updateData.sancion_comentario_levantamiento = req.body.comentario;
         }
 
         const actualizado = await Usuarios.findByIdAndUpdate(
             req.params.id,
-            {
-                estado: 'activo',
-                sancion_activa: false,
-                sancion_motivo: null,
-                sancion_fecha_inicio: null,
-                sancion_fecha_fin: null
-            },
+            updateData,
             { new: true }
         ).select('-hash_contraseña');
 
