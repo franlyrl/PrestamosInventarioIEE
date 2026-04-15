@@ -21,13 +21,14 @@ exports.protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     console.log("------------------------------------------");
-    console.log("🔍 [Middleware] Payload decodificado:", decoded);
+    console.log(" [Middleware] Payload decodificado:", decoded);
 
-    // 3. Buscar el usuario en la base de datos
-    const usuarioActual = await usuarios.findById(decoded.id);
+    // 3. Buscar el usuario en la base de datos (incluir campos necesarios)
+    const usuarioActual = await usuarios.findById(decoded.id)
+            .select('nombre_completo correo_electronico tipo_rol estado');
 
     if (!usuarioActual) {
-      console.log("❌ [Middleware] El ID del token no existe en la DB:", decoded.id);
+      console.log(" [Middleware] El ID del token no existe en la DB:", decoded.id);
       return res.status(401).json({ 
         message: 'El usuario asociado a este token ya no existe.' 
       });

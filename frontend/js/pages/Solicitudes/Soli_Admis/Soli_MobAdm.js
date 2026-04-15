@@ -6,6 +6,8 @@ class MobileAdminController {
         this.filtros = {
             busqueda: '',
             estado: 'todos',
+            tipo: 'todos', // activos, insumos, todos
+            usuario: 'todos', // filtro por usuario específico
             fechaDesde: '',
             fechaHasta: ''
         };
@@ -86,6 +88,22 @@ class MobileAdminController {
             });
         }
 
+        const tipoSelect = document.getElementById('tipo-filter');
+        if (tipoSelect) {
+            tipoSelect.addEventListener('change', (e) => {
+                this.filtros.tipo = e.target.value;
+                this.applyFilters();
+            });
+        }
+
+        const usuarioSelect = document.getElementById('usuario-filter');
+        if (usuarioSelect) {
+            usuarioSelect.addEventListener('change', (e) => {
+                this.filtros.usuario = e.target.value;
+                this.applyFilters();
+            });
+        }
+
         const limpiarBtn = document.getElementById('clear-filters-btn');
         if (limpiarBtn) {
             limpiarBtn.addEventListener('click', () => this.limpiarFiltros());
@@ -162,6 +180,7 @@ class MobileAdminController {
             // Renderizar solicitudes con datos actualizados
             this.renderSolicitudes();
             this.updateEstadisticas();
+            this.populateUsuarioFilter();
 
             console.log('** Admin mobile controller recargó y renderizó correctamente');
 
@@ -574,10 +593,39 @@ class MobileAdminController {
             console.log(`** Filtrando por estado "${this.filtros.estado}":`, filtradas.length);
         }
 
-        if (this.filtros.busqueda) {
+        if (this.filtros.tipo !== 'todos') {
             filtradas = filtradas.filter(s => {
-                const textoFila = `${s.usuario?.nombre_completo || ''} ${s._id || ''} ${this.getElementosInfo(s) || ''}`.toLowerCase();
-                return textoFila.includes(this.filtros.busqueda.toLowerCase());
+                if (this.filtros.tipo === 'activos') {
+                    return s.activos && s.activos.length > 0;
+                } else if (this.filtros.tipo === 'insumos') {
+                    return s.insumos && s.insumos.length > 0;
+                }
+                return true;
+            });
+            console.log(`** Filtrando por tipo "${this.filtros.tipo}":`, filtradas.length);
+        }
+
+        // Filtrar por usuario específico
+        if (this.filtros.usuario !== 'todos') {
+            filtradas = filtradas.filter(s => {
+                const usuarioId = s.usuario?._id || s.usuario?.id;
+                return usuarioId === this.filtros.usuario;
+            });
+            console.log(`** Filtrando por usuario "${this.filtros.usuario}":`, filtradas.length);
+        }
+
+        if (this.filtros.busqueda) {
+            const searchText = this.filtros.busqueda.toLowerCase().trim();
+            filtradas = filtradas.filter(s => {
+                const folioStr = s.folio ? String(s.folio).padStart(3, '0') : '';
+                const textoFila = `${s.usuario?.nombre_completo || ''} ${s.usuario?.correo_electronico || ''} ${s.usuario?.cedula || ''} ${s._id || ''} ${folioStr} ${this.getElementosInfo(s) || ''}`.toLowerCase();
+                return textoFila.includes(searchText) ||
+                       (s.usuario?.nombre_completo || '').toLowerCase().includes(searchText) ||
+                       (s.usuario?.correo_electronico || '').toLowerCase().includes(searchText) ||
+                       (s.usuario?.cedula || '').toLowerCase().includes(searchText) ||
+                       (s._id || '').toLowerCase().includes(searchText) ||
+                       folioStr.includes(searchText.replace('#', '')) ||
+                       String(s.folio || '').includes(searchText);
             });
         }
 
@@ -621,21 +669,63 @@ class MobileAdminController {
         this.filtros = {
             busqueda: '',
             estado: 'todos',
+            tipo: 'todos',
+            usuario: 'todos',
             fechaDesde: '',
             fechaHasta: ''
         };
         
         const estadoFilter = document.getElementById('estado-filter');
+        const tipoFilter = document.getElementById('tipo-filter');
+        const usuarioFilter = document.getElementById('usuario-filter');
         const busquedaInput = document.getElementById('busqueda-input');
         const fechaDesde = document.getElementById('fecha-desde');
         const fechaHasta = document.getElementById('fecha-hasta');
         
         if (estadoFilter) estadoFilter.value = 'todos';
+        if (tipoFilter) tipoFilter.value = 'todos';
+        if (usuarioFilter) usuarioFilter.value = 'todos';
         if (busquedaInput) busquedaInput.value = '';
         if (fechaDesde) fechaDesde.value = '';
         if (fechaHasta) fechaHasta.value = '';
         
         this.renderSolicitudes();
+    }
+
+    populateUsuarioFilter() {
+        const usuarioSelect = document.getElementById('usuario-filter');
+        if (!usuarioSelect) return;
+
+        // Obtener usuarios únicos de las solicitudes
+        const usuariosUnicos = new Map();
+        
+        this.solicitudes.forEach(solicitud => {
+            if (solicitud.usuario) {
+                const usuarioId = solicitud.usuario._id || solicitud.usuario.id;
+                const nombreCompleto = solicitud.usuario.nombre_completo || 'Usuario desconocido';
+                
+                if (usuarioId && !usuariosUnicos.has(usuarioId)) {
+                    usuariosUnicos.set(usuarioId, nombreCompleto);
+                }
+            }
+        });
+
+        // Crear opciones del select
+        const options = [
+            '<option value="todos">Todos los usuarios</option>'
+        ];
+
+        // Ordenar usuarios alfabéticamente
+        const usuariosOrdenados = Array.from(usuariosUnicos.entries()).sort((a, b) => 
+            a[1].localeCompare(b[1])
+        );
+
+        usuariosOrdenados.forEach(([id, nombre]) => {
+            options.push(`<option value="${id}">${nombre}</option>`);
+        });
+
+        usuarioSelect.innerHTML = options.join('');
+        console.log(`** Filtro de usuarios poblado con ${usuariosOrdenados.length} usuarios únicos`);
     }
 
     updateEstadisticas() {

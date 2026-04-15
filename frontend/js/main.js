@@ -280,9 +280,67 @@ window.UTNNotifs = {
             // Mostrar modal proactivo UNA VEZ por sesión si hay alertas importantes
             this._mostrarAlertaIngreso(alertas);
 
+            // Iniciar polling para detectar cambios en penalizaciones (si es estudiante)
+            const penalizados = alertas.filter(a => a.tipo === 'penalizado');
+            if (penalizados.length > 0) {
+                this._iniciarPollingPenalizacion();
+            }
+
         } catch (e) {
             console.warn('[UTNNotifs] Error al cargar notificaciones:', e.message);
         }
+    },
+
+    /**
+     * Inicia un polling cada 30 segundos para verificar si la penalización fue removida
+     * Si fue removida, muestra notificación de bienvenida y recarga
+     */
+    _iniciarPollingPenalizacion() {
+        if (this._pollingActivo) return; // Evitar múltiples polls
+        this._pollingActivo = true;
+
+        const verificar = async () => {
+            try {
+                const resp = await fetch(`${this.apiBase}/solicitudes`, { headers: this.headers });
+                if (!resp.ok) return;
+                
+                const todas = await resp.json();
+                const uid = this.currentUser._id || this.currentUser.id;
+                const mis = Array.isArray(todas) ? todas.filter(s => {
+                    const sUserId = s.usuario?._id || s.usuario?.id || s.usuario;
+                    return sUserId === uid || String(sUserId) === String(uid);
+                }) : [];
+
+                const tienePenalizacion = mis.some(s => s.estado === 'penalizado');
+
+                // Si YA NO hay penalización, mostrar alerta positiva
+                if (!tienePenalizacion && this._tuvoPenalizacion) {
+                    this._tuvoPenalizacion = false;
+                    this._pollingActivo = false;
+                    
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Restricción Removida!',
+                            html: '<p style="font-size:14px;">La restricción en tu cuenta ha sido levantada. Ahora puedes continuar.</p>',
+                            confirmButtonText: 'Continuar',
+                            confirmButtonColor: '#002D62',
+                            customClass: { popup: 'rounded-3xl' }
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn('[Polling] Error verificando penalizaciones:', e.message);
+            }
+        };
+
+        // Recordar que tuvo penalización para hacer la verificación
+        this._tuvoPenalizacion = true;
+
+        // Verificar cada 10 segundos (más rápido para detectar levantamiento)
+        setInterval(verificar, 10000);
     },
 
     _mostrarAlertaIngreso(alertas) {
@@ -347,7 +405,11 @@ window.UTNNotifs = {
             return `<div class="text-left ${bg} border ${borde} rounded-2xl p-4 mb-3">${texto}</div>`;
         }).join('');
 
-        Swal.fire({
+        // Verificar si hay penalizaciones
+        const tienePenalizacion = penalizados.length > 0;
+
+        // Si hay penalización, MODAL RESTRICTIVO (sin opción de escape)
+        const config = {
             title: titulos[tipoAlerta],
             html: `
                 <div class="py-2">
@@ -355,21 +417,43 @@ window.UTNNotifs = {
                     <p class="text-sm text-slate-500 mb-5 font-medium">Tienes <strong class="text-slate-700">${alertas.length}</strong> aviso(s) importante(s) en tus solicitudes.</p>
                     <div class="max-h-64 overflow-y-auto pr-1 space-y-1">${bloquesHtml}</div>
                 </div>`,
-            confirmButtonText: 'Ver mis solicitudes',
-            showCancelButton: true,
-            cancelButtonText: 'Cerrar por ahora',
-            confirmButtonColor: '#002D62',
-            cancelButtonColor: '#e2e8f0',
+            confirmButtonText: tienePenalizacion ? 'Enviar correo al administrador' : 'Ver mis solicitudes',
+            showCancelButton: tienePenalizacion, // Solo mostrar cancelar si hay penalización
+            cancelButtonText: tienePenalizacion ? 'Cerrar sesión' : undefined,
+            confirmButtonColor: tienePenalizacion ? '#1d4ed8' : '#002D62',
+            cancelButtonColor: '#dc2626',
             customClass: {
                 popup: 'rounded-3xl',
-                confirmButton: 'font-black px-6 py-3 rounded-xl shadow-lg shadow-[#002D62]/20',
-                cancelButton: 'font-bold px-6 py-3 rounded-xl text-slate-600'
+                confirmButton: 'font-black px-6 py-3 rounded-xl shadow-lg',
+                cancelButton: 'font-black px-6 py-3 rounded-xl bg-red-600 border border-red-700 text-white'
             },
             showClass:  { popup: 'animate__animated animate__fadeInDown animate__faster' },
-            hideClass:  { popup: 'animate__animated animate__fadeOutUp animate__faster' }
-        }).then(result => {
+            hideClass:  { popup: 'animate__animated animate__fadeOutUp animate__faster' },
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+                const closeBtn = document.querySelector('.swal2-close');
+                if (closeBtn) closeBtn.style.display = 'none';
+            }
+        };
+
+        Swal.fire(config).then(result => {
             if (result.isConfirmed) {
+                if (tienePenalizacion) {
+                    window.location.href = 'mailto:admin@utn.edu.ar?subject=Cuenta%20bloqueada%20-%20Solicitud%20penalizada&body=Hola%20administrador,%0D%0A%0D%0AMi%20cuenta%20está%20bloqueada%20por%20una%20solicitud%20penalizada.%20Por%20favor,%20revise%20mi%20caso.%0D%0A%0D%0AMi%20usuario%20es%20%3Cnombre%20o%20correo%3E.%0D%0AGracias.';
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    if (window.appState) window.appState.logout();
+                    window.location.replace('../login.html');
+                    return;
+                }
                 window.location.href = '../pages/solicitudes.html';
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                // Si presionan "Cerrar sesión"
+                localStorage.clear();
+                sessionStorage.clear();
+                if (window.appState) window.appState.logout();
+                window.location.replace('../login.html');
             }
         });
     },
@@ -468,6 +552,179 @@ window.cerrarSesion = async function() {
     }
 };
 
+window._penalizacionActivo = false;
+window._enforcePenalizacionUI = function() {
+    if (!window._penalizacionActivo) return;
+
+    document.querySelectorAll('a[href]').forEach(link => {
+        const href = (link.getAttribute('href') || '').toLowerCase();
+        const esMailto = href.startsWith('mailto:');
+        const esLogin = href.includes('login') || href.includes('signup');
+        const esHash = href === '#' || href.startsWith('javascript:');
+        if (esMailto || esLogin || esHash) return;
+
+        link.style.pointerEvents = 'none';
+        link.style.opacity = '0.35';
+        link.style.filter = 'grayscale(80%)';
+    });
+
+    document.querySelectorAll('button').forEach(button => {
+        const onclick = (button.getAttribute('onclick') || '').toLowerCase();
+        const text = (button.textContent || '').toLowerCase();
+        if (onclick.includes('cerrarsesion') || text.includes('cerrar sesión') || text.includes('cerrar sesion')) return;
+
+        button.style.pointerEvents = 'none';
+        button.style.opacity = '0.35';
+    });
+};
+
+window._allowedPenalizacionHref = function(href) {
+    href = (href || '').toLowerCase();
+    return href.startsWith('mailto:') || href.includes('login') || href.includes('signup') || href === '#' || href.startsWith('javascript:');
+};
+
+window._isSolicitudesPath = function(pathname = window.location.pathname) {
+    return pathname.toLowerCase().includes('solicitudes');
+};
+
+window._setPenalizacionFlag = function(activo) {
+    window._penalizacionActivo = activo;
+    if (activo) {
+        window._enforcePenalizacionUI();
+    }
+};
+
+/**
+ * Sistema de Bloqueo por Penalización - VERSIÓN RESTRICTIVA
+ * Muestra un modal explicativo y obliga al usuario a cerrar sesión o enviar correo al administrador.
+ */
+window.verificarBloqueopenalizacion = async function() {
+    try {
+        const token = localStorage.getItem('utn_token');
+        const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
+        const apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+        
+        if (!token || !user._id) return false;
+
+        // Obtener solicitudes del usuario
+        const response = await fetch(`${apiBase}/solicitudes`, {
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) return false;
+
+        const solicitudes = await response.json();
+        const misSolicitudes = Array.isArray(solicitudes) ? solicitudes : [];
+        
+        // Verificar si hay alguna penalización activa
+        const tienePenalizacion = misSolicitudes.some(s => s.estado === 'penalizado');
+        window._setPenalizacionFlag(tienePenalizacion);
+
+        // Si hay penalización, BLOQUEO TOTAL
+        if (tienePenalizacion) {
+            setTimeout(() => {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Cuenta bloqueada',
+                        html: `
+                            <div class="py-4 text-left">
+                                <p class="text-sm text-slate-700 mb-3">Tu cuenta está bloqueada porque tienes una solicitud con estado <strong class="text-red-700">penalizado</strong>.</p>
+                                <p class="text-xs text-slate-600 mb-4">Mientras el administrador no marque la solicitud como <strong>devuelta</strong>, no podrás acceder a otras secciones del sistema.</p>
+                                <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                                    <p class="text-xs font-semibold text-red-800 uppercase mb-2">Qué debes hacer</p>
+                                    <ul class="text-xs text-slate-700 space-y-2">
+                                        <li>• Envía un correo al administrador explicando tu situación.</li>
+                                        <li>• Espera la revisión de tu solicitud.</li>
+                                        <li>• Solo podrás volver a usar el sistema cuando la penalización sea removida.</li>
+                                    </ul>
+                                </div>
+                            </div>`,
+                        confirmButtonText: 'Cerrar sesión',
+                        denyButtonText: 'Enviar correo al administrador',
+                        confirmButtonColor: '#dc2626',
+                        denyButtonColor: '#1d4ed8',
+                        showDenyButton: true,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        customClass: {
+                            popup: 'rounded-3xl',
+                            confirmButton: 'font-black px-6 py-3 rounded-xl bg-red-600 border border-red-700 text-white',
+                            denyButton: 'font-black px-5 py-3 rounded-xl bg-blue-600 border border-blue-700 text-white'
+                        },
+                        didOpen: () => {
+                            const closeBtn = document.querySelector('.swal2-close');
+                            if (closeBtn) closeBtn.style.display = 'none';
+                            window._enforcePenalizacionUI();
+                        }
+                    }).then(result => {
+                        if (result.isDenied) {
+                            window.location.href = 'mailto:admin@utn.edu.ar?subject=Cuenta%20bloqueada%20-%20Solicitud%20penalizada&body=Hola%20administrador,%0D%0A%0D%0ATengo%20una%20solicitud%20penalizada%20y%20necesito%20que%20se%20revise%20mi%20caso.%0D%0A%0D%0AMi%20usuario%20es%20%3Cnombre%20o%20correo%3E.%0D%0AGracias.';
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            if (window.appState) window.appState.logout();
+                            window.location.replace('../login.html');
+                            return;
+                        }
+
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        if (window.appState) window.appState.logout();
+                        window.location.replace('../login.html');
+                    });
+                }
+            }, 500);
+            
+            return true; // Hay bloqueo
+        }
+
+        window._setPenalizacionFlag(false);
+        return false; // No hay bloqueo
+    } catch (e) {
+        console.warn('[Penalización] Error verificando bloqueo:', e.message);
+        return false;
+    }
+};
+
+/**
+ * Inicializar bloqueo de penalización cuando se cargue CUALQUIER página
+ * Muestra el modal de bloqueo si el usuario está penalizado.
+ */
+document.addEventListener('DOMContentLoaded', async () => {
+    const paginaActual = window.location.pathname;
+    const esLoginPage = paginaActual.includes('login') || paginaActual.includes('signup');
+
+    if (!esLoginPage) {
+        await window.verificarBloqueopenalizacion();
+    }
+});
+
+/**
+ * Detectar intentos de navegación hacia atrás o cambio de URL directo
+ * REDIRIGE a solicitudes si intenta escapar
+ */
+window.addEventListener('popstate', async () => {
+    const paginaActual = window.location.pathname;
+    const esLoginPage = paginaActual.includes('login') || paginaActual.includes('signup');
+
+    if (!esLoginPage) {
+        await window.verificarBloqueopenalizacion();
+    }
+});
+
+/**
+ * Interceptar cambios de hash (#) también
+ */
+window.addEventListener('hashchange', async () => {
+    const paginaActual = window.location.pathname;
+    const esLoginPage = paginaActual.includes('login') || paginaActual.includes('signup');
+
+    if (!esLoginPage) {
+        await window.verificarBloqueopenalizacion();
+    }
+});
+
+
 window.toggleUserMenu = function(e) {
     if (e) e.stopPropagation();
     const dropdown = document.getElementById('user-dropdown');
@@ -485,8 +742,53 @@ window.toggleUserMenu = function(e) {
     }
 };
 
+/**
+ * Interceptor de navegación para usuarios penalizados
+ * REDIRIGE automáticamente si intenta ir a otro lado
+ * SOLO PERMITE: Solicitudes, Logout
+ */
+document.addEventListener('click', async (e) => {
+    const link = e.target.closest('a[href]');
+    if (!link) {
+        // Si es click en dropdown o notificaciones, manejar normalmente
+        const dropdown = document.getElementById('user-dropdown');
+        const btn = document.getElementById('user-menu-btn');
+        if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+            dropdown.classList.add('hidden', 'opacity-0');
+            dropdown.classList.remove('opacity-100');
+            dropdown.style.display = 'none';
+        }
+        // Cerrar también el dropdown de notificaciones
+        const nd = document.getElementById('notif-dropdown');
+        const nc = document.getElementById('notifContainer');
+        if (nd && nc && !nc.contains(e.target)) {
+            nd.style.display = 'none';
+        }
+        return;
+    }
+
+    // Si presionan un enlace, verificar si está penalizado
+    const href = link.getAttribute('href') || '';
+    const esLoginPage = href.includes('login') || href.includes('signup') || href.includes('cerrar');
+    const esSolicitudes = href.includes('solicitudes');
+    
+    if (!esLoginPage && !esSolicitudes) {
+        const bloqueado = window._penalizacionActivo ? true : await window.verificarBloqueopenalizacion();
+        if (bloqueado) {
+            if (!window._allowedPenalizacionHref(href)) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }
+    }
+}, true); // Usar capture phase para interceptar antes que otros listeners
+
 // Cerrar el menú de usuario y el dropdown de notificaciones al hacer clic fuera
 document.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href]');
+    if (link) return; // Si es un link, ya fue manejado arriba
+
     const dropdown = document.getElementById('user-dropdown');
     const btn = document.getElementById('user-menu-btn');
     if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
@@ -503,7 +805,7 @@ document.addEventListener('click', (e) => {
 });
 
 
-window.redirigirInicio = function() {
+window.redirigirInicio = async function() {
     let user = null;
     try {
         user = window.appState?.getUser() || JSON.parse(localStorage.getItem('utn_user'));
@@ -513,6 +815,16 @@ window.redirigirInicio = function() {
 
     if (!user) {
         window.location.href = window.location.pathname.includes('/pages/') ? '../login.html' : 'login.html';
+        return;
+    }
+
+    if (window._penalizacionActivo) {
+        await window.verificarBloqueopenalizacion();
+        return;
+    }
+
+    const bloqueado = await window.verificarBloqueopenalizacion();
+    if (bloqueado) {
         return;
     }
     
@@ -671,11 +983,29 @@ window.addToCart = async function(itemName, itemType, itemData, btn = null) {
         return;
     }
 
-    // Verificar límite máximo de 2 artículos totales
-    const totalEnCarrito = window.cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-    if (totalEnCarrito >= 2) {
-        window.Utils?.showToast('Máximo 2 artículos por solicitud. Elimina uno para agregar otro.', 'warning');
-        return;
+    // Verificar si el usuario tiene penalización activa
+    const token = localStorage.getItem('utn_token');
+    const apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+
+    if (token && user._id) {
+        try {
+            const response = await fetch(`${apiBase}/solicitudes`, {
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+            });
+
+            if (response.ok) {
+                const solicitudes = await response.json();
+                const misSolicitudes = Array.isArray(solicitudes) ? solicitudes : [];
+                const tienePenalizacion = misSolicitudes.some(s => s.estado === 'penalizado');
+
+                if (tienePenalizacion) {
+                    window.Utils?.showToast('Tu cuenta tiene una restricción activa. No puedes solicitar equipos.', 'error');
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('[AddToCart] Error verificando penalización:', e.message);
+        }
     }
 
     if (itemType === 'activo') {
@@ -912,6 +1242,11 @@ window.clearCart = function() {
 };
 
 window.openCartModal = function() {
+    if (window._penalizacionActivo) {
+        window.SwalUTN?.warning('Restricción activa', 'No puedes usar el carrito mientras tu cuenta está penalizada.');
+        return;
+    }
+
     const modal = document.getElementById('cartModal');
     if (modal) {
         modal.classList.add('open');
@@ -931,6 +1266,32 @@ window.sendRequest = async function() {
     if (window.cart.length === 0) {
         window.Utils?.showToast('El carrito está vacío.', 'warning');
         return;
+    }
+
+    // Verificar si el usuario tiene penalización activa
+    const token = localStorage.getItem('utn_token');
+    const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
+    const apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+
+    if (token && user._id) {
+        try {
+            const response = await fetch(`${apiBase}/solicitudes`, {
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+            });
+
+            if (response.ok) {
+                const solicitudes = await response.json();
+                const misSolicitudes = Array.isArray(solicitudes) ? solicitudes : [];
+                const tienePenalizacion = misSolicitudes.some(s => s.estado === 'penalizado');
+
+                if (tienePenalizacion) {
+                    window.Utils?.showToast('Tu cuenta tiene una restricción activa. No puedes solicitar equipos.', 'error');
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('[SendRequest] Error verificando penalización:', e.message);
+        }
     }
 
     const motivo = document.getElementById('solicitud-motivo')?.value?.trim();

@@ -426,15 +426,24 @@ class MobileAdminController {
         
         let filtradas = this.solicitudes;
 
+        // Filtrar por estado
         if (this.filtros.estado !== 'todos') {
             filtradas = filtradas.filter(s => s.estado === this.filtros.estado);
-            console.log(`** Filtrando por estado "${this.filtros.estado}":`, filtradas.length);
         }
 
+        // Filtrar por búsqueda (nombre, correo, cédula, folio, ID)
         if (this.filtros.busqueda) {
+            const searchText = this.filtros.busqueda.toLowerCase().trim();
             filtradas = filtradas.filter(s => {
-                const textoFila = `${s.usuario?.nombre_completo || ''} ${s._id || ''} ${this.getElementosInfo(s) || ''}`.toLowerCase();
-                return textoFila.includes(this.filtros.busqueda.toLowerCase());
+                const folioStr = s.folio ? String(s.folio).padStart(3, '0') : '';
+                const textoFila = `${s.usuario?.nombre_completo || ''} ${s.usuario?.correo_electronico || ''} ${s.usuario?.cedula || ''} ${s._id || ''} ${folioStr} ${this.getElementosInfo(s) || ''}`.toLowerCase();
+                return textoFila.includes(searchText) ||
+                       (s.usuario?.nombre_completo || '').toLowerCase().includes(searchText) ||
+                       (s.usuario?.correo_electronico || '').toLowerCase().includes(searchText) ||
+                       (s.usuario?.cedula || '').toLowerCase().includes(searchText) ||
+                       (s._id || '').toLowerCase().includes(searchText) ||
+                       folioStr.includes(searchText.replace('#', '')) ||
+                       String(s.folio || '').includes(searchText);
             });
         }
 

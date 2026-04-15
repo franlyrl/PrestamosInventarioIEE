@@ -6,6 +6,7 @@ class MobileUserController {
         this.filters = {
             busqueda: '',
             estado: 'todos',
+            tipo: 'todos', // activos, insumos, todos
             fechaDesde: '',
             fechaHasta: ''
         };
@@ -75,6 +76,14 @@ class MobileUserController {
         if (estadoSelect) {
             estadoSelect.addEventListener('change', (e) => {
                 this.filters.estado = e.target.value;
+                this.applyFilters();
+            });
+        }
+
+        const tipoSelect = document.getElementById('tipo-filter');
+        if (tipoSelect) {
+            tipoSelect.addEventListener('change', (e) => {
+                this.filters.tipo = e.target.value;
                 this.applyFilters();
             });
         }
@@ -468,10 +477,36 @@ class MobileUserController {
             console.log('** Mostrando todos los estados:', filtradas.length);
         }
 
+        if (this.filters.tipo !== 'todos') {
+            filtradas = filtradas.filter(s => {
+                if (this.filters.tipo === 'activos') {
+                    return s.activos && s.activos.length > 0;
+                } else if (this.filters.tipo === 'insumos') {
+                    return s.insumos && s.insumos.length > 0;
+                }
+                return true;
+            });
+            console.log(`** Filtrando por tipo "${this.filters.tipo}":`, filtradas.length);
+        }
+
         if (this.filters.busqueda) {
             filtradas = filtradas.filter(s => {
                 const textoFila = `${s.usuario?.nombre_completo || ''} ${s._id || ''} ${this.getElementosInfo(s) || ''}`.toLowerCase();
                 return textoFila.includes(this.filters.busqueda.toLowerCase());
+            });
+        }
+
+        // Filtrar por fechas
+        if (this.filters.fechaDesde || this.filters.fechaHasta) {
+            filtradas = filtradas.filter(solicitud => {
+                const solicitudDate = new Date(solicitud.createdAt);
+                const fechaDesde = this.filters.fechaDesde ? new Date(this.filters.fechaDesde) : null;
+                const fechaHasta = this.filters.fechaHasta ? new Date(this.filters.fechaHasta) : null;
+
+                if (fechaDesde && solicitudDate < fechaDesde) return false;
+                if (fechaHasta && solicitudDate > new Date(fechaHasta.getTime() + 24 * 60 * 60 * 1000)) return false;
+
+                return true;
             });
         }
 
@@ -505,12 +540,15 @@ class MobileUserController {
         this.filters = {
             busqueda: '',
             estado: 'todos',
+            tipo: 'todos',
             fechaDesde: '',
             fechaHasta: ''
         };
         
         const estadoFilter = document.getElementById('estado-filter');
+        const tipoFilter = document.getElementById('tipo-filter');
         if (estadoFilter) estadoFilter.value = 'todos';
+        if (tipoFilter) tipoFilter.value = 'todos';
         
         this.renderSolicitudes();
     }

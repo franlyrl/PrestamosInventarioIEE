@@ -69,6 +69,16 @@ const solicitudesSchema = new mongoose.Schema({
                 message: 'Las observaciones son obligatorias para penalizaciones, devoluciones o rechazos.'
             },
             default: 'Sin observaciones'
+        },
+        /** @property {String} usuario_cambio Email del usuario que realizó el cambio de estado. */
+        usuario_cambio: {
+            type: String,
+            default: null
+        },
+        /** @property {String} operario Nombre del usuario que realizó el cambio de estado. */
+        operario: {
+            type: String,
+            default: null
         }
     }],
 

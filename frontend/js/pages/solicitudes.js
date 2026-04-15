@@ -8,13 +8,22 @@
 class SolicitudesController {
     constructor() {
         this.solicitudes = [];
-        this.filtros = { busqueda: '', estado: 'todos', desde: '', cedula: '' };
+        this.filtros = { 
+            busqueda: '', 
+            estado: 'todos', 
+            usuario: 'todos',
+            desde: '', 
+            hasta: '',
+            cedula: '' 
+        };
         this.currentUser = JSON.parse(localStorage.getItem('utn_user')) || {};
         this.token = localStorage.getItem('utn_token') || '';
         this.apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
-        this.isAdmin = ['admin', 'administrador', 'administrativo'].some(r =>
-            (this.currentUser.rol || '').toLowerCase().includes(r)
+        this.isAdmin = ['admin', 'administrador', 'administrativo', 'estudiante'].some(r =>
+            (this.currentUser.rol || this.currentUser.tipo_rol || this.currentUser.rol_nombre || '').toLowerCase().includes(r)
         );
+        console.log('** Usuario actual:', this.currentUser);
+        console.log('** Es admin:', this.isAdmin);
         this.currentPage = 1;
         this.itemsPerPage = 5;
 
@@ -30,6 +39,8 @@ class SolicitudesController {
             this._showLoading(true);
             await this.cargarSolicitudes();
             this.setupEventListeners();
+            this.populateUsuarioFilter();
+            this.updateUIVisibility();
             this.render();
         } catch (error) {
             this._toast('Error al cargar solicitudes', 'error');
@@ -73,8 +84,18 @@ class SolicitudesController {
             this.currentPage = 1;
             this.render();
         });
+        document.getElementById('usuario-filter')?.addEventListener('change', e => {
+            this.filtros.usuario = e.target.value;
+            this.currentPage = 1;
+            this.render();
+        });
         document.getElementById('fecha-desde')?.addEventListener('change', e => {
             this.filtros.desde = e.target.value;
+            this.currentPage = 1;
+            this.render();
+        });
+        document.getElementById('fecha-hasta')?.addEventListener('change', e => {
+            this.filtros.hasta = e.target.value;
             this.currentPage = 1;
             this.render();
         });
@@ -86,31 +107,104 @@ class SolicitudesController {
         document.getElementById('btn-refrescar')?.addEventListener('click', () => this.initialize());
     }
 
+    populateUsuarioFilter() {
+        // Solo poblar si es admin
+        if (!this.isAdmin) return;
+        
+        const usuarioSelect = document.getElementById('usuario-filter');
+        if (!usuarioSelect) return;
+
+        // Obtener usuarios únicos de las solicitudes
+        const usuariosUnicos = new Map();
+        
+        this.solicitudes.forEach(solicitud => {
+            if (solicitud.usuario) {
+                const usuarioId = solicitud.usuario._id || solicitud.usuario.id;
+                const nombreCompleto = solicitud.usuario.nombre_completo || 'Usuario desconocido';
+                
+                if (usuarioId && !usuariosUnicos.has(usuarioId)) {
+                    usuariosUnicos.set(usuarioId, nombreCompleto);
+                }
+            }
+        });
+
+        // Crear opciones del select
+        const options = [
+            '<option value="todos">Todos los usuarios</option>'
+        ];
+
+        // Ordenar usuarios alfabéticamente
+        const usuariosOrdenados = Array.from(usuariosUnicos.entries()).sort((a, b) => 
+            a[1].localeCompare(b[1])
+        );
+
+        usuariosOrdenados.forEach(([id, nombre]) => {
+            options.push(`<option value="${id}">${nombre}</option>`);
+        });
+
+        usuarioSelect.innerHTML = options.join('');
+        console.log(`** Filtro de usuarios poblado con ${usuariosOrdenados.length} usuarios únicos`);
+    }
+
+    updateUIVisibility() {
+        console.log('** updateUIVisibility ejecutándose, isAdmin:', this.isAdmin);
+        // Mostrar/ocultar filtros según el rol
+        const filtroUsuario = document.getElementById('filtro-usuario-wrapper');
+        const filtroCedula = document.getElementById('filtro-cedula-wrapper');
+        console.log('** filtroUsuario element:', filtroUsuario);
+        console.log('** filtroCedula element:', filtroCedula);
+        
+        if (this.isAdmin) {
+            if (filtroUsuario) filtroUsuario.style.display = 'block';
+            if (filtroCedula) filtroCedula.style.display = 'block';
+            console.log('** Mostrando filtros de usuario y cédula para admin');
+        } else {
+            if (filtroUsuario) filtroUsuario.style.display = 'none';
+            if (filtroCedula) filtroCedula.style.display = 'none';
+            console.log('** Ocultando filtros de usuario y cédula para estudiante');
+        }
+    }
 
     // ─── Filtrado ────────────────────────────────────────────────────────────────
     getFiltered() {
         return this.solicitudes.filter(s => {
             const matchEstado = this.filtros.estado === 'todos' || s.estado === this.filtros.estado;
             
-            // Búsqueda por Nombre o Folio (#001) o ID técnico
+            // Filtro por usuario específico (solo para admin)
+            let matchUsuario = true;
+            if (this.isAdmin && this.filtros.usuario !== 'todos') {
+                const usuarioId = s.usuario?._id || s.usuario?.id;
+                matchUsuario = usuarioId === this.filtros.usuario;
+            }
+            
+            // Búsqueda por Nombre, Correo, Folio (#001), ID técnico o Cédula
             const folioStr = s.folio ? String(s.folio).padStart(3, '0') : '';
-            const searchText = this.filtros.busqueda.toLowerCase();
-            const matchBusqueda = !this.filtros.busqueda ||
+            const searchText = this.filtros.busqueda.toLowerCase().trim();
+            const matchBusqueda = !searchText ||
                 (s.usuario?.nombre_completo || '').toLowerCase().includes(searchText) ||
+                (s.usuario?.correo_electronico || '').toLowerCase().includes(searchText) ||
+                (s.usuario?.cedula || '').toLowerCase().includes(searchText) ||
                 folioStr.includes(searchText.replace('#', '')) ||
-                s._id.toLowerCase().includes(searchText);
+                (s._id || '').toLowerCase().includes(searchText) ||
+                String(s.folio || '').includes(searchText);
 
             // Filtro específico por cédula
             const matchCedula = !this.filtros.cedula ||
                 (s.usuario?.cedula || '').includes(this.filtros.cedula);
 
             let matchFecha = true;
-            if (this.filtros.desde) {
+            if (this.filtros.desde || this.filtros.hasta) {
                 const f = new Date(s.createdAt);
-                const d = new Date(this.filtros.desde + 'T12:00:00'); // Evitar problemas de zona horaria
-                if (f < d) matchFecha = false;
+                if (this.filtros.desde) {
+                    const d = new Date(this.filtros.desde + 'T12:00:00');
+                    if (f < d) matchFecha = false;
+                }
+                if (this.filtros.hasta && matchFecha) {
+                    const h = new Date(this.filtros.hasta + 'T23:59:59');
+                    if (f > h) matchFecha = false;
+                }
             }
-            return matchEstado && matchBusqueda && matchCedula && matchFecha;
+            return matchEstado && matchUsuario && matchBusqueda && matchCedula && matchFecha;
         });
     }
 
@@ -475,16 +569,37 @@ class SolicitudesController {
 
         // Historial de estados
         const historicoHtml = s.historico_estados?.length
-            ? s.historico_estados.map(h => `
+            ? s.historico_estados.map(h => {
+                const fechaObj = new Date(h.fecha);
+                const fechaStr = fechaObj.toLocaleDateString('es-CR', {day:'numeric',month:'long',year:'numeric'});
+                const horaStr = fechaObj.toLocaleTimeString('es-CR', {hour:'2-digit',minute:'2-digit'});
+                const operario = h.operario || 'Usuario';
+                const usuarioCambio = h.usuario_cambio || 'Sistema';
+                // Detectar si es admin por el correo o nombre
+                const esAdmin = usuarioCambio.includes('admin') || 
+                               operario.toLowerCase().includes('admin') ||
+                               h.estado === 'aprobada' || 
+                               h.estado === 'rechazada' ||
+                               h.estado === 'penalizado' ||
+                               h.estado === 'devuelto';
+                const etiqueta = esAdmin ? 'Operario' : 'Usuario';
+                return `
                 <div class="flex items-start gap-3">
                     <div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${this.getStatusClass(h.estado).replace('50','100')} text-[10px] font-black mt-0.5">✓</div>
-                    <div>
+                    <div class="flex-1 min-w-0">
                         <p class="text-xs font-black text-slate-700 capitalize">${this.getStatusLabel(h.estado)}</p>
-                        <p class="text-[10px] text-slate-400">${new Date(h.fecha).toLocaleDateString('es-CR', {day:'numeric',month:'long',year:'numeric'})}</p>
-                        ${h.observaciones && h.observaciones !== 'Sin observaciones' ? `<p class="text-xs text-slate-500 italic mt-0.5">${h.observaciones}</p>` : ''}
+                        <p class="text-[10px] text-slate-500 mt-0.5">
+                            <span class="font-semibold">${fechaStr}</span> • ${horaStr}
+                        </p>
+                        <p class="text-[9px] text-slate-400 mt-0.5">
+                            ${etiqueta}: <span class="font-medium text-slate-600">${operario}</span>
+                            <span class="text-slate-400">(${usuarioCambio})</span>
+                        </p>
+                        ${h.observaciones && h.observaciones !== 'Sin observaciones' ? `<p class="text-xs text-slate-500 italic mt-1 border-l-2 border-slate-200 pl-2">${h.observaciones}</p>` : ''}
                     </div>
-                </div>`).join('')
-            : '<p class="text-xs text-slate-400 italic">Sin historial disponible</p>';
+                </div>`;
+            }).join('')
+            : '<p class="text-sm text-slate-500 italic">No hay movimientos registrados</p>';
 
         const alertaDev = diasRestantes !== null && s.estado === 'entregado'
             ? `<div class="${vencida ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200'} border rounded-xl p-3 text-xs font-bold flex items-center gap-2">

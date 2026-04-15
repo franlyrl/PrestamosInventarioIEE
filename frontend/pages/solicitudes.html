@@ -15,8 +15,8 @@
     </script>
     <style>
         body { font-family: 'Inter', sans-serif; background: #f8fafc; }
-        .field-label { display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px; }
-        .field-input { width: 100%; padding: 10px 14px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; font-weight: 500; color: #1e293b; transition: all 0.2s; outline: none; }
+        .field-label { display: block; font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 4px; }
+        .field-input { width: 100%; padding: 6px 10px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 12px; font-weight: 500; color: #1e293b; transition: all 0.2s; outline: none; }
         .field-input:focus { border-color: #002D62; box-shadow: 0 0 0 3px rgba(0,45,98,0.08); background: white; }
         .card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; }
     </style>
@@ -94,9 +94,9 @@
                 </div>
                 
                 <!-- Panel de Filtros -->
-                <div class="card p-6 mb-6">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-5">Filtros de Búsqueda</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 items-end">
+                <div class="card p-4 mb-6">
+                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-3">Filtros de Búsqueda</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2 items-end">
                         <div>
                             <label class="field-label">Búsqueda por Nombre / ID</label>
                             <input type="text" id="busqueda" placeholder="Nombre, ID solicitud..." class="field-input">
@@ -119,13 +119,24 @@
                                 <option value="penalizado">Penalizado</option>
                             </select>
                         </div>
+                        <div id="filtro-usuario-wrapper">
+                            <label class="field-label">Usuario</label>
+                            <select id="usuario-filter" class="field-input">
+                                <option value="todos">Todos los usuarios</option>
+                                <!-- Se poblará dinámicamente -->
+                            </select>
+                        </div>
                         <div>
                             <label class="field-label">Desde</label>
                             <input type="date" id="fecha-desde" class="field-input">
                         </div>
                         <div>
-                            <button id="btn-refrescar" class="w-full py-[10px] px-5 bg-[#002D62] text-white rounded-[10px] font-bold text-sm hover:bg-[#001A33] transition flex items-center justify-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            <label class="field-label">Hasta</label>
+                            <input type="date" id="fecha-hasta" class="field-input">
+                        </div>
+                        <div>
+                            <button id="btn-refrescar" class="w-full py-[6px] px-3 bg-[#002D62] text-white rounded-[8px] font-bold text-xs hover:bg-[#001A33] transition flex items-center justify-center gap-2">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                 Refrescar
                             </button>
                         </div>

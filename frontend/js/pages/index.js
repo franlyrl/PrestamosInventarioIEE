@@ -526,12 +526,6 @@ function showToast(message, type = 'success') {
 
 // Función para añadir al carrito
 function addToCart(itemName, itemType, itemData) {
-    // Límite de 2 artículos por solicitud
-    if (cart.length >= 2) {
-        showToast('Máximo 2 artículos permitidos por solicitud', 'warning');
-        return;
-    }
-
     // Siempre añadir como nuevo item (sin verificar duplicados)
     cart.push({
         name: itemName,

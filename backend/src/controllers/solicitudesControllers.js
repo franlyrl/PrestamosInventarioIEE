@@ -168,7 +168,9 @@ exports.createSolicitud = async (req, res) => {
             historico_estados: [{
                 estado: 'pendiente',
                 fecha: new Date(),
-                observaciones: 'Solicitud creada exitosamente.'
+                observaciones: 'Solicitud creada exitosamente.',
+                usuario_cambio: req.user?.correo_electronico || req.user?.email || 'Sistema',
+                operario: req.user?.nombre_completo || req.user?.nombre || 'Usuario'
             }]
         });
 
@@ -331,7 +333,9 @@ exports.actualizarEstadoSolicitud = async (req, res) => {
         MapearEstadoSoli.historico_estados.push({
             estado: nuevoEstado,
             fecha: new Date(),
-            observaciones: observaciones // Mongoose validará esto según tu validator
+            observaciones: observaciones,
+            usuario_cambio: req.user?.correo_electronico || req.user?.email || 'Sistema',
+            operario: req.user?.nombre_completo || req.user?.nombre || 'Usuario'
         });
 
         // Actualizamos campos de fecha si es devolución
@@ -397,7 +401,9 @@ exports.deleteSolicitud = async (req, res) => {
         eliminarSoli.historico_estados.push({
             estado: 'cancelada',
             fecha: new Date(),
-            observaciones: motivo_cancelacion || 'Solicitud cancelada por el usuario.'
+            observaciones: motivo_cancelacion || 'Solicitud cancelada por el usuario.',
+            usuario_cambio: req.user?.correo_electronico || req.user?.email || 'Sistema',
+            operario: req.user?.nombre_completo || req.user?.nombre || 'Usuario'
         });
 
         // 6. Guardar los cambios
@@ -486,7 +492,9 @@ exports.gestionarEstadoAdmin = async (req, res) => {
         EstadoSoli.historico_estados.push({
             estado: nuevoEstadoAdmin,
             fecha: new Date(),
-            observaciones: observaciones || `El Administrador cambió el estado a ${nuevoEstadoAdmin}.`
+            observaciones: observaciones || `El Administrador cambió el estado a ${nuevoEstadoAdmin}.`,
+            usuario_cambio: req.user?.correo_electronico || req.user?.email || 'Sistema',
+            operario: req.user?.nombre_completo || req.user?.nombre || 'Usuario'
         });
 
         if (req.body.comentario_admin) {
