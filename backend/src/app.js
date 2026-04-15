@@ -40,6 +40,7 @@ app.use('/api/historial-usuarios', require('./routes/UsuariosHistorialRoutes'));
 app.use('/api/listaEspera', require('./routes/listaEsperaRoutes'));
 app.use('/api/kardex', require('./routes/kardexRoutes'));
 app.use('/api/estadisticas', require('./routes/estadisticasRoutes'));
+app.use('/api/cuatrimestre', require('./routes/cuatrimestreRoutes'));
 
 // --- 3. RUTAS PÚBLICAS Y PRUEBAS ---
 app.post('/api/upload', (req, res) => {

@@ -3,6 +3,87 @@ const bcrypt = require('bcryptjs'); // Para el hash de la contraseña
 const jwt = require('jsonwebtoken'); // O tu función generarToken
 const generarToken = require('../utils/generarToken');
 const Solicitudes = require('../models/solicitudes'); // Para verificar préstamos activos
+const CuatrimestreConfig = require('../models/cuatrimestreConfig');
+const {
+    extractRawTextFromPdf,
+    evaluateBoletaAgainstConfig,
+    persistBoletaFile
+} = require('../services/boletaService');
+
+const CARRERAS_BASE_AUTORIZADAS = [
+    'ingenieria electronica',
+    'ingenieria electrica',
+    'ingenieria en tecnologias de informacion',
+    'ingenieria en produccion industrial',
+    'n/a',
+    'na'
+];
+
+function normalizarTextoPlano(valor = '') {
+    return String(valor)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+}
+
+function normalizarCarrera(valor = '') {
+    const key = normalizarTextoPlano(valor);
+    if (!key) return 'N/A';
+    if (key === 'ingenieria electronica') return 'Ingenieria Electronica';
+    if (key === 'ingenieria electrica') return 'Ingenieria Electrica';
+    if (key === 'ingenieria en tecnologias de informacion') return 'Ingenieria en Tecnologias de Informacion';
+    if (key === 'ingenieria en produccion industrial') return 'Ingenieria en Produccion Industrial';
+    if (key === 'n/a' || key === 'na') return 'N/A';
+    return String(valor).trim();
+}
+
+function esCarreraAutorizada(valor = '') {
+    const key = normalizarTextoPlano(valor);
+    return CARRERAS_BASE_AUTORIZADAS.includes(key);
+}
+
+function getYearFromCodigo(codigo) {
+    const m = String(codigo || '').toUpperCase().match(/(20\d{2})/);
+    return m ? Number(m[1]) : new Date().getFullYear();
+}
+
+function getNextCuatrimestreCodigo(codigo) {
+    const raw = String(codigo || '').toUpperCase();
+    const year = getYearFromCodigo(raw);
+
+    // Acepta nomenclaturas como I-2026, IC 2026, II-2026, III-2026
+    const hasIII = /\bIII\b/.test(raw);
+    const hasII = /\bII\b/.test(raw);
+    const hasIorIC = /\bIC\b/.test(raw) || (/\bI\b/.test(raw) && !hasII && !hasIII);
+
+    if (hasIII) return `I-${year + 1}`;
+    if (hasII) return `III-${year}`;
+    if (hasIorIC) return `II-${year}`;
+    return raw.trim();
+}
+
+function resolveBoletaTargetConfig(cuatrimestreActivo) {
+    const now = new Date();
+    const expired = !!(cuatrimestreActivo?.fecha_fin && now > new Date(cuatrimestreActivo.fecha_fin));
+    const codigoRequerido = expired
+        ? getNextCuatrimestreCodigo(cuatrimestreActivo?.codigo || '')
+        : String(cuatrimestreActivo?.codigo || '').trim().toUpperCase();
+
+    // Cuando el ciclo ya vencio y aun no existe configuracion del siguiente,
+    // validamos contra el codigo requerido y un rango anual del mismo ano.
+    const year = getYearFromCodigo(codigoRequerido);
+    const configParaValidar = expired
+        ? {
+            ...(cuatrimestreActivo || {}),
+            codigo: codigoRequerido,
+            fecha_inicio: new Date(Date.UTC(year, 0, 1)),
+            fecha_fin: new Date(Date.UTC(year, 11, 31))
+        }
+        : cuatrimestreActivo;
+
+    return { expired, codigoRequerido, configParaValidar };
+}
 
 
 /**
@@ -32,58 +113,93 @@ exports.getUsuarios = async (req, res) => {
 
 exports.createUsuario = async (req, res) => {
     try {
-        const { cedula, nombre_completo, contrasena, correo_electronico, carrera } = req.body;
-        
-        // 1. Validación manual de la contraseña (antes del hash)
+        let { cedula, nombre_completo, contrasena, correo_electronico, carrera } = req.body;
+
+        if (cedula) cedula = String(cedula).replace(/[\s\-\.]/g, '').trim();
+        const correoLower = (correo_electronico || '').toLowerCase().trim();
+
         if (!contrasena || contrasena.length < 8) {
             return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres.' });
         }
 
-        // 2. Transformación: Generar el Hash
-        const salt = await bcrypt.genSalt(10);
-        const passwordHasheada = await bcrypt.hash(contrasena, salt);
-
-        // H: Detectar rol automáticamente por dominio del correo
-        // @est.utn.ac.cr = estudiante, @utn.ac.cr (sin est.) = docente
         let tipoRolDetectado = 'estudiante';
-        const correoLower = correo_electronico.toLowerCase().trim();
         if (correoLower.endsWith('@utn.ac.cr') && !correoLower.endsWith('@est.utn.ac.cr')) {
             tipoRolDetectado = 'docente';
         }
+        const carreraNormalizada = normalizarCarrera(carrera);
 
-        // 3. Crear el usuario
+        if (tipoRolDetectado === 'estudiante' && !esCarreraAutorizada(carreraNormalizada)) {
+            return res.status(400).json({ message: 'La carrera no es válida para este sistema.' });
+        }
+
+        const cuatrimestreActivo = await CuatrimestreConfig.findOne({ activo: true }).sort({ createdAt: -1 }).lean();
+        const { codigoRequerido, configParaValidar } = resolveBoletaTargetConfig(cuatrimestreActivo);
+
+        if (tipoRolDetectado === 'estudiante' && cuatrimestreActivo?.requiere_boleta && !req.file) {
+            return res.status(400).json({ message: 'Debe adjuntar la boleta de matrícula en PDF para registrarse.' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const passwordHasheada = await bcrypt.hash(contrasena, salt);
+
         const nuevoUsuario = new Usuarios({
             id_usuario: Date.now(),
             cedula,
             nombre_completo,
             correo_electronico: correoLower,
             hash_contraseña: passwordHasheada,
-            tipo_rol: tipoRolDetectado, // H: asignado automáticamente
+            tipo_rol: tipoRolDetectado,
             estado_usuario: 'activo',
             estado: 'activo',
-            carrera: carrera || 'N/A'
+            carrera: carreraNormalizada || 'N/A',
+            boleta_estado: tipoRolDetectado === 'estudiante' ? 'pendiente_revision' : 'validada'
         });
+
+        if (req.file && tipoRolDetectado === 'estudiante') {
+            const buffer = require('fs').readFileSync(req.file.path);
+            const rawText = await extractRawTextFromPdf(buffer);
+            const evaluacion = evaluateBoletaAgainstConfig(rawText, configParaValidar || cuatrimestreActivo, {
+                cedula,
+                nombre_completo,
+                carrera: carreraNormalizada,
+                correo_electronico: correoLower
+            });
+
+            nuevoUsuario.boleta_pdf_url = persistBoletaFile(req.file);
+            nuevoUsuario.boleta_nombre_archivo = req.file.originalname || null;
+            nuevoUsuario.boleta_cuatrimestre = codigoRequerido || cuatrimestreActivo?.codigo || null;
+            nuevoUsuario.boleta_validada = evaluacion.validada;
+            nuevoUsuario.boleta_estado = evaluacion.estado;
+            nuevoUsuario.boleta_observaciones = evaluacion.observacion;
+            nuevoUsuario.boleta_fecha_carga = new Date();
+            nuevoUsuario.boleta_fecha_inicio = evaluacion.fechaMin || null;
+            nuevoUsuario.boleta_fecha_fin = evaluacion.fechaMax || null;
+            nuevoUsuario.boleta_texto_resumen = evaluacion.textoResumen || null;
+        }
 
         await nuevoUsuario.save();
 
         res.status(201).json({
             status: 'success',
-            message: '¡Cuenta creada exitosamente! La contraseña fue encriptada y el usuario activado.'
+            message: 'Cuenta creada correctamente.',
+            boleta: {
+                estado: nuevoUsuario.boleta_estado,
+                validada: nuevoUsuario.boleta_validada,
+                observaciones: nuevoUsuario.boleta_observaciones || ''
+            }
         });
-
     } catch (error) {
-        console.error("❌ Error en registro:", error);
-        
-        // Manejo específico de errores de duplicado (Mongo error code 11000)
         if (error.code === 11000) {
             const field = Object.keys(error.keyPattern)[0];
             let message = 'Ya existe un registro con este dato.';
-            
             if (field === 'cedula') message = 'La cédula ya está registrada.';
             if (field === 'correo_electronico') message = 'El correo electrónico ya está registrado.';
-            if (field === 'id_usuario') message = 'Error interno: ID de usuario duplicado. Reintenlo.';
-            
+            if (field === 'id_usuario') message = 'Error interno: ID de usuario duplicado. Reintente.';
             return res.status(400).json({ message });
+        }
+        if (error.name === 'ValidationError') {
+            const msg = Object.values(error.errors || {})[0]?.message || 'Datos invalidos para registrar usuario.';
+            return res.status(400).json({ message: msg });
         }
 
         res.status(500).json({ message: 'Error en el registro', error: error.message });
@@ -106,6 +222,44 @@ exports.updateUsuario = async (req, res) => {
         res.json(usuarioActualizado);
     } catch (error) {
         res.status(400).json({ message: 'Error al actualizar el usuario', error });
+    }
+};
+
+/**
+ * @desc Actualiza el rol y permisos de un usuario específico.
+ * @access Privado (Solo Administrador)
+ */
+exports.updateRolesPermisos = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { tipo_rol, permisos } = req.body;
+
+        // Solo permitir actualizar si se es admin. El middleware verifyAdmin (o proteger rutas) debería filtrar,
+        // pero validamos por seguridad extra (opcional si req.user existe):
+        const admin = req.user;
+        if (admin && admin.tipo_rol !== 'admin' && admin.tipo_rol !== 'administrativo') {
+            return res.status(403).json({ message: 'No tienes permisos para esta acción.' });
+        }
+
+        // Evitar quitarse a sí mismo el rol de admin por error
+        if (admin && admin._id.toString() === id && tipo_rol !== 'admin' && tipo_rol !== 'administrativo') {
+            return res.status(400).json({ message: 'No puedes revocar tus propios privilegios de administrador.' });
+        }
+
+        const usuarioActualizado = await Usuarios.findByIdAndUpdate(
+            id,
+            { tipo_rol, permisos: permisos || [] },
+            { new: true, runValidators: true }
+        ).select('-hash_contraseña');
+
+        if (!usuarioActualizado) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+        res.json({
+            message: 'Rol y permisos actualizados correctamente.',
+            usuario: usuarioActualizado
+        });
+    } catch (error) {
+        res.status(400).json({ message: 'Error al actualizar rol y permisos', error: error.message });
     }
 };
 
@@ -137,9 +291,18 @@ exports.getPerfil = async (req, res) => {
                 id: req.user._id,
                 nombre: req.user.nombre_completo,
                 correo: req.user.correo_electronico,
+                cedula: req.user.cedula || null,
                 rol: req.user.tipo_rol,
                 carrera: req.user.carrera,
-                estado: req.user.estado
+                estado: req.user.estado || req.user.estado_usuario || 'activo',
+                boleta: {
+                    url: req.user.boleta_pdf_url || null,
+                    estado: req.user.boleta_estado || 'pendiente_boleta',
+                    validada: !!req.user.boleta_validada,
+                    cuatrimestre: req.user.boleta_cuatrimestre || null,
+                    observaciones: req.user.boleta_observaciones || '',
+                    fecha_carga: req.user.boleta_fecha_carga || null
+                }
             }
         });
 
@@ -449,13 +612,7 @@ exports.loginUsuario = async (req, res) => {
         }
 
         // 4. Filtro de Carreras UTN
-        const CARRERAS_AUTORIZADAS = [
-            'Ingeniería Electrónica', 'Ingeniería Eléctrica',
-            'Ingeniería en Tecnologías de Información', 'Ingeniería en Producción Industrial',
-            'N/A'
-        ];
-
-        if (!CARRERAS_AUTORIZADAS.includes(usuario.carrera)) {
+        if (!esCarreraAutorizada(usuario.carrera)) {
             return res.status(403).json({ message: 'Acceso denegado: Carrera no autorizada.' });
         }
 
@@ -487,7 +644,46 @@ exports.loginUsuario = async (req, res) => {
             });
         }
 
-        // 6. Generación de Token
+                // 6. Validacion de boleta para estudiantes
+        if (usuario.tipo_rol === 'estudiante') {
+            const cuatrimestreActivo = await CuatrimestreConfig.findOne({ activo: true }).sort({ createdAt: -1 }).lean();
+            const { expired, codigoRequerido } = resolveBoletaTargetConfig(cuatrimestreActivo);
+
+            if (expired) {
+                await Usuarios.findByIdAndUpdate(usuario._id, {
+                    boleta_validada: false,
+                    boleta_estado: 'pendiente_boleta',
+                    boleta_observaciones: `El cuatrimestre ${cuatrimestreActivo.codigo} finalizó. Debe cargar boleta del período ${codigoRequerido}.`
+                });
+                return res.status(403).json({
+                    message: `El cuatrimestre ${cuatrimestreActivo.codigo} ya finalizó. Debe subir boleta del período ${codigoRequerido}.`,
+                    requiere_boleta: true,
+                    cuatrimestre: codigoRequerido
+                });
+            }
+
+            if (cuatrimestreActivo?.requiere_boleta) {
+                if (!usuario.boleta_pdf_url) {
+                    return res.status(403).json({
+                        message: `Debes subir tu boleta de matrícula del cuatrimestre ${codigoRequerido} para acceder.`,
+                        requiere_boleta: true,
+                        cuatrimestre: codigoRequerido
+                    });
+                }
+
+                const boletaCuatrimestre = (usuario.boleta_cuatrimestre || '').toUpperCase();
+                if (!usuario.boleta_validada || boletaCuatrimestre !== String(codigoRequerido || '').toUpperCase()) {
+                    return res.status(403).json({
+                        message: `Tu boleta no es válida para ${codigoRequerido}. Debes subir un nuevo PDF que coincida con tus datos y el período.`,
+                        requiere_boleta: true,
+                        boleta_estado: usuario.boleta_estado || 'pendiente_revision',
+                        cuatrimestre: codigoRequerido
+                    });
+                }
+            }
+        }
+
+        // 7. Generacion de Token
         const token = generarToken(usuario._id, usuario.tipo_rol);
 
         res.status(200).json({
@@ -691,5 +887,145 @@ exports.limpiarUsuariosViejos = async (req, res) => {
             message: 'Error al mover datos al histórico.',
             error: error.message
         });
+    }
+};
+
+
+
+
+
+exports.subirBoletaPerfil = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'Debe adjuntar un archivo PDF.' });
+        }
+
+        const usuario = await Usuarios.findById(req.user._id);
+        if (!usuario) return res.status(404).json({ message: 'Usuario no encontrado.' });
+
+        const cuatrimestreActivo = await CuatrimestreConfig.findOne({ activo: true }).sort({ createdAt: -1 }).lean();
+        const { codigoRequerido, configParaValidar } = resolveBoletaTargetConfig(cuatrimestreActivo);
+        const buffer = require('fs').readFileSync(req.file.path);
+        const rawText = await extractRawTextFromPdf(buffer);
+        const evaluacion = evaluateBoletaAgainstConfig(rawText, configParaValidar || cuatrimestreActivo, {
+            cedula: usuario.cedula,
+            nombre_completo: usuario.nombre_completo,
+            carrera: usuario.carrera,
+            correo_electronico: usuario.correo_electronico
+        });
+
+        usuario.boleta_pdf_url = persistBoletaFile(req.file);
+        usuario.boleta_nombre_archivo = req.file.originalname || null;
+        usuario.boleta_cuatrimestre = codigoRequerido || cuatrimestreActivo?.codigo || null;
+        usuario.boleta_validada = evaluacion.validada;
+        usuario.boleta_estado = evaluacion.estado;
+        usuario.boleta_observaciones = evaluacion.observacion;
+        usuario.boleta_fecha_carga = new Date();
+        usuario.boleta_fecha_inicio = evaluacion.fechaMin || null;
+        usuario.boleta_fecha_fin = evaluacion.fechaMax || null;
+        usuario.boleta_texto_resumen = evaluacion.textoResumen || null;
+
+        await usuario.save();
+
+        res.json({
+            message: evaluacion.validada
+                ? 'Boleta validada automáticamente.'
+                : `Boleta rechazada automáticamente. ${evaluacion.observacion}`,
+            boleta: {
+                url: usuario.boleta_pdf_url,
+                estado: usuario.boleta_estado,
+                validada: usuario.boleta_validada,
+                observaciones: usuario.boleta_observaciones,
+                cuatrimestre: usuario.boleta_cuatrimestre,
+                fecha_carga: usuario.boleta_fecha_carga
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al procesar boleta.', error: error.message });
+    }
+};
+
+exports.getEstadoBoleta = async (req, res) => {
+    try {
+        const usuario = await Usuarios.findById(req.user._id)
+            .select('boleta_pdf_url boleta_nombre_archivo boleta_cuatrimestre boleta_validada boleta_estado boleta_observaciones boleta_fecha_carga')
+            .lean();
+
+        const cuatrimestreActivo = await CuatrimestreConfig.findOne({ activo: true }).sort({ createdAt: -1 }).lean();
+
+        res.json({
+            boleta: {
+                url: usuario?.boleta_pdf_url || null,
+                nombre_archivo: usuario?.boleta_nombre_archivo || null,
+                cuatrimestre: usuario?.boleta_cuatrimestre || null,
+                validada: !!usuario?.boleta_validada,
+                estado: usuario?.boleta_estado || 'pendiente_boleta',
+                observaciones: usuario?.boleta_observaciones || '',
+                fecha_carga: usuario?.boleta_fecha_carga || null
+            },
+            cuatrimestre_activo: cuatrimestreActivo
+                ? {
+                    codigo: cuatrimestreActivo.codigo,
+                    fecha_inicio: cuatrimestreActivo.fecha_inicio,
+                    fecha_fin: cuatrimestreActivo.fecha_fin,
+                    requiere_boleta: cuatrimestreActivo.requiere_boleta
+                }
+                : null
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al consultar estado de boleta.', error: error.message });
+    }
+};
+
+exports.subirBoletaReactivacion = async (req, res) => {
+    try {
+        const { cedula, correo_electronico, contrasena } = req.body;
+        if (!req.file) return res.status(400).json({ message: 'Debe adjuntar un PDF de boleta.' });
+        if (!cedula || !correo_electronico || !contrasena) {
+            return res.status(400).json({ message: 'Debe enviar cédula, correo y contraseña.' });
+        }
+
+        const cedulaNorm = String(cedula).replace(/[\s\-\.]/g, '').trim();
+        const correo = String(correo_electronico).toLowerCase().trim();
+
+        const usuario = await Usuarios.findOne({ cedula: cedulaNorm, correo_electronico: correo }).select('+hash_contraseña');
+        if (!usuario) return res.status(404).json({ message: 'No se encontro usuario con esos datos.' });
+
+        const okPass = await bcrypt.compare(contrasena, usuario.hash_contraseña);
+        if (!okPass) return res.status(401).json({ message: 'Credenciales invalidas.' });
+
+        const cuatrimestreActivo = await CuatrimestreConfig.findOne({ activo: true }).sort({ createdAt: -1 }).lean();
+        const { codigoRequerido, configParaValidar } = resolveBoletaTargetConfig(cuatrimestreActivo);
+        const buffer = require('fs').readFileSync(req.file.path);
+        const rawText = await extractRawTextFromPdf(buffer);
+        const evaluacion = evaluateBoletaAgainstConfig(rawText, configParaValidar || cuatrimestreActivo, {
+            cedula: usuario.cedula,
+            nombre_completo: usuario.nombre_completo,
+            carrera: usuario.carrera,
+            correo_electronico: usuario.correo_electronico
+        });
+
+        usuario.boleta_pdf_url = persistBoletaFile(req.file);
+        usuario.boleta_nombre_archivo = req.file.originalname || null;
+        usuario.boleta_cuatrimestre = codigoRequerido || cuatrimestreActivo?.codigo || null;
+        usuario.boleta_validada = evaluacion.validada;
+        usuario.boleta_estado = evaluacion.estado;
+        usuario.boleta_observaciones = evaluacion.observacion;
+        usuario.boleta_fecha_carga = new Date();
+        usuario.boleta_fecha_inicio = evaluacion.fechaMin || null;
+        usuario.boleta_fecha_fin = evaluacion.fechaMax || null;
+        usuario.boleta_texto_resumen = evaluacion.textoResumen || null;
+        await usuario.save();
+
+        return res.json({
+            message: evaluacion.validada
+                ? 'Boleta recibida y validada. Ya puede iniciar sesión.'
+                : `Boleta rechazada automáticamente. ${evaluacion.observacion}`,
+            estado: usuario.boleta_estado,
+            validada: usuario.boleta_validada,
+            observaciones: usuario.boleta_observaciones
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al subir boleta de reactivacion.', error: error.message });
     }
 };

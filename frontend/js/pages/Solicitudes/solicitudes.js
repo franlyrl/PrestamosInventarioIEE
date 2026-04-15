@@ -1,1070 +1,922 @@
-// Controlador de la página de Solicitudes
+/**
+ * SolicitudesController — Mejorado para Rol Estudiante
+ * - Estudiantes ven SOLO sus propias solicitudes
+ * - Pueden cancelar solicitudes pendientes
+ * - Modal de detalle con historial de estados
+ * - Alertas de devolución vencida
+ */
 class SolicitudesController {
     constructor() {
         this.solicitudes = [];
-        this.filtros = {
-            busqueda: '',
-            estado: 'todos',
-            fechaDesde: '',
-            fechaHasta: ''
-        };
+        this.filtros = { busqueda: '', estado: 'todos', desde: '', cedula: '' };
+        this.currentUser = JSON.parse(localStorage.getItem('utn_user')) || {};
+        this.token = localStorage.getItem('utn_token') || '';
+        this.apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+        this.isAdmin = ['admin', 'administrador', 'administrativo'].some(r =>
+            (this.currentUser.rol || '').toLowerCase().includes(r)
+        );
         this.currentPage = 1;
-        this.itemsPerPage = 10;
+        this.itemsPerPage = 5;
+
     }
 
+    get headers() {
+        return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` };
+    }
+
+    // ─── Inicialización ──────────────────────────────────────────────────────────
     async initialize() {
-        console.log('** initialize() llamado - BLOQUEADO para dejar control a controladores específicos');
-        
-        // Verificar si es desktop antes de continuar
-        if (window.innerWidth < 1024) {
-            console.log('** No es desktop - SolicitudesController NO se inicializará');
-            return;
-        }
-        
-        console.log('** Es desktop - Inicializando SolicitudesController...');
-        await this.cargarSolicitudes();
-        this.setupEventListeners();
-
-        // Renderizar para actualizar contadores
-        this.renderSolicitudes();
-
-        console.log('** SolicitudesController inicializado completamente');
-
-        // Forzar recarga de datos después de un breve momento
-        setTimeout(() => {
-            console.log('** Recargando solicitudes...');
-            this.cargarSolicitudes();
-        }, 1000);
-    }
-
-    setupEventListeners() {
-        // Búsqueda
-        const busquedaInput = document.getElementById('busqueda-input');
-        if (busquedaInput) {
-            busquedaInput.addEventListener('input', (e) => {
-                this.filtros.busqueda = e.target.value;
-                this.renderSolicitudes();
-            });
-        }
-
-        // Estado
-        const estadoSelect = document.getElementById('estado-filter');
-        if (estadoSelect) {
-            estadoSelect.addEventListener('change', (e) => {
-                this.filtros.estado = e.target.value;
-                this.renderSolicitudes();
-            });
-        }
-
-        // Fechas
-        const fechaDesde = document.getElementById('fecha-desde');
-        const fechaHasta = document.getElementById('fecha-hasta');
-
-        if (fechaDesde) {
-            fechaDesde.addEventListener('change', (e) => {
-                this.filtros.fechaDesde = e.target.value;
-                this.renderSolicitudes();
-            });
-        }
-
-        if (fechaHasta) {
-            fechaHasta.addEventListener('change', (e) => {
-                this.filtros.fechaHasta = e.target.value;
-                this.renderSolicitudes();
-            });
-        }
-
-        // Botones
-        const buscarBtn = document.getElementById('buscar-btn');
-        const limpiarBtn = document.getElementById('limpiar-btn');
-        const exportarBtn = document.getElementById('exportar-btn');
-        const imprimirBtn = document.getElementById('imprimir-btn');
-
-        if (buscarBtn) {
-            buscarBtn.addEventListener('click', () => this.renderSolicitudes());
-        }
-
-        if (limpiarBtn) {
-            limpiarBtn.addEventListener('click', () => this.limpiarFiltros());
-        }
-
-        if (exportarBtn) {
-            exportarBtn.addEventListener('click', () => this.exportarDatos());
-        }
-
-        if (imprimirBtn) {
-            imprimirBtn.addEventListener('click', () => this.imprimirDatos());
-        }
-
-        // Paginación
-        const paginaAnterior = document.getElementById('pagina-anterior');
-        const paginaSiguiente = document.getElementById('pagina-siguiente');
-
-        if (paginaAnterior) {
-            paginaAnterior.addEventListener('click', () => this.cambiarPagina(-1));
-        }
-
-        if (paginaSiguiente) {
-            paginaSiguiente.addEventListener('click', () => this.cambiarPagina(1));
-        }
-    }
-
-    async cargarSolicitudes() {
         try {
-            Utils.showLoading(true);
-            console.log(' Cargando solicitudes del sistema...');
-
-            // Cargar TODAS las solicitudes del sistema (para administradores)
-            const response = await ApiService.getSolicitudes();
-            console.log(' Respuesta de getSolicitudes:', response);
-            this.solicitudes = response.data || response;
-            console.log(' Solicitudes cargadas:', this.solicitudes.length, 'solicitudes');
-
-            // Ocultar loading
-            Utils.showLoading(false);
-
-            // FORZAR SOLO renderSolicitudes() - NO usar sistema HTML antiguo
-            console.log('� USANDO ÚNICAMENTE renderSolicitudes() del controller');
-            this.renderSolicitudes();
-            this.updateEstadisticas();
-
-            console.log(' Controller completó todo el renderizado');
-
+            this._showLoading(true);
+            await this.cargarSolicitudes();
+            this.setupEventListeners();
+            this.render();
         } catch (error) {
-            console.error('Error cargando solicitudes:', error);
-            Utils.showToast('Error al cargar solicitudes', 'error');
-            Utils.showLoading(false);
+            this._toast('Error al cargar solicitudes', 'error');
+        } finally {
+            this._showLoading(false);
         }
     }
 
-    renderSolicitudes() {
-        console.log('** renderSolicitudes() llamado - BLOQUEADO para dejar control a Soli_DeskUs.js');
-        
-        // No renderizar nada - dejar que Soli_DeskUs.js maneje desktop
-        // y Soli_MobUs.js maneje móvil
-        return;
-    }
+    // ─── Carga de Solicitudes ────────────────────────────────────────────────────
+    async cargarSolicitudes() {
+        const resp = await fetch(`${this.apiBase}/solicitudes`, { headers: this.headers });
+        if (!resp.ok) throw new Error(`API error ${resp.status}`);
+        const data = await resp.json();
 
-    filtrarSolicitudes() {
-        return this.solicitudes.filter(solicitud => {
-            const coincideBusqueda = !this.filtros.busqueda ||
-                (solicitud.usuario?.nombre_completo && solicitud.usuario.nombre_completo.toLowerCase().includes(this.filtros.busqueda.toLowerCase())) ||
-                (solicitud.activos && solicitud.activos.some(a => a.nombre?.toLowerCase().includes(this.filtros.busqueda.toLowerCase()))) ||
-                (solicitud.insumos && solicitud.insumos.some(i => i.nombreProducto?.toLowerCase().includes(this.filtros.busqueda.toLowerCase())));
-
-            const coincideEstado = this.filtros.estado === 'todos' ||
-                solicitud.estado === this.filtros.estado;
-
-            const coincideFecha = this.checkFechaFilter(solicitud);
-
-            return coincideBusqueda && coincideEstado && coincideFecha;
-        });
-    }
-
-    checkFechaFilter(solicitud) {
-        if (!this.filtros.fechaDesde && !this.filtros.fechaHasta) {
-            return true;
-        }
-
-        const solicitudDate = new Date(solicitud.createdAt);
-        const fechaDesde = this.filtros.fechaDesde ? new Date(this.filtros.fechaDesde) : null;
-        const fechaHasta = this.filtros.fechaHasta ? new Date(this.filtros.fechaHasta) : null;
-
-        if (fechaDesde && solicitudDate < fechaDesde) return false;
-        if (fechaHasta && solicitudDate > new Date(fechaHasta.getTime() + 24 * 60 * 60 * 1000)) return false;
-
-        return true;
-    }
-
-    getEstadoIcon(estado) {
-        const iconos = {
-            'pendiente': '??',
-            'aprobada': '??',
-            'rechazada': '??',
-            'entregado': '??',
-            'devuelto': '??',
-            'cancelada': '??'
-        };
-        return iconos[estado] || '??';
-    }
-
-    getEstadoMobile(estado) {
-        const estados = {
-            'pendiente': { text: 'Pendiente', color: 'text-yellow-600', bg: 'bg-yellow-100' },
-            'aprobada': { text: 'Aprobada', color: 'text-green-600', bg: 'bg-green-100' },
-            'rechazada': { text: 'Rechazada', color: 'text-red-600', bg: 'bg-red-100' },
-            'entregado': { text: 'Entregado', color: 'text-blue-600', bg: 'bg-blue-100' },
-            'devuelto': { text: 'Devuelto', color: 'text-purple-600', bg: 'bg-purple-100' },
-            'cancelada': { text: 'Cancelada', color: 'text-gray-600', bg: 'bg-gray-100' }
-        };
-        return estados[estado] || { text: estado, color: 'text-gray-600', bg: 'bg-gray-100' };
-    }
-
-    getEstadoBadge(estado) {
-        const badges = {
-            'pendiente': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">?? Pendiente</span>',
-            'aprobada': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">?? Aprobada</span>',
-            'rechazada': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">?? Rechazada</span>',
-            'entregado': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">?? Entregado</span>',
-            'devuelto': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">?? Devuelto</span>',
-            'cancelada': '<span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">?? Cancelada</span>'
-        };
-        return badges[estado] || `<span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">${estado}</span>`;
-    }
-
-    getElementosInfo(solicitud) {
-        const elementos = [];
-        
-        if (solicitud.insumos && solicitud.insumos.length > 0) {
-            solicitud.insumos.forEach(insumo => {
-                const nombre = insumo.id_insumo?.NombProducto || insumo.descripcion || 'Insumo';
-                const cantidad = insumo.cantidad || 1;
-                elementos.push({
-                    icono: '??',
-                    nombre: nombre,
-                    cantidad: cantidad,
-                    detalles: insumo.caracteristicas || ''
-                });
-            });
-        }
-        
-        if (solicitud.activos && solicitud.activos.length > 0) {
-            solicitud.activos.forEach(activo => {
-                elementos.push({
-                    icono: '??',
-                    nombre: activo.nombre || 'Activo',
-                    cantidad: 1,
-                    detalles: activo.descripcion || ''
-                });
-            });
-        }
-        
-        return elementos;
-    }
-
-    createSolicitudRow(solicitud) {
-        const usuario = JSON.parse(localStorage.getItem('utn_user'));
-        const nombreUsuario = usuario?.nombre_completo || usuario?.nombre || 'Usuario';
-        const emailUsuario = usuario?.email || usuario?.correo_electronario || usuario?.correo || '';
-        const rolUsuario = usuario?.rol || usuario?.rol_nombre || '';
-        const rolText = rolUsuario.toLowerCase();
-        
-        const esEstudiante = rolText.includes('estudiante');
-        const esDocente = rolText.includes('docente') || rolText.includes('profesor');
-        const isMobile = window.innerWidth < 1024; // Definir isMobile
-        
-        let rolColor = '#10b981'; // Verde para estudiantes
-        let rolBgGradient = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-        let rolIcono = '??';
-        
-        if (esDocente) {
-            rolColor = '#f59e0b'; // Naranja para docentes
-            rolBgGradient = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
-            rolIcono = '??';
-        }
-
-        if (isMobile) {
-            // Versión móvil - estilo Soli_DeskUs.js
-            return `
-                <tr class="border-b hover:bg-slate-50">
-                    <td class="p-4">
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-start">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <span class="text-lg font-bold text-slate-800">#${solicitud._id?.slice(-6)}</span>
-                                        <span class="px-2 py-1 rounded-full text-xs font-medium" style="background: linear-gradient(135deg, rgba(229, 220, 220, 0) 0%, rgba(132, 128, 128, 0) 100%); color: #004a8c;">
-                                            ${esEstudiante ? 'ESTUDIANTE' : 'DOCENTE'}
-                                        </span>
-                                    </div>
-                                    <div class="text-slate-600 font-medium">${solicitud.usuario?.nombre_completo || 'Usuario'}</div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-slate-500 text-sm">${new Date(solicitud.createdAt).toLocaleDateString()}</div>
-                                    <div class="mt-1">${this.getEstadoBadge(solicitud.estado)}</div>
-                                </div>
-                            </div>
-                            
-                            <div class="space-y-2">
-                                <div class="text-sm text-slate-700">
-                                    ${this.getElementosInfo(solicitud)}
-                                </div>
-                                
-                                <div class="flex justify-end">
-                                    <div class="relative">
-                                        <button 
-                                            onclick="window.solicitudesController.toggleMenu('${solicitud._id}')" 
-                                            class="p-2 rounded-lg transition-all duration-200 hover:scale-110"
-                                            style="background: linear-gradient(135deg, rgba(229, 220, 220, 0) 0%, rgba(132, 128, 128, 0) 100%); color: black; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);">
-                                            <span class="text-lg">?</span>
-                                        </button>
-                                        <div id="menu-${solicitud._id}" class="hidden absolute right-4 mt-2 w-48 bg-white rounded-lg shadow-lg border" style="border-color: #000000; z-index: 1000;">
-                                            <!-- Acciones según rol y estado -->
-                                            <div class="p-2">
-                                                ${this.createActionsForRole(solicitud, esEstudiante, esDocente, '#000000')}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            `;
+        const todas = Array.isArray(data) ? data : [];
+        if (this.isAdmin) {
+            this.solicitudes = todas;
         } else {
-            // Versión desktop
-            return `
-                <tr class="hover:bg-slate-50 border-b">
-                    <td class="px-4 py-3 font-mono text-sm">#${solicitud._id?.slice(-6)}</td>
-                    <td class="px-4 py-3 font-medium">${solicitud.usuario?.nombre_completo || 'Usuario'}</td>
-                    <td class="px-4 py-3 text-sm">${this.getElementosInfo(solicitud)}</td>
-                    <td class="px-4 py-3 text-sm">${new Date(solicitud.createdAt).toLocaleDateString()}</td>
-                    <td class="px-4 py-3">${this.getEstadoBadge(solicitud.estado)}</td>
-                    <td class="px-4 py-3">
-                        <div class="relative">
-                            <button 
-                                onclick="window.solicitudesController.toggleMenu('${solicitud._id}')" 
-                                class="p-2 rounded-lg transition-all duration-200 hover:scale-110"
-                                style="background: ${rolBgGradient}; color: white; box-shadow: 0 2px 8px ${rolColor}40;">
-                                ?
-                            </button>
-                            <div id="menu-${solicitud._id}" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border-2" style="border-color: ${rolColor}; z-index: 1000;">
-                                <!-- Encabezado del menú -->
-                                <div class="menu-header" style="background: ${rolBgGradient}; color: white; padding: 12px; border-radius: 8px 8px 0 0;">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-lg">${rolIcono}</span>
-                                        <div>
-                                            <div class="font-bold text-xs">${esEstudiante ? 'ESTUDIANTE' : 'DOCENTE'}</div>
-                                            <div class="text-xs opacity-90">Solicitud #${solicitud._id?.slice(-6)}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Acciones según rol y estado -->
-                                <div class="p-2">
-                                    ${this.createActionsForRole(solicitud, esEstudiante, esDocente, rolColor)}
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }
-    }
-    if (isMobile) {
-        // Versión móvil - ultra compacta
-        return `
-                <tr>
-                    <td class="px-0 py-0.5">
-                        <span class="font-medium text-[7px] text-slate-900">#${solicitud._id?.slice(-4) || 'N/A'}</span>
-                    </td>
-                    <td class="px-0 py-0.5">
-                        <div class="text-[6px]">
-                            <div class="font-medium text-slate-700 text-[6px]">${usuarioNombre}</div>
-                            ${usuarioEmail !== 'N/A' ? `<div class="text-[5px] text-slate-200">${usuarioEmail}</div>` : ''}
-                        </div>
-                    </td>
-                    <td class="px-0 py-0.5">
-                        <div class="text-[6px]">
-                            <div class="text-center">
-                                <span class="bg-green-100 text-green-700 px-1 py-0.5 rounded text-[5px] font-bold">
-                                    ${elementos.length} items
-                                </span>
-                            </div>
-                            ${elementos.length > 0 ? `
-                                <div class="text-[5px] text-slate-200 mt-1">
-                                    Total: ${elementos.reduce((sum, el) => sum + el.cantidad, 0)} und
-                                </div>
-                            ` : ''}
-                        </div>
-                    </td>
-                    <td class="px-0 py-0.5">
-                        <span class="text-[6px] text-slate-500">${new Date(solicitud.createdAt).toLocaleDateString()}</span>
-                    </td>
-                    <td class="px-0 py-0.5">
-                        <div class="text-[6px] text-left">
-                            ${this.getEstadoMobile(solicitud.estado)}
-                        </div>
-                    </td>
-                    <td class="px-0 py-0.5 text-[4px] relative">
-                        <div class="relative">
-                            <button onclick="toggleMenu('${solicitud._id}', event)" class="group relative inline-flex items-left justify-center p-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-all duration-50">
-                                <div class="flex flex-col space-y-0.2">
-                                    <div class="w-0.2 h-0.5 rounded-full bg-current"></div>
-                                    <div class="w-0.2 h-0.5 rounded-full bg-current"></div>
-                                    <div class="w-0.5 h-0.5 rounded-full bg-current"></div>
-                                </div>
-                            </button>
-                            <!-- Dropdown Menu -->
-                            <div id="menu-${solicitud._id}" class="hidden absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-100" style="z-index: 999999;">
-                                <div class="px-0 py-1 border-b border-slate-500 bg-gradient-to-r from-slate-50 to-white">
-                                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Acciones</p>
-                                </div>
-                                <div class="py-1">
-                                    ${botonesAcciones}
-                                </div>
-                            </div>
-                        </div>
-                        <!-- DEBUG: Verificando z-index del menú móvil -->
-                        <script>console.log(' Menú móvil creado con z-index: 999999 para solicitud:', '${solicitud._id}');</script>
-                    </td>
-                </tr>
-            `;
-    }
-
-    // Lógica de desktop movida a Soli_DeskUs.js
-    generarBotonesAcciones(solicitudId, userRol, isMobile = false) {
-        // Solo móvil - desktop usa su propio controlador
-        if (isMobile) {
-            // Versión móvil - botones compactos
-            if (esAdmin) {
-                // Botones para administradores (versión móvil)
-                return `
-                    <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                        ️ Ver
-                    </button>
-                    <button onclick="editarSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                        ️ Editar
-                    </button>
-                    <div class="border-t my-1"></div>
-                    <a href="#" onclick="aprobarSolicitud('${solicitudId}'); return false;" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                         Aprobar
-                    </a>
-                    <button onclick="rechazarSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                         Rechazar
-                    </button>
-                    <button onclick="entregarSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                         Entregar
-                    </button>
-                    <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                         Devolver
-                    </button>
-                    <div class="border-t my-1"></div>
-                    <button onclick="eliminarSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-red-50 text-red-600 flex items-center gap-1">
-                        ️ Eliminar
-                    </button>
-                `;
-            } else {
-                // Botones para usuarios no administrativos (versión móvil)
-                let botonesHTML = `
-                    <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                        ️ Ver
-                    </button>
-                    <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-2 py-1 text-xs hover:bg-slate-50 flex items-center gap-1">
-                         Devolver
-                    </button>
-                `;
-
-                // Añadir botón eliminar solo si es mi solicitud y está en estado permitido
-                if (puedeEliminar) {
-                    botonesHTML += `
-                        <div class="border-t my-1"></div>
-                        <button onclick="eliminarSolicitud(&quot;${solicitudId}&quot;)" class="w-full text-left px-2 py-1 text-xs hover:bg-red-50 text-red-600 flex items-center gap-1">
-                            ️ Eliminar mi solicitud
-                        </button>
-                    `;
-                }
-
-                return botonesHTML;
-            }
-        } else {
-            // Versión desktop - botones normales
-            if (esAdmin) {
-                // Botones para administradores (todos los botones)
-                return `
-                    <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
-                        ️ Ver detalles
-                    </button>
-                    <button onclick="editarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
-                        ️ Editar
-                    </button>
-                    <div class="border-t border-slate-200 my-1"></div>
-                    <a href="#" onclick="aprobarSolicitud('${solicitudId}'); return false;" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
-                         Aprobar
-                    </a>
-                    <button onclick="rechazarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-2">
-                         Rechazar
-                    </button>
-                    <button onclick="entregarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
-                         Entregar
-                    </button>
-                    <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
-                         Devolver
-                    </button>
-                    <div class="border-t border-slate-200 my-1"></div>
-                    <button onclick="eliminarSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
-                        ️ Eliminar    
-                    </button>
-                `;
-            } else {
-                // Botones para estudiantes y docentes (solo los básicos)
-                let botonesHTML = `
-                    <button onclick="verSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2">
-                        ️ Ver detalles
-                    </button>
-                    <button onclick="devolverSolicitud('${solicitudId}')" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2">
-                         Devolver
-                    </button>
-                `;
-
-                // Añadir botón eliminar solo si es mi solicitud y está en estado permitido
-                console.log(' Verificando botón eliminar para estudiante:', {
-                    puedeEliminar,
-                    esMiSolicitud,
-                    estado: solicitudActual?.estado,
-                    solicitudId
-                });
-                
-                if (puedeEliminar) {
-                    console.log(' Añadiendo botón eliminar para estudiante');
-                    botonesHTML += `
-                        <div class="border-t border-slate-200 my-1"></div>
-                        <button onclick="eliminarSolicitud(&quot;${solicitudId}&quot;)" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
-                            ️ Eliminar mi solicitud
-                        </button>
-                    `;
-                } else {
-                    console.log(' No se añade botón eliminar:', {
-                        puedeEliminar,
-                        esMiSolicitud,
-                        estado: solicitudActual?.estado
-                    });
-                }
-
-                return botonesHTML;
+            const uid = this.currentUser._id || this.currentUser.id;
+            this.solicitudes = todas.filter(s => {
+                // Verificar todas las posibles formas en que viene el ID
+                const sUserId = s.usuario?._id || s.usuario?.id || s.usuario;
+                return sUserId === uid || sUserId?.toString() === uid?.toString();
+            });
+            // Si por alguna razón el filtro frontal falla pero el backend ya filtró, usar todas
+            if (this.solicitudes.length === 0 && todas.length > 0) {
+                this.solicitudes = todas;
             }
         }
     }
 
-    getElementosInfo(solicitud) {
-        const elementos = [];
-
-        console.log(' Procesando elementos de solicitud:', solicitud._id);
-        console.log(' Insumos:', solicitud.insumos);
-        console.log(' Activos:', solicitud.activos);
-
-        // Procesar activos
-        if (solicitud.activos && solicitud.activos.length > 0) {
-            solicitud.activos.forEach((activo, index) => {
-                console.log(` Procesando activo ${index + 1}:`, activo);
-                elementos.push({
-                    icono: '',
-                    nombre: activo.nombre || activo.marca || activo.codigo_activo || 'Activo',
-                    cantidad: 1,
-                    detalles: activo.modelo || activo.descripcion || ''
-                });
-            });
-        }
-
-        // Procesar insumos con más detalles
-        if (solicitud.insumos && solicitud.insumos.length > 0) {
-            solicitud.insumos.forEach((insumo, index) => {
-                console.log(` Procesando insumo ${index + 1}:`, insumo);
-                
-                // Intentar obtener el nombre de múltiples formas
-                let nombreInsumo = 'Insumo';
-                
-                if (insumo.id_insumo) {
-                    // Si tiene populate
-                    nombreInsumo = insumo.id_insumo.NombProducto || 
-                                   insumo.id_insumo.nombre || 
-                                   insumo.id_insumo.descripcion ||
-                                   'Insumo';
-                } else {
-                    // Si no tiene populate, usar datos directos
-                    nombreInsumo = insumo.nombre || 
-                                   insumo.descripcion || 
-                                   insumo.caracteristicas ||
-                                   'Insumo';
-                }
-                
-                console.log(` Nombre final del insumo: ${nombreInsumo}`);
-
-                elementos.push({
-                    icono: '',
-                    nombre: nombreInsumo,
-                    cantidad: insumo.cantidad || 1,
-                    detalles: insumo.caracteristicas || insumo.descripcion || ''
-                });
-            });
-        }
-
-        console.log(' Elementos procesados:', elementos);
-        return elementos;
-    }
-
-    getEstadoClass(estado) {
-        const estadoMap = {
-            'pendiente': 'pendiente',
-            'aprobada': 'aprobada',
-            'rechazada': 'rechazada',
-            'entregado': 'entregado',
-            'devuelto': 'devuelto'
-        };
-        return estadoMap[estado] || 'pendiente';
-    }
-
-    updateEstadisticas() {
-        const pendientes = this.solicitudes.filter(s => s.estado === 'pendiente');
-        const aprobadas = this.solicitudes.filter(s => s.estado === 'aprobada');
-        const entregadas = this.solicitudes.filter(s => s.estado === 'entregado');
-        const devueltas = this.solicitudes.filter(s => s.estado === 'devuelto');
-
-        // Actualizar contadores
-        this.updateCounter('pendientes-count', pendientes.length);
-        this.updateCounter('aprobadas-count', aprobadas.length);
-        this.updateCounter('entregadas-count', entregadas.length);
-        this.updateCounter('devueltas-count', devueltas.length);
-    }
-
-    updateCounter(elementId, value) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.textContent = value;
-        }
-    }
-
-    updatePaginacion() {
-        const paginaActual = document.getElementById('pagina-actual');
-        const totalPaginas = document.getElementById('total-paginas');
-        const paginaAnterior = document.getElementById('pagina-anterior');
-        const paginaSiguiente = document.getElementById('pagina-siguiente');
-
-        if (paginaActual) {
-            paginaActual.textContent = this.currentPage;
-        }
-
-        if (totalPaginas) {
-            const totalPages = Math.ceil(this.filtrarSolicitudes().length / this.itemsPerPage);
-            totalPaginas.textContent = totalPages;
-        }
-
-        if (paginaAnterior) {
-            paginaAnterior.disabled = this.currentPage === 1;
-        }
-
-        if (paginaSiguiente) {
-            const totalPages = Math.ceil(this.filtrarSolicitudes().length / this.itemsPerPage);
-            paginaSiguiente.disabled = this.currentPage >= totalPages;
-        }
-    }
-
-    cambiarPagina(direccion) {
-        const totalPages = Math.ceil(this.filtrarSolicitudes().length / this.itemsPerPage);
-        const nuevaPagina = this.currentPage + direccion;
-
-        if (nuevaPagina >= 1 && nuevaPagina <= totalPages) {
-            this.currentPage = nuevaPagina;
-            this.renderSolicitudes();
-        }
-    }
-
-    async verDetalles(id) {
-        const solicitud = this.solicitudes.find(s => s._id === id);
-        if (!solicitud) return;
-
-        // Mostrar modal con detalles
-        window.modalController?.showModal('confirmModal', {
-            title: 'Detalles de la Solicitud',
-            icon: '',
-            details: `
-                <div class="space-y-2">
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">ID:</span>
-                        <span class="font-bold text-slate-700">#${solicitud._id?.slice(-6) || 'N/A'}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">Usuario:</span>
-                        <span class="font-bold text-slate-700">${solicitud.usuario?.nombre_completo || 'N/A'}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">Fecha:</span>
-                        <span class="font-bold text-slate-700">${Utils.formatDateTime(solicitud.createdAt)}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-400 font-bold">Estado:</span>
-                        <span class="font-bold text-slate-700">${solicitud.estado || 'pendiente'}</span>
-                    </div>
-                    <div class="border-t pt-2 mt-2">
-                        <span class="text-slate-400 font-bold">Elementos solicitados:</span>
-                        <div class="mt-2 space-y-1">
-                            ${this.getElementosInfo(solicitud).map(el => `
-                                <div class="flex items-center gap-2 text-sm">
-                                    <span>${el.icono}</span>
-                                    <span>${el.nombre}</span>
-                                    <span class="text-slate-500">(x${el.cantidad})</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `
+    // ─── Eventos ─────────────────────────────────────────────────────────────────
+    setupEventListeners() {
+        document.getElementById('busqueda')?.addEventListener('input', e => {
+            this.filtros.busqueda = e.target.value.toLowerCase();
+            this.currentPage = 1;
+            this.render();
         });
-    }
-
-    async gestionarSolicitud(id) {
-        const solicitud = this.solicitudes.find(s => s._id === id);
-        if (!solicitud) return;
-
-        // Lógica para gestionar solicitud
-        console.log('Gestionar solicitud:', solicitud);
-        Utils.showToast('Función de gestión en desarrollo', 'info');
-    }
-
-    limpiarFiltros() {
-        this.filtros = {
-            busqueda: '',
-            estado: 'todos',
-            fechaDesde: '',
-            fechaHasta: ''
-        };
-
-        // Limpiar inputs
-        const busquedaInput = document.getElementById('busqueda-input');
-        const estadoSelect = document.getElementById('estado-filter');
-        const fechaDesde = document.getElementById('fecha-desde');
-        const fechaHasta = document.getElementById('fecha-hasta');
-
-        if (busquedaInput) busquedaInput.value = '';
-        if (estadoSelect) estadoSelect.value = 'todos';
-        if (fechaDesde) fechaDesde.value = '';
-        if (fechaHasta) fechaHasta.value = '';
-
-        this.renderSolicitudes();
-    }
-
-    exportarDatos() {
-        const solicitudesFiltradas = this.filtrarSolicitudes();
-
-        if (solicitudesFiltradas.length === 0) {
-            Utils.showToast('No hay datos para exportar', 'error');
-            return;
-        }
-
-        // Crear CSV
-        const headers = ['ID', 'Usuario', 'Fecha', 'Estado', 'Elementos'];
-        const csvContent = [
-            headers.join(','),
-            ...solicitudesFiltradas.map(solicitud => [
-                solicitud._id?.slice(-6) || 'N/A',
-                solicitud.usuario?.nombre_completo || 'N/A',
-                Utils.formatDate(solicitud.createdAt),
-                solicitud.estado || 'pendiente',
-                this.getElementosInfo(solicitud).map(el => `${el.nombre} (x${el.cantidad})`).join('; ')
-            ].join(','))
-        ].join('\n');
-
-        // Descargar archivo
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `solicitudes_${Utils.formatDate(new Date())}.csv`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-
-        Utils.showToast('Datos exportados exitosamente', 'success');
-    }
-
-    imprimirDatos() {
-        window.print();
-    }
-
-    // Recargar solicitudes
-    async recargarSolicitudes() {
-        await this.cargarSolicitudes();
-        this.renderSolicitudes();
-        this.updateEstadisticas();
-    }
-
-    getEstadoBadge(estado) {
-        const estados = {
-            'pendiente': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">?? Pendiente</span>',
-            'aprobada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">?? Aprobada</span>',
-            'rechazada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">?? Rechazada</span>',
-            'entregado': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">?? Entregado</span>',
-            'devuelto': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">?? Devuelto</span>',
-            'cancelada': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">?? Cancelada</span>'
-        };
-        return estados[estado] || `<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">${estado}</span>`;
-    }
-
-    getElementosInfo(solicitud) {
-        const elementos = [];
-        let totalCantidad = 0;
-        
-        if (solicitud.insumos && solicitud.insumos.length > 0) {
-            solicitud.insumos.forEach(insumo => {
-                const nombre = insumo.id_insumo?.NombProducto || insumo.descripcion || 'Insumo';
-                const cantidad = insumo.cantidad || 1;
-                elementos.push(`${nombre} (${cantidad})`);
-                totalCantidad += cantidad;
-            });
-        }
-        
-        if (solicitud.activos && solicitud.activos.length > 0) {
-            solicitud.activos.forEach(activo => {
-                elementos.push(`${activo.nombre || 'Activo'}`);
-                totalCantidad += 1;
-            });
-        }
-        
-        if (elementos.length === 0) {
-            return '<span class="text-slate-400 italic">Sin elementos</span>';
-        }
-        
-        // Formato profesional: lista con total al final
-        const elementosHtml = elementos.map((elemento, index) => {
-            const esUltimo = index === elementos.length - 1;
-            return `<span class="text-slate-700">${elemento}${esUltimo ? '' : ', '}</span>`;
-        }).join('');
-        
-        return `
-            <div class="space-y-1">
-                <div class="text-sm">${elementosHtml}</div>
-                <div class="text-xs text-slate-500 font-medium">
-                    Total: ${totalCantidad} ${totalCantidad === 1 ? 'elemento' : 'elementos'}
-                </div>
-            </div>
-        `;
-    }
-
-    createActionsForRole(solicitud, esEstudiante, esDocente, rolColor) {
-        const estado = solicitud.estado;
-        let actions = [];
-
-        // Acción Ver (siempre disponible)
-        actions.push(`
-            <button onclick="window.solicitudesController.verDetalles('${solicitud._id}')" 
-                class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-                style="color: #004a8c; hover: background-color: #004a8c15;">
-                ️ Ver Detalles
-            </button>
-        `);
-
-        // Acciones según rol y estado
-        if (esEstudiante || esDocente) {
-            if (estado === 'pendiente') {
-                actions.push(`
-                    <button onclick="window.solicitudesController.gestionarSolicitud('${solicitud._id}')" 
-                        class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-                        style="color: #004a8c; hover: background-color: #004a8c15;">
-                        ️ Editar Solicitud
-                    </button>
-                `);
-            }
-            if (estado === 'pendiente' || estado === 'aprobada') {
-                actions.push(`
-                    <button onclick="window.eliminarSolicitud('${solicitud._id}')" 
-                        class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-                        style="color: #004a8c; hover: background-color: #004a8c15;">
-                        <span style="opacity: 0.8;">×</span> Cancelar Solicitud
-                    </button>
-                `);
-            }
-        }
-        
-        return actions.join('');
-    }
-}
-
-// Función para cancelar solicitudes (cambiar estado a cancelada)
-window.eliminarSolicitud = async function(solicitudId) {
-    console.log('*** FUNCIÓN CANCELAR SOLICITUD LLAMADA ***');
-    console.log('*** ID recibido:', solicitudId);
-    
-    // Validar que el ID no sea undefined
-    if (!solicitudId || solicitudId === 'undefined') {
-        console.error('*** ID de solicitud es undefined');
-        Utils.showToast('Error: ID de solicitud no válido', 'error');
-        return;
-    }
-    
-    // Verificación de seguridad
-    if (!confirm('¿Estás seguro de que quieres cancelar esta solicitud? Esta acción no se puede deshacer.')) {
-        console.log('*** Cancelación cancelada por el usuario');
-        return;
-    }
-    
-    try {
-        // Obtener token de autenticación
-        const token = localStorage.getItem('utn_token');
-        if (!token) {
-            Utils.showToast('No tienes sesión activa', 'error');
-            return;
-        }
-        
-        console.log('*** Token encontrado, enviando solicitud...');
-        console.log('*** URL:', `http://localhost:4000/api/solicitudes/${solicitudId}`);
-        
-        // Cambiar estado a cancelada en lugar de eliminar
-        const response = await fetch(`http://localhost:4000/api/solicitudes/${solicitudId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                estado: 'cancelada',
-                observacion: 'Solicitud cancelada desde móvil'
-            })
+        document.getElementById('estado-filter')?.addEventListener('change', e => {
+            this.filtros.estado = e.target.value;
+            this.currentPage = 1;
+            this.render();
         });
-        
-        console.log('*** Respuesta del servidor:', response.status);
-        
-        if (!response.ok) {
-            const errorData = await response.text();
-            console.error('*** Error en la respuesta:', errorData);
-            Utils.showToast(`Error al cancelar: ${response.statusText}`, 'error');
-            return;
-        }
-        
-        const result = await response.json();
-        console.log('*** Estado cambiado exitosamente:', result);
-        
-        // Mostrar mensaje de éxito
-        Utils.showToast('Solicitud cancelada correctamente', 'success');
-        
-        // Recargar la lista de solicitudes
-        if (window.solicitudesManager) {
-            await window.solicitudesManager.loadSolicitudes();
-        } else if (window.mobileUserController) {
-            await window.mobileUserController.recargarDatos();
-        } else {
-            // Si no está disponible, recargar la página
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
-        }
-        
-    } catch (error) {
-        console.error('*** Error cancelando solicitud:', error);
-        Utils.showToast('Error al cancelar la solicitud', 'error');
+        document.getElementById('fecha-desde')?.addEventListener('change', e => {
+            this.filtros.desde = e.target.value;
+            this.currentPage = 1;
+            this.render();
+        });
+        document.getElementById('cedula-filter')?.addEventListener('input', e => {
+            this.filtros.cedula = e.target.value.trim();
+            this.currentPage = 1;
+            this.render();
+        });
+        document.getElementById('btn-refrescar')?.addEventListener('click', () => this.initialize());
     }
-};
 
-// Verificar que la función se creó correctamente
-console.log('*** FUNCIÓN CANCELAR CREADA:', typeof window.eliminarSolicitud);
-console.log('*** FUNCIÓN DISPONIBLE:', !!window.eliminarSolicitud);
 
-// Función para toggle del menú de acciones
-window.toggleMenu = function(solicitudId, event) {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    // Cerrar todos los demás menús primero
-    document.querySelectorAll('[id^="menu-"]').forEach(menu => {
-        if (menu.id !== `menu-${solicitudId}`) {
-            menu.classList.add('hidden');
-        }
-    });
-    
-    // Toggle el menú actual
-    const menuActual = document.getElementById(`menu-${solicitudId}`);
-    if (menuActual) {
-        menuActual.classList.toggle('hidden');
-    }
-};
-
-// Función para ver detalles de una solicitud
-window.verSolicitud = function(solicitudId) {
-    console.log('️ Ver detalles de solicitud:', solicitudId);
-    
-    // Buscar la solicitud en los datos cargados
-    const solicitud = window.solicitudesController?.solicitudes?.find(s => s._id === solicitudId);
-    
-    if (!solicitud) {
-        Utils.showToast('Solicitud no encontrada', 'error');
-        return;
-    }
-    
-    // Crear modal con detalles
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    modal.innerHTML = `
-        <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-slate-800"> Detalles de Solicitud</h3>
-                <button onclick="this.closest('.fixed').remove()" class="text-slate-400 hover:text-slate-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
+    // ─── Filtrado ────────────────────────────────────────────────────────────────
+    getFiltered() {
+        return this.solicitudes.filter(s => {
+            const matchEstado = this.filtros.estado === 'todos' || s.estado === this.filtros.estado;
             
-            <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700">ID Solicitud</label>
-                        <p class="text-slate-900 font-mono">#${solicitud._id?.slice(-6) || 'N/A'}</p>
+            // Búsqueda por Nombre o Folio (#001) o ID técnico
+            const folioStr = s.folio ? String(s.folio).padStart(3, '0') : '';
+            const searchText = this.filtros.busqueda.toLowerCase();
+            const matchBusqueda = !this.filtros.busqueda ||
+                (s.usuario?.nombre_completo || '').toLowerCase().includes(searchText) ||
+                folioStr.includes(searchText.replace('#', '')) ||
+                s._id.toLowerCase().includes(searchText);
+
+            // Filtro específico por cédula
+            const matchCedula = !this.filtros.cedula ||
+                (s.usuario?.cedula || '').includes(this.filtros.cedula);
+
+            let matchFecha = true;
+            if (this.filtros.desde) {
+                const f = new Date(s.createdAt);
+                const d = new Date(this.filtros.desde + 'T12:00:00'); // Evitar problemas de zona horaria
+                if (f < d) matchFecha = false;
+            }
+            return matchEstado && matchBusqueda && matchCedula && matchFecha;
+        });
+    }
+
+    // ─── Render General ─────────────────────────────────────────────────────────
+    render() {
+        const filtered = this.getFiltered();
+        this.updateStats(filtered);
+        const totalPags = Math.ceil(filtered.length / this.itemsPerPage);
+        if (this.currentPage > totalPags) this.currentPage = Math.max(1, totalPags);
+        const inicio = (this.currentPage - 1) * this.itemsPerPage;
+        const pagData = filtered.slice(inicio, inicio + this.itemsPerPage);
+        this.renderDesktop(pagData);
+        this.renderMobile(pagData);
+        this.renderPaginacion(filtered.length);
+    }
+
+    // ─── Paginación ──────────────────────────────────────────────────────────────
+    renderPaginacion(total) {
+        const totalPags = Math.ceil(total / this.itemsPerPage);
+        const contenedor = document.getElementById('paginacion-solicitudes');
+        if (!contenedor) return;
+        if (totalPags <= 1) { contenedor.innerHTML = ''; return; }
+
+        const inicio = (this.currentPage - 1) * this.itemsPerPage + 1;
+        const fin    = Math.min(this.currentPage * this.itemsPerPage, total);
+
+        const btnBase   = 'w-9 h-9 flex items-center justify-center rounded-xl text-xs font-bold transition-all';
+        const btnActive = 'bg-[#002D62] text-white shadow-md';
+        const btnNormal = 'bg-white border border-slate-200 text-slate-600 hover:border-[#002D62] hover:text-[#002D62]';
+        const btnDis    = 'bg-white border border-slate-100 text-slate-300 cursor-not-allowed';
+
+        let pages = [];
+        for (let i = 1; i <= totalPags; i++) {
+            if (i === 1 || i === totalPags || (i >= this.currentPage - 1 && i <= this.currentPage + 1)) pages.push(i);
+            else if (i === this.currentPage - 2 || i === this.currentPage + 2) pages.push('...');
+        }
+        pages = pages.filter((p, idx) => !(p === '...' && pages[idx-1] === '...'));
+
+        const pgBtns = pages.map(p => {
+            if (p === '...') return `<span class="${btnBase} text-slate-400 text-sm">…</span>`;
+            return `<button class="${btnBase} ${p === this.currentPage ? btnActive : btnNormal}" onclick="window.solicitudesController.irPagina(${p})">${p}</button>`;
+        }).join('');
+
+        contenedor.innerHTML = `
+            <div class="flex items-center justify-between gap-4 flex-wrap py-4 px-1 border-t border-slate-100 mt-2">
+                <span class="text-xs text-slate-500 font-medium">
+                    Mostrando <strong class="text-slate-700">${inicio}–${fin}</strong> de <strong class="text-slate-700">${total}</strong> solicitudes
+                </span>
+                <div class="flex items-center gap-1.5">
+                    <button class="${btnBase} ${this.currentPage === 1 ? btnDis : btnNormal}" onclick="window.solicitudesController.irPagina(${this.currentPage - 1})" ${this.currentPage === 1 ? 'disabled' : ''}>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    ${pgBtns}
+                    <button class="${btnBase} ${this.currentPage === totalPags ? btnDis : btnNormal}" onclick="window.solicitudesController.irPagina(${this.currentPage + 1})" ${this.currentPage === totalPags ? 'disabled' : ''}>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+            </div>`;
+    }
+
+    irPagina(p) {
+        const totalPags = Math.ceil(this.getFiltered().length / this.itemsPerPage);
+        this.currentPage = Math.max(1, Math.min(Number(p), totalPags));
+        this.render();
+        document.querySelector('.overflow-x-auto, #mobile-solicitudes-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    updateStats(data) {
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        set('total-solicitudes', data.length);
+        set('pendientes-count', data.filter(s => s.estado === 'pendiente').length);
+        set('aprobadas-count', data.filter(s => s.estado === 'aprobada').length);
+        set('rechazadas-count', data.filter(s => s.estado === 'rechazada').length);
+        set('entregadas-count', data.filter(s => s.estado === 'entregado').length);
+        set('canceladas-count', data.filter(s => s.estado === 'cancelada').length);
+    }
+
+    // ─── Renderizar tabla Desktop ───────────────────────────────────────────────
+    renderDesktop(data) {
+        const tbody = document.getElementById('solicitudes-tbody-desktop');
+        if (!tbody) return;
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="p-10 text-center text-slate-400 text-sm">No se encontraron solicitudes</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.map(s => {
+            const ahora = new Date();
+            const vencida = s.estado === 'entregado' && s.fecha_entrega_esperada && new Date(s.fecha_entrega_esperada) < ahora;
+            const rowClass = vencida ? 'bg-red-50/50' : 'hover:bg-slate-50';
+            const fechaDev = s.fecha_entrega_esperada
+                ? `<br><span class="text-[9px] ${vencida ? 'text-red-600 font-black' : 'text-slate-400'}">Dev: ${new Date(s.fecha_entrega_esperada).toLocaleDateString()}</span>`
+                : '';
+            // E: Correo directo al estudiante (para administradores)
+            const correoEstudiante = s.usuario?.correo_electronico || '';
+            const cedulaEstudiante = s.usuario?.cedula || '';
+            const btnCorreoEstudiante = correoEstudiante ? `
+            <a href="mailto:${correoEstudiante}?subject=Solicitud%20de%20Pr%C3%A9stamo%20%23${String(s.folio || 0).padStart(3, '0')}&body=Estimado(a)%20${encodeURIComponent(s.usuario?.nombre_completo || '')}%2C%0A%0A" 
+               title="Enviar correo a ${correoEstudiante}" target="_blank"
+               onclick="event.stopPropagation()"
+               class="p-2 hover:bg-yellow-50 rounded-lg transition text-yellow-600" style="display:inline-flex">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </a>` : '';
+            
+            // E: Correo directo al administrador (para estudiantes y docentes)
+            const btnCorreoAdministrador = !this.isAdmin ? `
+            <a href="mailto:hmoram@utn.ac.cr?subject=Contacto%20de%20Estudiante%20-%20Solicitud%20%23${s.folio ? String(s.folio).padStart(3, '0') : '---'}&body=Estudiante:%20${encodeURIComponent(s.usuario?.nombre_completo || '')}%2C%0A%0ACorreo:%20${encodeURIComponent(s.usuario?.correo_electronico || '')}%2C%0A%0AC%C3%A9dula:%20${encodeURIComponent(s.usuario?.cedula || '')}%2C%0A%0ASolicitud:%20%23${s.folio ? String(s.folio).padStart(3, '0') : '---'}%2C%0A%0AMotivo:%20Deseo%20contactar%20al%20administrador%20respecto%20a%20mi%20solicitud%20%23${s.folio ? String(s.folio).padStart(3, '0') : '---'}%2C%0A%0APor%20favor,%20comun%C3%ADquese%20conmigo%20a%20la%20brevedad%20posible.%2C%0A%0A%0ADatos%20de%20contacto:%2C%0A%0A-%20Tel%C3%A9fono:%20[agregar%20si%20aplica]%2C%0A-%20Horario%20disponible:%20[agregar%20si%20aplica]%2C%0A%0AGracias.%2C%0A%0A%0A${encodeURIComponent(s.usuario?.nombre_completo || '')}" 
+               title="Contactar Administrador" target="_blank"
+               onclick="event.stopPropagation()"
+               class="p-2 hover:bg-blue-50 rounded-lg transition text-slate-400 hover:text-blue-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        </a>` : '';
+            
+            // Determinar qué botón mostrar según el rol
+            const btnCorreo = this.isAdmin ? btnCorreoEstudiante : btnCorreoAdministrador;
+            return `
+            <tr class="${rowClass} transition-colors cursor-pointer" onclick="window.solicitudesController.verDetalles('${s._id}')">
+                <td class="p-4 font-mono text-xs text-slate-400">#${String(s.folio || 0).padStart(3, '0')}</td>
+                <td class="p-4 font-bold text-slate-700 text-sm">
+                    ${s.usuario?.nombre_completo || this.currentUser.nombre_completo || 'N/A'}
+                    ${this.isAdmin && s.usuario?.correo_electronico ? `<br><span class="text-[9px] text-slate-400">${s.usuario?.correo_electronico}</span>` : ''}
+                    ${cedulaEstudiante ? `<br><span class="text-[9px] text-slate-400">C.I: ${cedulaEstudiante}</span>` : ''}
+                    ${fechaDev}
+                </td>
+                <td class="p-4 text-xs text-slate-500">${this.formatItems(s)}</td>
+                <td class="p-4 text-xs text-slate-500">${new Date(s.createdAt).toLocaleDateString('es-CR')}</td>
+                <td class="p-4 text-center">
+                    <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${this.getStatusClass(s.estado)}">${this.getStatusLabel(s.estado)}</span>
+                </td>
+                <td class="p-4 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                        ${btnCorreo}
+                        <button title="Ver detalle" onclick="event.stopPropagation(); window.solicitudesController.verDetalles('${s._id}')" class="p-2 hover:bg-slate-100 rounded-lg transition text-slate-500 hover:text-utn-blue">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        </button>
+                        ${s.estado === 'pendiente' ? `
+                        <button title="Cancelar solicitud" onclick="event.stopPropagation(); window.solicitudesController.cancelar('${s._id}')" class="p-2 hover:bg-red-50 rounded-lg transition text-slate-400 hover:text-red-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                        ` : ''}
+                        ${this.isAdmin && s.estado === 'pendiente' ? `
+                        <button title="Aprobar" onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'aprobada')" class="p-2 hover:bg-green-50 rounded-lg transition text-green-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </button>` : ''}
+                        ${this.isAdmin && s.estado === 'aprobada' ? `
+                        <button title="Marcar Entregado" onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'entregado')" class="p-2 hover:bg-blue-50 rounded-lg transition text-blue-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        </button>` : ''}
+                        ${this.isAdmin && s.estado === 'entregado' ? `
+                        <button title="Marcar Devuelto" onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'devuelto')" class="p-2 hover:bg-indigo-50 rounded-lg transition text-indigo-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2m-2 2v10a8 8 0 018 8M3 12l2-2m-2-2v10a1 1 0 001 1h3m-6 0h6"/></svg>
+                        </button>` : ''}
+                        ${this.isAdmin && s.estado === 'entregado' ? `
+                        <button title="Penalizar usuario" onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'penalizado')" class="p-2 hover:bg-orange-50 rounded-lg transition text-orange-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                        </button>` : ''}
+                        ${this.isAdmin && s.estado === 'penalizado' ? `
+                        <button title="Quitar sanción" onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'entregado')" class="p-2 hover:bg-emerald-50 rounded-lg transition text-emerald-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </button>
+                        <button title="Poner fuera de servicio" onclick="event.stopPropagation(); window.solicitudesController.ponerFueraDeServicio('${s._id}')" class="p-2 hover:bg-red-50 rounded-lg transition text-red-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </button>` : ''}
                     </div>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ─── Renderizar tarjetas Mobile ──────────────────────────────────────────────
+    renderMobile(data) {
+        const container = document.getElementById('mobile-solicitudes-container');
+        if (!container) return;
+        if (data.length === 0) {
+            container.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm">Sin solicitudes encontradas</div>';
+            return;
+        }
+        const ahora = new Date();
+        container.innerHTML = data.map(s => {
+            const vencida = s.estado === 'entregado' && s.fecha_entrega_esperada && new Date(s.fecha_entrega_esperada) < ahora;
+            const diasRestantes = s.fecha_entrega_esperada
+                ? Math.ceil((new Date(s.fecha_entrega_esperada) - ahora) / (1000*60*60*24))
+                : null;
+            const alertaDev = diasRestantes !== null && s.estado === 'entregado'
+                ? `<div class="${vencida ? 'text-red-600 bg-red-50' : 'text-amber-600 bg-amber-50'} flex items-center gap-1.5 text-[10px] font-black px-2 py-1.5 rounded-lg mt-2">
+                    ${vencida ? `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg> Vencida hace ${Math.abs(diasRestantes)} días` : `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Devolver en ${diasRestantes} día(s) — ${new Date(s.fecha_entrega_esperada).toLocaleDateString()}`}
+                  </div>`
+                : '';
+            return `
+            <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm border-l-4 ${this.getStatusBorder(s.estado)} ${vencida ? 'ring-1 ring-red-200' : ''} cursor-pointer" onclick="window.solicitudesController.verDetalles('${s._id}')">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-[10px] font-mono text-slate-400">#${String(s.folio || 0).padStart(3, '0')}</span>
+                    <span class="px-2 py-1 rounded text-[9px] font-black uppercase tracking-wide ${this.getStatusClass(s.estado)}">${this.getStatusLabel(s.estado)}</span>
+                </div>
+                <p class="font-black text-slate-800 text-sm">${s.usuario?.nombre_completo || this.currentUser.nombre_completo || 'N/A'}</p>
+                ${this.isAdmin ? `
+                <p class="text-xs text-slate-500 mt-1 truncate">${s.usuario?.correo_electronico || 'N/A'}</p>
+                ${s.usuario?.cedula ? `<p class="text-[9px] text-slate-400 mt-0.5">C.I: ${s.usuario?.cedula}</p>` : ''}
+                ` : ''}
+                <p class="text-xs text-slate-500 mt-1 truncate">${this.formatItems(s)}</p>
+                <p class="text-[10px] text-slate-400 mt-1">${new Date(s.createdAt).toLocaleDateString('es-CR')}</p>
+                ${alertaDev}
+                <div class="flex gap-2 mt-3">
+                    <button onclick="event.stopPropagation(); window.solicitudesController.verDetalles('${s._id}')" class="flex-1 py-2 text-xs font-bold text-utn-blue bg-blue-50 rounded-xl hover:bg-blue-100 transition">Ver Detalle</button>
+                    ${s.estado === 'pendiente' && !this.isAdmin ? `<button onclick="event.stopPropagation(); window.solicitudesController.cancelar('${s._id}')" class="px-3 py-2 text-xs font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition">Cancelar</button>` : ''}
+                    
+                    <!-- E: Botón de correo según rol (igual que desktop) -->
+                    ${this.isAdmin && s.usuario?.correo_electronico ? `
+                    <a href="mailto:${s.usuario?.correo_electronico}?subject=Solicitud%20de%20Pr%C3%A9stamo%20%23${String(s.folio || 0).padStart(3, '0')}&body=Estimado(a)%20${encodeURIComponent(s.usuario?.nombre_completo || '')}%2C%0A%0A" 
+                       onclick="event.stopPropagation()"
+                       title="Enviar correo a ${s.usuario?.correo_electronico}"
+                       target="_blank"
+                       class="px-3 py-2 text-xs font-bold text-yellow-600 bg-yellow-50 rounded-xl hover:bg-yellow-100 transition inline-flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                       Email
+                    </a>` : ''}
+                    
+                    ${!this.isAdmin ? `
+                    <a href="mailto:hmoram@utn.ac.cr?subject=Contacto%20de%20Estudiante%20-%20Solicitud%20%23${s.folio ? String(s.folio).padStart(3, '0') : '---'}&body=Estudiante:%20${encodeURIComponent(s.usuario?.nombre_completo || '')}%2C%0A%0ACorreo:%20${encodeURIComponent(s.usuario?.correo_electronico || '')}%2C%0A%0AC%C3%A9dula:%20${encodeURIComponent(s.usuario?.cedula || '')}%2C%0A%0ASolicitud:%20%23${s.folio ? String(s.folio).padStart(3, '0') : '---'}%2C%0A%0AMotivo:%20Deseo%20contactar%20al%20administrador%20respecto%20a%20mi%20solicitud%20%23${s.folio ? String(s.folio).padStart(3, '0') : '---'}%2C%0A%0APor%20favor,%20comun%C3%ADquese%20conmigo%20a%20la%20brevedad%20posible.%2C%0A%0A%0ADatos%20de%20contacto:%2C%0A%0A-%20Tel%C3%A9fono:%20[agregar%20si%20aplica]%2C%0A-%20Horario%20disponible:%20[agregar%20si%20aplica]%2C%0A%0AGracias.%2C%0A%0A%0A${encodeURIComponent(s.usuario?.nombre_completo || '')}" 
+                       onclick="event.stopPropagation()"
+                       title="Contactar Administrador" target="_blank"
+                       class="px-3 py-2 text-xs font-bold text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition inline-flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                       Contactar Admin
+                    </a>` : ''}
+                    ${this.isAdmin && s.estado === 'pendiente' ? `<button onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'aprobada')" class="px-3 py-2 text-xs font-bold text-green-600 bg-green-50 rounded-xl hover:bg-green-100 transition">Aprobar</button>` : ''}
+                    ${this.isAdmin && s.estado === 'aprobada' ? `<button onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'entregado')" class="px-3 py-2 text-xs font-bold text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition">Entregar</button>` : ''}
+                    ${this.isAdmin && s.estado === 'entregado' ? `<button onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'devuelto')" class="px-3 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition">Devuelto</button>` : ''}
+                    ${this.isAdmin && s.estado === 'penalizado' ? `<button onclick="event.stopPropagation(); window.solicitudesController.ponerFueraDeServicio('${s._id}')" class="px-3 py-2 text-xs font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition inline-flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        Fuera de Servicio
+                    </button>` : ''}
+                </div>
+            </div>`;
+
+               }).join('');
+}
+
+    
+
+    // ─── Helpers ─────────────────────────────────────────────────────────────────
+    formatItems(s) {
+        const items = [];
+        
+        // Procesar activos con detalles
+        if (s.activos?.length) {
+            s.activos.forEach(activo => {
+                // Obtener nombre del activo
+                let nombre = 'Activo';
+                if (typeof activo === 'object') {
+                    nombre = activo.nombre || activo.marca || activo.modelo || activo.codigo_activo || 'Activo';
+                }
+                // Obtener cantidad (por defecto 1 si no especificada)
+                const cantidad = activo.cantidad || activo.quantity || 1;
+                
+                if (cantidad > 1) {
+                    items.push(`${cantidad}x ${nombre}`);
+                } else {
+                    items.push(nombre);
+                }
+            });
+        }
+        
+        // Procesar insumos con detalles
+        if (s.insumos?.length) {
+            s.insumos.forEach(insumo => {
+                let nombre = 'Insumo';
+                let cantidad = 1;
+                
+                if (typeof insumo === 'object') {
+                    // Intentar obtener nombre de diferentes propiedades
+                    if (insumo.id_insumo && typeof insumo.id_insumo === 'object') {
+                        nombre = insumo.id_insumo.NombProducto || insumo.id_insumo.nombre || insumo.id_insumo.descripcion || 'Insumo';
+                    } else {
+                        nombre = insumo.nombre || insumo.descripcion || insumo.caracteristicas || 'Insumo';
+                    }
+                    cantidad = insumo.cantidad || insumo.quantity || 1;
+                }
+                
+                if (cantidad > 1) {
+                    items.push(`${cantidad}x ${nombre}`);
+                } else {
+                    items.push(nombre);
+                }
+            });
+        }
+        
+        if (items.length === 0) return '<span class="text-slate-400 italic">Sin elementos</span>';
+        
+        // Retornar lista HTML con los items
+        return `<ul class="space-y-0.5">
+            ${items.map(item => `<li class="truncate">• ${item}</li>`).join('')}
+        </ul>`;
+    }
+
+    getStatusLabel(estado) {
+        const labels = {
+            pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada',
+            entregado: 'Entregado', cancelada: 'Cancelada', devuelto: 'Devuelto', penalizado: 'Penalizado'
+        };
+        return labels[estado] || estado;
+    }
+
+    getStatusClass(estado) {
+        const m = {
+            pendiente: 'bg-yellow-50 text-yellow-700',
+            aprobada: 'bg-green-50 text-green-700',
+            rechazada: 'bg-red-50 text-red-700',
+            entregado: 'bg-blue-50 text-blue-700',
+            cancelada: 'bg-slate-100 text-slate-500',
+            devuelto: 'bg-indigo-50 text-indigo-700',
+            penalizado: 'bg-red-100 text-red-800'
+        };
+        return m[estado] || 'bg-slate-50 text-slate-500';
+    }
+
+    getStatusBorder(estado) {
+        const m = {
+            pendiente: 'border-l-yellow-400', aprobada: 'border-l-green-500',
+            rechazada: 'border-l-red-500', entregado: 'border-l-blue-500',
+            cancelada: 'border-l-slate-300', devuelto: 'border-l-indigo-500',
+            penalizado: 'border-l-red-700'
+        };
+        return m[estado] || 'border-l-slate-200';
+    }
+
+    // ─── Ver Detalles ────────────────────────────────────────────────────────────
+    verDetalles(id) {
+        const s = this.solicitudes.find(x => x._id === id);
+        if (!s) return;
+
+        const ahora = new Date();
+        const vencida = s.estado === 'entregado' && s.fecha_entrega_esperada && new Date(s.fecha_entrega_esperada) < ahora;
+        const diasRestantes = s.fecha_entrega_esperada
+            ? Math.ceil((new Date(s.fecha_entrega_esperada) - ahora) / (1000*60*60*24))
+            : null;
+
+        // Historial de estados
+        const historicoHtml = s.historico_estados?.length
+            ? s.historico_estados.map(h => `
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${this.getStatusClass(h.estado).replace('50','100')} text-[10px] font-black mt-0.5">✓</div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700">Estado</label>
-                        <div class="mt-1">
-                            ${window.formatearEstado ? window.formatearEstado(solicitud.estado) : `<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">${solicitud.estado || 'pendiente'}</span>`}
+                        <p class="text-xs font-black text-slate-700 capitalize">${this.getStatusLabel(h.estado)}</p>
+                        <p class="text-[10px] text-slate-400">${new Date(h.fecha).toLocaleDateString('es-CR', {day:'numeric',month:'long',year:'numeric'})}</p>
+                        ${h.observaciones && h.observaciones !== 'Sin observaciones' ? `<p class="text-xs text-slate-500 italic mt-0.5">${h.observaciones}</p>` : ''}
+                    </div>
+                </div>`).join('')
+            : '<p class="text-xs text-slate-400 italic">Sin historial disponible</p>';
+
+        const alertaDev = diasRestantes !== null && s.estado === 'entregado'
+            ? `<div class="${vencida ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200'} border rounded-xl p-3 text-xs font-bold flex items-center gap-2">
+                ${vencida ? `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg> Devolución vencida hace ${Math.abs(diasRestantes)} días` : `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Faltan ${diasRestantes} día(s) para la devolución`}
+              </div>`
+            : '';
+
+        // Crear modal inline
+        let modal = document.getElementById('detalle-solicitud-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'detalle-solicitud-modal';
+            modal.className = 'fixed inset-0 z-[9000] bg-black/50 flex items-center justify-center p-4';
+            document.body.appendChild(modal);
+        }
+
+        modal.innerHTML = `
+            <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+                <div class="bg-gradient-to-r from-[#002D62] to-[#004daa] p-6 text-white flex-shrink-0">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-blue-200">Detalle de Solicitud</span>
+                        <button onclick="document.getElementById('detalle-solicitud-modal').remove()" class="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <h3 class="text-lg font-black">#${String(s.folio || 0).padStart(3, '0')}</h3>
+                    <span class="inline-block mt-2 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wide ${this.getStatusClass(s.estado).replace('50','500/20').replace('700','50')}">${this.getStatusLabel(s.estado)}</span>
+                </div>
+                
+                <div class="overflow-y-auto flex-1 p-6 space-y-4">
+                    ${alertaDev}
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-50 rounded-xl p-3">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Fecha Solicitud</p>
+                            <p class="text-sm font-bold text-slate-700">${new Date(s.createdAt).toLocaleDateString('es-CR')}</p>
+                        </div>
+                        ${s.fecha_entrega_esperada ? `
+                        <div class="${vencida ? 'bg-red-50' : 'bg-slate-50'} rounded-xl p-3">
+                            <p class="text-[10px] font-black ${vencida ? 'text-red-500' : 'text-slate-400'} uppercase tracking-widest mb-1">Dev. Esperada</p>
+                            <p class="text-sm font-bold ${vencida ? 'text-red-700' : 'text-slate-700'}">${new Date(s.fecha_entrega_esperada).toLocaleDateString('es-CR')}</p>
+                        </div>` : '<div></div>'}
+                    </div>
+
+                    <div class="bg-slate-50 rounded-xl p-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Elementos Solicitados</p>
+                        ${s.activos?.length ? `
+                        <div class="mb-4">
+                            <p class="text-[10px] font-black text-blue-600 mb-2 flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg> ACTIVOS EN PRÉSTAMO</p>
+                            <div class="space-y-2">
+                                ${s.activos.map(a => {
+                                    const hasImg = a.imagenUrl && !a.imagenUrl.includes('placeholder');
+                                    return `
+                                    <div class="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-100 shadow-sm transition-hover">
+                                        <div class="w-12 h-12 bg-slate-50 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-100">
+                                            ${hasImg ? `<img src="${a.imagenUrl}" class="w-full h-full object-contain">` : `<svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`}
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-xs font-black text-slate-800 uppercase tracking-tight truncate">${a.numActivo || 'S/N'}</p>
+                                            <p class="text-[10px] text-slate-500 font-medium truncate">${a.marca || ''} ${a.modelo || ''}</p>
+                                        </div>
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        </div>` : ''}
+
+                        ${s.insumos?.length ? `
+                        <div>
+                            <p class="text-[10px] font-black text-emerald-600 mb-2 flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86 0l-2.387.477a2 2 0 00-1.022.547l-3.846 3.846a2 2 0 01-2.828 0l-1.414-1.414a2 2 0 010-2.828l3.846-3.846a2 2 0 00.547-1.022l.477-2.387a6 6 0 000-3.86l-.477-2.387a2 2 0 00-.547-1.022L5.428 5.428a2 2 0 010-2.828l1.414-1.414a2 2 0 012.828 0l3.846 3.846a2 2 0 001.022.547l2.387.477a6 6 0 003.86 0l2.387-.477a2 2 0 001.022-.547l3.846-3.846a2 2 0 012.828 0l1.414 1.414a2 2 0 010 2.828l-3.846 3.846z"/></svg> INSUMOS SOLICITADOS</p>
+                            <div class="space-y-2">
+                                ${s.insumos.map(i => {
+                                    const info = i.id_insumo || {};
+                                    const hasImg = info.imagenUrl && !info.imagenUrl.includes('placeholder');
+                                    return `
+                                    <div class="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-100 shadow-sm transition-hover">
+                                        <div class="w-12 h-12 bg-slate-50 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-100">
+                                            ${hasImg ? `<img src="${info.imagenUrl}" class="w-full h-full object-contain">` : `<svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86 0l-2.387.477a2 2 0 00-1.022.547l-3.846 3.846a2 2 0 01-2.828 0l-1.414-1.414a2 2 0 010-2.828l3.846-3.846a2 2 0 00.547-1.022l.477-2.387a6 6 0 000-3.86l-.477-2.387a2 2 0 00-.547-1.022L5.428 5.428a2 2 0 010-2.828l1.414-1.414a2 2 0 012.828 0l3.846 3.846a2 2 0 001.022.547l2.387.477a6 6 0 003.86 0l2.387-.477a2 2 0 001.022-.547l3.846-3.846a2 2 0 012.828 0l1.414 1.414a2 2 0 010 2.828l-3.846 3.846z"/></svg>`}
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-xs font-black text-slate-800 uppercase tracking-tight truncate">${info.NombProducto || 'Insumo'}</p>
+                                            <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">CANTIDAD: ${i.cantidad}</p>
+                                        </div>
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        </div>` : ''}
+                        ${!s.activos?.length && !s.insumos?.length ? '<p class="text-xs text-slate-400 italic">Sin elementos registrados</p>' : ''}
+                    </div>
+
+                    ${s.observaciones ? `
+                    <div class="bg-slate-50 rounded-xl p-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Observaciones</p>
+                        <p class="text-sm text-slate-600 italic">${s.observaciones}</p>
+                    </div>` : ''}
+
+                    <div class="bg-slate-50 rounded-xl p-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Historial de Estados</p>
+                        <div class="space-y-3">${historicoHtml}</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-3 p-4 border-t border-slate-100 flex-shrink-0">
+                    ${this.isAdmin && s.estado === 'pendiente' ? `
+                    <button onclick="document.getElementById('detalle-solicitud-modal').remove(); window.solicitudesController.cambiarEstado('${s._id}', 'aprobada')"
+                        class="flex-1 min-w-[120px] py-2.5 bg-green-50 text-green-700 font-black text-sm rounded-xl hover:bg-green-100 transition">
+                        Aprobar
+                    </button>
+                    <button onclick="document.getElementById('detalle-solicitud-modal').remove(); window.solicitudesController.cambiarEstado('${s._id}', 'rechazada')"
+                        class="flex-1 min-w-[120px] py-2.5 bg-red-50 text-red-700 font-black text-sm rounded-xl hover:bg-red-100 transition">
+                        Rechazar
+                    </button>
+                    ` : ''}
+                    ${this.isAdmin && s.estado === 'aprobada' ? `
+                    <button onclick="document.getElementById('detalle-solicitud-modal').remove(); window.solicitudesController.cambiarEstado('${s._id}', 'entregado')"
+                        class="flex-1 min-w-[120px] py-2.5 bg-blue-50 text-blue-700 font-black text-sm rounded-xl hover:bg-blue-100 transition">
+                        Marcar Entregado
+                    </button>
+                    ` : ''}
+                    ${this.isAdmin && s.estado === 'entregado' ? `
+                    <button onclick="document.getElementById('detalle-solicitud-modal').remove(); window.solicitudesController.cambiarEstado('${s._id}', 'devuelto')"
+                        class="flex-1 min-w-[120px] py-2.5 bg-indigo-50 text-indigo-700 font-black text-sm rounded-xl hover:bg-indigo-100 transition">
+                        Marcar Devuelto
+                    </button>
+                    <button onclick="document.getElementById('detalle-solicitud-modal').remove(); window.solicitudesController.cambiarEstado('${s._id}', 'penalizado')"
+                        class="flex-1 min-w-[120px] py-2.5 bg-orange-50 text-orange-700 font-black text-sm rounded-xl hover:bg-orange-100 transition">
+                        Penalizar
+                    </button>
+                    ` : ''}
+                    ${this.isAdmin && s.estado === 'penalizado' ? `
+                    <button onclick="document.getElementById('detalle-solicitud-modal').remove(); window.solicitudesController.cambiarEstado('${s._id}', 'entregado')"
+                        class="flex-1 min-w-[120px] py-2.5 bg-emerald-50 text-emerald-700 font-black text-sm rounded-xl hover:bg-emerald-100 transition">
+                        Quitar Sanción
+                    </button>
+                    ` : ''}
+                    
+                    ${s.estado === 'pendiente' && !this.isAdmin ? `
+                    <button onclick="document.getElementById('detalle-solicitud-modal').remove(); window.solicitudesController.cancelar('${s._id}')"
+                        class="flex-1 py-2.5 bg-red-50 text-red-700 font-black text-sm rounded-xl hover:bg-red-100 transition">
+                        Cancelar Solicitud
+                    </button>` : ''}
+
+                    
+                    <button onclick="document.getElementById('detalle-solicitud-modal').remove()"
+                        class="flex-1 min-w-[100px] py-2.5 bg-slate-100 text-slate-700 font-black text-sm rounded-xl hover:bg-slate-200 transition">
+                        Cerrar
+                    </button>
+                </div>
+            </div>`;
+
+        modal.style.display = 'flex';
+        modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+    }
+
+    // ─── Cancelar Solicitud ──────────────────────────────────────────────────────
+    async cancelar(id) {
+        const s = this.solicitudes.find(x => x._id === id);
+        if (!s) { this._toast('Solicitud no encontrada', 'error'); return; }
+        if (s.estado !== 'pendiente') {
+            this._toast('Solo puedes cancelar solicitudes en estado Pendiente.', 'warning');
+            return;
+        }
+
+        const ans = await window.SwalUTN.confirm(
+            '¿Cancelar solicitud?',
+            '¿Estás seguro de que deseas cancelar esta solicitud? Esta acción no se puede deshacer.'
+        );
+        if (!ans.isConfirmed) return;
+
+        let motivoStr = '';
+        const { value: motivo } = await Swal.fire({
+            title: 'Motivo de cancelación',
+            input: 'textarea',
+            inputLabel: '¿Por qué deseas cancelar esta solicitud?',
+            inputPlaceholder: 'Escribe tu motivo aquí (opcional)...',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            confirmButtonText: 'Cancelar Solicitud',
+            cancelButtonText: 'Cerrar',
+            customClass: { popup: 'swal-utn-toast' }
+        });
+        if (motivo === undefined) return; // User closed/canceled
+        motivoStr = motivo;
+
+        try {
+            const resp = await fetch(`${this.apiBase}/solicitudes/${id}`, {
+                method: 'DELETE',
+                headers: this.headers,
+                body: JSON.stringify({ motivo_cancelacion: motivoStr || 'Cancelada por el estudiante' })
+            });
+
+            if (resp.ok) {
+                this._toast('Solicitud cancelada exitosamente.', 'success');
+                await this.initialize();
+            } else {
+                const err = await resp.json().catch(() => ({}));
+                this._toast('No se pudo cancelar: ' + (err.message || 'Error del servidor'), 'error');
+            }
+        } catch(e) {
+            this._toast('Error de conexión.', 'error');
+        }
+    }
+
+    // ─── Admin: Cambiar Estado ───────────────────────────────────────────────────
+    async cambiarEstado(id, nuevoEstado) {
+        if (!this.isAdmin) return;
+        let observaciones = 'Estado actualizado a ' + nuevoEstado + ' por administrador';
+        let fecha_recogida_programada = null, hora_recogida = null;
+        let fecha_entrega_esperada = null, comentario_admin = null;
+        const s = this.solicitudes.find(x => x._id === id);
+        const correoEstudiante = s?.usuario?.correo_electronico || '';
+        const nombreEstudiante = s?.usuario?.nombre_completo || 'Estudiante';
+
+        if (nuevoEstado === 'aprobada') {
+            const { value: fv, isConfirmed } = await Swal.fire({
+                title: '<span class="text-[#002D62] font-black tracking-tight">Aprobar Solicitud</span>',
+                html: `
+                    <div style="text-align:left;font-size:13px;padding: 0 10px;">
+                        <p style="color:#64748b;margin-bottom:20px;font-weight:500;line-height:1.5;">Configure los detalles de entrega para notificar formalmente al estudiante sobre la disponibilidad de los equipos.</p>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <label style="display:flex;align-items:center;gap:6px;font-weight:800;color:#002D62;margin-bottom:6px;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;">
+                                <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                Fecha de Recogida *
+                            </label>
+                            <input id="swal-fecha" type="text" class="swal2-input" placeholder="Seleccione la fecha" style="width:100%;margin:0;font-size:14px;border-radius:10px;">
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <label style="display:flex;align-items:center;gap:6px;font-weight:800;color:#002D62;margin-bottom:6px;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;">
+                                <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Hora de Recogida *
+                            </label>
+                            <input id="swal-hora" type="text" class="swal2-input" placeholder="Seleccione la hora" style="width:100%;margin:0;font-size:14px;border-radius:10px;">
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <label style="display:flex;align-items:center;gap:6px;font-weight:800;color:#b45309;margin-bottom:6px;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;">
+                                <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                                Fecha Límite de Devolución
+                            </label>
+                            <input id="swal-devolucion" type="text" class="swal2-input" placeholder="Fecha opcional (si aplica)" style="width:100%;margin:0;font-size:14px;border-radius:10px;border-color:#fde68a;">
+                        </div>
+
+                        <div style="margin-bottom: 8px;">
+                            <label style="display:flex;align-items:center;gap:6px;font-weight:800;color:#64748b;margin-bottom:6px;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;">
+                                <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                                Mensaje al Estudiante (opcional)
+                            </label>
+                            <textarea id="swal-msg" class="swal2-textarea" placeholder="Instrucciones adicionales para el retiro..." style="width:100%;margin:0;height:75px;font-size:13px;border-radius:10px;"></textarea>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700">Fecha</label>
-                        <p class="text-slate-900">${new Date(solicitud.createdAt).toLocaleDateString()}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700">Usuario</label>
-                        <p class="text-slate-900">${solicitud.usuario?.nombre_completo || solicitud.usuario_solicitante || 'N/A'}</p>
-                    </div>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Observaciones</label>
-                    <p class="text-slate-700 bg-slate-50 p-3 rounded">${solicitud.observaciones || 'Sin observaciones'}</p>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2">Artículos Solicitados</label>
-                    <div class="space-y-2">
-                        ${window.solicitudesController?.getElementosInfo(solicitud).map(el => `
-                            <div class="flex items-center gap-2 p-2 bg-slate-50 rounded">
-                                <span class="text-lg">${el.icono}</span>
-                                <div class="flex-1">
-                                    <p class="font-medium text-slate-900">${el.nombre}</p>
-                                    <p class="text-sm text-slate-600">Cantidad: ${el.cantidad}</p>
-                                    ${el.detalles ? `<p class="text-xs text-slate-500">${el.detalles}</p>` : ''}
-                                </div>
-                            </div>
-                        `).join('') || '<p class="text-slate-500">No hay artículos</p>'}
-                    </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-};
+                `,
+                confirmButtonText: 'Aprobar y Notificar',
+                confirmButtonColor: '#002D62',
+                cancelButtonColor: '#e2e8f0',
+                showCancelButton: true,
+                cancelButtonText: '<span style="color:#475569;font-weight:bold;">Cancelar</span>',
+                customClass: {
+                    popup: 'rounded-3xl',
+                    confirmButton: 'font-black px-6 py-3 rounded-xl shadow-lg shadow-[#002D62]/20',
+                    cancelButton: 'px-6 py-3 rounded-xl'
+                },
+                didOpen: () => {
+                    // Inicializar Flatpickr si la librería está disponible
+                    if (typeof flatpickr !== 'undefined') {
+                        flatpickr("#swal-fecha", { locale: "es", dateFormat: "Y-m-d", minDate: "today" });
+                        flatpickr("#swal-hora", { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true });
+                        flatpickr("#swal-devolucion", { locale: "es", dateFormat: "Y-m-d", minDate: "today" });
+                    }
+                },
+                preConfirm: () => {
+                    const f = document.getElementById('swal-fecha').value;
+                    const h = document.getElementById('swal-hora').value;
+                    if (!f || !h) { Swal.showValidationMessage('La fecha y hora de recogida son requeridas obligatoriamente.'); return false; }
+                    return { fecha: f, hora: h, devolucion: document.getElementById('swal-devolucion').value, mensaje: document.getElementById('swal-msg').value };
+                }
+            });
+            if (!isConfirmed || !fv) return;
+            fecha_recogida_programada = fv.fecha;
+            hora_recogida = fv.hora;
+            if (fv.devolucion) fecha_entrega_esperada = fv.devolucion;
+            
+            // Formatear manualmente para forzar zona horaria neutra o evitar desfasaje de días
+            let fechaFmt = fv.fecha;
+            try {
+                const parts = fv.fecha.split('-');
+                if (parts.length === 3) {
+                    fechaFmt = new Date(parts[0], parts[1] - 1, parts[2]).toLocaleDateString('es-CR', { day: 'numeric', month: 'long', year: 'numeric' });
+                }
+            } catch(e) {}
 
-// Crear instancia global solo si es desktop
-console.log('** Verificando si se debe crear SolicitudesController...');
-const isDesktop = window.innerWidth >= 1024;
+            observaciones = ('Solicitud aprobada. Pase a recoger el artículo el ' + fechaFmt + ' a las ' + fv.hora + '. ' + (fv.mensaje || '')).trim();
+            comentario_admin = observaciones;
+            if (correoEstudiante) {
+                const folioFmt = String(s.folio || 0).padStart(3, '0');
+                const asunto = encodeURIComponent('Notificación: Su solicitud #' + folioFmt + ' fue Aprobada — Laboratorio UTN');
+                const cuerpo = encodeURIComponent(
+                    'Estimado(a) ' + nombreEstudiante + ',\n\n' +
+                    'Su solicitud de préstamo de equipo #' + folioFmt + ' ha sido APROBADA satisfactoriamente.\n\n' +
+                    '---\n' +
+                    'Fecha de recogida: ' + fechaFmt + '\n' +
+                    'Hora programada:   ' + fv.hora + '\n' +
+                    'Lugar:             Laboratorio de Electrónica UTN\n' +
+                    '---\n\n' +
+                    (fv.mensaje ? 'Nota Adicional: ' + fv.mensaje + '\n\n' : '') + 
+                    'Por favor, preséntese con su documento de identificación institucional.\n\n' +
+                    'Atentamente,\n' +
+                    'Administración del Laboratorio UTN'
+                );
+                window.open('mailto:' + correoEstudiante + '?subject=' + asunto + '&body=' + cuerpo, '_blank');
+            }
+        } else if (['rechazada', 'cancelada', 'penalizado'].includes(nuevoEstado)) {
+            const { value: motivo, isConfirmed } = await Swal.fire({
+                title: 'Motivo requerido',
+                text: 'Por favor indica el motivo de el/la ' + nuevoEstado + ':',
+                input: 'textarea', inputPlaceholder: 'Escribe aquí el motivo...',
+                showCancelButton: true, confirmButtonText: 'Confirmar', cancelButtonText: 'Volver',
+                inputValidator: (value) => { if (!value) return '¡El motivo es obligatorio!'; }
+            });
+            if (!isConfirmed) return;
+            observaciones = motivo;
+        } else {
+            const msgConfirm = nuevoEstado === 'entregado' ? '¿Confirmas que se entregó el equipo al estudiante?' : '¿Confirmas que el equipo fue devuelto correctamente?';
+            const result = await window.SwalUTN.confirm('Actualizar Estado', msgConfirm);
+            if (!result.isConfirmed) return;
+        }
 
-if (isDesktop) {
-    console.log('** Es desktop - Creando instancia de SolicitudesController...');
-    window.solicitudesController = new SolicitudesController();
-    console.log('** SolicitudesController creado:', window.solicitudesController);
-} else {
-    console.log('** No es desktop - NO se creará SolicitudesController');
-    window.solicitudesController = null;
+        try {
+            const body = { nuevoEstadoAdmin: nuevoEstado, observaciones };
+            if (fecha_recogida_programada) body.fecha_recogida_programada = fecha_recogida_programada;
+            if (hora_recogida) body.hora_recogida = hora_recogida;
+            if (fecha_entrega_esperada) body.fecha_entrega_esperada = fecha_entrega_esperada;
+            if (comentario_admin) body.comentario_admin = comentario_admin;
+            const resp = await fetch(this.apiBase + '/solicitudes/admin-gestion/' + id, {
+                method: 'PUT', headers: this.headers, body: JSON.stringify(body)
+            });
+            if (resp.ok) {
+                this._toast('Solicitud ' + nuevoEstado + '.', 'success');
+                await this.initialize();
+                const modal = document.getElementById('detalle-solicitud-modal');
+                if (modal) modal.remove();
+            } else {
+                const err = await resp.json().catch(() => ({}));
+                this._toast('Error al actualizar: ' + (err.message || ''), 'error');
+            }
+        } catch(e) { this._toast('Error de conexión.', 'error'); }
+    }
+
+    // ─── Admin: Poner fuera de servicio ─────────────────────────────
+    async ponerFueraDeServicio(id) {
+        const s = this.solicitudes.find(s => s._id === id);
+        if (!s) return;
+        if (!this.isAdmin) return;
+        
+        // Primero pedir el comentario
+        const { value: comentario, isConfirmed: confirmado } = await Swal.fire({
+            title: 'Poner fuera de servicio',
+            html: '<p class="text-sm text-gray-600 mb-4">¿Poner todos los artículos de esta solicitud en "fuera de servicio"?</p>',
+            input: 'textarea',
+            inputLabel: 'Motivo / Documentación (opcional)',
+            inputPlaceholder: 'Ingrese el motivo por el cual se pone fuera de servicio...',
+            inputAttributes: {
+                'aria-label': 'Motivo para poner fuera de servicio',
+                'rows': 3
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Confirmar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b',
+            inputValidator: (value) => {
+                // Permitir vacío o con comentario
+                return null;
+            }
+        });
+        
+        if (!confirmado) return;
+        
+        try {
+            const observaciones = comentario?.trim() 
+                ? `fuera de servicio por penalizacion - ${comentario.trim()}` 
+                : 'fuera de servicio por penalizacion - Solicitud penalizada';
+            
+            const resp = await fetch(`${this.apiBase}/solicitudes/poner-fuera-servicio/${id}`, {
+                method: 'PUT',
+                headers: this.headers,
+                body: JSON.stringify({
+                    observaciones: observaciones
+                })
+            });
+            
+            const responseText = await resp.text();
+            
+            let responseData;
+            try {
+                responseData = JSON.parse(responseText);
+            } catch (e) {
+                responseData = responseText;
+            }
+            
+            if (resp.ok) {
+                window.SwalUTN.success('Artículos puestos fuera de servicio');
+                await this.initialize();
+            } else {
+                throw new Error(responseData.message || responseData || 'Error al poner fuera de servicio');
+            }
+        } catch (error) {
+            window.SwalUTN.error('Error', error.message);
+        }
+    }
+    // ─── Utilidades ──────────────────────────────────────────────────────────────
+    _showLoading(show = true) {
+        const el = document.getElementById('loading-state');
+        if (el) el.classList.toggle('hidden', !show);
+    }
+
+    _toast(msg, type = 'success') {
+        if (window.Utils?.showToast) { window.Utils.showToast(msg, type); return; }
+        const t = document.getElementById('toast');
+        const m = document.getElementById('toastMsg');
+        if (t && m) {
+            m.textContent = msg;
+            t.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+    }
 }
 
-// Inicializar automáticamente cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('** DOM listo - SolicitudesController BLOQUEADO para dejar control a controladores específicos');
-    
-    // No inicializar - dejar que Soli_DeskUs.js y Soli_MobUs.js manejen todo
-    return;
+// ─── Global ──────────────────────────────────────────────────────────────────
+window.solicitudesController = new SolicitudesController();
+document.addEventListener('DOMContentLoaded', () => {
+    // Cargar header y footer si existen en la página
+    const loadComponent = async (id, path) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        try {
+            const res = await fetch(path);
+            el.innerHTML = await res.text();
+        } catch(e) {}
+    };
+
+    Promise.all([
+        loadComponent('header-component', '../components/header.html'),
+        loadComponent('footer-component', '../components/footer.html')
+    ]).then(() => {
+        if (window.Utils) window.Utils.updateUserInfo();
+
+        // Verificar auth
+        const user = JSON.parse(localStorage.getItem('utn_user'));
+        if (!user) { window.location.href = '../login.html'; return; }
+
+        window.solicitudesController.initialize();
+    });
 });
-
-// También intentar inicializar inmediatamente por si el DOM ya está listo
-if (document.readyState === 'loading') {
-    console.log('** DOM todavía cargando...');
-} else {
-    console.log('** DOM ya listo - SolicitudesController BLOQUEADO');
-    // No inicializar - dejar que los controladores específicos manejen todo
-}

@@ -15,9 +15,76 @@
         }
     </script>
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(circle at 0% 0%, rgba(0, 45, 98, 0.08), transparent 32%),
+                radial-gradient(circle at 100% 100%, rgba(242, 169, 0, 0.08), transparent 28%),
+                #f8fafc;
+        }
         .field-label { display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px; }
-        .card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; }
+        .card {
+            background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+            border-radius: 16px;
+            border: 1px solid #dbe5f2;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+        }
+        .security-btn {
+            border: 1px solid #dbe5f2;
+            border-radius: 14px;
+            background: #f8fbff;
+            transition: all .18s;
+        }
+        .security-btn:hover {
+            background: #eef4ff;
+            border-color: #b9cbe7;
+            transform: translateY(-1px);
+        }
+        .account-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 999px;
+            border: 1px solid #d9e4f3;
+            background: #f6faff;
+            color: #405a79;
+            padding: 6px 11px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .matricula-panel {
+            border: 1px solid #d9e4f3;
+            border-radius: 16px;
+            background:
+              radial-gradient(circle at 100% 0%, rgba(0,45,98,0.06), transparent 40%),
+              #f8fbff;
+            padding: 16px;
+        }
+        .estado-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            border-radius: 999px;
+            border: 1px solid #d7e3f4;
+            background: #edf4ff;
+            color: #23476f;
+            padding: 6px 11px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+        .boleta-btn {
+            border: 1px solid #d4e1f3;
+            border-radius: 14px;
+            background: linear-gradient(120deg, #ffffff 0%, #f6faff 100%);
+            transition: all .18s;
+        }
+        .boleta-btn:hover {
+            border-color: #a9c2e5;
+            box-shadow: 0 10px 24px rgba(0, 45, 98, 0.11);
+            transform: translateY(-1px);
+        }
     </style>
 
     <!-- SweetAlert2 --><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -27,7 +94,7 @@
     <!-- NAV: Header Component -->
     <div id="header-component"></div>
     
-    <!-- Encabezado de Página Institucional -->
+    <!-- Encabezado de Pagina Institucional -->
     <div class="bg-white border-b border-slate-200 px-6 py-5">
         <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -41,7 +108,7 @@
                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Cuenta</span>
                 </div>
                 <h1 class="text-2xl font-black text-[#002D62]">Mi Perfil</h1>
-                <p class="text-sm text-slate-500 mt-0.5">Consulta y gestiona tu información institucional</p>
+                <p class="text-sm text-slate-500 mt-0.5">Consulta y gestiona tu informacion institucional</p>
             </div>
 
         </div>
@@ -87,7 +154,7 @@
 
                 <!-- Detalles -->
                 <div class="lg:col-span-2 space-y-5">
-                    <!-- Información de la Cuenta -->
+                    <!-- Informacion de la Cuenta -->
                     <section class="card p-7">
                         <div class="flex items-center justify-between mb-6">
                             <div class="flex items-center gap-3">
@@ -96,12 +163,12 @@
                                 </div>
                                 <h3 class="text-base font-black text-slate-800">Detalles de la Cuenta</h3>
                             </div>
-                            <button class="text-xs font-black text-[#002D62] hover:underline uppercase tracking-widest">Editar</button>
+                            <span class="account-chip"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Informacion sincronizada</span>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="field-label">Identificación</label>
+                                <label class="field-label">Identificacion</label>
                                 <p id="cedula" class="text-base font-bold text-slate-700">-</p>
                             </div>
                             <div>
@@ -110,6 +177,32 @@
                                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                                     <p id="estado" class="text-base font-bold text-slate-700">Activo</p>
                                 </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Verificacion de Matricula -->
+                    <section class="card p-7">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0"></path></svg>
+                            </div>
+                            <h3 class="text-base font-black text-slate-800">Verificacion de Matricula</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+                            <div class="md:col-span-2 matricula-panel">
+                                <label class="field-label">Estado Boleta</label>
+                                <div id="boleta-estado-chip" class="estado-chip mb-2">
+                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                    <span id="boleta-estado">Pendiente</span>
+                                </div>
+                                <p id="boleta-detalle" class="text-xs text-slate-600 mt-1 leading-relaxed">Sin informacion</p>
+                            </div>
+                            <div class="flex items-end">
+                                <button id="subir-boleta-btn" class="w-full boleta-btn p-4 text-left">
+                                    <p class="font-black text-sm text-slate-800">Subir Boleta PDF</p>
+                                    <p class="text-xs text-slate-500 mt-1">Actualizar validacion del cuatrimestre</p>
+                                </button>
                             </div>
                         </div>
                     </section>
@@ -123,13 +216,23 @@
                             <h3 class="text-base font-black text-slate-800">Seguridad</h3>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <button id="cambiar-password-btn" class="group p-5 bg-slate-50 hover:bg-[#002D62] rounded-xl border border-slate-200 text-left transition-all duration-200">
-                                <p class="font-bold text-sm text-slate-800 group-hover:text-white">Cambiar Contraseña</p>
-                                <p class="text-xs text-slate-400 group-hover:text-white/60 mt-1">Actualiza tu clave de acceso</p>
+                            <button id="cambiar-password-btn" class="security-btn p-5 text-left">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p class="font-black text-sm text-slate-800">Cambiar Contraseña</p>
+                                        <p class="text-xs text-slate-500 mt-1">Actualiza tu clave de acceso</p>
+                                    </div>
+                                    <svg class="w-4 h-4 text-[#002D62] mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M9 5l7 7-7 7"/></svg>
+                                </div>
                             </button>
-                            <button id="sesiones-activas-btn" class="group p-5 bg-slate-50 hover:bg-[#002D62] rounded-xl border border-slate-200 text-left transition-all duration-200">
-                                <p class="font-bold text-sm text-slate-800 group-hover:text-white">Sesiones Activas</p>
-                                <p class="text-xs text-slate-400 group-hover:text-white/60 mt-1">Ver dispositivos conectados</p>
+                            <button id="sesiones-activas-btn" class="security-btn p-5 text-left">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p class="font-black text-sm text-slate-800">Sesiones Activas</p>
+                                        <p class="text-xs text-slate-500 mt-1">Ver dispositivos conectados</p>
+                                    </div>
+                                    <svg class="w-4 h-4 text-[#002D62] mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M9 5l7 7-7 7"/></svg>
+                                </div>
                             </button>
                         </div>
                     </section>
@@ -309,4 +412,7 @@
     </script>
 </body>
 </html>
+
+
+
 

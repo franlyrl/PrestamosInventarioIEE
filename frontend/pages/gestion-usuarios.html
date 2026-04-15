@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - UTN SPIEE</title>
+    <link rel="icon" type="image/jpeg" href="../css/UTN.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        .f-label { display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px; }
+        .f-input { width: 100%; padding: 10px 14px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; color: #1e293b; transition: all 0.2s; outline: none; }
+        .f-input:focus { border-color: #002D62; box-shadow: 0 0 0 3px rgba(0,45,98,0.1); background: white; }
+        .item-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; transition: all 0.25s; }
+        .item-card:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(0,45,98,0.06); border-color: #cbd5e1; }
+        .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: #f1f5f9; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+        @keyframes fadeUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp 0.35s ease both; }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <div id="header-component"></div>
+
+    <div class="bg-white border-b border-slate-200 px-6 py-5">
+        <div class="container mx-auto max-w-7xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <a href="ModAdmis.html" class="group flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-[#002D62] text-slate-500 hover:text-white rounded-lg text-[11px] font-black tracking-wide transition-all duration-200 border border-slate-200 hover:border-[#002D62]">
+                        <svg class="w-3.5 h-3.5 transform group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        VOLVER AL PANEL
+                    </a>
+                    <span class="text-slate-300">/</span>
+                    <span class="w-2 h-2 rounded-full bg-[#002D62] inline-block"></span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Administración</span>
+                </div>
+                <h1 class="text-2xl font-black text-[#002D62]">Gestión de Usuarios</h1>
+                <p class="text-sm text-slate-400 mt-0.5">Control de cuentas, roles y accesos</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-black text-slate-400 uppercase">Total:</span>
+                <span id="totalCount" class="text-2xl font-black text-[#002D62]">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <main class="container mx-auto max-w-7xl px-6 py-8 flex-grow">
+        <!-- Filtros -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div class="md:col-span-2">
+                    <label class="f-label">Buscar Usuario</label>
+                    <div class="relative">
+                        <input type="text" id="busquedaInput" placeholder="Nombre, cédula, correo..." class="f-input pl-10">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+                    </div>
+                </div>
+                <div>
+                    <label class="f-label">Rol</label>
+                    <select id="rolFiltro" class="f-input">
+                        <option value="">Todos los roles</option>
+                        <option value="estudiante">Estudiantes</option>
+                        <option value="docente">Docentes</option>
+                        <option value="operador">Operadores</option>
+                        <option value="admin">Administradores</option>
+                    </select>
+                </div>
+                <div>
+                    <button onclick="limpiarFiltros()" class="w-full px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Limpiar Filtros</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="usuariosGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5"></div>
+        <div id="paginationContainer" class="flex flex-wrap justify-center items-center gap-2 mt-8 mb-4"></div>
+
+        <div id="loadingState" class="flex flex-col items-center justify-center py-24 text-slate-400">
+            <div class="w-10 h-10 border-4 border-slate-200 border-t-[#002D62] rounded-full animate-spin mb-4"></div>
+            <p class="text-sm font-medium">Cargando usuarios...</p>
+        </div>
+    </main>
+
+    <!-- Modal Editar Rol/Permisos -->
+    <div id="modalRoles" class="fixed inset-0 z-[200] bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-all duration-300 mx-auto" id="modalRolesBox">
+            <div class="bg-gradient-to-r from-[#002D62] to-[#004A8C] p-6 text-white flex justify-between items-center">
+                <div>
+                    <h3 class="font-black text-lg">Permisos de Usuario</h3>
+                    <p class="text-blue-200 text-xs mt-0.5" id="modalUserName">Modificar rol y accesos</p>
+                </div>
+                <button onclick="cerrarModalRoles()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form id="formRoles" class="p-6" onsubmit="guardarRolesPermisos(event)">
+                <input type="hidden" id="editUserId">
+                <div class="space-y-5">
+                    <div>
+                        <label class="f-label">Correo Electrónico</label>
+                        <input type="text" id="userEmail" disabled class="f-input bg-slate-100 cursor-not-allowed text-slate-500">
+                    </div>
+                    <div>
+                        <label class="f-label">Rol del Usuario *</label>
+                        <select id="userRol" class="f-input" required onchange="togglePermisosSection()">
+                            <option value="estudiante">Estudiante</option>
+                            <option value="docente">Docente</option>
+                            <option value="operador">Operador (Permisos Personalizados)</option>
+                            <option value="admin">Administrador (Acceso Total)</option>
+                        </select>
+                    </div>
+
+                    <div id="permisosSection" class="hidden bg-blue-50 border border-blue-100 p-5 rounded-2xl">
+                        <label class="f-label !text-blue-800">Permisos del Operador</label>
+                        <p class="text-xs text-blue-600 mb-3">Selecciona a qué secciones puede acceder este operador.</p>
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" name="permiso" value="inventario" class="w-5 h-5 rounded border-blue-300 text-[#002D62] focus:ring-[#002D62]">
+                                <span class="text-sm font-bold text-slate-700 group-hover:text-[#002D62] transition">Gestión de Inventario (Activos e Insumos)</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" name="permiso" value="solicitudes" class="w-5 h-5 rounded border-blue-300 text-[#002D62] focus:ring-[#002D62]">
+                                <span class="text-sm font-bold text-slate-700 group-hover:text-[#002D62] transition">Gestión de Solicitudes y Préstamos</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" name="permiso" value="reportes" class="w-5 h-5 rounded border-blue-300 text-[#002D62] focus:ring-[#002D62]">
+                                <span class="text-sm font-bold text-slate-700 group-hover:text-[#002D62] transition">Ver Reportes</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" name="permiso" value="usuarios" class="w-5 h-5 rounded border-blue-300 text-[#002D62] focus:ring-[#002D62]">
+                                <span class="text-sm font-bold text-slate-700 group-hover:text-[#002D62] transition">Gestión de Usuarios</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="cerrarModalRoles()" class="flex-1 py-3 border border-slate-200 text-slate-500 font-bold rounded-xl hover:bg-slate-50 transition text-sm">Cancelar</button>
+                    <button type="submit" id="btnGuardar" class="flex-[2] py-3 bg-[#002D62] text-white font-black rounded-xl hover:bg-[#001A33] transition text-sm tracking-wide">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div id="footer-component"></div>
+
+    <script src="../js/app.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/components.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/pages/gestion-usuarios.js"></script>
+</body>
+</html>

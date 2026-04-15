@@ -1,0 +1,765 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Padrón de Matriculados — UTN SPIEE</title>
+    <meta name="description" content="Gestión del padrón de estudiantes matriculados - Sistema SPIEE UTN">
+    <link rel="icon" type="image/jpeg" href="../css/UTN.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+
+    <style>
+        :root {
+            --utn-blue: #002D62;
+            --utn-blue-dark: #001A33;
+            --utn-gold: #F2A900;
+            --utn-surface: #f6f8fc;
+            --utn-ink: #0f2948;
+        }
+        * { font-family: 'Inter', sans-serif; }
+        body {
+            background:
+                radial-gradient(circle at 0% 0%, rgba(0, 45, 98, 0.12), transparent 34%),
+                radial-gradient(circle at 100% 100%, rgba(242, 169, 0, 0.1), transparent 33%),
+                var(--utn-surface);
+        }
+
+        /* â”€â”€ Animations â”€â”€â”€ */
+        @keyframes fadeUp { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
+        .fade-up { animation: fadeUp .3s ease both; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        .spin { animation: spin .75s linear infinite; }
+
+        /* â”€â”€ KPI cards â”€â”€â”€ */
+        .kpi-card {
+            background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+            border-radius: 16px;
+            border: 1px solid #d9e3f3;
+            padding: 22px 24px;
+            transition: box-shadow .2s, transform .2s;
+        }
+        .kpi-card:hover { box-shadow: 0 10px 26px rgba(0,45,98,.08); transform: translateY(-1px); }
+        .kpi-num { font-size: 2.1rem; font-weight: 900; line-height: 1; margin: 6px 0 4px; }
+
+        /* â”€â”€ Panel cards â”€â”€â”€ */
+        .panel {
+            background: white;
+            border-radius: 18px;
+            border: 1px solid #dbe3ef;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.04);
+        }
+        .panel-title {
+            font-size: 1.12rem;
+            font-weight: 900;
+            color: var(--utn-ink);
+            letter-spacing: .01em;
+        }
+        .panel-subtitle {
+            font-size: 12px;
+            color: #6b7f99;
+            margin-top: 3px;
+            font-weight: 600;
+        }
+        .steps-mini {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 7px;
+        }
+        .step-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #dbe7f5;
+            background: #f8fbff;
+            border-radius: 10px;
+            padding: 7px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #435b78;
+        }
+        .step-chip b {
+            width: 17px;
+            height: 17px;
+            border-radius: 999px;
+            background: #e7eef8;
+            color: var(--utn-blue);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+        .crumb-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            border: 1px solid #dbe6f4;
+            background: #f7faff;
+            color: #365170;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            transition: all .18s;
+        }
+        .crumb-btn:hover {
+            color: #002D62;
+            border-color: #b7cbe8;
+            background: #eef4ff;
+            transform: translateY(-1px);
+        }
+        .crumb-btn .ic {
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            background: #e2ebfa;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #002D62;
+            flex-shrink: 0;
+        }
+
+        /* â”€â”€ Drop zone â”€â”€â”€ */
+        #dropZone {
+            border: 2px dashed #c7d4e8; border-radius: 14px;
+            transition: all .22s; cursor: pointer; padding: 36px 24px; text-align: center;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        }
+        #dropZone.over    { border-color: var(--utn-blue); background: #eff6ff; transform: scale(1.01); }
+        #dropZone.success { border-color: #86efac; background: #f0fdf4; border-style: solid; }
+
+        /* â”€â”€ Form elements â”€â”€â”€ */
+        .f-label { display:block; font-size:10px; font-weight:800; color:#94a3b8;
+                   text-transform:uppercase; letter-spacing:.12em; margin-bottom:5px; }
+        .f-input {
+            width:100%; padding:9px 13px; background:#f8fafc;
+            border:1.5px solid #e2e8f0; border-radius:9px;
+            font-size:13px; color:#1e293b; outline:none; transition:all .18s;
+        }
+        .f-input:focus { border-color:#002D62; box-shadow:0 0 0 2px rgba(0,45,98,.07); background:white; }
+
+        /* â”€â”€ Table â”€â”€â”€ */
+        .table-wrap { border-radius: 0 0 14px 14px; overflow: hidden; }
+        .tbl th { padding:13px 20px; text-align:left; font-size:10px; font-weight:900;
+                  color:#8798b1; text-transform:uppercase; letter-spacing:.16em;
+                  background:#f4f8ff; border-bottom:1px solid #dde7f5; white-space:nowrap; }
+        .tbl td { padding:16px 20px; border-bottom:1px solid #edf2f9; vertical-align:middle; }
+        .tbl tbody tr { transition:background .14s, box-shadow .14s; }
+        .tbl tbody tr:nth-child(even) { background:#fbfdff; }
+        .tbl tbody tr:hover { background:#f5f9ff; box-shadow: inset 0 0 0 1px #dfe9f8; }
+        .tbl tbody tr:last-child td { border-bottom:none; }
+        .st-name { font-weight: 900; color:#1e2b3f; font-size: 1.05rem; }
+        .st-mail { font-size: 12px; color:#7085a2; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; margin-top:2px; }
+        .st-id { font-size: 11px; color:#7d91ab; margin-top:2px; }
+        .st-id b { color:#42556f; font-weight:800; }
+        .career-pill {
+            display:inline-flex; align-items:center; padding:6px 10px; border-radius:999px;
+            font-size:12px; font-weight:800; color:#395676; background:#eef4ff; border:1px solid #d8e5f7;
+        }
+
+        /* â”€â”€ Badges â”€â”€â”€ */
+        .badge { display:inline-flex; align-items:center; gap:5px;
+                 padding:3px 11px; border-radius:20px; font-size:11px; font-weight:700; }
+        .b-activo   { background:#dcfce7; color:#15803d; }
+        .b-inactivo { background:#f1f5f9; color:#64748b; }
+
+        /* â”€â”€ Buttons â”€â”€â”€ */
+        .btn-primary {
+            background: linear-gradient(120deg, var(--utn-blue) 0%, #0b4a98 100%);
+            color:white; border:none; border-radius:10px;
+            padding:10px 20px; font-size:12px; font-weight:800; cursor:pointer;
+            text-transform:uppercase; letter-spacing:.07em; transition:background .2s;
+            display:inline-flex; align-items:center; gap:7px;
+        }
+        .btn-primary:hover { background: linear-gradient(120deg, var(--utn-blue-dark) 0%, #073870 100%); }
+        .btn-primary:disabled { background:#94a3b8; cursor:not-allowed; }
+        .btn-ghost {
+            background:white; color:#4b5f78; border:1.5px solid #dbe3ef;
+            border-radius:9px; padding:8px 14px; font-size:11px; font-weight:700;
+            cursor:pointer; transition:all .18s;
+        }
+        .btn-ghost:hover { border-color:#002D62; color:#002D62; background:#f0f4ff; }
+        .btn-sm-activate {
+            padding:7px 14px; border-radius:10px; font-size:12px; font-weight:800;
+            border:1.5px solid transparent; cursor:pointer; transition:all .18s;
+            display:inline-flex; align-items:center; justify-content:center; min-width:96px;
+        }
+        .btn-deactivate { background:#fff5f5; color:#d92929; border-color:#f6c4c4; }
+        .btn-deactivate:hover { background:#feeaea; border-color:#eea7a7; }
+        .btn-activate   { background:#f0fdf4; color:#128a42; border-color:#b8eccb; }
+        .btn-activate:hover { background:#e3f8eb; border-color:#8fdbab; }
+
+        /* â”€â”€ Progress bar â”€â”€â”€ */
+        #progressBar { width:0; height:4px; background:#002D62; border-radius:4px; transition:width .4s ease; }
+
+        /* â”€â”€ Format badges â”€â”€â”€ */
+        .fmt-badge { padding:3px 10px; border-radius:6px; font-size:10px; font-weight:800; }
+        .hint-panel {
+            margin-top: 12px;
+            border-radius: 12px;
+            border: 1px solid #d8e4f4;
+            background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
+            padding: 11px 12px;
+        }
+        .search-wrap {
+            background: #f8fbff;
+            border-bottom: 1px solid #e2e9f4;
+        }
+
+        ::-webkit-scrollbar { width:5px }
+        ::-webkit-scrollbar-track { background:#f1f5f9 }
+        ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:5px }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <div id="header-component"></div>
+
+    <!-- Page header -->
+    <div class="bg-white/95 backdrop-blur border-b border-slate-200 px-6 py-4 sticky top-0 z-40">
+        <div class="container mx-auto max-w-7xl flex items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <a href="ModAdmis.html" class="crumb-btn">
+                        <span class="ic">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.8" d="M15 19l-7-7 7-7"/></svg>
+                        </span>
+                        Panel Admin
+                    </a>
+                    <span class="text-slate-200">/</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[.25em]">Matrícula</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <h1 class="text-xl font-black text-[#002D62]">Padrón de Matriculados</h1>
+                    <span class="text-[10px] font-black text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100" id="badgeActivos">—</span>
+                </div>
+                <p class="text-xs text-slate-500 font-semibold mt-1">Administre estudiantes activos e importaciones con validación automática.</p>
+            </div>
+            <button onclick="cargarPadron()" class="btn-ghost flex items-center gap-1.5 text-xs">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Actualizar
+            </button>
+        </div>
+    </div>
+
+    <main class="container mx-auto max-w-7xl px-6 py-7 flex-grow">
+
+        <!-- KPI row -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7 fade-up">
+
+            <div class="kpi-card">
+                <div class="flex items-center justify-between mb-1">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Padrón</p>
+                    <div class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                </div>
+                <p class="kpi-num text-[#002D62]" id="kTotal">—</p>
+                <p class="text-xs text-slate-400">estudiantes registrados</p>
+            </div>
+
+            <div class="kpi-card">
+                <div class="flex items-center justify-between mb-1">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Activos</p>
+                    <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                </div>
+                <p class="kpi-num text-green-600" id="kActivos">—</p>
+                <p class="text-xs text-slate-400">pueden registrarse</p>
+            </div>
+
+            <div class="kpi-card">
+                <div class="flex items-center justify-between mb-1">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inactivos</p>
+                    <div class="w-8 h-8 bg-slate-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                    </div>
+                </div>
+                <p class="kpi-num text-slate-400" id="kInactivos">—</p>
+                <p class="text-xs text-slate-400">sin acceso al sistema</p>
+            </div>
+
+            <div class="kpi-card" style="border-color:#fde68a">
+                <div class="flex items-center justify-between mb-1">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado</p>
+                    <div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
+                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </div>
+                </div>
+                <p class="text-base font-black text-amber-600" id="kEstado">Sin datos</p>
+                <p class="text-xs text-slate-400">cuatrimestre actual</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-5 gap-5">
+
+            <!-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Panel izquierdo: Importar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <div class="xl:col-span-2 space-y-4">
+
+                <!-- Import panel -->
+                <div class="panel p-6 fade-up">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="panel-title">Importar Padrón</h2>
+                            <p class="panel-subtitle">Carga guiada y segura del archivo del cuatrimestre.</p>
+                        </div>
+                        <div class="w-10 h-10 bg-[#002D62]/8 rounded-xl flex items-center justify-center">
+                            <svg class="w-5 h-5 text-[#002D62]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                        </div>
+                    </div>
+                    <div class="steps-mini mb-4">
+                        <div class="step-chip"><b>1</b> Seleccione el archivo de matrícula.</div>
+                        <div class="step-chip"><b>2</b> Indique cuatrimestre si corresponde.</div>
+                        <div class="step-chip"><b>3</b> Cargue y revise el resumen de resultados.</div>
+                    </div>
+
+                    <!-- Drop zone -->
+                    <div id="dropZone"
+                         onclick="document.getElementById('fileInput').click()"
+                         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+
+                        <div id="dropContent">
+                            <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            </div>
+                            <p class="font-bold text-slate-700 text-sm mb-1">Arrastre el archivo aquí</p>
+                            <p class="text-xs text-slate-400 mb-3">o haga clic para seleccionar</p>
+                            <div class="flex flex-wrap justify-center gap-1.5">
+                                <span class="fmt-badge bg-emerald-50 text-emerald-700 border border-emerald-200">.xlsx</span>
+                                <span class="fmt-badge bg-emerald-50 text-emerald-700 border border-emerald-200">.xls</span>
+                                <span class="fmt-badge bg-sky-50 text-sky-700 border border-sky-200">.csv</span>
+                            </div>
+                            <div class="hint-panel">
+                                <p class="text-[11px] font-semibold text-slate-600">
+                                    Formatos permitidos exclusivamente: <span class="text-[#002D62]">.xlsx</span>, <span class="text-[#002D62]">.xls</span> y <span class="text-[#002D62]">.csv</span>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" class="hidden" onchange="onFileSelected(event)">
+
+                    <!-- File info -->
+                    <div id="fileInfo" class="hidden mt-3 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+                        <div class="w-9 h-9 bg-white border border-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-[#002D62]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-slate-800 text-sm truncate" id="fileName">—</p>
+                            <p class="text-xs text-slate-400" id="fileSize">—</p>
+                        </div>
+                        <button onclick="limpiarArchivo()" class="text-slate-300 hover:text-red-400 transition flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Cuatrimestre -->
+                    <div class="mt-4">
+                        <label class="f-label">Cuatrimestre <span class="text-slate-300">(Opcional)</span></label>
+                        <input type="text" id="cuatrimestreInput" class="f-input" placeholder="Ej: I Cuatrimestre 2026">
+                    </div>
+
+                    <!-- Progress -->
+                    <div id="progressWrap" class="hidden mt-4">
+                        <div class="flex justify-between text-xs font-bold text-slate-500 mb-1.5">
+                            <span>Procesando archivo...</span>
+                            <span id="progressPct">0%</span>
+                        </div>
+                        <div class="h-1 bg-slate-100 rounded-full overflow-hidden">
+                            <div id="progressBar"></div>
+                        </div>
+                    </div>
+
+                    <!-- Import button -->
+                    <button id="btnImportar" onclick="importarPadron()" class="btn-primary w-full justify-center mt-4">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                        <span id="btnImportarTxt">Cargar Padrón</span>
+                    </button>
+                </div>
+
+                <!-- Resultado importación -->
+                <div id="importResult" class="hidden panel p-5 fade-up">
+                    <h3 class="font-black text-slate-700 text-sm mb-4">Resultado de la importación</h3>
+                    <div id="resultContent"></div>
+                </div>
+
+                <!-- Guía de columnas -->
+                <div class="panel p-5 fade-up" style="animation-delay:.08s">
+                    <h3 class="font-black text-slate-700 text-sm mb-4">Columnas del archivo</h3>
+                    <div class="space-y-2.5">
+                        <div class="flex items-center gap-3">
+                            <code class="text-[11px] bg-slate-100 text-[#002D62] px-2.5 py-1 rounded-lg font-bold flex-shrink-0">cedula</code>
+                            <span class="text-xs text-slate-500">Cédula del estudiante</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <code class="text-[11px] bg-slate-100 text-[#002D62] px-2.5 py-1 rounded-lg font-bold flex-shrink-0">nombre_completo</code>
+                            <span class="text-xs text-slate-500">Nombre y apellidos</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <code class="text-[11px] bg-slate-100 text-[#002D62] px-2.5 py-1 rounded-lg font-bold flex-shrink-0">correo_estudiantil</code>
+                            <span class="text-xs text-slate-500">Correo @est.utn.ac.cr</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <code class="text-[11px] bg-slate-100 text-[#002D62] px-2.5 py-1 rounded-lg font-bold flex-shrink-0">estado</code>
+                            <span class="text-xs text-slate-500">activo / inactivo</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <code class="text-[11px] bg-slate-100 text-[#002D62] px-2.5 py-1 rounded-lg font-bold flex-shrink-0">carrera</code>
+                            <span class="text-xs text-slate-500">Nombre de la carrera</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                        <p class="text-xs text-amber-700 font-semibold leading-relaxed">La importación usa upsert por correo: si el estudiante ya existe, se actualiza su estado y carrera. Los registros anteriores no se eliminan.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Panel derecho: Tabla â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+            <div class="xl:col-span-3">
+                <div class="panel fade-up" style="animation-delay:.04s">
+
+                    <!-- Filtros -->
+                    <div class="p-5 search-wrap">
+                        <div class="flex flex-col sm:flex-row gap-2.5">
+                            <div class="flex-1 relative">
+                                <input type="text" id="searchInput" class="f-input pl-9" placeholder="Buscar por nombre, cédula o correo...">
+                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+                            </div>
+                            <select id="estadoFiltro" class="f-input w-auto min-w-[130px]">
+                                <option value="">Todos los estados</option>
+                                <option value="activo">Activos</option>
+                                <option value="inactivo">Inactivos</option>
+                            </select>
+                            <select id="carreraFiltro" class="f-input w-auto min-w-[160px]">
+                                <option value="">Todas las carreras</option>
+                                <option value="Ingeniería Electrónica">Ing. Electrónica</option>
+                                <option value="Ingeniería Eléctrica">Ing. Eléctrica</option>
+                                <option value="Ingeniería en Tecnologías de Información">Ing. TI</option>
+                                <option value="Ingeniería en Producción Industrial">Ing. Industrial</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-x-auto table-wrap">
+                        <table class="tbl w-full">
+                            <thead>
+                                <tr>
+                                    <th>Estudiante</th>
+                                    <th class="hidden md:table-cell">Carrera</th>
+                                    <th style="text-align:center">Estado</th>
+                                    <th style="text-align:center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr><td colspan="4" style="text-align:center;padding:60px 0">
+                                    <div style="display:inline-block;width:24px;height:24px;border:3px solid #e2e8f0;border-top-color:#002D62;border-radius:50%;margin:0 auto 10px" class="spin"></div>
+                                    <p style="color:#94a3b8;font-size:13px">Cargando padrón...</p>
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="px-5 py-3.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                        <span class="text-xs text-slate-400 font-medium" id="pageInfo">—</span>
+                        <div class="flex gap-1.5" id="pageBtns"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-component"></div>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/components.js"></script>
+    <script src="../js/auth.js"></script>
+
+    <script>
+        const API = `http://${window.location.hostname}:4000/api`;
+        const token = localStorage.getItem('utn_token');
+        const H = { Authorization: `Bearer ${token}` };
+        const POR_PAG = 20;
+
+        let archivoSel = null;
+        let pagActual = 1;
+        let debounce;
+
+        // â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userRaw = localStorage.getItem('utn_user');
+            const user = userRaw ? JSON.parse(userRaw) : null;
+            const rol = (user?.tipo_rol || user?.rol || '').toLowerCase();
+            if (!token || !user || (!rol.includes('admin') && !rol.includes('administrativo'))) {
+                window.location.href = '../login.html'; return;
+            }
+            await Promise.all([cargarStats(), cargarPadron()]);
+            registrarListeners();
+        });
+
+        function registrarListeners() {
+            document.getElementById('searchInput').addEventListener('input', () => {
+                clearTimeout(debounce);
+                debounce = setTimeout(() => { pagActual = 1; cargarPadron(); }, 380);
+            });
+            ['estadoFiltro','carreraFiltro'].forEach(id =>
+                document.getElementById(id).addEventListener('change', () => { pagActual = 1; cargarPadron(); })
+            );
+        }
+
+        // â”€â”€ KPI stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        async function cargarStats() {
+            try {
+                const r = await fetch(`${API}/padron/estadisticas`, { headers: H });
+                if (!r.ok) return;
+                const d = await r.json();
+                document.getElementById('kTotal').textContent    = d.total    ?? '—';
+                document.getElementById('kActivos').textContent  = d.activos  ?? '—';
+                document.getElementById('kInactivos').textContent= d.inactivos ?? '—';
+                document.getElementById('badgeActivos').textContent = `${d.activos ?? 0} activos`;
+                document.getElementById('kEstado').textContent   = d.total > 0 ? 'Padrón cargado' : 'Sin datos';
+            } catch(e) {}
+        }
+
+        // â”€â”€ Cargar tabla â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        async function cargarPadron() {
+            const q       = document.getElementById('searchInput').value.trim();
+            const estado  = document.getElementById('estadoFiltro').value;
+            const carrera = document.getElementById('carreraFiltro').value;
+
+            const params = new URLSearchParams({ page: pagActual, limit: POR_PAG });
+            if (q)       params.append('q', q);
+            if (estado)  params.append('estado', estado);
+            if (carrera) params.append('carrera', carrera);
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:50px 0">
+                <div style="display:inline-block;width:22px;height:22px;border:3px solid #e2e8f0;border-top-color:#002D62;border-radius:50%;margin:0 auto 8px" class="spin"></div>
+                <p style="color:#94a3b8;font-size:13px">Cargando...</p>
+            </td></tr>`;
+
+            try {
+                const r = await fetch(`${API}/padron?${params}`, { headers: H });
+                if (!r.ok) throw new Error();
+                const d = await r.json();
+
+                if (!d.datos?.length) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:60px 0;color:#94a3b8;font-size:13px;font-style:italic">
+                        ${d.total === 0 && !q && !estado && !carrera ? 'No se ha importado ningún padrón todavía.' : 'Sin resultados para los filtros aplicados.'}
+                    </td></tr>`;
+                    document.getElementById('pageInfo').textContent = 'Sin resultados';
+                    document.getElementById('pageBtns').innerHTML = '';
+                    return;
+                }
+
+                tbody.innerHTML = d.datos.map(est => {
+                    const carreraCorta = (est.carrera||'N/A')
+                        .replace('Ingeniería en ','Ing. ').replace('Ingeniería ','Ing. ');
+                    const nom = (est.nombre_completo ||est.nombre || '—').replace(/'/g, "\\'");
+                    return `<tr>
+                        <td>
+                            <p class="st-name">${est.nombre_completo||'—'}</p>
+                            <p class="st-mail">${est.correo_estudiantil||'—'}</p>
+                            <p class="st-id">Cédula: <b>${est.cedula||'—'}</b></p>
+                        </td>
+                        <td class="hidden md:table-cell">
+                            <span class="career-pill">${carreraCorta}</span>
+                        </td>
+                        <td style="text-align:center">
+                            <span class="badge ${est.estado==='activo'?'b-activo':'b-inactivo'}">
+                                <span style="width:6px;height:6px;border-radius:50%;background:${est.estado==='activo'?'#22c55e':'#94a3b8'};flex-shrink:0"></span>
+                                ${est.estado==='activo'?'Activo':'Inactivo'}
+                            </span>
+                        </td>
+                        <td style="text-align:center">
+                            ${est.estado==='activo'
+                                ? `<button onclick="cambiarEstado('${est._id}','inactivo','${nom}')" class="btn-sm-activate btn-deactivate">Desactivar</button>`
+                                : `<button onclick="cambiarEstado('${est._id}','activo','${nom}')" class="btn-sm-activate btn-activate">Activar</button>`}
+                        </td>
+                    </tr>`;
+                }).join('');
+
+                const total   = d.total;
+                const totalP  = Math.ceil(total / POR_PAG);
+                const from    = (pagActual-1)*POR_PAG+1;
+                const to      = Math.min(pagActual*POR_PAG, total);
+                document.getElementById('pageInfo').textContent = `Mostrando ${from}–${to} de ${total} registros`;
+                renderPaginas(totalP);
+
+            } catch(e) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:50px;color:#f43f5e;font-size:13px">Error al cargar el padrón. Verifique la conexión.</td></tr>`;
+            }
+        }
+
+        function renderPaginas(total) {
+            const cont = document.getElementById('pageBtns');
+            if (total <= 1) { cont.innerHTML = ''; return; }
+            const cls = (a) => `px-3 py-1.5 rounded-lg text-xs font-bold border transition ${a
+                ? 'bg-[#002D62] text-white border-[#002D62]'
+                : 'bg-white text-slate-600 border-slate-200 hover:border-[#002D62] hover:text-[#002D62]'}`;
+            let h = `<button onclick="irPag(${pagActual-1})" class="${cls(false)}" ${pagActual===1?'disabled':''}>&#8249;</button>`;
+            for (let i=1; i<=Math.min(total,7); i++)
+                h += `<button onclick="irPag(${i})" class="${cls(i===pagActual)}">${i}</button>`;
+            h += `<button onclick="irPag(${pagActual+1})" class="${cls(false)}" ${pagActual>=total?'disabled':''}>&#8250;</button>`;
+            cont.innerHTML = h;
+        }
+
+        function irPag(p) { if (p < 1) return; pagActual = p; cargarPadron(); }
+
+        // â”€â”€ Cambiar estado individual â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        async function cambiarEstado(id, nuevoEstado, nombre) {
+            const accion = nuevoEstado === 'inactivo' ? 'desactivar' : 'activar';
+            const { isConfirmed } = await Swal.fire({
+                title: nuevoEstado === 'inactivo' ? 'Desactivar estudiante' : 'Activar estudiante',
+                text: `¿Confirma que desea ${accion} a ${nombre}?`,
+                icon: nuevoEstado === 'inactivo' ? 'warning' : 'question',
+                showCancelButton: true,
+                confirmButtonColor: nuevoEstado === 'inactivo' ? '#dc2626' : '#002D62',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: nuevoEstado === 'inactivo' ? 'Sí, desactivar' : 'Sí, activar',
+                cancelButtonText: 'Cancelar'
+            });
+            if (!isConfirmed) return;
+
+            try {
+                const r = await fetch(`${API}/padron/${id}/estado`, {
+                    method: 'PATCH',
+                    headers: { ...H, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ estado: nuevoEstado })
+                });
+                const d = await r.json();
+                if (r.ok) {
+                    Swal.fire({ icon: 'success', title: 'Actualizado', text: d.message, timer: 1600, showConfirmButton: false });
+                    cargarPadron(); cargarStats();
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: d.message });
+                }
+            } catch(e) {
+                Swal.fire({ icon: 'error', title: 'Error de conexión', text: e.message });
+            }
+        }
+
+        // â”€â”€ Importación â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        function onDragOver(e) { e.preventDefault(); document.getElementById('dropZone').classList.add('over'); }
+        function onDragLeave()  { document.getElementById('dropZone').classList.remove('over'); }
+        function onDrop(e)      { e.preventDefault(); onDragLeave(); const f=e.dataTransfer.files[0]; if(f) setArchivo(f); }
+        function onFileSelected(e) { const f=e.target.files[0]; if(f) setArchivo(f); }
+
+        function setArchivo(file) {
+            if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
+                Swal.fire({ icon: 'error', title: 'Formato no válido', text: 'Use únicamente archivos .xlsx, .xls o .csv' });
+                return;
+            }
+            archivoSel = file;
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = `${(file.size/1024).toFixed(1)} KB`;
+            document.getElementById('fileInfo').classList.remove('hidden');
+            document.getElementById('dropZone').classList.add('success');
+        }
+
+        function limpiarArchivo() {
+            archivoSel = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileInfo').classList.add('hidden');
+            const dz = document.getElementById('dropZone');
+            dz.className = '';
+            dz.style.cssText = 'border:2px dashed #cbd5e1;border-radius:14px;transition:all .22s;cursor:pointer;padding:36px 24px;text-align:center';
+        }
+
+        async function importarPadron() {
+            if (!archivoSel) {
+                Swal.fire({ icon: 'warning', title: 'Archivo requerido', text: 'Seleccione un archivo antes de importar.' });
+                return;
+            }
+            const btn  = document.getElementById('btnImportar');
+            const btnT = document.getElementById('btnImportarTxt');
+            const prog = document.getElementById('progressWrap');
+            const bar  = document.getElementById('progressBar');
+            const pct  = document.getElementById('progressPct');
+            const res  = document.getElementById('importResult');
+
+            btn.disabled = true; btnT.textContent = 'Importando...';
+            prog.classList.remove('hidden'); res.classList.add('hidden');
+
+            let p = 0;
+            const itv = setInterval(() => { p = Math.min(p+12, 82); bar.style.width=p+'%'; pct.textContent=p+'%'; }, 280);
+
+            try {
+                const fd = new FormData();
+                fd.append('archivo', archivoSel);
+                const cuatri = document.getElementById('cuatrimestreInput').value.trim();
+                if (cuatri) fd.append('cuatrimestre', cuatri);
+
+                const r = await fetch(`${API}/padron/importar`, {
+                    method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd
+                });
+                const d = await r.json();
+
+                clearInterval(itv); bar.style.width='100%'; pct.textContent='100%';
+
+                if (r.ok) {
+                    mostrarResultado(d.resumen);
+                    cargarStats(); cargarPadron();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Padrón importado',
+                        html: `<span style="font-size:14px"><b>${d.resumen.nuevos}</b> nuevos &nbsp;•&nbsp; <b>${d.resumen.actualizados}</b> actualizados &nbsp;•&nbsp; <b>${d.resumen.errores}</b> errores</span>`,
+                        confirmButtonColor: '#002D62'
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error en la importación', text: d.message });
+                }
+            } catch(e) {
+                clearInterval(itv);
+                Swal.fire({ icon: 'error', title: 'Error de conexión', text: e.message });
+            } finally {
+                setTimeout(() => prog.classList.add('hidden'), 1200);
+                btn.disabled = false; btnT.textContent = 'Cargar Padrón';
+            }
+        }
+
+        function mostrarResultado(r) {
+            const errHTML = r.detalle_errores?.length ? `
+                <details class="mt-3">
+                    <summary class="text-xs font-black text-red-500 cursor-pointer select-none">Ver detalle de ${r.errores} errores</summary>
+                    <ul class="mt-2 space-y-1 max-h-32 overflow-y-auto">
+                        ${r.detalle_errores.map(e => `<li class="text-xs text-red-400">Fila ${e.fila}: ${e.error}</li>`).join('')}
+                    </ul>
+                </details>` : '';
+
+            document.getElementById('resultContent').innerHTML = `
+                <div class="grid grid-cols-3 gap-2 mb-3">
+                    <div class="text-center p-3 bg-slate-50 rounded-xl">
+                        <p class="text-xl font-black text-[#002D62]">${r.nuevos}</p>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Nuevos</p>
+                    </div>
+                    <div class="text-center p-3 bg-slate-50 rounded-xl">
+                        <p class="text-xl font-black text-blue-600">${r.actualizados}</p>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Actualizados</p>
+                    </div>
+                    <div class="text-center p-3 ${r.errores>0?'bg-red-50':'bg-slate-50'} rounded-xl">
+                        <p class="text-xl font-black ${r.errores>0?'text-red-500':'text-slate-400'}">${r.errores}</p>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Errores</p>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-400 font-medium">Total de filas procesadas: ${r.total_filas}</p>
+                ${errHTML}`;
+            document.getElementById('importResult').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
+
+
+

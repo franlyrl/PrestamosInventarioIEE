@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -31,6 +31,141 @@
             }
         }
     </script>
+    <style>
+      .swal2-popup.swal-boleta-popup {
+        font-family: 'Inter', sans-serif !important;
+        border-radius: 20px !important;
+        border: 1px solid #c8dbf5 !important;
+        background:
+          radial-gradient(circle at 0% 0%, rgba(0, 45, 98, 0.06), transparent 40%),
+          radial-gradient(circle at 100% 100%, rgba(242, 169, 0, 0.08), transparent 38%),
+          #ffffff !important;
+        box-shadow: 0 26px 60px rgba(2, 32, 71, 0.24) !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+      }
+      .swal-boleta-popup .swal2-html-container { margin: 0 !important; padding: 0 !important; }
+      .swal-boleta-wrap { text-align:left; }
+      .swal-boleta-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 18px 20px;
+        background: linear-gradient(120deg, #002d62 0%, #0b4a98 100%);
+        border-bottom: 3px solid #f2a900;
+      }
+      .swal-boleta-header .left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .swal-boleta-header .icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .swal-boleta-header h3 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 900;
+        letter-spacing: .01em;
+        color: #fff;
+        line-height: 1.15;
+      }
+      .swal-boleta-header p {
+        margin: 4px 0 0 0;
+        color: #dbeafe;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .swal-boleta-body {
+        padding: 16px 20px 6px;
+      }
+      .swal-boleta-actions {
+        padding: 10px 20px 18px;
+      }
+      .swal-boleta-popup .swal2-input {
+        border-radius: 12px !important;
+        border: 1.5px solid #dbe3ef !important;
+        background: #f8fafc !important;
+      }
+      .swal-boleta-popup .swal2-input:focus {
+        border-color: #002d62 !important;
+        box-shadow: 0 0 0 3px rgba(0, 45, 98, 0.1) !important;
+      }
+      .swal-boleta-popup .swal2-confirm.swal-boleta-confirm {
+        border-radius: 11px !important;
+        background: linear-gradient(120deg, #002d62 0%, #0b4a98 100%) !important;
+        font-weight: 800 !important;
+        letter-spacing: .03em !important;
+        padding: 0.72rem 1rem !important;
+        box-shadow: 0 10px 20px rgba(0,45,98,.22) !important;
+      }
+      .swal-boleta-popup .swal2-cancel.swal-boleta-cancel {
+        border-radius: 11px !important;
+        background: #eef4ff !important;
+        color: #375372 !important;
+        border: 1px solid #cfe0f8 !important;
+        font-weight: 800 !important;
+        padding: 0.67rem 1rem !important;
+      }
+      .swal2-close.swal-boleta-close {
+        color: #dbeafe !important;
+        font-size: 28px !important;
+        font-weight: 300 !important;
+      }
+      .swal-boleta-note {
+        background: linear-gradient(120deg,#eef4ff,#f8fbff);
+        border: 1px solid #dbe7f7;
+        border-radius: 14px;
+        padding: 10px 12px;
+        margin-bottom: 12px;
+      }
+      .swal-boleta-drop {
+        border:1.5px dashed #bfd2ef;
+        background:#f8fbff;
+        border-radius:12px;
+        padding:10px 12px;
+      }
+      .swal-file-uploader {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 9px;
+        align-items: center;
+      }
+      .swal-file-btn {
+        background: #eef4ff;
+        border: 1px solid #cfe0f8;
+        color: #27496d;
+        border-radius: 10px;
+        padding: 8px 11px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .02em;
+        cursor: pointer;
+      }
+      .swal-file-name {
+        min-height: 36px;
+        border: 1px solid #d7e3f3;
+        border-radius: 10px;
+        background: #fff;
+        color: #64748b;
+        font-size: 13px;
+        padding: 8px 11px;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    </style>
   
     <!-- SweetAlert2 --><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
@@ -74,7 +209,7 @@
                     
                     <div>
                         <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Contraseña</label>
-                        <input type="password" id="passInput" placeholder="⬢⬢⬢⬢⬢⬢⬢⬢" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-utn-blue/10 focus:border-utn-blue focus:bg-white outline-none transition-all text-base text-slate-800 font-medium" required />
+                        <input type="password" id="passInput" placeholder="••••••••" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-utn-blue/10 focus:border-utn-blue focus:bg-white outline-none transition-all text-base text-slate-800 font-medium" required />
                     </div>
 
                     <div class="pt-4">
@@ -209,6 +344,10 @@
           if (!response.ok) {
             console.error(' Respuesta no OK:', response.status, response.statusText);
             console.error(' Datos de error:', data);
+            if (response.status === 403 && data.requiere_boleta) {
+              await abrirModalReactivacionBoleta(correoElectronico, data.cuatrimestre || '');
+              return;
+            }
             throw new Error(data.message || 'Error de autenticación');
           }
 
@@ -388,7 +527,123 @@
       function goToSignUp() {
         window.location.href = 'signup.html';
       }
+
+      async function abrirModalReactivacionBoleta(correoSugerido, cuatrimestre) {
+        const { value: formValues } = await Swal.fire({
+          title: '',
+          html: `
+            <div class="swal-boleta-wrap">
+              <div class="swal-boleta-header">
+                <div class="left">
+                  <span class="icon">
+                    <svg style="width:22px;height:22px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                  </span>
+                  <div>
+                    <h3>Actualiza tu boleta</h3>
+                    <p>Inventario UTN - SPIEE</p>
+                  </div>
+                </div>
+              </div>
+              <div class="swal-boleta-body">
+              <div class="swal-boleta-note">
+                <p style="margin:0;font-size:11px;color:#1e3a5f;font-weight:700">Cuatrimestre requerido: <b style="color:#002D62">${cuatrimestre || 'ACTIVO'}</b></p>
+              </div>
+              <label style="display:block;font-size:9px;font-weight:800;color:#64748b;letter-spacing:.12em;text-transform:uppercase;margin:6px 0 5px">Cédula</label>
+              <input id="swal-cedula" class="swal2-input" placeholder="Sin guiones" style="margin:0 0 8px 0;width:100%">
+              <label style="display:block;font-size:9px;font-weight:800;color:#64748b;letter-spacing:.12em;text-transform:uppercase;margin:2px 0 5px">Correo institucional</label>
+              <input id="swal-correo" class="swal2-input" placeholder="usuario@utn.ac.cr" value="${correoSugerido || ''}" style="margin:0 0 8px 0;width:100%">
+              <label style="display:block;font-size:9px;font-weight:800;color:#64748b;letter-spacing:.12em;text-transform:uppercase;margin:2px 0 5px">Contraseña actual</label>
+              <input id="swal-pass" type="password" class="swal2-input" placeholder="Tu clave actual" style="margin:0 0 10px 0;width:100%">
+              <label style="display:block;font-size:9px;font-weight:800;color:#64748b;letter-spacing:.12em;text-transform:uppercase;margin:2px 0 5px">Boleta PDF</label>
+              <div class="swal-boleta-drop">
+                <input id="swal-boleta" type="file" class="swal2-file" accept=".pdf,application/pdf" style="display:none">
+                <div class="swal-file-uploader">
+                  <button type="button" id="swal-boleta-btn" class="swal-file-btn">Seleccionar PDF</button>
+                  <div id="swal-boleta-name" class="swal-file-name">Ningún archivo seleccionado</div>
+                </div>
+                <p style="margin:6px 0 0 0;font-size:10px;color:#64748b">Solo formato PDF institucional.</p>
+              </div>
+              </div>
+            </div>
+          `,
+          focusConfirm: false,
+          confirmButtonText: 'Enviar boleta',
+          confirmButtonColor: '#002D62',
+          showCloseButton: true,
+          showCancelButton: true,
+          cancelButtonText: 'Ahora no',
+          customClass: {
+            popup: 'swal-boleta-popup',
+            confirmButton: 'swal-boleta-confirm',
+            cancelButton: 'swal-boleta-cancel',
+            closeButton: 'swal-boleta-close'
+          },
+          didOpen: () => {
+            const input = document.getElementById('swal-boleta');
+            const btn = document.getElementById('swal-boleta-btn');
+            const name = document.getElementById('swal-boleta-name');
+            if (!input || !btn || !name) return;
+            btn.addEventListener('click', () => input.click());
+            input.addEventListener('change', () => {
+              const file = input.files && input.files[0] ? input.files[0] : null;
+              name.textContent = file ? file.name : 'Ningún archivo seleccionado';
+            });
+          },
+          preConfirm: () => {
+            const cedula = (document.getElementById('swal-cedula').value || '').trim();
+            const correo = (document.getElementById('swal-correo').value || '').trim();
+            const pass = document.getElementById('swal-pass').value || '';
+            const boleta = document.getElementById('swal-boleta').files[0];
+            if (!cedula || !correo || !pass || !boleta) {
+              Swal.showValidationMessage('Complete todos los campos y adjunte el PDF.');
+              return false;
+            }
+            if (!(boleta.name || '').toLowerCase().endsWith('.pdf')) {
+              Swal.showValidationMessage('Solo se permite archivo PDF.');
+              return false;
+            }
+            return { cedula, correo, pass, boleta };
+          }
+        });
+
+        if (!formValues) return;
+
+        try {
+          const fd = new FormData();
+          fd.append('cedula', formValues.cedula);
+          fd.append('correo_electronico', formValues.correo);
+          fd.append('contrasena', formValues.pass);
+          fd.append('boleta_pdf', formValues.boleta);
+
+          const response = await fetch(`${CONFIG.API_BASE_URL}/usuarios/boleta-reactivacion`, {
+            method: 'POST',
+            body: fd
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.message || 'No se pudo subir la boleta.');
+
+          const rechazada = data?.validada === false || String(data?.estado || '').toLowerCase() === 'rechazada';
+          await Swal.fire({
+            icon: rechazada ? 'warning' : 'success',
+            title: rechazada ? 'Boleta rechazada' : 'Boleta validada',
+            text: data.message || (rechazada ? 'La boleta fue rechazada automáticamente.' : 'Boleta cargada correctamente.'),
+            iconColor: rechazada ? '#C9A227' : undefined,
+            confirmButtonColor: rechazada ? '#C9A227' : '#002D62'
+          });
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'No se pudo procesar',
+            text: error.message || 'Error al subir boleta.',
+            confirmButtonColor: '#002D62'
+          });
+        }
+      }
     </script>
   </body>
 </html>
+
+
+
+
 

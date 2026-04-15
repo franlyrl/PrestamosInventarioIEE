@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion de Cuatrimestre - SPIEE</title>
+  <link rel="icon" type="image/jpeg" href="../css/UTN.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    body {
+      background:
+        radial-gradient(circle at 0% 0%, rgba(0, 45, 98, 0.1), transparent 35%),
+        radial-gradient(circle at 100% 100%, rgba(242, 169, 0, 0.1), transparent 35%),
+        #f5f8fd;
+    }
+    .surface {
+      background: #fff;
+      border: 1px solid #dbe5f3;
+      border-radius: 18px;
+      box-shadow: 0 18px 35px rgba(15, 23, 42, 0.06);
+    }
+    .metric-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      border: 1px solid #d8e3f2;
+      background: linear-gradient(165deg, #ffffff 0%, #f7fbff 100%);
+      padding: 20px;
+    }
+    .metric-card::after {
+      content: '';
+      position: absolute;
+      right: -18px;
+      top: -18px;
+      width: 92px;
+      height: 92px;
+      border-radius: 999px;
+      background: rgba(0, 45, 98, 0.06);
+    }
+    .field-label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+    .f-input {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1.5px solid #dbe5f2;
+      border-radius: 11px;
+      background: #f8fbff;
+      color: #0f172a;
+      outline: none;
+      transition: all .2s;
+      font-size: 14px;
+    }
+    .f-input:focus {
+      border-color: #002d62;
+      box-shadow: 0 0 0 3px rgba(0, 45, 98, 0.1);
+      background: #fff;
+    }
+    .btn-main {
+      border: none;
+      border-radius: 11px;
+      background: linear-gradient(120deg, #002d62, #0d4f9f);
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      padding: 11px 15px;
+      transition: all .2s;
+    }
+    .btn-main:hover { transform: translateY(-1px); box-shadow: 0 12px 24px rgba(0, 45, 98, 0.2); }
+    .btn-ghost {
+      border: 1px solid #dbe5f2;
+      border-radius: 11px;
+      background: #f8fbff;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 9px 12px;
+      transition: all .2s;
+    }
+    .btn-ghost:hover { border-color: #9bb3d7; background: #eef4ff; }
+    .state-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      padding: 6px 11px;
+      font-size: 11px;
+      font-weight: 800;
+      border: 1px solid #d7e3f5;
+      background: #edf4ff;
+      color: #264a72;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .table-shell { border: 1px solid #dbe5f3; border-radius: 16px; overflow: hidden; }
+    .table-head { background: linear-gradient(120deg, #f2f7ff, #f8fbff); }
+    .row-alt:nth-child(even) { background: #fbfdff; }
+    .row-alt:hover { background: #f2f7ff; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800">
+  <div id="header-component"></div>
+
+  <div class="bg-white/90 backdrop-blur border-b border-slate-200 px-6 py-5 sticky top-0 z-30">
+    <div class="container mx-auto max-w-6xl flex items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <button onclick="window.location.href='ModAdmis.html'" class="btn-ghost inline-flex items-center gap-2 uppercase tracking-wide font-extrabold">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6" d="M15 19l-7-7 7-7"/></svg>
+            Volver al Panel
+          </button>
+          <span class="text-slate-300">/</span>
+          <span class="text-[10px] font-black uppercase tracking-[.28em] text-slate-400">Control academico</span>
+        </div>
+        <h1 class="text-2xl font-extrabold text-[#002D62]">Gestion de Cuatrimestre</h1>
+        <p class="text-sm text-slate-500 mt-0.5">Administra periodos y valida boletas estudiantiles con flujo profesional.</p>
+      </div>
+      <button class="btn-ghost" onclick="cargarTodo()">Actualizar</button>
+    </div>
+  </div>
+
+  <main class="container mx-auto max-w-6xl px-6 py-7 space-y-6 flex-grow">
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="metric-card">
+        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Pendientes</p>
+        <p id="kPendiente" class="text-4xl font-extrabold text-amber-600 mt-2">-</p>
+        <p class="text-xs text-slate-500 mt-1">Requieren revision manual</p>
+      </div>
+      <div class="metric-card">
+        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Validadas</p>
+        <p id="kValidada" class="text-4xl font-extrabold text-emerald-600 mt-2">-</p>
+        <p class="text-xs text-slate-500 mt-1">Boletas en regla</p>
+      </div>
+      <div class="metric-card">
+        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Sin boleta</p>
+        <p id="kSinBoleta" class="text-4xl font-extrabold text-slate-500 mt-2">-</p>
+        <p class="text-xs text-slate-500 mt-1">Estudiantes sin documento</p>
+      </div>
+    </section>
+
+    <section class="surface p-6">
+      <div class="flex items-center justify-between gap-4 mb-5">
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-800">Configuracion del periodo activo</h2>
+          <p class="text-xs text-slate-500 mt-1">Al guardar, el sistema solicita nueva boleta para estudiantes.</p>
+        </div>
+        <div id="estadoActual" class="state-chip">Sin datos</div>
+      </div>
+
+      <form id="cfgForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+        <div>
+          <label class="field-label">Codigo del cuatrimestre</label>
+          <input id="codigoInput" class="f-input" placeholder="Ej: IC 2026" required>
+        </div>
+        <div>
+          <label class="field-label">Fecha de inicio</label>
+          <input id="inicioInput" class="f-input" type="date" required>
+        </div>
+        <div>
+          <label class="field-label">Fecha de fin</label>
+          <input id="finInput" class="f-input" type="date" required>
+        </div>
+        <button class="btn-main w-full" type="submit">Guardar configuracion</button>
+      </form>
+    </section>
+
+    <section class="surface p-5">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <h2 class="text-lg font-extrabold text-slate-800">Boletas pendientes</h2>
+        <p class="text-xs text-slate-500">Aprueba o rechaza segun validacion documental</p>
+      </div>
+
+      <div class="table-shell overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="table-head text-slate-500 text-[11px] uppercase tracking-widest font-black">
+            <tr>
+              <th class="text-left px-6 py-3">Estudiante</th>
+              <th class="text-left px-6 py-3">Estado</th>
+              <th class="text-left px-6 py-3">Cuatrimestre</th>
+              <th class="text-left px-6 py-3">Documento</th>
+              <th class="text-center px-6 py-3">Accion</th>
+            </tr>
+          </thead>
+          <tbody id="pendientesBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="footer-component"></div>
+  <script src="../js/main.js"></script>
+  <script src="../js/components.js"></script>
+  <script>
+  const API = `http://${window.location.hostname}:4000/api`;
+
+  function getToken() { return localStorage.getItem('utn_token'); }
+  function headers() { return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' }; }
+
+  function authGuard() {
+    const token = getToken();
+    const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
+    const rol = String(user.tipo_rol || user.rol || '').toLowerCase();
+    if (!token || (!rol.includes('admin') && !rol.includes('administrativo'))) {
+      window.location.href = '../login.html';
+      return false;
+    }
+    return true;
+  }
+
+  async function cargarActual() {
+    const r = await fetch(`${API}/cuatrimestre/actual`);
+    const d = await r.json();
+    const el = document.getElementById('estadoActual');
+
+    if (!d.activo) {
+      el.className = 'state-chip bg-slate-100 text-slate-600 border-slate-200';
+      el.textContent = 'Sin cuatrimestre activo';
+      return;
+    }
+
+    const c = d.cuatrimestre;
+    el.className = 'state-chip bg-blue-50 text-blue-700 border-blue-100';
+    el.textContent = `${c.codigo} (${d.cuatrimestre.estado_ventana || 'vigente'})`;
+    document.getElementById('codigoInput').value = c.codigo || '';
+    document.getElementById('inicioInput').value = (c.fecha_inicio || '').slice(0, 10);
+    document.getElementById('finInput').value = (c.fecha_fin || '').slice(0, 10);
+  }
+
+  async function cargarResumen() {
+    const r = await fetch(`${API}/cuatrimestre/boletas/resumen`, { headers: headers() });
+    const d = await r.json();
+    document.getElementById('kPendiente').textContent = d.pendiente ?? '-';
+    document.getElementById('kValidada').textContent = d.validada ?? '-';
+    document.getElementById('kSinBoleta').textContent = d.sin_boleta ?? '-';
+  }
+
+  function estadoChip(estado) {
+    if (estado === 'rechazada') return '<span class="state-chip bg-rose-50 text-rose-700 border-rose-100">Rechazada</span>';
+    if (estado === 'pendiente_boleta') return '<span class="state-chip bg-slate-100 text-slate-600 border-slate-200">Sin boleta</span>';
+    return '<span class="state-chip bg-amber-50 text-amber-700 border-amber-100">Pendiente</span>';
+  }
+
+  async function cargarPendientes() {
+    const body = document.getElementById('pendientesBody');
+    body.innerHTML = '<tr><td colspan="5" class="px-6 py-9 text-center text-slate-400">Cargando boletas...</td></tr>';
+
+    const r = await fetch(`${API}/cuatrimestre/boletas/pendientes`, { headers: headers() });
+    const rows = await r.json();
+
+    if (!r.ok) {
+      body.innerHTML = `<tr><td colspan="5" class="px-6 py-9 text-center text-red-500">${rows.message || 'Error al cargar boletas'}</td></tr>`;
+      return;
+    }
+    if (!rows.length) {
+      body.innerHTML = '<tr><td colspan="5" class="px-6 py-9 text-center text-slate-400">No hay boletas pendientes.</td></tr>';
+      return;
+    }
+
+    body.innerHTML = rows.map((u) => `
+      <tr class="row-alt border-t border-slate-100">
+        <td class="px-6 py-4">
+          <p class="font-extrabold text-slate-800">${u.nombre_completo || '-'}</p>
+          <p class="text-xs text-slate-500">${u.correo_electronico || '-'}</p>
+          <p class="text-xs text-slate-400 mt-1">Cedula: ${u.cedula || '-'}</p>
+        </td>
+        <td class="px-6 py-4">${estadoChip(u.boleta_estado || 'pendiente_revision')}</td>
+        <td class="px-6 py-4 font-semibold text-slate-700">${u.boleta_cuatrimestre || '-'}</td>
+        <td class="px-6 py-4">
+          ${u.boleta_pdf_url
+            ? `<a class="inline-flex items-center gap-1 text-[#002D62] font-bold text-xs hover:underline" href="http://${window.location.hostname}:4000${u.boleta_pdf_url}" target="_blank">Ver PDF</a>`
+            : '<span class="text-xs text-slate-400">Sin archivo</span>'}
+        </td>
+        <td class="px-6 py-4">
+          <div class="flex justify-center gap-2">
+            <button class="px-3 py-1.5 rounded-lg text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200" onclick="resolver('${u._id}','aprobar')">Aprobar</button>
+            <button class="px-3 py-1.5 rounded-lg text-xs font-black bg-rose-50 text-rose-700 border border-rose-200" onclick="resolver('${u._id}','rechazar')">Rechazar</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function resolver(id, accion) {
+    const { value: observacion } = await Swal.fire({
+      title: accion === 'aprobar' ? 'Aprobar boleta' : 'Rechazar boleta',
+      input: 'text',
+      inputLabel: 'Observacion',
+      inputPlaceholder: accion === 'aprobar' ? 'Validada por administracion' : 'Indique motivo del rechazo',
+      showCancelButton: true,
+      confirmButtonText: 'Confirmar',
+      confirmButtonColor: '#002D62'
+    });
+
+    if (observacion === undefined) return;
+
+    const r = await fetch(`${API}/cuatrimestre/boletas/${id}/resolver`, {
+      method: 'PATCH',
+      headers: headers(),
+      body: JSON.stringify({ accion, observacion })
+    });
+    const d = await r.json();
+
+    if (!r.ok) {
+      Swal.fire({ icon: 'error', title: 'No se pudo actualizar', text: d.message || 'Error' });
+      return;
+    }
+
+    Swal.fire({ icon: 'success', title: 'Actualizado', text: d.message || 'Estado actualizado', timer: 1300, showConfirmButton: false });
+    await cargarTodo();
+  }
+
+  document.getElementById('cfgForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const codigo = document.getElementById('codigoInput').value.trim().toUpperCase();
+    const fecha_inicio = document.getElementById('inicioInput').value;
+    const fecha_fin = document.getElementById('finInput').value;
+
+    const r = await fetch(`${API}/cuatrimestre/configurar`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ codigo, fecha_inicio, fecha_fin, requiere_boleta: true })
+    });
+    const d = await r.json();
+
+    if (!r.ok) {
+      Swal.fire({ icon: 'error', title: 'No se pudo guardar', text: d.message || 'Error de validacion' });
+      return;
+    }
+
+    Swal.fire({ icon: 'success', title: 'Configuracion guardada', text: d.message || 'Periodo actualizado', confirmButtonColor: '#002D62' });
+    await cargarTodo();
+  });
+
+  async function cargarTodo() {
+    await Promise.all([cargarActual(), cargarResumen(), cargarPendientes()]);
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (!authGuard()) return;
+    await cargarTodo();
+  });
+  </script>
+</body>
+</html>
