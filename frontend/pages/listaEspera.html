@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Espera - UTN SPIEE</title>
+    <meta name="description" content="Lista de espera de solicitudes del laboratorio UTN">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/main.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { utn: { blue: '#002D62', dark: '#001A33', gold: '#F2A900' } } } } }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        .card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; }
+        .producto-card { border-left: 4px solid #002D62; }
+        .producto-card:nth-child(2) { border-left-color: #F2A900; }
+        .producto-card:nth-child(3) { border-left-color: #10b981; }
+        .producto-card:nth-child(4) { border-left-color: #f59e0b; }
+        .producto-card:nth-child(5) { border-left-color: #8b5cf6; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- NAV: Header Component -->
+    <div id="header-component"></div>
+
+    <!-- Encabezado de Página -->
+    <div class="bg-white border-b border-slate-200 px-6 py-5">
+        <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <button type="button" onclick="window.redirigirInicio()" class="group flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-[#002D62] text-slate-500 hover:text-white rounded-lg text-[11px] font-black tracking-wide transition-all duration-200 border border-slate-200 hover:border-[#002D62]">
+                        <svg class="w-3.5 h-3.5 transform group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        VOLVER AL PANEL
+                    </button>
+                    <span class="text-slate-300">/</span>
+                    <span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Espera</span>
+                </div>
+                <h1 class="text-2xl font-black text-[#002D62]">Lista de Espera</h1>
+                <p class="text-sm text-slate-500 mt-0.5">Usuarios esperando disponibilidad de artículos</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total:</span>
+                <span id="total-espera" class="text-2xl font-black text-amber-600">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <main class="container mx-auto max-w-6xl px-6 py-8 flex-grow">
+
+        <!-- Info Box: Explicación para usuarios -->
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6">
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-sm font-bold text-blue-800 mb-1">¿Qué es la Lista de Espera?</h3>
+                    <p class="text-sm text-blue-700 leading-relaxed mb-2">
+                        Cuando un artículo no tiene stock disponible, puedes agregarte a esta lista para reservar tu lugar en la fila.
+                        Los usuarios se atienden por orden de llegada según el producto solicitado.
+                    </p>
+                    <div class="flex flex-wrap gap-2 text-xs text-blue-600">
+                        <span class="inline-flex items-center gap-1 bg-blue-100 px-2 py-1 rounded">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Tiempo estimado de espera
+                        </span>
+                        <span class="inline-flex items-center gap-1 bg-blue-100 px-2 py-1 rounded">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                            Notificación cuando esté disponible
+                        </span>
+                        <span class="inline-flex items-center gap-1 bg-blue-100 px-2 py-1 rounded">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            Cancelar en cualquier momento
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="lista-espera-contenedor" class="space-y-6">
+            <!-- Se cargarán las tablas por producto dinámicamente -->
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="py-20 text-center hidden">
+            <div class="w-10 h-10 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-sm text-slate-500">Cargando lista de espera...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="py-20 text-center hidden">
+            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-slate-700 mb-2">No hay usuarios en lista de espera</h3>
+            <p class="text-slate-500">Todos los artículos solicitados están disponibles actualmente.</p>
+        </div>
+    </main>
+
+    <!-- FOOTER COMPONENT -->
+    <div id="footer-component"></div>
+
+    <!-- JavaScript -->
+    <script src="../js/app.js"></script>
+    <script src="../js/main.js"></script>
+    <script>
+        class ListaEsperaPage {
+            constructor() {
+                this.apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+                this.token = localStorage.getItem('utn_token');
+                this.currentUser = JSON.parse(localStorage.getItem('utn_user') || '{}');
+                this.isAdmin = ['admin', 'administrador', 'administrativo'].some(r =>
+                    (this.currentUser.rol || '').toLowerCase().includes(r)
+                );
+            }
+
+            async initialize() {
+                if (!this.isAdmin) {
+                    window.location.href = 'ModUsuarios.html';
+                    return;
+                }
+
+                this.showLoading(true);
+                await this.cargarListaEspera();
+                this.showLoading(false);
+            }
+
+            async cargarListaEspera() {
+                try {
+                    const resp = await fetch(`${this.apiBase}/listaEspera`, {
+                        headers: { 'Authorization': `Bearer ${this.token}` }
+                    });
+
+                    if (!resp.ok) throw new Error('Error al cargar lista');
+
+                    const data = await resp.json();
+                    const lista = data.data || data;
+
+                    this.renderListaEspera(lista);
+                } catch (error) {
+                    console.error('Error:', error);
+                    this.showEmptyState();
+                }
+            }
+
+            renderListaEspera(lista) {
+                const contenedor = document.getElementById('lista-espera-contenedor');
+                const totalSpan = document.getElementById('total-espera');
+
+                totalSpan.textContent = lista.length;
+
+                if (lista.length === 0) {
+                    this.showEmptyState();
+                    return;
+                }
+
+                // DEBUG: Ver datos recibidos
+                console.log('📊 Lista de espera recibida:', lista);
+                console.log('📦 Primer item - insumo:', lista[0]?.insumo);
+
+                // Agrupar por artículo
+                const grupos = lista.reduce((acc, espera) => {
+                    const articuloId = espera.insumo?._id || espera.insumo?.id || espera.insumo || 'desconocido';
+                    const articuloNombre = espera.nombreProducto || espera.insumo?.NombProducto || espera.insumo?.nombre_insumo || 'Producto desconocido';
+
+                    console.log(`📝 Procesando: ${articuloNombre} (ID: ${articuloId})`);
+
+                    if (!acc[articuloId]) {
+                        acc[articuloId] = {
+                            nombre: articuloNombre,
+                            items: []
+                        };
+                    }
+                    acc[articuloId].items.push(espera);
+                    return acc;
+                }, {});
+
+                const numGrupos = Object.keys(grupos).length;
+                console.log('📊 Total grupos creados:', numGrupos);
+                console.log('📊 Nombres de grupos:', Object.values(grupos).map(g => g.nombre));
+
+                // Alerta visual si solo hay un grupo
+                if (numGrupos === 1) {
+                    console.warn('⚠️ Solo hay un producto en la lista de espera. Se mostrará una sola tabla.');
+                }
+
+                // Ordenar items dentro de cada grupo por prioridad y fecha
+                Object.values(grupos).forEach(grupo => {
+                    grupo.items.sort((a, b) => {
+                        if (a.prioridad !== b.prioridad) return b.prioridad - a.prioridad;
+                        return new Date(a.createdAt) - new Date(b.createdAt);
+                    });
+                });
+
+                // Generar HTML para cada grupo - con colores alternados por producto
+                const coloresHeader = ['bg-[#002D62]', 'bg-amber-500', 'bg-emerald-600', 'bg-purple-600', 'bg-rose-600'];
+
+                contenedor.innerHTML = Object.entries(grupos).map(([articuloId, grupo], index) => {
+                    const colorHeader = coloresHeader[index % coloresHeader.length];
+                    return `
+                        <div class="card producto-card overflow-hidden">
+                            <div class="${colorHeader} text-white px-6 py-4 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">
+                                        ${grupo.items.length}
+                                    </div>
+                                    <div>
+                                        <h2 class="text-lg font-bold">${grupo.nombre}</h2>
+                                        <p class="text-xs text-white/80">${grupo.items.length} usuario(s) en espera</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-bold bg-white/20 px-3 py-1 rounded-full">PRODUCTO #${index + 1}</span>
+                            </div>
+                            <div class="p-6">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="bg-slate-50 border-b border-slate-200">
+                                        <tr>
+                                            <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Pos</th>
+                                            <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Usuario</th>
+                                            <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Cantidad</th>
+                                            <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Fecha Solicitud</th>
+                                            <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tiempo Estimado</th>
+                                            <th class="px-4 py-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-50">
+                                        ${grupo.items.map((espera, index) => {
+                                            const posicion = index + 1;
+                                            const usuario = espera.usuario?.nombre_completo || 'Usuario desconocido';
+                                            const cantidad = espera.cantidad_solicitada || 1;
+                                            const fecha = new Date(espera.createdAt).toLocaleDateString('es-CR');
+                                            const tiempoEstimado = espera.tiempo_estimado || 'No especificado';
+
+                                            return `
+                                                <tr class="hover:bg-slate-50">
+                                                    <td class="px-4 py-3 text-sm font-bold text-[#002D62]">${posicion}</td>
+                                                    <td class="px-4 py-3 text-sm text-slate-700">${usuario}</td>
+                                                    <td class="px-4 py-3 text-sm text-slate-700">${cantidad}</td>
+                                                    <td class="px-4 py-3 text-sm text-slate-700">${fecha}</td>
+                                                    <td class="px-4 py-3 text-sm text-amber-600">${tiempoEstimado}</td>
+                                                    <td class="px-4 py-3 text-sm text-center">
+                                                        <button onclick="listaEsperaPage.editarEspera('${espera._id}')" class="text-blue-600 hover:text-blue-800 mr-3" title="Editar tiempo">Editar</button>
+                                                        <button onclick="listaEsperaPage.marcarProcesando('${espera._id}')" class="text-green-600 hover:text-green-800" title="Marcar como procesado">Procesar</button>
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            showLoading(show) {
+                document.getElementById('loading').classList.toggle('hidden', !show);
+            }
+
+            showEmptyState() {
+                document.getElementById('empty-state').classList.remove('hidden');
+                document.getElementById('lista-espera-contenedor').innerHTML = '';
+            }
+
+            async editarEspera(id) {
+                // Implementar modal para editar tiempo estimado
+                const { value: tiempo } = await Swal.fire({
+                    title: 'Tiempo Estimado',
+                    input: 'text',
+                    inputLabel: 'Ej: 2 horas, mañana, etc.',
+                    inputPlaceholder: 'Especificar tiempo estimado',
+                    showCancelButton: true,
+                    confirmButtonText: 'Guardar',
+                    cancelButtonText: 'Cancelar'
+                });
+
+                if (tiempo) {
+                    try {
+                        const resp = await fetch(`${this.apiBase}/listaEspera/${id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.token}`
+                            },
+                            body: JSON.stringify({ tiempo_estimado: tiempo })
+                        });
+
+                        if (resp.ok) {
+                            Swal.fire('Actualizado', 'Tiempo estimado guardado', 'success');
+                            this.initialize();
+                        } else {
+                            throw new Error('Error al actualizar');
+                        }
+                    } catch (error) {
+                        Swal.fire('Error', 'No se pudo actualizar', 'error');
+                    }
+                }
+            }
+
+            async marcarProcesando(id) {
+                const confirm = await Swal.fire({
+                    title: 'Marcar como procesando',
+                    text: '¿El artículo ya está disponible y se está procesando?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí',
+                    cancelButtonText: 'No'
+                });
+
+                if (confirm.isConfirmed) {
+                    try {
+                        const resp = await fetch(`${this.apiBase}/listaEspera/${id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.token}`
+                            },
+                            body: JSON.stringify({ estado: 'entregado' })
+                        });
+
+                        if (resp.ok) {
+                            Swal.fire('Procesado', 'Usuario removido de la lista', 'success');
+                            this.initialize();
+                        } else {
+                            throw new Error('Error al procesar');
+                        }
+                    } catch (error) {
+                        Swal.fire('Error', 'No se pudo procesar', 'error');
+                    }
+                }
+            }
+        }
+
+        // Inicializar
+        const listaEsperaPage = new ListaEsperaPage();
+        window.listaEsperaPage = listaEsperaPage;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            listaEsperaPage.initialize();
+        });
+    </script>
+</body>
+</html>

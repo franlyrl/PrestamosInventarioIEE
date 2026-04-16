@@ -72,79 +72,11 @@ class IndexController {
                 let activos = await activosResponse.json();
                 let insumos = await insumosResponse.json();
 
-                console.log(' Activos cargados:', activos?.todosLosActivos?.length || 0);
-                console.log(' Insumos cargados:', insumos?.length || 0);
-
                 const activosArray = Array.isArray(activos?.todosLosActivos) ? activos.todosLosActivos : [];
                 const insumosArray = Array.isArray(insumos) ? insumos : [];
 
-                // Debug: mostrar todos los insumos con sus cantidades
-                console.log(' Todos los insumos con sus cantidades:');
-                insumosArray.forEach(item => {
-                    console.log(`- ${item.NombProducto || item.nombre} | cantidad: ${item.cantidad} | categoría: ${item.categoria}`);
-                });
-
-                // Modificar algunos insumos reales para que tengan cantidad 0 (simulación de datos reales)
-                const insumosModificados = insumosArray.map(item => {
-                    // Simular que algunos insumos específicos no tienen stock
-                    if (item.NombProducto && (
-                        item.NombProducto.includes('Transistor') ||
-                        item.NombProducto.includes('Resistencia') ||
-                        item.NombProducto.includes('LED') ||
-                        item.NombProducto.includes('Diodo') ||
-                        item.NombProducto.includes('Condensador') ||
-                        item.NombProducto.includes('Potenciómetro') ||
-                        item.NombProducto.includes('Relé')
-                    )) {
-                        console.log(` Modificando ${item.NombProducto} de cantidad ${item.cantidad} a 0`);
-                        return { ...item, cantidad: 0 };
-                    }
-                    return item;
-                });
-
-                // Debug: mostrar todos los insumos modificados con sus cantidades
-                console.log(' Insumos modificados (algunos con stock 0):');
-                insumosModificados.forEach(item => {
-                    if (item.cantidad === 0) {
-                        console.log(` SIN STOCK: ${item.NombProducto || item.nombre} | cantidad: ${item.cantidad} | categoría: ${item.categoria}`);
-                    }
-                });
-
-                // Debug: contar items con cantidad 0
-                const itemsSinStock = insumosModificados.filter(item => item.cantidad === 0);
-                console.log(` Total items sin stock: ${itemsSinStock.length}`);
-
-                // Debug: mostrar si hay nombres que coinciden con las palabras clave
-                console.log(' Verificando palabras clave en nombres:');
-                insumosArray.forEach(item => {
-                    const nombre = item.NombProducto || '';
-                    const tieneResistencia = nombre.includes('Resistencia');
-                    const tieneLED = nombre.includes('LED');
-                    const tieneTransistor = nombre.includes('Transistor');
-                    const tieneDiodo = nombre.includes('Diodo');
-                    const tieneCondensador = nombre.includes('Condensador');
-
-                    if (tieneResistencia || tieneLED || tieneTransistor || tieneDiodo || tieneCondensador) {
-                        console.log(` ${nombre} -> cantidad: ${item.cantidad} -> modificado a: ${tieneResistencia || tieneLED || tieneTransistor || tieneDiodo || tieneCondensador ? '0' : item.cantidad}`);
-                    }
-                });
-
-                // Usar los insumos modificados
-                const todosLosInsumos = insumosModificados;
-
-                // NO agregar items forzados - usar solo datos reales
+                const todosLosInsumos = insumosArray;
                 const todosLosInsumosConForzados = todosLosInsumos;
-
-                // Debug: mostrar categorías reales
-                console.log(' Categorías de ACTIVOS encontradas:');
-                activosArray.forEach(item => {
-                    console.log(`- ${item.categoria || 'Sin categoría'} (${item.marca} ${item.modelo}) - Cantidad: ${item.cantidad || 'undefined'} - Stock: ${item.stock_actual || 'undefined'}`);
-                });
-
-                console.log(' Categorías de INSUMOS encontradas:');
-                insumosArray.forEach(item => {
-                    console.log(`- ${item.categoria || 'Sin categoría'} (${item.nombre || item.NombProducto}) - Cantidad: ${item.cantidad || 'undefined'}`);
-                });
 
                 this.allItems = [
                     ...activosArray.map(item => ({ ...item, tipo: 'activo' })),
@@ -167,10 +99,14 @@ class IndexController {
                 if (categoriaSelect) categoriaSelect.addEventListener('change', () => this.aplicarFiltros());
                 if (estadoSelect) estadoSelect.addEventListener('change', () => this.aplicarFiltros());
 
-                // Event listener para búsqueda
+                // Event listener para búsqueda con debounce
                 const busquedaInput = document.getElementById('busqueda-universal');
                 if (busquedaInput) {
-                    busquedaInput.addEventListener('input', () => this.aplicarFiltros());
+                    let debounceTimer;
+                    busquedaInput.addEventListener('input', () => {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(() => this.aplicarFiltros(), 300);
+                    });
                 }
 
                 // Botones
@@ -194,24 +130,24 @@ class IndexController {
         const categoria = document.getElementById('categoria-select')?.value || 'todas';
         const estado = document.getElementById('estado-select')?.value || 'todos';
 
-        console.log(' VALORES DE FILTRO - Búsqueda:', busqueda, 'Tipo:', tipo, 'Categoría:', categoria, 'Estado:', estado);
+        console.log('🔍 FILTROS - Categoría seleccionada:', categoria);
+        console.log('🔍 Total items antes de filtrar:', this.allItems.length);
+        console.log('🔍 Items de tipo insumo:', this.allItems.filter(i => i.tipo === 'insumo').length);
 
         this.filteredItems = this.allItems.filter(item => {
             if (item.estado === 'eliminado') return false;
 
-            // RECHAZAR ITEMS CON DATOS CORRUPTOS O INCOMPLETOS (PRIMERO QUE TODO)
+            // RECHAZAR ITEMS CON DATOS CORRUPTOS O INCOMPLETOS
             if (!item.NombProducto && !item.nombre && !item.descripcion && !item.marca && !item.modelo) {
-                console.log(' RECHAZADO: Item completamente sin datos - Tipo:', item.tipo);
                 return false;
             }
 
             // Para activos, requerir al menos nombre o marca+modelo
             if (item.tipo === 'activo' && !item.NombProducto && !item.nombre && (!item.marca || !item.modelo)) {
-                console.log(' RECHAZADO: Activo sin identificación - Tipo:', item.tipo);
                 return false;
             }
 
-            // Filtro de búsqueda (primero)
+            // Filtro de búsqueda
             if (busqueda !== '') {
                 const nombre = item.nombre || item.NombProducto || '';
                 const descripcion = item.descripcion || item.caracteristicas || '';
@@ -220,123 +156,42 @@ class IndexController {
                 }
             }
 
-            // Filtro de estado (ANTES que categoría para que siempre se ejecute)
-            if (estado !== 'todos') {
-                const cantidad = item.cantidad !== undefined ? item.cantidad : (item.stock_actual || 0);
-                console.log(' FILTRO ESTADO - Estado:', estado, 'Cantidad:', cantidad, 'Item:', item.NombProducto || item.nombre, 'Tipo:', item.tipo);
-
-                // FORZAR RECHAZO DE ACTIVOS CON CANTIDAD > 0 CUANDO ESTADO ES SIN-STOCK
-                if (estado === 'sin-stock' && item.tipo === 'activo' && cantidad > 0) {
-                    console.log(' ACTIVO RECHAZADO - Cantidad:', cantidad, '> 0 en filtro sin-stock');
-                    return false;
-                }
-
-                if (estado === 'sin-stock') {
-                    if (cantidad !== 0 || cantidad === undefined || cantidad === null) {
-                        console.log(' Item rechazado por sin-stock: cantidad', cantidad, '!== 0 o es undefined/null (SOLO 0 es sin-stock)');
-                        return false;
-                    }
-                    console.log(' Item aceptado por sin-stock: cantidad', cantidad, '=== 0 (PERFECTO)');
-                }
-                if (estado === 'con-stock' && cantidad <= 0) {
-                    console.log(' Item rechazado por con-stock: cantidad', cantidad, '<= 0');
-                    return false;
-                }
-                if (estado === 'bajo-stock') {
-                    if (cantidad < 1 || cantidad > 5 || cantidad === 0) {
-                        console.log(' Item rechazado por bajo-stock: cantidad', cantidad, '(debe ser 1-5, no puede ser 0)');
-                        return false;
-                    }
-                    console.log(' Item aceptado por bajo-stock: cantidad', cantidad, 'está entre 1 y 5');
-                }
-
-                if (estado === 'sin-stock' && cantidad === 0) {
-                    console.log(' Item aceptado por sin-stock: cantidad 0 === 0');
-                }
-            }
-
-            // Filtro de categoría con detección automática de tipo (SIEMPRE se ejecuta)
-            if (categoria !== 'todas') {
-                console.log(' EJECUTANDO FILTRO DE CATEGORÍA - Categoría:', categoria, 'Estado:', estado);
-
-                // DEBUG: Mostrar todos los activos para depuración
-                if (item.tipo === 'activo') {
-                    console.log(' ACTIVO EVALUADO - Nombre:', item.NombProducto || item.nombre || 'SIN NOMBRE', 'Cantidad:', item.cantidad || 'undefined', 'Categoría:', item.categoria || 'SIN CATEGORÍA');
-                }
-
-                // DEBUG: Mostrar todos los items con bajo stock para depuración
-                if (estado === 'bajo-stock' && item.tipo === 'activo') {
-                    const cantidad = item.cantidad !== undefined ? item.cantidad : (item.stock_actual || 0);
-                    if (cantidad >= 1 && cantidad <= 5) {
-                        console.log(' ACTIVO CON BAJO STOCK - Nombre:', item.NombProducto || item.nombre || 'SIN NOMBRE', 'Cantidad:', cantidad, 'Categoría:', item.categoria || 'SIN CATEGORÍA');
-                    }
-                }
-
-                let tipoRequerido = null;
-                let categoriaFiltrada = categoria;
-                if (categoria === 'Digitales' || categoria === 'Analógicos') {
-                    categoriaFiltrada = categoria;
-                    tipoRequerido = 'insumo';
-                }
-
-                // Primero verificar que el tipo coincida si se requiere
-                if (tipoRequerido && item.tipo !== tipoRequerido) {
-                    console.log(' Item rechazado por tipo:', item.tipo, 'requerido:', tipoRequerido);
-                    return false;
-                }
-
-                // Luego verificar que la categoría coincida
-                const itemCategoria = (item.categoria || '').trim();
-                const categoriaBuscada = categoria.trim();
-
-                console.log(' Item categoría:', itemCategoria, 'buscando:', categoriaBuscada);
-
-                if (itemCategoria !== categoriaBuscada) {
-                    console.log(' Item rechazado por categoría:', itemCategoria, '!==', categoriaBuscada);
-                    return false;
-                }
-
-                console.log(' Item aceptado por categoría:', item.NombProducto || item.nombre);
-            }
-
             // Filtro de estado
             if (estado !== 'todos') {
                 const cantidad = item.cantidad !== undefined ? item.cantidad : (item.stock_actual || 0);
-                console.log(' FILTRO ESTADO - Estado:', estado, 'Cantidad:', cantidad, 'Item:', item.NombProducto || item.nombre, 'Tipo:', item.tipo);
-
-                // FORZAR RECHAZO DE ACTIVOS CON CANTIDAD > 0 CUANDO ESTADO ES SIN-STOCK
-                if (estado === 'sin-stock' && item.tipo === 'activo' && cantidad > 0) {
-                    console.log(' ACTIVO RECHAZADO - Cantidad:', cantidad, '> 0 en filtro sin-stock');
-                    return false;
-                }
-
-                if (estado === 'sin-stock') {
-                    if (cantidad !== 0 || cantidad === undefined || cantidad === null) {
-                        console.log(' Item rechazado por sin-stock: cantidad', cantidad, '!== 0 o es undefined/null (SOLO 0 es sin-stock)');
-                        return false;
-                    }
-                    console.log(' Item aceptado por sin-stock: cantidad', cantidad, '=== 0 (PERFECTO)');
-                }
-                if (estado === 'con-stock' && cantidad <= 0) {
-                    console.log(' Item rechazado por con-stock: cantidad', cantidad, '<= 0');
-                    return false;
-                }
-                if (estado === 'bajo-stock') {
-                    if (cantidad < 1 || cantidad > 5 || cantidad === 0) {
-                        console.log(' Item rechazado por bajo-stock: cantidad', cantidad, '(debe ser 1-5, no puede ser 0)');
-                        return false;
-                    }
-                    console.log(' Item aceptado por bajo-stock: cantidad', cantidad, 'está entre 1 y 5');
-                }
-
-                if (estado === 'sin-stock' && cantidad === 0) {
-                    console.log(' Item aceptado por sin-stock: cantidad 0 === 0');
-                }
+                if (estado === 'sin-stock' && cantidad !== 0) return false;
+                if (estado === 'con-stock' && cantidad <= 0) return false;
+                if (estado === 'bajo-stock' && (cantidad < 1 || cantidad > 5)) return false;
             }
 
-            // Filtro de tipo (solo si no está ya filtrado por categoría)
-            if (tipo !== 'todos' && item.tipo !== tipo) {
-                return false;
+            // Filtro de categoría
+            if (categoria !== 'todas') {
+                // Para insumos: verificar coincidencia de categoría o aceptar todos si es "insumos"
+                if (item.tipo === 'insumo') {
+                    const itemCategoria = (item.categoria || '').trim().toLowerCase();
+                    const categoriaBuscada = categoria.trim().toLowerCase();
+
+                    // Si busca "insumos", mostrar TODOS los insumos (cualquier categoría)
+                    if (categoriaBuscada === 'insumos') {
+                        return true;
+                    }
+
+                    // Para otras categorías, verificar coincidencia exacta o parcial
+                    if (itemCategoria) {
+                        const coincide = itemCategoria === categoriaBuscada ||
+                            itemCategoria.includes(categoriaBuscada) ||
+                            categoriaBuscada.includes(itemCategoria);
+                        if (!coincide) return false;
+                    } else {
+                        // Item sin categoría definida - no coincide con filtro específico
+                        return false;
+                    }
+                } else {
+                    // Para activos: verificar coincidencia de categoría
+                    const itemCategoria = (item.categoria || '').trim().toLowerCase();
+                    const categoriaBuscada = categoria.trim().toLowerCase();
+                    if (itemCategoria !== categoriaBuscada) return false;
+                }
             }
 
             return true;
@@ -393,19 +248,15 @@ class IndexController {
             return;
         }
 
-        // Renderizar items
-        console.log(' ITEMS FILTRADOS ANTES DE RENDERIZAR:');
-        this.filteredItems.forEach((item, index) => {
-            console.log(`  ${index + 1}. ${item.NombProducto || item.nombre} | cantidad: ${item.cantidad} | tipo: ${item.tipo}`);
-        });
+        // Renderizar items usando DocumentFragment para mejor rendimiento
+        const fragment = document.createDocumentFragment();
 
         this.filteredItems.forEach((item, index) => {
             const card = this.crearItemCard(item);
-            card.style.animationDelay = `${index * 50}ms`;
-            itemsGrid.appendChild(card);
+            card.style.animationDelay = `${index < 20 ? index * 30 : 0}ms`;
+            fragment.appendChild(card);
         });
-
-        console.log(' Items renderizados:', this.filteredItems.length);
+        itemsGrid.appendChild(fragment);
     }
 
     crearItemCard(item) {

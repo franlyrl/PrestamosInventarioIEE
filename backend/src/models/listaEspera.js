@@ -17,8 +17,14 @@ const listaEsperaSchema = new mongoose.Schema({
      */
     insumo: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Insumo',
-        required: [true, 'El ID del insumo es obligatorio']
+        ref: 'Insumo'
+    },
+    /** * @property {mongoose.Types.ObjectId} activo 
+     * Referencia al activo específico que se está solicitando.
+     */
+    activo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Activo'
     },
     /** * @property {Number} cantidad_solicitada 
      * Cantidad de unidades que el usuario necesita (por defecto 1).
@@ -41,6 +47,27 @@ const listaEsperaSchema = new mongoose.Schema({
     prioridad: { // Por si algún profe tiene prioridad sobre alumnos jaja
         type: Number,
         default: 0
+    },
+    /** * @property {String} tiempo_estimado 
+     * Tiempo estimado para la liberación del artículo (ej: "2 horas", "mañana").
+     */
+    tiempo_estimado: {
+        type: String,
+        default: null
+    },
+    /** * @property {Date} fecha_estimada 
+     * Fecha y hora estimada de disponibilidad del producto.
+     */
+    fecha_estimada: {
+        type: Date,
+        default: null
+    },
+    /** * @property {String} nombreProducto 
+     * Nombre del producto para mostrar en la lista de espera (sin necesidad de populate).
+     */
+    nombreProducto: {
+        type: String,
+        default: null
     }
 }, {
     /** Genera automáticamente createdAt (fecha de entrada a la lista) y updatedAt. */
@@ -48,9 +75,9 @@ const listaEsperaSchema = new mongoose.Schema({
 });
 
 /** * Índice compuesto único: Evita que un usuario tenga múltiples registros 
- * activos en 'esperando' para el mismo insumo.
+ * activos en 'esperando' para el mismo insumo o activo.
  */
-listaEsperaSchema.index({ usuario: 1, insumo: 1, estado: 1 }, { unique: true });
+listaEsperaSchema.index({ usuario: 1, insumo: 1, activo: 1, estado: 1 }, { unique: true });
 
 /** * Modelo 'ListaEspera' para gestionar la fila virtual de inventario.
  */

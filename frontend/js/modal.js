@@ -68,7 +68,7 @@ class ModalController {
             // Enviar solicitud
             const response = await ApiService.createSolicitud(solicitudData);
             
-            Utils.showToast('Solicitud creada exitosamente', 'success');
+            Utils.showToast(response.message || 'Solicitud creada exitosamente', 'success');
             
             // Cerrar modal
             this.closeModal();

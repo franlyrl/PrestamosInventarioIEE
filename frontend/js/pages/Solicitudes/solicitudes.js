@@ -8,7 +8,8 @@
 class SolicitudesController {
     constructor() {
         this.solicitudes = [];
-        this.filtros = { busqueda: '', estado: 'todos', desde: '', cedula: '' };
+        this.listaEspera = [];
+        this.filtros = { busqueda: '', estado: 'todos', desde: '', hasta: '', cedula: '', usuario: 'todos' };
         this.currentUser = JSON.parse(localStorage.getItem('utn_user')) || {};
         this.token = localStorage.getItem('utn_token') || '';
         this.apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
@@ -17,6 +18,9 @@ class SolicitudesController {
         );
         this.currentPage = 1;
         this.itemsPerPage = 5;
+        this.currentTab = 'solicitudes'; // 'solicitudes' o 'lista-espera'
+        this.listaEsperaPage = 1;
+        this.listaEsperaPerPage = 3; // 3 productos por página
 
     }
 
@@ -29,8 +33,19 @@ class SolicitudesController {
         try {
             this._showLoading(true);
             await this.cargarSolicitudes();
+            if (this.isAdmin) {
+                await this.cargarListaEspera();
+            }
             this.setupEventListeners();
-            this.render();
+            this.setupRoleBasedVisibility();
+            this.setupTabs();
+
+            // Si es admin y hay lista de espera, mostrar esa tab por defecto
+            if (this.isAdmin && this.listaEspera.length > 0) {
+                this.switchTab('lista-espera');
+            } else {
+                this.switchTab('solicitudes');
+            }
         } catch (error) {
             this._toast('Error al cargar solicitudes', 'error');
         } finally {
@@ -59,6 +74,42 @@ class SolicitudesController {
                 this.solicitudes = todas;
             }
         }
+        
+        // Poblar dropdown de usuarios (solo para admins)
+        this.poblaDdUsuarios();
+    }
+
+    // ─── Carga de Lista de Espera ────────────────────────────────────────────────
+    async cargarListaEspera() {
+        if (!this.isAdmin) return;
+        const resp = await fetch(`${this.apiBase}/listaEspera`, { headers: this.headers });
+        if (!resp.ok) throw new Error(`API error ${resp.status}`);
+        const data = await resp.json();
+        this.listaEspera = Array.isArray(data) ? data : (data.data || []);
+    }
+
+    // ─── Población del Dropdown de Usuarios ──────────────────────────────────────
+    poblaDdUsuarios() {
+        const ddUsuarios = document.getElementById('usuario-filter');
+        if (!ddUsuarios || !this.isAdmin) return;
+
+        // Obtener usuarios únicos
+        const usuariosSet = new Map();
+        this.solicitudes.forEach(s => {
+            const uid = s.usuario?._id || s.usuario?.id || s.usuario;
+            const nombre = s.usuario?.nombre_completo || 'Desconocido';
+            if (uid && !usuariosSet.has(uid?.toString())) {
+                usuariosSet.set(uid?.toString(), nombre);
+            }
+        });
+
+        // Construir opciones
+        let opciones = '<option value="todos">Todos los usuarios</option>';
+        usuariosSet.forEach((nombre, uid) => {
+            opciones += `<option value="${uid}">${nombre}</option>`;
+        });
+        
+        ddUsuarios.innerHTML = opciones;
     }
 
     // ─── Eventos ─────────────────────────────────────────────────────────────────
@@ -78,14 +129,99 @@ class SolicitudesController {
             this.currentPage = 1;
             this.render();
         });
+        document.getElementById('fecha-hasta')?.addEventListener('change', e => {
+            this.filtros.hasta = e.target.value;
+            this.currentPage = 1;
+            this.render();
+        });
         document.getElementById('cedula-filter')?.addEventListener('input', e => {
             this.filtros.cedula = e.target.value.trim();
+            this.currentPage = 1;
+            this.render();
+        });
+        document.getElementById('usuario-filter')?.addEventListener('change', e => {
+            this.filtros.usuario = e.target.value;
             this.currentPage = 1;
             this.render();
         });
         document.getElementById('btn-refrescar')?.addEventListener('click', () => this.initialize());
     }
 
+    // ─── Configuración de Visibilidad Basada en Rol ──────────────────────────────
+    setupRoleBasedVisibility() {
+        if (!this.isAdmin) {
+            // Ocultar filtros solo para administradores
+            document.getElementById('filtro-cedula-wrapper')?.classList.add('hidden');
+            document.getElementById('filtro-usuario-wrapper')?.classList.add('hidden');
+        }
+    }
+
+    // ─── Configuración de Tabs ──────────────────────────────────────────────────
+    setupTabs() {
+        if (!this.isAdmin) {
+            document.getElementById('tabs-container')?.classList.add('hidden');
+            return;
+        }
+
+        // Mostrar tabs
+        document.getElementById('tabs-container')?.classList.remove('hidden');
+
+        // Event listeners para tabs
+        document.getElementById('tab-solicitudes')?.addEventListener('click', () => this.switchTab('solicitudes'));
+        document.getElementById('tab-lista-espera')?.addEventListener('click', () => this.switchTab('lista-espera'));
+
+        // Verificar URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if (tab === 'lista-espera') {
+            this.switchTab('lista-espera');
+        }
+    }
+
+    // ─── Cambiar Tab ───────────────────────────────────────────────────────────
+    switchTab(tab) {
+        this.currentTab = tab;
+        this.currentPage = 1;
+
+        // Actualizar URL sin recargar
+        const url = new URL(window.location);
+        if (tab === 'lista-espera') {
+            url.searchParams.set('tab', 'lista-espera');
+        } else {
+            url.searchParams.delete('tab');
+        }
+        window.history.replaceState({}, '', url);
+
+        // Actualizar UI de tabs
+        document.getElementById('tab-solicitudes')?.classList.toggle('tab-active', tab === 'solicitudes');
+        document.getElementById('tab-lista-espera')?.classList.toggle('tab-active', tab === 'lista-espera');
+
+        // Mostrar/ocultar contenedores
+        const solicitudesContainer = document.getElementById('solicitudes-tbody-desktop')?.parentElement?.parentElement;
+        const listaEsperaContainer = document.getElementById('lista-espera-container');
+        const mobileSolicitudes = document.getElementById('mobile-solicitudes-container');
+        const mobileListaEspera = document.getElementById('mobile-lista-espera-container');
+        const paginacionSolicitudes = document.getElementById('paginacion-solicitudes');
+        const paginacionListaEspera = document.getElementById('paginacion-lista-espera');
+
+        if (tab === 'solicitudes') {
+            solicitudesContainer?.classList.remove('hidden');
+            listaEsperaContainer?.classList.add('hidden');
+            mobileSolicitudes?.classList.remove('hidden');
+            mobileListaEspera?.classList.add('hidden');
+            paginacionSolicitudes?.classList.remove('hidden');
+            paginacionListaEspera?.classList.add('hidden');
+        } else {
+            solicitudesContainer?.classList.add('hidden');
+            listaEsperaContainer?.classList.remove('hidden');
+            mobileSolicitudes?.classList.add('hidden');
+            mobileListaEspera?.classList.remove('hidden');
+            paginacionSolicitudes?.classList.add('hidden');
+            paginacionListaEspera?.classList.remove('hidden');
+        }
+
+        this.render();
+    }
 
     // ─── Filtrado ────────────────────────────────────────────────────────────────
     getFiltered() {
@@ -104,33 +240,48 @@ class SolicitudesController {
             const matchCedula = !this.filtros.cedula ||
                 (s.usuario?.cedula || '').includes(this.filtros.cedula);
 
+            // Filtro por usuario
+            const sUserId = s.usuario?._id || s.usuario?.id || s.usuario;
+            const matchUsuario = this.filtros.usuario === 'todos' || sUserId?.toString() === this.filtros.usuario?.toString();
+
+            // Filtro por rango de fechas
             let matchFecha = true;
             if (this.filtros.desde) {
                 const f = new Date(s.createdAt);
-                const d = new Date(this.filtros.desde + 'T12:00:00'); // Evitar problemas de zona horaria
+                const d = new Date(this.filtros.desde + 'T00:00:00');
                 if (f < d) matchFecha = false;
             }
-            return matchEstado && matchBusqueda && matchCedula && matchFecha;
+            if (this.filtros.hasta && matchFecha) {
+                const f = new Date(s.createdAt);
+                const h = new Date(this.filtros.hasta + 'T23:59:59');
+                if (f > h) matchFecha = false;
+            }
+
+            return matchEstado && matchBusqueda && matchCedula && matchUsuario && matchFecha;
         });
     }
 
     // ─── Render General ─────────────────────────────────────────────────────────
     render() {
-        const filtered = this.getFiltered();
-        this.updateStats(filtered);
-        const totalPags = Math.ceil(filtered.length / this.itemsPerPage);
-        if (this.currentPage > totalPags) this.currentPage = Math.max(1, totalPags);
-        const inicio = (this.currentPage - 1) * this.itemsPerPage;
-        const pagData = filtered.slice(inicio, inicio + this.itemsPerPage);
-        this.renderDesktop(pagData);
-        this.renderMobile(pagData);
-        this.renderPaginacion(filtered.length);
+        if (this.currentTab === 'solicitudes') {
+            const filtered = this.getFiltered();
+            this.updateStats(filtered);
+            const totalPags = Math.ceil(filtered.length / this.itemsPerPage);
+            if (this.currentPage > totalPags) this.currentPage = Math.max(1, totalPags);
+            const inicio = (this.currentPage - 1) * this.itemsPerPage;
+            const pagData = filtered.slice(inicio, inicio + this.itemsPerPage);
+            this.renderDesktop(pagData);
+            this.renderMobile(pagData);
+            this.renderPaginacion(filtered.length, 'paginacion-solicitudes');
+        } else if (this.currentTab === 'lista-espera') {
+            this.renderListaEspera();
+        }
     }
 
     // ─── Paginación ──────────────────────────────────────────────────────────────
-    renderPaginacion(total) {
+    renderPaginacion(total, containerId = 'paginacion-solicitudes') {
         const totalPags = Math.ceil(total / this.itemsPerPage);
-        const contenedor = document.getElementById('paginacion-solicitudes');
+        const contenedor = document.getElementById(containerId);
         if (!contenedor) return;
         if (totalPags <= 1) { contenedor.innerHTML = ''; return; }
 
@@ -176,6 +327,218 @@ class SolicitudesController {
         this.currentPage = Math.max(1, Math.min(Number(p), totalPags));
         this.render();
         document.querySelector('.overflow-x-auto, #mobile-solicitudes-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ─── Paginación Lista de Espera ────────────────────────────────────────────
+    renderPaginacionListaEspera(totalGrupos, totalItems) {
+        console.log('📄 [renderPaginacionListaEspera] Llamada con:', { totalGrupos, totalItems, perPage: this.listaEsperaPerPage });
+        const totalPags = Math.ceil(totalGrupos / this.listaEsperaPerPage);
+        const contenedor = document.getElementById('paginacion-lista-espera');
+        console.log('📄 [renderPaginacionListaEspera] Contenedor:', contenedor);
+        if (!contenedor) {
+            console.error('❌ [renderPaginacionListaEspera] No se encontró el contenedor paginacion-lista-espera');
+            return;
+        }
+
+        console.log('📄 [renderPaginacionListaEspera] totalPags:', totalPags);
+        if (totalPags <= 1) {
+            console.log('📄 [renderPaginacionListaEspera] Solo 1 página, mostrando total');
+            contenedor.innerHTML = `<p class="text-center text-sm text-slate-500 mt-4">Total: ${totalItems} usuarios en ${totalGrupos} producto(s)</p>`;
+            return;
+        }
+
+        console.log('📄 [renderPaginacionListaEspera] Renderizando paginación con', totalPags, 'páginas');
+        const btnBase = 'w-8 h-8 flex items-center justify-center rounded-lg font-bold text-sm transition';
+        const btnNormal = 'text-slate-600 hover:bg-slate-100';
+        const btnActive = 'bg-[#002D62] text-white';
+        const btnDis = 'text-slate-300 cursor-not-allowed';
+
+        // Generar rango de páginas
+        let pages = [];
+        for (let i = 1; i <= totalPags; i++) {
+            if (i === 1 || i === totalPags || (i >= this.listaEsperaPage - 1 && i <= this.listaEsperaPage + 1)) pages.push(i);
+            else if (i === this.listaEsperaPage - 2 || i === this.listaEsperaPage + 2) pages.push('...');
+        }
+        pages = pages.filter((p, idx) => !(p === '...' && pages[idx-1] === '...'));
+
+        const pgBtns = pages.map(p => {
+            if (p === '...') return `<span class="${btnBase} text-slate-400 text-sm">…</span>`;
+            return `<button class="${btnBase} ${p === this.listaEsperaPage ? btnActive : btnNormal}" onclick="window.solicitudesController.irPaginaListaEspera(${p})">${p}</button>`;
+        }).join('');
+
+        const inicio = (this.listaEsperaPage - 1) * this.listaEsperaPerPage + 1;
+        const fin = Math.min(inicio + this.listaEsperaPerPage - 1, totalGrupos);
+
+        contenedor.innerHTML = `
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6 px-4">
+                <span class="text-xs text-slate-500 font-medium">
+                    Mostrando <strong class="text-slate-700">${inicio}–${fin}</strong> de <strong class="text-slate-700">${totalGrupos}</strong> productos
+                </span>
+                <div class="flex items-center gap-1.5">
+                    <button class="${btnBase} ${this.listaEsperaPage === 1 ? btnDis : btnNormal}" onclick="window.solicitudesController.irPaginaListaEspera(${this.listaEsperaPage - 1})" ${this.listaEsperaPage === 1 ? 'disabled' : ''}>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    ${pgBtns}
+                    <button class="${btnBase} ${this.listaEsperaPage === totalPags ? btnDis : btnNormal}" onclick="window.solicitudesController.irPaginaListaEspera(${this.listaEsperaPage + 1})" ${this.listaEsperaPage === totalPags ? 'disabled' : ''}>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+            </div>`;
+        console.log('✅ [renderPaginacionListaEspera] HTML insertado en contenedor');
+    }
+
+    irPaginaListaEspera(p) {
+        const grupos = this.agruparListaEspera();
+        const totalGrupos = Object.keys(grupos).length;
+        const totalPags = Math.ceil(totalGrupos / this.listaEsperaPerPage);
+        this.listaEsperaPage = Math.max(1, Math.min(Number(p), totalPags));
+        this.renderListaEspera();
+        document.getElementById('lista-espera-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Helper para agrupar lista de espera
+    agruparListaEspera() {
+        return this.listaEspera.reduce((acc, espera) => {
+            const articuloNombre = espera.nombreProducto || espera.insumo?.NombProducto || espera.insumo?.nombre_insumo || 'Producto desconocido';
+            const numeroSerie = espera.insumo?.numero_serie || espera.insumo?.serie || '';
+            const grupoKey = numeroSerie ? `${articuloNombre} (Serie: ${numeroSerie})` : articuloNombre;
+
+            if (!acc[grupoKey]) {
+                acc[grupoKey] = { nombre: grupoKey, items: [] };
+            }
+            acc[grupoKey].items.push(espera);
+            return acc;
+        }, {});
+    }
+
+    // ─── Render Lista de Espera ─────────────────────────────────────────────────
+    renderListaEspera() {
+        console.log('🔍 [Solicitudes] Lista de espera:', this.listaEspera);
+        console.log('🔍 [Solicitudes] Primer registro:', this.listaEspera[0]);
+        
+        // Agrupar por nombre de producto + número de serie
+        const grupos = this.listaEspera.reduce((acc, espera) => {
+            // Obtener nombre del producto
+            const articuloNombre = espera.nombreProducto || espera.insumo?.NombProducto || espera.insumo?.nombre_insumo || 'Producto desconocido';
+            // Obtener número de serie (si existe)
+            const numeroSerie = espera.insumo?.numero_serie || espera.insumo?.serie || '';
+            // Crear clave única: nombre + número de serie
+            const grupoKey = numeroSerie ? `${articuloNombre} (Serie: ${numeroSerie})` : articuloNombre;
+
+            console.log('🔍 [Agrupar] Espera ID:', espera._id, '| Key:', grupoKey, '| nombre:', articuloNombre, '| serie:', numeroSerie);
+
+            if (!acc[grupoKey]) {
+                acc[grupoKey] = {
+                    nombre: grupoKey,
+                    items: []
+                };
+                console.log('🔍 [Agrupar] Nuevo grupo creado para:', grupoKey);
+            }
+            acc[grupoKey].items.push(espera);
+            return acc;
+        }, {});
+
+        console.log('🔍 [Grupos] Total grupos:', Object.keys(grupos).length);
+        console.log('🔍 [Grupos] Keys:', Object.keys(grupos));
+
+        // Ordenar items dentro de cada grupo por prioridad y fecha
+        Object.values(grupos).forEach(grupo => {
+            grupo.items.sort((a, b) => {
+                if (a.prioridad !== b.prioridad) return b.prioridad - a.prioridad;
+                return new Date(a.createdAt) - new Date(b.createdAt);
+            });
+        });
+
+        // Colores alternados: azul y oro
+        const coloresHeader = ['bg-[#002D62]', 'bg-amber-500'];
+
+        // Convertir grupos a array para paginación
+        const gruposArray = Object.entries(grupos);
+        const totalGrupos = gruposArray.length;
+        const totalPags = Math.ceil(totalGrupos / this.listaEsperaPerPage);
+        
+        // Ajustar página si está fuera de rango
+        if (this.listaEsperaPage > totalPags) this.listaEsperaPage = Math.max(1, totalPags);
+        
+        // Calcular grupos a mostrar
+        const inicio = (this.listaEsperaPage - 1) * this.listaEsperaPerPage;
+        const gruposPagina = gruposArray.slice(inicio, inicio + this.listaEsperaPerPage);
+
+        // Render desktop - contenedor de tarjetas por producto
+        const desktopContainer = document.getElementById('lista-espera-container');
+        if (desktopContainer) {
+            desktopContainer.innerHTML = gruposPagina.map(([grupoKey, grupo], index) => {
+                const colorHeader = coloresHeader[(inicio + index) % coloresHeader.length];
+                return `
+                    <div class="card mb-6 overflow-hidden border-l-4 border-${colorHeader.replace('bg-', '')}">
+                        <div class="${colorHeader} text-white px-6 py-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">
+                                    ${grupo.items.length}
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-bold">${grupo.nombre}</h2>
+                                    <p class="text-xs text-white/80">${grupo.items.length} usuario(s) en espera</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 border-b border-slate-200">
+                                    <tr>
+                                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Pos</th>
+                                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Usuario</th>
+                                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Cantidad</th>
+                                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Fecha Solicitud</th>
+                                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Llegada Estimada</th>
+                                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
+                                        <th class="px-4 py-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-50">
+                                    ${grupo.items.map((espera, idx) => {
+                                        const usuario = espera.usuario?.nombre_completo || 'Desconocido';
+                                        const fecha = new Date(espera.createdAt).toLocaleString('es-CR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                                        const fechaEstimada = espera.fecha_estimada 
+                                            ? new Date(espera.fecha_estimada).toLocaleString('es-CR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                                            : '<span class="text-slate-400 text-xs">Sin definir</span>';
+                                        const estado = espera.estado || 'esperando';
+                                        const estadoClass = {
+                                            esperando: 'text-amber-600',
+                                            notificado: 'text-blue-600',
+                                            entregado: 'text-green-600',
+                                            cancelado: 'text-red-600'
+                                        }[estado] || 'text-slate-600';
+
+                                        return `
+                                            <tr class="hover:bg-slate-50">
+                                                <td class="px-4 py-3 text-sm font-bold text-[#002D62]">${idx + 1}</td>
+                                                <td class="px-4 py-3 text-sm text-slate-700">${usuario}</td>
+                                                <td class="px-4 py-3 text-sm text-slate-700">${espera.cantidad_solicitada || 1}</td>
+                                                <td class="px-4 py-3 text-sm text-slate-700">${fecha}</td>
+                                                <td class="px-4 py-3 text-sm font-bold text-green-600">${fechaEstimada}</td>
+                                                <td class="px-4 py-3 text-sm ${estadoClass} font-medium">${estado.charAt(0).toUpperCase() + estado.slice(1)}</td>
+                                                <td class="px-4 py-3 text-sm text-center">
+                                                    <button onclick="window.editarEspera('${espera._id}')" class="text-blue-600 hover:text-blue-800 mr-2">Asignar fecha</button>
+                                                    <button onclick="window.marcarProcesando('${espera._id}')" class="text-green-600 hover:text-green-800">Procesar</button>
+                                                </td>
+                                            </tr>`;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        // Render paginación
+        const total = Object.values(grupos).reduce((sum, g) => sum + g.items.length, 0);
+        console.log('📄 [Paginación] totalGrupos:', totalGrupos, 'totalItems:', total, 'container:', document.getElementById('paginacion-lista-espera'));
+        this.renderPaginacionListaEspera(totalGrupos, total);
+
+        // Ocultar tabla antigua si existe
+        const oldTable = document.getElementById('lista-espera-table');
+        if (oldTable) oldTable.classList.add('hidden');
     }
 
     updateStats(data) {
@@ -236,7 +599,7 @@ class SolicitudesController {
                     ${fechaDev}
                 </td>
                 <td class="p-4 text-xs text-slate-500">${this.formatItems(s)}</td>
-                <td class="p-4 text-xs text-slate-500">${new Date(s.createdAt).toLocaleDateString('es-CR')}</td>
+                <td class="p-4 text-xs text-slate-500">${new Date(s.createdAt).toLocaleString('es-CR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                 <td class="p-4 text-center">
                     <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${this.getStatusClass(s.estado)}">${this.getStatusLabel(s.estado)}</span>
                 </td>
@@ -315,7 +678,7 @@ class SolicitudesController {
                 ${s.usuario?.cedula ? `<p class="text-[9px] text-slate-400 mt-0.5">C.I: ${s.usuario?.cedula}</p>` : ''}
                 ` : ''}
                 <p class="text-xs text-slate-500 mt-1 truncate">${this.formatItems(s)}</p>
-                <p class="text-[10px] text-slate-400 mt-1">${new Date(s.createdAt).toLocaleDateString('es-CR')}</p>
+                <p class="text-[10px] text-slate-400 mt-1">${new Date(s.createdAt).toLocaleString('es-CR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                 ${alertaDev}
                 <div class="flex gap-2 mt-3">
                     <button onclick="event.stopPropagation(); window.solicitudesController.verDetalles('${s._id}')" class="flex-1 py-2 text-xs font-bold text-utn-blue bg-blue-50 rounded-xl hover:bg-blue-100 transition">Ver Detalle</button>
@@ -444,9 +807,28 @@ class SolicitudesController {
     }
 
     // ─── Ver Detalles ────────────────────────────────────────────────────────────
-    verDetalles(id) {
+    async verDetalles(id) {
         const s = this.solicitudes.find(x => x._id === id);
         if (!s) return;
+
+        // Fetch lista de espera para los insumos y activos de esta solicitud
+        const insumosIds = s.insumos ? s.insumos.map(i => i.id_insumo?._id || i.id_insumo).filter(Boolean) : [];
+        const activosIds = s.activos ? s.activos.map(a => a._id || a.id).filter(Boolean) : [];
+        let listaEspera = [];
+        const queryParams = [];
+        if (insumosIds.length > 0) queryParams.push(`insumos=${insumosIds.join(',')}`);
+        if (activosIds.length > 0) queryParams.push(`activos=${activosIds.join(',')}`);
+        if (queryParams.length > 0) {
+            try {
+                const resp = await fetch(`${this.apiBase}/listaEspera?${queryParams.join('&')}`, { headers: this.headers });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    listaEspera = data.data || [];
+                }
+            } catch (error) {
+                console.warn('Error fetching lista de espera:', error);
+            }
+        }
 
         const ahora = new Date();
         const vencida = s.estado === 'entregado' && s.fecha_entrega_esperada && new Date(s.fecha_entrega_esperada) < ahora;
@@ -501,7 +883,7 @@ class SolicitudesController {
                     <div class="grid grid-cols-2 gap-3">
                         <div class="bg-slate-50 rounded-xl p-3">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Fecha Solicitud</p>
-                            <p class="text-sm font-bold text-slate-700">${new Date(s.createdAt).toLocaleDateString('es-CR')}</p>
+                            <p class="text-sm font-bold text-slate-700">${new Date(s.createdAt).toLocaleString('es-CR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
                         ${s.fecha_entrega_esperada ? `
                         <div class="${vencida ? 'bg-red-50' : 'bg-slate-50'} rounded-xl p-3">
@@ -539,6 +921,17 @@ class SolicitudesController {
                                 ${s.insumos.map(i => {
                                     const info = i.id_insumo || {};
                                     const hasImg = info.imagenUrl && !info.imagenUrl.includes('placeholder');
+                                    const insumoId = i.id_insumo?._id || i.id_insumo;
+                                    const esperasParaEste = listaEspera.filter(e => (e.insumo?._id || e.insumo) === insumoId);
+                                    let listaEsperaHtml = '';
+                                    if (esperasParaEste.length > 0) {
+                                        esperasParaEste.sort((a, b) => {
+                                            if (a.prioridad !== b.prioridad) return b.prioridad - a.prioridad;
+                                            return new Date(a.createdAt) - new Date(b.createdAt);
+                                        });
+                                        const listaItems = esperasParaEste.map((e, index) => `<li class="text-[10px] text-slate-600">${index + 1}. ${e.usuario.nombre_completo}</li>`).join('');
+                                        listaEsperaHtml = `<p class="text-[10px] text-amber-600 font-bold uppercase tracking-widest mt-1">Lista de Espera:</p><ul class="text-xs text-slate-600 ml-2">${listaItems}</ul>`;
+                                    }
                                     return `
                                     <div class="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-100 shadow-sm transition-hover">
                                         <div class="w-12 h-12 bg-slate-50 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-100">
@@ -547,6 +940,7 @@ class SolicitudesController {
                                         <div class="min-w-0">
                                             <p class="text-xs font-black text-slate-800 uppercase tracking-tight truncate">${info.NombProducto || 'Insumo'}</p>
                                             <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">CANTIDAD: ${i.cantidad}</p>
+                                            ${listaEsperaHtml}
                                         </div>
                                     </div>`;
                                 }).join('')}
@@ -920,3 +1314,94 @@ document.addEventListener('DOMContentLoaded', () => {
         window.solicitudesController.initialize();
     });
 });
+
+// ─── Funciones Globales para Lista de Espera ──────────────────────────────────
+window.editarEspera = async function(esperaId) {
+    // Obtener datos actuales
+    const token = localStorage.getItem('utn_token');
+    let esperaActual = null;
+    try {
+        const resp = await fetch(`${window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api'}/listaEspera/${esperaId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (resp.ok) esperaActual = await resp.json();
+    } catch (e) {}
+
+    // Formatear fecha actual si existe
+    const fechaActual = esperaActual?.fecha_estimada 
+        ? new Date(esperaActual.fecha_estimada).toISOString().slice(0, 16) 
+        : '';
+
+    const { value: formValues } = await Swal.fire({
+        title: '<span class="text-[#002D62] font-black text-lg">Fecha Estimada de Disponibilidad</span>',
+        html: `
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Fecha y Hora Estimada</label>
+                    <input type="datetime-local" id="swal-fecha-estimada" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:border-[#002D62]" value="${fechaActual}">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Notas Adicionales (opcional)</label>
+                    <input type="text" id="swal-tiempo-estimado" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:border-[#002D62]" placeholder="Ej: Llegada pendiente de proveedor, mañana por la tarde..." value="${esperaActual?.tiempo_estimado || ''}">
+                </div>
+            </div>`,
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#002D62',
+        cancelButtonColor: '#64748b',
+        showCancelButton: true,
+        customClass: {
+            popup: 'rounded-2xl',
+            confirmButton: 'font-black px-5 py-2 rounded-xl',
+            cancelButton: 'font-black px-5 py-2 rounded-xl'
+        },
+        preConfirm: () => {
+            return {
+                fecha_estimada: document.getElementById('swal-fecha-estimada').value,
+                tiempo_estimado: document.getElementById('swal-tiempo-estimado').value
+            };
+        }
+    });
+
+    if (!formValues) return;
+
+    try {
+        const payload = {};
+        if (formValues.fecha_estimada) payload.fecha_estimada = formValues.fecha_estimada;
+        if (formValues.tiempo_estimado) payload.tiempo_estimado = formValues.tiempo_estimado;
+
+        await fetch(`${window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api'}/listaEspera/${esperaId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        window.SwalUTN.success('Actualizado', 'Fecha estimada guardada correctamente.');
+        window.solicitudesController.initialize(); // Recargar
+    } catch (error) {
+        window.SwalUTN.error('Error', 'No se pudo actualizar.');
+    }
+};
+
+window.marcarProcesando = async function(esperaId) {
+    const confirm = await window.SwalUTN.confirm('¿Marcar como procesando?', '¿Estás seguro de que quieres marcar esta solicitud como procesando?');
+    if (!confirm.isConfirmed) return;
+
+    try {
+        const token = localStorage.getItem('utn_token');
+        await fetch(`${window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api'}/listaEspera/${esperaId}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ estado: 'notificado' })
+        });
+        window.SwalUTN.success('Marcado como procesando', 'La solicitud ha sido marcada como procesando.');
+        window.solicitudesController.initialize(); // Recargar
+    } catch (error) {
+        window.SwalUTN.error('Error', 'No se pudo actualizar el estado.');
+    }
+};

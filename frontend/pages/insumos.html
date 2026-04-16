@@ -101,6 +101,14 @@
                     </div>
                 </div>
                 <div>
+                    <label class="f-label">Tipo</label>
+                    <select id="tipoFiltro" class="f-input">
+                        <option value="">Todos</option>
+                        <option value="consumible">Consumibles</option>
+                        <option value="activo">Activos</option>
+                    </select>
+                </div>
+                <div>
                     <label class="f-label">Categoría</label>
                     <select id="categoriaFiltro" class="f-input">
                         <option value="">Todas</option>
@@ -824,7 +832,7 @@
 
     // ----- FILTROS -----
     function setupFiltros() {
-        ['busquedaInput','categoriaFiltro','stockFiltro'].forEach(id => {
+        ['busquedaInput','tipoFiltro','categoriaFiltro','stockFiltro'].forEach(id => {
             document.getElementById(id)?.addEventListener('input', () => renderInsumos(1));
             document.getElementById(id)?.addEventListener('change', () => renderInsumos(1));
         });
@@ -832,12 +840,14 @@
 
     function filtrarInsumos() {
         const q = (document.getElementById('busquedaInput')?.value || '').toLowerCase();
+        const tipo = document.getElementById('tipoFiltro')?.value || '';
         const cat = document.getElementById('categoriaFiltro')?.value || '';
         const stock = document.getElementById('stockFiltro')?.value || '';
 
         return todosLosInsumos.filter(ins => {
             if (ins.estado === 'eliminado') return false;
             if (q && ![(ins.NombProducto||''), (ins.codigo||''), (ins.caracteristicas||'')].some(v => v.toLowerCase().includes(q))) return false;
+            if (tipo && (ins.tipo || '').toLowerCase() !== tipo) return false;
             if (cat && ins.categoria !== cat) return false;
             if (stock === 'disponible' && (ins.cantidad||0) <= 0) return false;
             if (stock === 'bajo' && ((ins.cantidad||0) <= 0 || (ins.cantidad||0) > 5)) return false;
@@ -848,6 +858,7 @@
 
     function limpiarFiltros() {
         document.getElementById('busquedaInput').value = '';
+        document.getElementById('tipoFiltro').value = '';
         document.getElementById('categoriaFiltro').value = '';
         document.getElementById('stockFiltro').value = '';
         renderInsumos();

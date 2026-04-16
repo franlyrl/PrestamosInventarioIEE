@@ -159,10 +159,78 @@ exports.createSolicitud = async (req, res) => {
             });
         }
 
+        // 4. VERIFICACIÓN DE DISPONIBILIDAD Y SEPARACIÓN DE ITEMS DISPONIBLES E INDISPONIBLES
+        const ListaEspera = require('../models/listaEspera');
+
+        // Inicializar arrays para items disponibles
+        let activosDisponibles = [];
+        let insumosDisponibles = [];
+
+        // Verificar activos disponibles
+        if (activosProcesados && activosProcesados.length > 0) {
+            for (const activo of activosProcesados) {
+                const activoDB = await Activos.findById(activo.codigo_activo);
+                if (!activoDB) {
+                    return res.status(404).json({ message: `Activo no encontrado: ${activo.codigo_activo}` });
+                }
+                if (activoDB.estadoActivo === 'disponible') {
+                    activosDisponibles.push(activo);
+                } else {
+                    // Agregar a lista de espera
+                    const yaEnLista = await ListaEspera.findOne({
+                        usuario: usuarioId,
+                        activo: activoDB._id
+                    });
+                    if (!yaEnLista) {
+                        await ListaEspera.create({
+                            usuario: usuarioId,
+                            activo: activoDB._id,
+                            cantidad_solicitada: 1
+                        });
+                    }
+                }
+            }
+        }
+
+        // Verificar stock de insumos
+        if (insumosProcesados && insumosProcesados.length > 0) {
+            for (const insumo of insumosProcesados) {
+                const insumoDB = await Insumos.findById(insumo.id_insumo);
+                if (!insumoDB) {
+                    return res.status(404).json({ message: `Insumo no encontrado: ${insumo.id_insumo}` });
+                }
+                if (insumoDB.cantidad >= insumo.cantidad) {
+                    insumosDisponibles.push(insumo);
+                } else {
+                    // Agregar a lista de espera
+                    const yaEnLista = await ListaEspera.findOne({
+                        usuario: usuarioId,
+                        insumo: insumo.id_insumo
+                    });
+                    if (!yaEnLista) {
+                        await ListaEspera.create({
+                            usuario: usuarioId,
+                            insumo: insumo.id_insumo,
+                            cantidad_solicitada: insumo.cantidad
+                        });
+                    }
+                }
+            }
+        }
+
+        // Si no hay items disponibles, informar que todo está en lista de espera
+        if (activosDisponibles.length === 0 && insumosDisponibles.length === 0) {
+            return res.status(409).json({
+                message: 'Todos los items solicitados están en lista de espera.',
+                detalle: 'Te hemos añadido a la lista de prioridad para todos los items. Mantente pendiente de tu bandeja de notificaciones o acércate al laboratorio de sistemas para más información sobre fechas de devolución estimadas.'
+            });
+        }
+
+        // 5. CREACIÓN DE LA SOLICITUD (Solo con items disponibles)
         const nuevaSolicitud = new Solicitudes({
             usuario: usuarioId,
-            activos: activosProcesados,
-            insumos: insumosProcesados,
+            activos: activosDisponibles,
+            insumos: insumosDisponibles,
             observaciones,
             estado: 'pendiente',
             historico_estados: [{
@@ -174,8 +242,15 @@ exports.createSolicitud = async (req, res) => {
 
         const solicitudGuardada = await nuevaSolicitud.save();
 
+        // Preparar mensaje según si hay items en lista de espera
+        const itemsEnEspera = (activosProcesados.length - activosDisponibles.length) + (insumosProcesados.length - insumosDisponibles.length);
+        let message = "¡Solicitud registrada con éxito!";
+        if (itemsEnEspera > 0) {
+            message += ` Algunos items no disponibles han sido añadidos a la lista de espera.`;
+        }
+
         return res.status(201).json({
-            message: "¡Solicitud registrada con éxito!",
+            message,
             data: solicitudGuardada
         });
 

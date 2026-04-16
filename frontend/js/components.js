@@ -101,7 +101,10 @@ window.loadComponents = async function() {
         }
 
         // Pequeño delay para asegurar que el DOM del header esté listo
-        setTimeout(syncUserInHeader, 100);
+        setTimeout(() => {
+            syncUserInHeader();
+            window.UTNNotifs?.cargarYMostrarCampana();
+        }, 100);
 
     } catch(e) {
         console.error('[COMPONENTS] Error cargando componentes:', e);

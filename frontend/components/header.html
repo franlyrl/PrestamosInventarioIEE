@@ -32,11 +32,11 @@
                     <div id="notif-dropdown" class="hidden absolute right-0 mt-3 w-84 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[9999]" style="max-height: 460px; display:none; width: 320px;">
                         <div class="bg-gradient-to-r from-[#002D62] to-[#0047a3] p-4 flex items-center justify-between">
                             <div>
-                                <p class="text-white font-black text-sm">Notificaciones</p>
-                                <p class="text-blue-200 text-[10px] font-medium">Avisos de tus solicitudes</p>
+                                <p id="notifDropdownTitle" class="text-white font-black text-sm">Notificaciones</p>
+                                <p id="notifDropdownSubtitle" class="text-blue-200 text-[10px] font-medium">Avisos de tus solicitudes</p>
                             </div>
                             <!-- Botón dorado VER TODAS -->
-                            <a href="../pages/notificaciones.html" onclick="document.getElementById('notif-dropdown').style.display='none'" class="flex items-center gap-1.5 bg-[#F2A900] hover:bg-[#d99500] text-[#002D62] text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg transition-all hover:scale-105 shadow-md shadow-[#F2A900]/30" style="text-decoration:none;">
+                            <a id="notifAllLink" href="../pages/notificaciones.html" onclick="document.getElementById('notif-dropdown').style.display='none'" class="flex items-center gap-1.5 bg-[#F2A900] hover:bg-[#d99500] text-[#002D62] text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg transition-all hover:scale-105 shadow-md shadow-[#F2A900]/30" style="text-decoration:none;">
                                 <svg style="width:10px;height:10px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 10h16M4 14h16M4 18h7"/></svg>
                                 Ver Todas
                             </a>
@@ -48,13 +48,38 @@
                             </div>
                         </div>
                         <div class="border-t border-slate-100 p-3">
-                            <a href="../pages/solicitudes.html" onclick="document.getElementById('notif-dropdown').style.display='none'" class="flex items-center justify-center gap-2 w-full py-2.5 bg-[#002D62] hover:bg-[#001A33] text-white text-xs font-black rounded-xl transition-colors tracking-wide" style="text-decoration:none;">
+                            <a id="notifQuickLink" href="../pages/solicitudes.html" onclick="document.getElementById('notif-dropdown').style.display='none'" class="flex items-center justify-center gap-2 w-full py-2.5 bg-[#002D62] hover:bg-[#001A33] text-white text-xs font-black rounded-xl transition-colors tracking-wide" style="text-decoration:none;">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                 Ir a Mis Solicitudes
                             </a>
                         </div>
                     </div>
                 </div>
+                
+                <!-- Lista de Espera (Solo estudiantes) -->
+                <div class="relative" id="esperaContainer">
+                    <button id="esperaBtn" onclick="window.toggleEsperaDropdown(event)" class="hidden bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 p-2 md:px-3 md:py-2 rounded-xl text-sm font-medium transition-all items-center gap-2 hover:scale-105 relative" title="Mi lista de espera">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span id="esperaCount" class="bg-[#F2A900] text-[#002D62] text-[10px] font-black min-w-[20px] h-5 rounded-full flex items-center justify-center shadow-sm transition-transform duration-300 hidden">0</span>
+                    </button>
+
+                    <!-- Dropdown de Lista de Espera -->
+                    <div id="espera-dropdown" class="hidden absolute right-0 mt-3 w-84 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[9999]" style="max-height: 460px; display:none; width: 320px;">
+                        <div class="bg-gradient-to-r from-[#002D62] to-[#0047a3] p-4 flex items-center justify-between">
+                            <div>
+                                <p class="text-white font-black text-sm">Lista de Espera</p>
+                                <p class="text-blue-200 text-[10px] font-medium">Tus posiciones en cola</p>
+                            </div>
+                        </div>
+                        <div id="espera-dropdown-list" class="overflow-y-auto" style="max-height: 300px;">
+                            <div class="p-8 text-center text-slate-400">
+                                <svg class="w-8 h-8 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <p class="text-xs font-medium">No estás en ninguna lista de espera</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Menú Usuario -->
                 <div class="relative">
                     <button id="user-menu-btn" onclick="window.toggleUserMenu(event)" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-3 hover:scale-105">

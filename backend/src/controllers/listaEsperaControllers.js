@@ -12,15 +12,37 @@ exports.getListaEspera = async (req, res) => {
     try {
         console.log("🔍 [ListaEspera] Obteniendo lista de espera...");
 
-        const lista = await ListaEspera.find()
+        let query = {};
+        if (req.query.insumos) {
+            const insumos = req.query.insumos.split(',');
+            query.insumo = { $in: insumos };
+        }
+        if (req.query.activos) {
+            const activos = req.query.activos.split(',');
+            query.activo = { $in: activos };
+        }
+
+        const lista = await ListaEspera.find(query)
             .populate('usuario', 'nombre_completo correo_electronico')
             .populate('insumo', 'NombProducto cantidad')
+            .populate('activo', 'marca modelo numActivo')
             // ORDENAMIENTO: 
             // 1. prioridad: -1 (Alta a Baja)
             // 2. createdAt: 1 (El que llegó primero va arriba)
             .sort({ prioridad: -1, createdAt: 1 });
 
         console.log(`✅ [ListaEspera] Se encontraron ${lista.length} registros`);
+        
+        // Debug: mostrar el primer registro para verificar populate
+        if (lista.length > 0) {
+            console.log('🔍 [ListaEspera] Primer registro:', {
+                id: lista[0]._id,
+                insumo: lista[0].insumo,
+                insumoId: lista[0].insumo?._id,
+                insumoNombProducto: lista[0].insumo?.NombProducto,
+                nombreProducto: lista[0].nombreProducto
+            });
+        }
 
         res.json({
             total: lista.length,
@@ -34,6 +56,26 @@ exports.getListaEspera = async (req, res) => {
             error: error.message,
             stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
+    }
+};
+
+/**
+ * Obtiene la lista de espera del usuario autenticado.
+ * @async
+ * @function getMiListaEspera
+ * @param {import('express').Request} req - Objeto de petición.
+ * @param {import('express').Response} res - Objeto de respuesta.
+ */
+exports.getMiListaEspera = async (req, res) => {
+    try {
+        const lista = await ListaEspera.find({ usuario: req.user._id })
+            .populate('usuario', 'nombre_completo')
+            .populate('insumo', 'NombProducto')
+            .sort({ prioridad: -1, createdAt: 1 });
+
+        res.json(lista);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener tu lista de espera', error });
     }
 };
 
@@ -122,5 +164,34 @@ exports.actualizarTurno = async (req, res) => {
         res.json(actualizado);
     } catch (error) {
         res.status(400).json({ message: 'Error al actualizar', error });
+    }
+};
+
+/**
+ * Elimina un turno de la lista de espera.
+ * @async
+ * @function eliminarTurno
+ * @param {import('express').Request} req - Objeto de petición. Contiene el ID en params.
+ * @param {import('express').Response} res - Objeto de respuesta.
+ */
+exports.eliminarTurno = async (req, res) => {
+    try {
+        const turno = await ListaEspera.findById(req.params.id);
+        if (!turno) return res.status(404).json({ message: 'Turno no encontrado' });
+
+        // Verificar permisos: admin o propietario
+        const esAdmin = ['admin', 'administrador', 'administrativo'].some(r => 
+            req.user.tipo_rol?.toLowerCase().includes(r)
+        );
+        const esPropietario = turno.usuario.toString() === req.user._id.toString();
+
+        if (!esAdmin && !esPropietario) {
+            return res.status(403).json({ message: 'No tienes permisos para eliminar este turno' });
+        }
+
+        await ListaEspera.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Turno eliminado correctamente' });
+    } catch (error) {
+        res.status(400).json({ message: 'Error al eliminar', error });
     }
 };

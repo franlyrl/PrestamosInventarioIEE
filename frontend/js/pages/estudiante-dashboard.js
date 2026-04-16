@@ -538,10 +538,29 @@ Este mensaje fue enviado desde el sistema de gestión UTN el ${new Date().toLoca
             }
         }
     }
+
+    // ─── Añadir a Carrito desde Detalle ─────────────────────────────────────────────
+    addToCarritoDesdeDetalle(item, btn) {
+        // Determinar el tipo basado en las propiedades del item
+        const itemType = item.NombProducto ? 'insumo' : 'activo';
+        const itemName = item.NombProducto || item.nombre || item.marca + ' ' + item.modelo;
+        
+        // Llamar a la función global addToCart
+        if (window.addToCart) {
+            window.addToCart(itemName, itemType, item, btn);
+        } else {
+            console.error('addToCart function not available');
+        }
+    }
 }
 
 // Instancia global
 window.estDash = new EstudianteDashboard();
+
+// Función global para añadir a carrito desde detalle
+window.addToCarritoDesdeDetalle = function(item, btn) {
+    window.estDash.addToCarritoDesdeDetalle(item, btn);
+};
 
 // Auto-inicializar si estamos en la página de ModUsuarios
 document.addEventListener('DOMContentLoaded', () => {

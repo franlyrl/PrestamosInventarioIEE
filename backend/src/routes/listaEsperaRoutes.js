@@ -10,6 +10,9 @@ router.use(protect);
 // 1. Ver la lista (Ordenada por prioridad y tiempo)
 router.get('/', listaEsperaController.getListaEspera);
 
+// 1.1. Ver mi lista de espera (Solo el usuario autenticado)
+router.get('/mis', listaEsperaController.getMiListaEspera);
+
 // 2. Anotarse en la lista (Estudiantes y Docentes)
 router.post('/', listaEsperaController.agregarAListaEspera);
 
@@ -19,5 +22,8 @@ router.patch('/:id',
     restrictTo('admin', 'Administrador', 'administrativo'), 
     listaEsperaController.actualizarTurno
 );
+
+// 4. Eliminar turno (Solo Admin / Administrativo, o el propio usuario)
+router.delete('/:id', listaEsperaController.eliminarTurno);
 
 module.exports = router;

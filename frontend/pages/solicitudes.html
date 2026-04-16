@@ -143,6 +143,18 @@
                     </div>
                 </div>
                 
+                <!-- Tabs para Admins -->
+                <div id="tabs-container" class="hidden mb-6">
+                    <div class="flex border-b border-slate-200">
+                        <button id="tab-solicitudes" class="px-6 py-3 text-sm font-bold text-slate-600 hover:text-[#002D62] border-b-2 border-transparent hover:border-[#002D62] transition-all tab-active">
+                            Solicitudes
+                        </button>
+                        <button id="tab-lista-espera" class="px-6 py-3 text-sm font-bold text-slate-600 hover:text-[#002D62] border-b-2 border-transparent hover:border-[#002D62] transition-all">
+                            Lista de Espera
+                        </button>
+                    </div>
+                </div>
+                
                 <!-- Tabla de Solicitudes (Desktop) -->
                 <div class="hidden lg:block card overflow-hidden">
                     <div class="overflow-x-auto">
@@ -169,6 +181,38 @@
                     <!-- Dinámico -->
                 </section>
                 
+                <!-- Lista de Espera por Producto (Desktop) -->
+                <div id="lista-espera-container" class="hidden space-y-6">
+                    <!-- Las tarjetas por producto se renderizan aquí -->
+                </div>
+
+                <!-- Tabla antigua oculta (mantenida por compatibilidad) -->
+                <div id="lista-espera-table" class="hidden card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Posición</th>
+                                    <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Usuario</th>
+                                    <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Insumo</th>
+                                    <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Cantidad</th>
+                                    <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Fecha Entrada</th>
+                                    <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
+                                    <th class="px-5 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-espera-tbody" class="divide-y divide-slate-50">
+                                <!-- Dinámico -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Vista Móvil Lista de Espera -->
+                <section id="mobile-lista-espera-container" class="hidden lg:hidden space-y-4">
+                    <!-- Dinámico -->
+                </section>
+                
                 <!-- Loading State -->
                 <div id="loading-state" class="hidden py-20 text-center">
                     <div class="w-10 h-10 border-4 border-slate-200 border-t-[#002D62] rounded-full animate-spin mx-auto mb-4"></div>
@@ -179,6 +223,7 @@
 
         <!-- Paginación — fuera de la tarjeta para no ser cortada por overflow -->
         <div id="paginacion-solicitudes" class="mt-4"></div>
+        <div id="paginacion-lista-espera" class="mt-4"></div>
     </main>
 
 

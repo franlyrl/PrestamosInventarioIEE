@@ -70,27 +70,110 @@
             <div id="alertasLista" class="space-y-2 max-h-60 overflow-y-auto"></div>
         </div>
 
-        <!-- KPIs rápidos -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 fade-up">
-            <div class="stat-card p-5">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Insumos</p>
-                <p id="kpiInsumos" class="text-3xl font-black text-emerald-600">-</p>
-                <p class="text-xs text-slate-400 mt-1">materiales registrados</p>
+        <!-- KPIs rápidos - MEJORADOS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 fade-up">
+            <!-- Insumos disponibles -->
+            <div class="stat-card p-5 border-l-4 border-emerald-500">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Insumos Disponibles</p>
+                <div class="flex items-baseline gap-2 mb-2">
+                    <p id="kpiInsumosDisp" class="text-3xl font-black text-emerald-600">-</p>
+                    <p id="kpiInsumosPct" class="text-sm font-bold text-emerald-500">-</p>
+                </div>
+                <p class="text-xs text-slate-400">Del total de materiales</p>
             </div>
-            <div class="stat-card p-5">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Activos</p>
-                <p id="kpiActivos" class="text-3xl font-black text-[#002D62]">-</p>
-                <p class="text-xs text-slate-400 mt-1">equipos registrados</p>
+
+            <!-- Activos disponibles -->
+            <div class="stat-card p-5 border-l-4 border-blue-500">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Activos Disponibles</p>
+                <div class="flex items-baseline gap-2 mb-2">
+                    <p id="kpiActivosDisp" class="text-3xl font-black text-[#0284c7]">-</p>
+                    <p id="kpiActivosPct" class="text-sm font-bold text-blue-500">-</p>
+                </div>
+                <p class="text-xs text-slate-400">Listos para usar</p>
             </div>
-            <div class="stat-card p-5">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Sin Stock</p>
-                <p id="kpiSinStock" class="text-3xl font-black text-red-500">-</p>
-                <p class="text-xs text-slate-400 mt-1">artículos agotados</p>
+
+            <!-- Activos en préstamo -->
+            <div class="stat-card p-5 border-l-4 border-amber-500">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">En Préstamo / Espera</p>
+                <div class="flex items-baseline gap-2 mb-2">
+                    <p id="kpiActivosPrestado" class="text-3xl font-black text-amber-500">-</p>
+                    <p id="kpiActivosPrestadoPct" class="text-sm font-bold text-amber-600">-</p>
+                </div>
+                <p class="text-xs text-slate-400">Fuera del laboratorio</p>
             </div>
-            <div class="stat-card p-5">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Bajo Stock</p>
-                <p id="kpiBajoStock" class="text-3xl font-black text-amber-500">-</p>
-                <p class="text-xs text-slate-400 mt-1">con 5 unidades o menos</p>
+
+            <!-- Alertas críticas -->
+            <div class="stat-card p-5 border-l-4 border-red-500">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Alertas Críticas</p>
+                <div class="flex items-baseline gap-2 mb-2">
+                    <p id="kpiAlertas" class="text-3xl font-black text-red-500">-</p>
+                    <p id="kpiAlertasDetalle" class="text-10px font-bold text-red-600">-</p>
+                </div>
+                <p class="text-xs text-slate-400">Requieren atención</p>
+            </div>
+        </div>
+
+        <!-- KPIs secundarios - ESPECÍFICOS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 fade-up" style="animation-delay:.05s">
+            <!-- Total insumos contabilizados -->
+            <div class="stat-card p-4 bg-gradient-to-br from-emerald-50 to-emerald-100">
+                <p class="text-[9px] font-black text-emerald-700 uppercase tracking-widest mb-1">Total Insumos</p>
+                <p id="kpiInsumosTot" class="text-2xl font-black text-emerald-700">-</p>
+                <p class="text-10px text-emerald-600 mt-1">productos en stock</p>
+            </div>
+
+            <!-- Total activos inventariados -->
+            <div class="stat-card p-4 bg-gradient-to-br from-blue-50 to-blue-100">
+                <p class="text-[9px] font-black text-blue-700 uppercase tracking-widest mb-1">Total Activos</p>
+                <p id="kpiActivosTot" class="text-2xl font-black text-blue-700">-</p>
+                <p class="text-10px text-blue-600 mt-1">equipos registrados</p>
+            </div>
+
+            <!-- Sin stock / Agotado -->
+            <div class="stat-card p-4 bg-gradient-to-br from-red-50 to-red-100">
+                <p class="text-[9px] font-black text-red-700 uppercase tracking-widest mb-1">Sin Stock</p>
+                <p id="kpiSinStock" class="text-2xl font-black text-red-700">-</p>
+                <p class="text-10px text-red-600 mt-1">insumos agotados</p>
+            </div>
+
+            <!-- Bajo stock (≤5) -->
+            <div class="stat-card p-4 bg-gradient-to-br from-amber-50 to-amber-100">
+                <p class="text-[9px] font-black text-amber-700 uppercase tracking-widest mb-1">Bajo Stock</p>
+                <p id="kpiBajoStock" class="text-2xl font-black text-amber-700">-</p>
+                <p class="text-10px text-amber-600 mt-1">5 unidades o menos</p>
+            </div>
+        </div>
+
+        <!-- KPIs avanzados - SALUD DEL INVENTARIO -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 fade-up" style="animation-delay:.1s">
+            <!-- Activos fuera de servicio -->
+            <div class="stat-card p-4 bg-gradient-to-br from-slate-50 to-slate-100">
+                <p class="text-[9px] font-black text-slate-700 uppercase tracking-widest mb-1">Fuera de Servicio</p>
+                <p id="kpiFueraServicio" class="text-2xl font-black text-slate-700">-</p>
+                <p class="text-10px text-slate-600 mt-1">equipos inactivos</p>
+            </div>
+
+            <!-- Categorías de insumos -->
+            <div class="stat-card p-4 bg-gradient-to-br from-purple-50 to-purple-100">
+                <p class="text-[9px] font-black text-purple-700 uppercase tracking-widest mb-1">Categorías Insumos</p>
+                <p id="kpiCatInsumos" class="text-2xl font-black text-purple-700">-</p>
+                <p class="text-10px text-purple-600 mt-1">tipos diferentes</p>
+            </div>
+
+            <!-- Categorías de activos -->
+            <div class="stat-card p-4 bg-gradient-to-br from-indigo-50 to-indigo-100">
+                <p class="text-[9px] font-black text-indigo-700 uppercase tracking-widest mb-1">Categorías Activos</p>
+                <p id="kpiCatActivos" class="text-2xl font-black text-indigo-700">-</p>
+                <p class="text-10px text-indigo-600 mt-1">tipos de equipos</p>
+            </div>
+
+            <!-- Salud general inventario -->
+            <div class="stat-card p-4 bg-gradient-to-br from-teal-50 to-teal-100">
+                <p class="text-[9px] font-black text-teal-700 uppercase tracking-widest mb-1">Índice Salud</p>
+                <div class="flex items-baseline gap-2">
+                    <p id="kpiSalud" class="text-2xl font-black text-teal-700">-</p>
+                    <p id="kpiSaludLabel" class="text-10px font-bold text-teal-600">-</p>
+                </div>
             </div>
         </div>
 
@@ -220,60 +303,139 @@
     }
 
     function calcularKPIs(ins, act) {
-        document.getElementById('kpiInsumos').textContent = ins.length;
-        document.getElementById('kpiActivos').textContent = act.length;
-        document.getElementById('kpiSinStock').textContent = ins.filter(i => (i.cantidad||0) <= 0).length;
-        document.getElementById('kpiBajoStock').textContent = ins.filter(i => (i.cantidad||0) > 0 && (i.cantidad||0) <= 5).length;
+        // === INSUMOS ===
+        const insumosTot = ins.length;
+        const insumosDisp = ins.filter(i => (i.cantidad || 0) > 0).length;
+        const insumosPct = insumosTot > 0 ? Math.round((insumosDisp / insumosTot) * 100) : 0;
+        const sinStock = ins.filter(i => (i.cantidad || 0) <= 0).length;
+        const bajoStock = ins.filter(i => (i.cantidad || 0) > 0 && (i.cantidad || 0) <= 5).length;
+        const catInsumos = new Set(ins.map(i => i.categoria || 'Sin categoría')).size;
+
+        document.getElementById('kpiInsumosTot').textContent = insumosTot;
+        document.getElementById('kpiInsumosDisp').textContent = insumosDisp;
+        document.getElementById('kpiInsumosPct').textContent = `(${insumosPct}%)`;
+        document.getElementById('kpiSinStock').textContent = sinStock;
+        document.getElementById('kpiBajoStock').textContent = bajoStock;
+        document.getElementById('kpiCatInsumos').textContent = catInsumos;
+
+        // === ACTIVOS ===
+        const activosTot = act.length;
+        const activosDisp = act.filter(a => a.estadoActivo === 'disponible').length;
+        const activosPct = activosTot > 0 ? Math.round((activosDisp / activosTot) * 100) : 0;
+        const activosPrestado = act.filter(a => a.estadoActivo === 'prestado' || a.estadoActivo === 'en espera').length;
+        const activosPrestadoPct = activosTot > 0 ? Math.round((activosPrestado / activosTot) * 100) : 0;
+        const activosFuera = act.filter(a => a.estadoActivo === 'fuera de stock').length;
+        const catActivos = new Set(act.map(a => a.categoria || 'Sin categoría')).size;
+
+        document.getElementById('kpiActivosTot').textContent = activosTot;
+        document.getElementById('kpiActivosDisp').textContent = activosDisp;
+        document.getElementById('kpiActivosPct').textContent = `(${activosPct}%)`;
+        document.getElementById('kpiActivosPrestado').textContent = activosPrestado;
+        document.getElementById('kpiActivosPrestadoPct').textContent = `(${activosPrestadoPct}%)`;
+        document.getElementById('kpiFueraServicio').textContent = activosFuera;
+        document.getElementById('kpiCatActivos').textContent = catActivos;
+
+        // === ALERTAS CRÍTICAS ===
+        const alertasCriticas = sinStock + bajoStock;
+        document.getElementById('kpiAlertas').textContent = alertasCriticas;
+        document.getElementById('kpiAlertasDetalle').textContent = `(${sinStock} sin stock, ${bajoStock} bajo)`;
+
+        // === ÍNDICE DE SALUD DEL INVENTARIO ===
+        // Basado en: disponibilidad, sin críticos, distribución de categorías
+        let salud = 100;
+        
+        // Penalizar por insumos críticos (-2 por cada sin stock, -1 por cada bajo stock)
+        salud -= (sinStock * 2);
+        salud -= (bajoStock * 1);
+        
+        // Penalizar por activos fuera de servicio (-1 por cada)
+        salud -= (activosFuera * 1);
+        
+        // Bonificar por buena disponibilidad de activos
+        if (activosPct >= 80) salud += 5;
+        if (activosPct >= 90) salud += 5;
+        
+        // Limitar entre 0-100
+        salud = Math.max(0, Math.min(100, salud));
+        
+        let salud_label = '';
+        let salud_color = 'text-red-600';
+        if (salud >= 85) { salud_label = 'EXCELENTE'; salud_color = 'text-emerald-600'; }
+        else if (salud >= 70) { salud_label = 'BUENO'; salud_color = 'text-blue-600'; }
+        else if (salud >= 50) { salud_label = 'ACEPTABLE'; salud_color = 'text-amber-600'; }
+        else { salud_label = 'CRÍTICO'; salud_color = 'text-red-600'; }
+        
+        document.getElementById('kpiSalud').textContent = salud + '%';
+        document.getElementById('kpiSalud').className = `text-2xl font-black ${salud_color}`;
+        document.getElementById('kpiSaludLabel').textContent = salud_label;
+        document.getElementById('kpiSaludLabel').className = `text-10px font-bold ${salud_color}`;
     }
 
     function mostrarAlertas(ins) {
-        const sinStock = ins.filter(i => (i.cantidad||0) <= 0);
-        const bajoStock = ins.filter(i => (i.cantidad||0) > 0 && (i.cantidad||0) <= 5);
+        const sinStock = ins.filter(i => (i.cantidad||0) <= 0).sort((a,b) => (a.NombProducto || '').localeCompare(b.NombProducto || ''));
+        const bajoStock = ins.filter(i => (i.cantidad||0) > 0 && (i.cantidad||0) <= 5).sort((a,b) => (a.cantidad||0) - (b.cantidad||0));
         const total = sinStock.length + bajoStock.length;
         
-        if (total === 0) { document.getElementById('alertasBanner').classList.add('hidden'); return; }
+        if (total === 0) { 
+            document.getElementById('alertasBanner').classList.add('hidden'); 
+            return; 
+        }
         
         document.getElementById('alertasBanner').classList.remove('hidden');
-        document.getElementById('alertaSubtitulo').textContent = `${sinStock.length} sin stock · ${bajoStock.length} bajo stock`;
+        
+        // Mensaje más descriptivo en el subtítulo
+        const mensajes = [];
+        if (sinStock.length > 0) mensajes.push(`${sinStock.length} sin stock (crítico)`);
+        if (bajoStock.length > 0) mensajes.push(`${bajoStock.length} bajo stock (≤5 ud)`);
+        document.getElementById('alertaSubtitulo').textContent = mensajes.join(' · ');
         
         const lista = document.getElementById('alertasLista');
         lista.innerHTML = [
             ...sinStock.map(i => `
-                <div class="alert-row alert-sinstock">
+                <div class="alert-row alert-sinstock hover:bg-red-100/50 transition">
+                    <div class="w-5 h-5 bg-red-200 rounded flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </div>
                     <div class="flex-1 min-w-0">
                         <p class="font-bold text-red-800 text-sm truncate">${i.NombProducto || 'Sin nombre'}</p>
-                        <p class="text-xs text-red-600">${i.categoria || '-'} · Código: ${i.codigo || '-'}</p>
+                        <p class="text-xs text-red-600 mt-0.5">${i.categoria || '-'} · Código: ${i.codigo || '-'} · Stock: ${i.cantidad || 0}</p>
                     </div>
-                    <span class="badge badge-red flex-shrink-0">Sin stock</span>
+                    <span class="badge badge-red flex-shrink-0">Agotado</span>
                 </div>`),
             ...bajoStock.map(i => `
-                <div class="alert-row alert-bajostock">
+                <div class="alert-row alert-bajostock hover:bg-amber-100/50 transition">
+                    <div class="w-5 h-5 bg-amber-200 rounded flex items-center justify-center flex-shrink-0">
+                        <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
                     <div class="flex-1 min-w-0">
                         <p class="font-bold text-amber-800 text-sm truncate">${i.NombProducto || 'Sin nombre'}</p>
-                        <p class="text-xs text-amber-600">${i.categoria || '-'} · Código: ${i.codigo || '-'}</p>
+                        <p class="text-xs text-amber-600 mt-0.5">${i.categoria || '-'} · Código: ${i.codigo || '-'} · Stock: ${i.cantidad}</p>
                     </div>
                     <span class="badge badge-amber flex-shrink-0">${i.cantidad} ud${i.cantidad !== 1 ? 's' : ''}</span>
                 </div>`)
         ].join('');
 
-        // Notificación automática si hay críticos
+        // Notificaciones automáticas mejoradas
         if (sinStock.length > 0) {
             setTimeout(() => {
+                const topCriticos = sinStock.slice(0, 3).map(i => i.NombProducto || 'Producto').join(', ');
                 Swal.fire({
                     toast: true, position: 'top-right', icon: 'error',
-                    title: `${sinStock.length} insumo${sinStock.length > 1 ? 's' : ''} sin stock`,
-                    text: 'Requieren reposición urgente',
-                    showConfirmButton: false, timer: 5000, timerProgressBar: true
+                    title: `⚠️ ${sinStock.length} INSUMO${sinStock.length > 1 ? 'S' : ''} SIN STOCK`,
+                    html: `<div class="text-left"><p class="font-bold">${topCriticos}${sinStock.length > 3 ? '...' : ''}</p></div>`,
+                    showConfirmButton: false, timer: 6000, timerProgressBar: true
                 });
-            }, 800);
+            }, 1000);
         } else if (bajoStock.length > 0) {
             setTimeout(() => {
+                const topBajo = bajoStock.slice(0, 3).map(i => `${i.NombProducto || 'Producto'} (${i.cantidad} ud)`).join(', ');
                 Swal.fire({
                     toast: true, position: 'top-right', icon: 'warning',
-                    title: `${bajoStock.length} insumo${bajoStock.length > 1 ? 's' : ''} bajo stock`,
-                    showConfirmButton: false, timer: 4000, timerProgressBar: true
+                    title: `⚠️ ${bajoStock.length} INSUMO${bajoStock.length > 1 ? 'S' : ''} BAJO STOCK`,
+                    html: `<div class="text-left text-sm"><p>${topBajo}${bajoStock.length > 3 ? '...' : ''}</p></div>`,
+                    showConfirmButton: false, timer: 5000, timerProgressBar: true
                 });
-            }, 800);
+            }, 1000);
         }
     }
 
