@@ -283,14 +283,27 @@
         const token = localStorage.getItem('utn_token');
         const h = { Authorization: `Bearer ${token}` };
         try {
+            console.log('📦 Cargando datos de inventario...');
             const [rIns, rAct] = await Promise.all([
                 fetch(`${API}/insumos`, { headers: h }),
                 fetch(`${API}/activos`, { headers: h })
             ]);
+            console.log('📦 Respuesta insumos:', rIns.status, rIns.ok);
+            console.log('📦 Respuesta activos:', rAct.status, rAct.ok);
+            
             const insumos = rIns.ok ? await rIns.json() : [];
             const activos = rAct.ok ? await rAct.json() : [];
+            
+            console.log('📦 Insumos recibidos:', insumos?.length || 0);
+            console.log('📦 Activos recibidos:', activos?.length || 0);
+            console.log('📦 Primer insumo:', insumos?.[0]);
+            console.log('📦 Primer activo:', activos?.[0]);
+            
             const ins = Array.isArray(insumos) ? insumos.filter(i => i.estado !== 'eliminado') : [];
             const act = Array.isArray(activos) ? activos.filter(a => a.estadoActivo !== 'eliminado') : [];
+            
+            console.log('📦 Insumos filtrados:', ins.length);
+            console.log('📦 Activos filtrados:', act.length);
 
             calcularKPIs(ins, act);
             mostrarAlertas(ins);
@@ -298,7 +311,7 @@
             renderTablaCriticos(ins);
             renderTablaFuera(act);
         } catch(e) {
-            console.error('Error cargando datos:', e);
+            console.error('❌ Error cargando datos:', e);
         }
     }
 

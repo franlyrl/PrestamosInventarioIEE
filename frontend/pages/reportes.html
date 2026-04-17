@@ -65,10 +65,10 @@
                         <div>
                             <label class="field-label">Período</label>
                             <select id="periodo" class="field-input w-44">
-                                <option value="7d">�altimos 7 días</option>
-                                <option value="30d">�altimos 30 días</option>
-                                <option value="90d">�altimos 90 días</option>
-                                <option value="1y">�altimo año</option>
+                                <option value="7d">Últimos 7 días</option>
+                                <option value="30d">Últimos 30 días</option>
+                                <option value="90d">Últimos 90 días</option>
+                                <option value="1y">Último año</option>
                                 <option value="custom">Personalizado</option>
                             </select>
                         </div>
@@ -127,24 +127,86 @@
                         </p>
                     </div>
                 </section>
-                
+
+                <!-- MÓDULO: REPORTES DE INVENTARIO -->
+                <section class="mb-7">
+                    <div class="flex items-center gap-2 mb-5">
+                        <span class="w-1 h-5 bg-rose-500 rounded-full"></span>
+                        <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Reportes de Inventario</h2>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                        <!-- Stock Bajo -->
+                        <div class="card p-6 border-l-4 border-l-red-500">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                </div>
+                                <span class="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-full" id="alertas-stock">0</span>
+                            </div>
+                            <h3 class="text-sm font-black text-slate-800 mb-1">Stock Bajo</h3>
+                            <p class="text-xs text-slate-500 mb-3">Insumos con menos de 5 unidades</p>
+                            <button onclick="location.href='insumos.html'" class="w-full py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold transition">
+                                Ver Alertas →
+                            </button>
+                        </div>
+
+                        <!-- Movimientos Recientes -->
+                        <div class="card p-6 border-l-4 border-l-blue-500">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                </div>
+                                <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full" id="movimientos-hoy">0</span>
+                            </div>
+                            <h3 class="text-sm font-black text-slate-800 mb-1">Movimientos Hoy</h3>
+                            <p class="text-xs text-slate-500 mb-3">Préstamos y devoluciones del día</p>
+                            <button onclick="location.href='solicitudes.html'" class="w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-bold transition">
+                                Ver Movimientos →
+                            </button>
+                        </div>
+
+                        <!-- Inventario Crítico -->
+                        <div class="card p-6 border-l-4 border-l-amber-500">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full" id="items-criticos">0</span>
+                            </div>
+                            <h3 class="text-sm font-black text-slate-800 mb-1">Items Críticos</h3>
+                            <p class="text-xs text-slate-500 mb-3">Activos fuera de servicio o en reparación</p>
+                            <button onclick="location.href='inventario.html'" class="w-full py-2 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-lg text-xs font-bold transition">
+                                Ver Inventario →
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Gráficos -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-7">
                     <div class="card p-6">
                         <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-5">Solicitudes por Mes</h2>
-                        <canvas id="solicitudes-chart" width="400" height="200"></canvas>
+                        <div class="relative h-40">
+                            <canvas id="solicitudes-chart"></canvas>
+                        </div>
                     </div>
                     <div class="card p-6">
                         <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-5">Distribución por Categoría</h2>
-                        <canvas id="categorias-chart" width="400" height="200"></canvas>
+                        <div class="relative h-40">
+                            <canvas id="categorias-chart"></canvas>
+                        </div>
                     </div>
                     <div class="card p-6">
                         <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-5">Estados de Activos</h2>
-                        <canvas id="estados-chart" width="400" height="200"></canvas>
+                        <div class="relative h-40">
+                            <canvas id="estados-chart"></canvas>
+                        </div>
                     </div>
                     <div class="card p-6">
                         <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-5">Usuarios Activos por Semana</h2>
-                        <canvas id="usuarios-chart" width="400" height="200"></canvas>
+                        <div class="relative h-40">
+                            <canvas id="usuarios-chart"></canvas>
+                        </div>
                     </div>
                 </div>
                 
@@ -170,6 +232,20 @@
                                 <!-- Dinámico -->
                             </tbody>
                         </table>
+                    </div>
+                    <!-- Paginación -->
+                    <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+                        <div class="text-xs text-slate-500">
+                            Mostrando <span id="pagina-actual" class="font-bold text-slate-700">1</span> de <span id="total-paginas" class="font-bold text-slate-700">1</span> páginas
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="btn-anterior" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                ← Anterior
+                            </button>
+                            <button id="btn-siguiente" class="px-3 py-1.5 bg-[#002D62] hover:bg-[#004a8f] text-white rounded-lg text-xs font-bold transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                Siguiente →
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -201,6 +277,7 @@
     <div id="footer-component"></div>
 
     <!-- JavaScript -->
+    <script src="../js/app.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/components.js"></script>
     <script src="../js/components/header.js"></script>

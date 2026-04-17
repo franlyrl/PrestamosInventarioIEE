@@ -962,6 +962,21 @@ Object.assign(window.ApiService, {
     async getActivos() {
         const res = await window.Utils.authenticatedFetch(`${window.CONFIG.API_BASE_URL}/activos`);
         return res.json();
+    },
+
+    async getSolicitudes() {
+        const res = await window.Utils.authenticatedFetch(`${window.CONFIG.API_BASE_URL}/solicitudes`);
+        return res.json();
+    },
+
+    async getUsuarios() {
+        const res = await window.Utils.authenticatedFetch(`${window.CONFIG.API_BASE_URL}/usuarios`);
+        return res.json();
+    },
+
+    async getListaEspera() {
+        const res = await window.Utils.authenticatedFetch(`${window.CONFIG.API_BASE_URL}/listaEspera`);
+        return res.json();
     }
 });
 
