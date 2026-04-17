@@ -24,7 +24,7 @@ const normalizarEstadoPorCantidad = (cantidad, estadoActual = 'disponible') => {
 
 const construirCodigo = ({ codigo, tipo }) => {
     const codigoLimpio = normalizarTexto(codigo).toUpperCase();
-    const tipoLimpio = normalizarTexto(tipo).toLowerCase() === 'activo' ? 'activo' : 'consumible';
+    const tipoLimpio = normalizarTexto(tipo).toLowerCase() === 'activo' ? 'activo' : 'insumo';
     if (!codigoLimpio) return codigoLimpio;
 
     if (codigoLimpio.startsWith('ACT-') || codigoLimpio.startsWith('INS-')) {

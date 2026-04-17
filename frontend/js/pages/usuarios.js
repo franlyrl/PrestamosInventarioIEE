@@ -114,7 +114,7 @@ class IndexController {
 
                 this.allItems = [
                     ...activosArray.map(item => ({ ...item, tipo: 'activo' })),
-                    ...todosLosInsumosConForzados.map(item => ({ ...item, tipo: item.tipo || 'consumible' }))
+                    ...todosLosInsumosConForzados.map(item => ({ ...item, tipo: item.tipo || 'insumo' }))
                 ];
 
                 console.log(' Total items:', this.allItems.length);
@@ -245,7 +245,7 @@ class IndexController {
                     tipoRequerido = 'activo';
                 } else if (categoria === 'Componentes Digitales' || categoria === 'Componentes Analógicos') {
                     categoriaFiltrada = categoria;
-                    tipoRequerido = 'consumible';
+                    tipoRequerido = 'insumo';
                 }
 
                 // Primero verificar que el tipo coincida si se requiere
@@ -474,7 +474,7 @@ class IndexController {
             cantidad = 0; // Bloquea añadir al carrito internamente
         }
         const tipoCls = tipo === 'activo' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700';
-        const tipoLabel = tipo === 'activo' ? 'Activo' : 'Consumible';
+        const tipoLabel = tipo === 'activo' ? 'Activo' : 'Insumo';
 
         // Agregar nombre calculado al item para que esté disponible en el botón
         item.nombre = nombre;

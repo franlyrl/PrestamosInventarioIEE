@@ -21,8 +21,8 @@ const insumoSchema = new mongoose.Schema({
     tipo: {
         type: String,
         required: [true, 'El tipo de insumo es obligatorio'],
-        enum: ['activo', 'consumible'],
-        default: 'consumible',
+        enum: ['activo', 'insumo'],
+        default: 'insumo',
         lowercase: true,
         trim: true
     },
