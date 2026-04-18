@@ -108,7 +108,7 @@
                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Cuenta</span>
                 </div>
                 <h1 class="text-2xl font-black text-[#002D62]">Mi Perfil</h1>
-                <p class="text-sm text-slate-500 mt-0.5">Consulta y gestiona tu informacion institucional</p>
+                <p id="perfil-subtitulo" class="text-sm text-slate-500 mt-0.5">Consulta y gestiona tu informacion institucional</p>
             </div>
 
         </div>
@@ -181,30 +181,9 @@
                         </div>
                     </section>
 
-                    <!-- Verificacion de Matricula -->
-                    <section class="card p-7">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center">
-                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0"></path></svg>
-                            </div>
-                            <h3 class="text-base font-black text-slate-800">Verificacion de Matricula</h3>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
-                            <div class="md:col-span-2 matricula-panel">
-                                <label class="field-label">Estado Boleta</label>
-                                <div id="boleta-estado-chip" class="estado-chip mb-2">
-                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                                    <span id="boleta-estado">Pendiente</span>
-                                </div>
-                                <p id="boleta-detalle" class="text-xs text-slate-600 mt-1 leading-relaxed">Sin informacion</p>
-                            </div>
-                            <div class="flex items-end">
-                                <button id="subir-boleta-btn" class="w-full boleta-btn p-4 text-left">
-                                    <p class="font-black text-sm text-slate-800">Subir Boleta PDF</p>
-                                    <p class="text-xs text-slate-500 mt-1">Actualizar validacion del cuatrimestre</p>
-                                </button>
-                            </div>
-                        </div>
+                    <!-- Sección Dinámica: Matrícula (Estudiantes) o Estadísticas (Admin) -->
+                    <section id="seccion-dinamica" class="card p-7">
+                        <!-- Contenido se carga según el rol -->
                     </section>
 
                     <!-- Seguridad -->

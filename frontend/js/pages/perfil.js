@@ -91,7 +91,153 @@ class PerfilController {
             });
         });
 
+        // Personalizar según rol
+        const rol = (this.usuario.tipo_rol || this.usuario.rol || '').toLowerCase();
+        const esAdmin = rol.includes('admin') || rol.includes('administrativo');
+        
+        if (esAdmin) {
+            this.renderAdminView();
+        } else {
+            this.renderEstudianteView();
+        }
+
         if (window.Utils?.updateUserInfo) window.Utils.updateUserInfo();
+    }
+
+    renderAdminView() {
+        // Cambiar subtítulo
+        const subtitulo = document.getElementById('perfil-subtitulo');
+        if (subtitulo) subtitulo.textContent = 'Panel de Administración del Sistema';
+        
+        // Cambiar badge de cuenta
+        const badge = document.querySelector('.mt-4.flex.items-center.justify-center.gap-2 span:last-child');
+        if (badge) {
+            badge.textContent = 'Administrador';
+            badge.className = 'text-xs font-bold text-[#002D62]';
+        }
+        
+        // Ocultar sección de matrícula y mostrar estadísticas de admin
+        const seccionDinamica = document.getElementById('seccion-dinamica');
+        if (seccionDinamica) {
+            seccionDinamica.innerHTML = `
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center">
+                        <svg class="w-4 h-4 text-[#002D62]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <h3 class="text-base font-black text-slate-800">Estadísticas del Sistema</h3>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-50 rounded-xl p-4 text-center">
+                        <p class="text-2xl font-black text-[#002D62]" id="admin-total-usuarios">-</p>
+                        <p class="text-[10px] font-black uppercase text-slate-400 mt-1">Usuarios</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 text-center">
+                        <p class="text-2xl font-black text-orange-500" id="admin-pendientes">-</p>
+                        <p class="text-[10px] font-black uppercase text-slate-400 mt-1">Pendientes</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 text-center">
+                        <p class="text-2xl font-black text-[#002D62]" id="admin-activos">-</p>
+                        <p class="text-[10px] font-black uppercase text-slate-400 mt-1">Préstamos Activos</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 text-center">
+                        <p class="text-2xl font-black text-[#002D62]" id="admin-solicitudes">-</p>
+                        <p class="text-[10px] font-black uppercase text-slate-400 mt-1">Solicitudes Hoy</p>
+                    </div>
+                </div>
+                <div class="mt-4 flex gap-2">
+                    <a href="gestion-usuarios.html" class="flex-1 py-2 bg-[#002D62] text-white text-xs font-bold rounded-lg text-center hover:bg-[#001A33] transition">Gestionar Usuarios</a>
+                </div>
+            `;
+            this.cargarEstadisticasAdmin();
+        }
+        
+        // Ocultar botón de subir boleta
+        const btnBoleta = document.getElementById('subir-boleta-btn');
+        if (btnBoleta) btnBoleta.style.display = 'none';
+        
+        // Ocultar sección extra de préstamos
+        const extraSections = document.getElementById('extra-sections');
+        if (extraSections) extraSections.style.display = 'none';
+    }
+
+    renderEstudianteView() {
+        // Mostrar sección de matrícula normal
+        const seccionDinamica = document.getElementById('seccion-dinamica');
+        if (seccionDinamica) {
+            seccionDinamica.innerHTML = `
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0"></path></svg>
+                    </div>
+                    <h3 class="text-base font-black text-slate-800">Verificación de Matrícula</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+                    <div class="md:col-span-2 matricula-panel">
+                        <label class="field-label">Estado Boleta</label>
+                        <div id="boleta-estado-chip" class="estado-chip mb-2">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                            <span id="boleta-estado">Pendiente</span>
+                        </div>
+                        <p id="boleta-detalle" class="text-xs text-slate-600 mt-1 leading-relaxed">Sin información</p>
+                    </div>
+                    <div class="flex items-end">
+                        <button id="subir-boleta-btn" class="w-full boleta-btn p-4 text-left">
+                            <p class="font-black text-sm text-slate-800">Subir Boleta PDF</p>
+                            <p class="text-xs text-slate-500 mt-1">Actualizar validación del cuatrimestre</p>
+                        </button>
+                    </div>
+                </div>
+            `;
+            // Re-attach event listener
+            document.getElementById('subir-boleta-btn')?.addEventListener('click', () => this.abrirSubidaBoleta());
+        }
+        
+        // Mostrar sección extra
+        const extraSections = document.getElementById('extra-sections');
+        if (extraSections) extraSections.style.display = 'block';
+    }
+
+    async cargarEstadisticasAdmin() {
+        try {
+            const token = localStorage.getItem('utn_token');
+            const api = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+            
+            // Cargar conteo de usuarios pendientes
+            const respPendientes = await fetch(`${api}/usuarios/pendientes-aprobacion`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (respPendientes.ok) {
+                const data = await respPendientes.json();
+                const el = document.getElementById('admin-pendientes');
+                if (el) el.textContent = data.count || 0;
+            }
+            
+            // Cargar estadísticas generales
+            const [usuariosRes, solicitudesRes] = await Promise.all([
+                fetch(`${api}/usuarios`, { headers: { Authorization: `Bearer ${token}` } }),
+                fetch(`${api}/solicitudes`, { headers: { Authorization: `Bearer ${token}` } })
+            ]);
+            
+            if (usuariosRes.ok) {
+                const usuarios = await usuariosRes.json();
+                const total = Array.isArray(usuarios) ? usuarios.length : (usuarios.data?.usuarios?.length || 0);
+                const el = document.getElementById('admin-total-usuarios');
+                if (el) el.textContent = total;
+            }
+            
+            if (solicitudesRes.ok) {
+                const solicitudes = await solicitudesRes.json();
+                const lista = Array.isArray(solicitudes) ? solicitudes : [];
+                const activos = lista.filter(s => s.estado === 'entregado').length;
+                
+                const elActivos = document.getElementById('admin-activos');
+                const elSolicitudes = document.getElementById('admin-solicitudes');
+                if (elActivos) elActivos.textContent = activos;
+                if (elSolicitudes) elSolicitudes.textContent = lista.length;
+            }
+        } catch (e) {
+            console.error('Error cargando estadísticas de admin:', e);
+        }
     }
 
     async cargarEstadisticas() {

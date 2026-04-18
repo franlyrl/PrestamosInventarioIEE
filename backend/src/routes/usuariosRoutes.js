@@ -61,4 +61,10 @@ router.patch('/:id/levantar-sancion', protect, restrictTo('admin'), usuarioContr
 router.patch('/mantenimiento/cierre-cuatrimestre', protect, restrictTo('admin'), usuarioControllers.cierreCuatrimestre);
 router.post('/mantenimiento/limpiar-archivo', protect, restrictTo('admin'), usuarioControllers.limpiarUsuariosViejos);
 
+// Actualizar estados de docentes por CSV
+router.post('/actualizar-csv', protect, restrictTo('admin', 'administrativo'), usuarioControllers.actualizarDocentesCSV);
+
+// Contar docentes pendientes de aprobación (para notificación admin)
+router.get('/pendientes-aprobacion', protect, restrictTo('admin', 'administrativo'), usuarioControllers.contarDocentesPendientes);
+
 module.exports = router;

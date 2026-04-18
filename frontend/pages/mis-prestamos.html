@@ -270,28 +270,77 @@
                     ].join('');
 
                     const card = document.createElement('div');
-                    card.className = `fade-in card ${bgClass} border-l-4 ${borderClass} overflow-hidden`;
-                    card.style.animationDelay = `${idx * 60}ms`;
+                    card.className = `fade-in bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 ${bgClass} border-l-4 ${borderClass} overflow-hidden mb-5`;
+                    card.style.animationDelay = `${idx * 80}ms`;
                     card.innerHTML = `
-                        <div class="p-6">
-                            <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+                        <div class="p-5 sm:p-6">
+                            <!-- Header con ID y Estado -->
+                            <div class="flex flex-wrap items-center gap-2 mb-4 pb-3 border-b border-slate-100">
+                                <div class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg">
+                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+                                    <span class="text-xs font-mono font-semibold text-slate-500">#${s._id.slice(-6)}</span>
+                                </div>
+                                <span class="px-3 py-1.5 ${s.estado === 'aprobada' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-blue-100 text-blue-700 border border-blue-200'} text-[10px] font-bold uppercase tracking-wide rounded-full">
+                                    ${s.estado === 'aprobada' ? 'Por Retirar' : 'Entregado'}
+                                </span>
+                                ${vencida ? '<span class="px-3 py-1.5 bg-red-100 text-red-700 border border-red-200 text-[10px] font-bold uppercase tracking-wide rounded-full flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>VENCIDO</span>' : ''}
+                            </div>
+                            
+                            <div class="flex flex-col lg:flex-row lg:items-start gap-5">
                                 <!-- Info del préstamo -->
                                 <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-2 mb-3">
-                                        <span class="text-[10px] font-mono text-slate-400">#${s._id.slice(-6)}</span>
-                                        <span class="px-2 py-0.5 ${s.estado === 'aprobada' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'} text-[9px] font-black uppercase rounded-full">${s.estado === 'aprobada' ? 'Por Retirar' : 'Entregado'}</span>
-                                        ${vencida ? '<span class="px-2 py-0.5 bg-red-100 text-red-700 text-[9px] font-black uppercase rounded-full countdown-urgent">VENCIDO</span>' : ''}
+                                    <!-- Items del préstamo -->
+                                    <div class="bg-slate-50/70 rounded-xl p-4 mb-4 border border-slate-100">
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                            Elementos solicitados
+                                        </p>
+                                        <div class="space-y-1 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                                            ${itemsHtml || '<p class="text-sm text-slate-400 italic py-2 text-center">Sin elementos registrados</p>'}
+                                        </div>
                                     </div>
-                                    <div class="mb-4">${itemsHtml || '<p class="text-xs text-slate-400 italic">Sin elementos registrados</p>'}</div>
-                                    <div class="flex items-center gap-4 text-xs text-slate-400">
-                                        <span>Solicitud: <strong class="text-slate-600">${new Date(s.createdAt).toLocaleDateString('es-CR')}</strong></span>
-                                        ${fechaDev ? `<span>Devolución: <strong class="${vencida ? 'text-red-600' : 'text-slate-600'}">${fechaDev.toLocaleDateString('es-CR')}</strong></span>` : ''}
+                                    
+                                    <!-- Fechas -->
+                                    <div class="flex flex-wrap gap-4 text-xs">
+                                        <div class="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-lg">
+                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            <span class="text-slate-500">Solicitud:</span>
+                                            <span class="font-semibold text-slate-700">${new Date(s.createdAt).toLocaleDateString('es-CR', {day: '2-digit', month: 'short', year: 'numeric'})}</span>
+                                        </div>
+                                        ${fechaDev ? `
+                                        <div class="flex items-center gap-2 ${vencida ? 'bg-red-50 px-3 py-2 rounded-lg' : 'bg-slate-50 px-3 py-2 rounded-lg'}">
+                                            <svg class="w-3.5 h-3.5 ${vencida ? 'text-red-400' : 'text-slate-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span class="${vencida ? 'text-red-500' : 'text-slate-500'}">Devolución:</span>
+                                            <span class="font-semibold ${vencida ? 'text-red-600' : 'text-slate-700'}">${fechaDev.toLocaleDateString('es-CR', {day: '2-digit', month: 'short', year: 'numeric'})}</span>
+                                        </div>` : ''}
                                     </div>
                                 </div>
-                                <!-- Countdown -->
-                                <div class="sm:w-28 flex-shrink-0">${countdownHtml}</div>
+                                
+                                <!-- Countdown Card -->
+                                <div class="lg:w-32 flex-shrink-0">
+                                    <div class="${vencida ? 'bg-gradient-to-br from-red-500 to-red-600 text-white' : urgente ? 'bg-gradient-to-br from-amber-500 to-orange-500 text-white' : advertencia ? 'bg-gradient-to-br from-amber-400 to-amber-500 text-white' : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'} rounded-2xl p-4 text-center shadow-lg">
+                                        ${diasRestantes !== null ? `
+                                            <p class="text-3xl font-black">${vencida ? Math.abs(diasRestantes) : diasRestantes}</p>
+                                            <p class="text-[10px] font-bold uppercase tracking-wider opacity-90">${vencida ? 'días vencido' : diasRestantes === 0 ? 'vence hoy' : 'días restantes'}</p>
+                                        ` : `
+                                            <svg class="w-8 h-8 mx-auto mb-1 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            <p class="text-[10px] font-bold uppercase tracking-wider opacity-90">Sin fecha</p>
+                                        `}
+                                    </div>
+                                </div>
                             </div>
-                            ${s.observaciones ? `<div class="mt-4 bg-slate-50 rounded-xl px-4 py-3"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Notas</p><p class="text-xs text-slate-600 italic">${s.observaciones}</p></div>` : ''}
+                            
+                            <!-- Observaciones -->
+                            ${s.observaciones ? `
+                            <div class="mt-4 bg-amber-50/60 border border-amber-100 rounded-xl px-4 py-3">
+                                <div class="flex items-start gap-3">
+                                    <svg class="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    <div>
+                                        <p class="text-[10px] font-bold text-amber-600 uppercase tracking-wider mb-1">Notas</p>
+                                        <p class="text-sm text-amber-800 leading-relaxed">${s.observaciones}</p>
+                                    </div>
+                                </div>
+                            </div>` : ''}
                         </div>`;
                     container.appendChild(card);
                 });
@@ -314,190 +363,5 @@
     <script src="../js/app.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/pages/estudiante-dashboard.js"></script>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-        const user = JSON.parse(localStorage.getItem('utn_user'));
-        if (!user) { window.location.href = '../login.html'; return; }
-
-        // Cargar componentes
-        try {
-            const [hRes, fRes] = await Promise.all([
-                fetch('../components/header.html'),
-                fetch('../components/footer.html')
-            ]);
-            document.getElementById('header-component').innerHTML = await hRes.text();
-            document.getElementById('footer-component').innerHTML = await fRes.text();
-        } catch(e) {}
-        if (window.Utils) window.Utils.updateUserInfo();
-
-        document.getElementById('loadingPage').classList.add('hidden');
-
-        // Cargar préstamos activos
-        await cargarMisPrestamos(user);
-    });
-
-    async function cargarMisPrestamos(user) {
-        const token = localStorage.getItem('utn_token');
-        const apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
-
-        try {
-            const resp = await fetch(`${apiBase}/solicitudes`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!resp.ok) throw new Error('API error');
-
-            const data = await resp.json();
-            console.log('[DEBUG] Solicitudes recibidas:', data.length);
-            const uid = user._id || user.id;
-            console.log('[DEBUG] Mi User ID:', uid);
-            const todas = Array.isArray(data) ? data : [];
-
-            // Activos en préstamo: solicitudes aprobadas (pendientes de recoger) y entregadas (ya las tiene)
-            const activas = todas.filter(s => {
-                const sUserId = s.usuario?._id || s.usuario?.id || s.usuario;
-                const matchUser = sUserId === uid || sUserId?.toString() === uid?.toString();
-                return matchUser && ['aprobada', 'entregado'].includes(s.estado?.toLowerCase());
-            });
-
-            const ahora = new Date();
-
-            // Calcular KPIs
-            const vencidos = activas.filter(s => s.fecha_entrega_esperada && new Date(s.fecha_entrega_esperada) < ahora);
-            const porVencer = activas.filter(s => {
-                if (!s.fecha_entrega_esperada) return false;
-                const dias = (new Date(s.fecha_entrega_esperada) - ahora) / (1000*60*60*24);
-                return dias >= 0 && dias <= 3;
-            });
-            const alDia = activas.filter(s => !s.fecha_entrega_esperada || new Date(s.fecha_entrega_esperada) > ahora);
-
-            document.getElementById('kpi-activos').textContent = activas.length;
-            document.getElementById('kpi-vencidos').textContent = vencidos.length;
-            document.getElementById('kpi-por-vencer').textContent = porVencer.length;
-            document.getElementById('kpi-al-dia').textContent = alDia.length - porVencer.length;
-
-            // Mostrar alertas globales
-            const alertasContainer = document.getElementById('alertas-container');
-            if (vencidos.length > 0) {
-                alertasContainer.innerHTML += `
-                <div class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-                    <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-black text-red-700">-a- Tienes ${vencidos.length} préstamo(s) vencido(s)</p>
-                        <p class="text-xs text-red-600 mt-1">Devuelve los equipos inmediatamente para evitar penalizaciones adicionales.</p>
-                    </div>
-                </div>`;
-            }
-            if (porVencer.length > 0 && vencidos.length === 0) {
-                alertasContainer.innerHTML += `
-                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-                    <div class="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-black text-amber-700">⏰ Tienes ${porVencer.length} préstamo(s) por vencer en los próximos 3 días</p>
-                        <p class="text-xs text-amber-600 mt-1">Prepara la devolución con tiempo suficiente.</p>
-                    </div>
-                </div>`;
-            }
-
-            // Renderizar préstamos
-            if (activas.length === 0) {
-                document.getElementById('estado-vacio').classList.remove('hidden');
-                return;
-            }
-
-            const container = document.getElementById('prestamos-container');
-            activas.forEach((s, idx) => {
-                const fechaDev = s.fecha_entrega_esperada ? new Date(s.fecha_entrega_esperada) : null;
-                const diasRestantes = fechaDev ? Math.ceil((fechaDev - ahora) / (1000*60*60*24)) : null;
-                const vencida = diasRestantes !== null && diasRestantes < 0;
-                const urgente = diasRestantes !== null && diasRestantes >= 0 && diasRestantes <= 1;
-                const advertencia = diasRestantes !== null && diasRestantes >= 0 && diasRestantes <= 3 && !urgente;
-
-                const borderClass = vencida ? 'border-l-red-500' : urgente ? 'border-l-amber-500' : 'border-l-blue-400';
-                const bgClass = vencida ? 'bg-red-50/30' : '';
-
-                const countdownHtml = diasRestantes !== null ? (() => {
-                    if (vencida) return `<div class="bg-red-100 text-red-700 rounded-xl px-4 py-3 text-center countdown-urgent">
-                        <p class="text-lg font-black">${Math.abs(diasRestantes)} DÍAS</p>
-                        <p class="text-[10px] font-black uppercase tracking-widest">VENCIDO</p>
-                    </div>`;
-                    if (diasRestantes === 0) return `<div class="bg-red-100 text-red-700 rounded-xl px-4 py-3 text-center countdown-urgent">
-                        <p class="text-lg font-black">HOY</p><p class="text-[10px] font-black uppercase tracking-widest">VENCE</p>
-                    </div>`;
-                    return `<div class="${urgente ? 'bg-amber-100 text-amber-700' : advertencia ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-700'} rounded-xl px-4 py-3 text-center">
-                        <p class="text-2xl font-black">${diasRestantes}</p>
-                        <p class="text-[10px] font-black uppercase tracking-widest">días restantes</p>
-                    </div>`;
-                })() : `<div class="bg-slate-100 text-slate-500 rounded-xl px-4 py-3 text-center">
-                    <p class="text-sm font-bold">Sin fecha</p><p class="text-[10px] font-black uppercase tracking-widest">devolución</p>
-                </div>`;
-
-                const itemsHtml = [
-                    ...(s.activos || []).map(a => `<div class="flex items-center gap-3 py-2 border-b border-slate-100 last:border-0">
-                        <div class="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-black text-slate-700">${a.marca || ''} ${a.modelo || ''} <span class="text-slate-400 font-normal">(${a.numActivo || 'N/A'})</span></p>
-                            <p class="text-[10px] text-blue-600 font-bold">ACTIVO</p>
-                        </div>
-                    </div>`),
-                    ...(s.insumos || []).map(i => `<div class="flex items-center gap-3 py-2 border-b border-slate-100 last:border-0">
-                        <div class="w-7 h-7 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-black text-slate-700">${i.cantidad}x ${i.id_insumo?.NombProducto || i.id_insumo?.nombre || 'Insumo'}</p>
-                            <p class="text-[10px] text-emerald-600 font-bold">CONSUMIBLE</p>
-                        </div>
-                    </div>`)
-                ].join('');
-
-                const card = document.createElement('div');
-                card.className = `fade-in card ${bgClass} border-l-4 ${borderClass} overflow-hidden`;
-                card.style.animationDelay = `${idx * 60}ms`;
-                card.innerHTML = `
-                    <div class="p-6">
-                        <div class="flex flex-col sm:flex-row sm:items-start gap-4">
-                            <!-- Info del préstamo -->
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-3">
-                                    <span class="text-[10px] font-mono text-slate-400">#${s._id.slice(-6)}</span>
-                                    <span class="px-2 py-0.5 ${s.estado === 'aprobada' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'} text-[9px] font-black uppercase rounded-full">${s.estado === 'aprobada' ? 'Por Retirar' : 'Entregado'}</span>
-                                    ${vencida ? '<span class="px-2 py-0.5 bg-red-100 text-red-700 text-[9px] font-black uppercase rounded-full countdown-urgent">VENCIDO</span>' : ''}
-                                </div>
-                                <div class="mb-4">${itemsHtml || '<p class="text-xs text-slate-400 italic">Sin elementos registrados</p>'}</div>
-                                <div class="flex items-center gap-4 text-xs text-slate-400">
-                                    <span>Solicitud: <strong class="text-slate-600">${new Date(s.createdAt).toLocaleDateString('es-CR')}</strong></span>
-                                    ${fechaDev ? `<span>Devolución: <strong class="${vencida ? 'text-red-600' : 'text-slate-600'}">${fechaDev.toLocaleDateString('es-CR')}</strong></span>` : ''}
-                                </div>
-                            </div>
-                            <!-- Countdown -->
-                            <div class="sm:w-28 flex-shrink-0">${countdownHtml}</div>
-                        </div>
-                        ${s.observaciones ? `<div class="mt-4 bg-slate-50 rounded-xl px-4 py-3"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Notas</p><p class="text-xs text-slate-600 italic">${s.observaciones}</p></div>` : ''}
-                    </div>`;
-                container.appendChild(card);
-            });
-
-        } catch(e) {
-            console.error('Error cargando préstamos:', e);
-            document.getElementById('prestamos-container').innerHTML = `
-                <div class="card p-10 text-center">
-                    <p class="text-slate-400 text-sm">Error al cargar los préstamos. Verifica tu conexión.</p>
-                    <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-utn-blue text-white text-sm font-bold rounded-xl">Reintentar</button>
-                </div>`;
-        }
-    }
-    </script>
 </body>
 </html>
-

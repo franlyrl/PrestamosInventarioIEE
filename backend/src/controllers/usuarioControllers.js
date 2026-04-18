@@ -142,6 +142,10 @@ exports.createUsuario = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const passwordHasheada = await bcrypt.hash(contrasena, salt);
 
+        // Docentes se crean con estado inactivo por defecto (requieren aprobación)
+        const esDocente = tipoRolDetectado === 'docente';
+        const estadoInicial = esDocente ? 'inactivo' : 'activo';
+
         const nuevoUsuario = new Usuarios({
             id_usuario: Date.now(),
             cedula,
@@ -149,8 +153,8 @@ exports.createUsuario = async (req, res) => {
             correo_electronico: correoLower,
             hash_contraseña: passwordHasheada,
             tipo_rol: tipoRolDetectado,
-            estado_usuario: 'activo',
-            estado: 'activo',
+            estado_usuario: estadoInicial,
+            estado: estadoInicial,
             carrera: carreraNormalizada || 'N/A',
             boleta_estado: tipoRolDetectado === 'estudiante' ? 'pendiente_revision' : 'validada'
         });
@@ -232,7 +236,7 @@ exports.updateUsuario = async (req, res) => {
 exports.updateRolesPermisos = async (req, res) => {
     try {
         const { id } = req.params;
-        const { tipo_rol, permisos } = req.body;
+        const { tipo_rol, permisos, estado } = req.body;
 
         // Solo permitir actualizar si se es admin. El middleware verifyAdmin (o proteger rutas) debería filtrar,
         // pero validamos por seguridad extra (opcional si req.user existe):
@@ -246,9 +250,16 @@ exports.updateRolesPermisos = async (req, res) => {
             return res.status(400).json({ message: 'No puedes revocar tus propios privilegios de administrador.' });
         }
 
+        // Construir objeto de actualización
+        const updateData = { tipo_rol, permisos: permisos || [] };
+        if (estado) {
+            updateData.estado = estado;
+            updateData.estado_usuario = estado; // Mantener ambos campos sincronizados
+        }
+
         const usuarioActualizado = await Usuarios.findByIdAndUpdate(
             id,
-            { tipo_rol, permisos: permisos || [] },
+            updateData,
             { new: true, runValidators: true }
         ).select('-hash_contraseña');
 
@@ -616,6 +627,22 @@ exports.loginUsuario = async (req, res) => {
             return res.status(403).json({ message: 'Acceso denegado: Carrera no autorizada.' });
         }
 
+        //  BLOQUEO PARA DOCENTES PENDIENTES DE APROBACIÓN (antes del bloqueo genérico)
+        // Verificar tanto estado como estado_usuario - si CUALQUIERA es inactivo, bloquear
+        console.log('[DEBUG] tipo_rol:', usuario.tipo_rol, 'estado:', usuario.estado, 'estado_usuario:', usuario.estado_usuario);
+        const estadoEsInactivo = usuario.estado === 'inactivo' || usuario.estado_usuario === 'inactivo';
+        console.log('[DEBUG] estadoEsInactivo:', estadoEsInactivo);
+        console.log('[DEBUG] Condición tipo_rol === docente:', usuario.tipo_rol === 'docente');
+        
+        if (usuario.tipo_rol === 'docente' && estadoEsInactivo) {
+            console.log('[DEBUG] Bloqueando docente pendiente de aprobación');
+            return res.status(403).json({
+                message: 'Tu cuenta está pendiente de aprobación por parte del administrador. No puedes acceder al sistema hasta que sea aprobada.',
+                esperando_aprobacion: true,
+                tipo_rol: 'docente'
+            });
+        }
+
         // --- 5. BLOQUEO DE ESTADO ---
         if (usuario.estado === 'inactivo') {
             return res.status(403).json({
@@ -691,9 +718,12 @@ exports.loginUsuario = async (req, res) => {
             usuario: {
                 id: usuario._id,
                 nombre: usuario.nombre_completo,
+                nombre_completo: usuario.nombre_completo,
                 rol: usuario.tipo_rol,
+                tipo_rol: usuario.tipo_rol,
                 carrera: usuario.carrera,
-                estado: usuario.estado
+                estado: usuario.estado,
+                estado_usuario: usuario.estado_usuario
             }
         });
 
@@ -1027,5 +1057,105 @@ exports.subirBoletaReactivacion = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: 'Error al subir boleta de reactivacion.', error: error.message });
+    }
+};
+
+/**
+ * Actualizar estados de docentes en masa por CSV
+ * @param {Object} req - Contiene array de actualizaciones: [{correo, estado, nombre, cedula}]
+ */
+exports.actualizarDocentesCSV = async (req, res) => {
+    try {
+        const { actualizaciones } = req.body;
+        
+        if (!Array.isArray(actualizaciones) || actualizaciones.length === 0) {
+            return res.status(400).json({ message: 'No se proporcionaron actualizaciones' });
+        }
+        
+        let actualizados = 0;
+        let noEncontrados = 0;
+        const resultados = [];
+        
+        for (const item of actualizaciones) {
+            const { correo, estado, nombre, cedula } = item;
+            
+            try {
+                // Buscar usuario por correo
+                const usuario = await Usuarios.findOne({ 
+                    correo_electronico: correo.toLowerCase(),
+                    tipo_rol: 'docente'
+                });
+                
+                if (!usuario) {
+                    noEncontrados++;
+                    resultados.push({ correo, estado: 'no_encontrado', mensaje: 'Docente no existe o no tiene rol de docente' });
+                    continue;
+                }
+                
+                // Actualizar estado (ambos campos para compatibilidad)
+                await Usuarios.findByIdAndUpdate(usuario._id, {
+                    estado: estado,
+                    estado_usuario: estado
+                });
+                
+                actualizados++;
+                resultados.push({ correo, estado: 'actualizado', nuevoEstado: estado });
+                
+            } catch (err) {
+                resultados.push({ correo, estado: 'error', mensaje: err.message });
+            }
+        }
+        
+        res.json({
+            message: `${actualizados} docentes actualizados correctamente`,
+            actualizados,
+            noEncontrados,
+            total: actualizaciones.length,
+            detalles: resultados
+        });
+        
+    } catch (error) {
+        res.status(500).json({ 
+            message: 'Error al procesar CSV de docentes', 
+            error: error.message 
+        });
+    }
+};
+
+/**
+ * Contar docentes pendientes de aprobación (estado inactivo)
+ * @param {Object} req - Request
+ * @param {Object} res - Response
+ */
+exports.contarDocentesPendientes = async (req, res) => {
+    try {
+        const count = await Usuarios.countDocuments({
+            tipo_rol: 'docente',
+            $or: [
+                { estado: 'inactivo' },
+                { estado_usuario: 'inactivo' }
+            ]
+        });
+        
+        // También obtener la lista de docentes pendientes
+        const docentesPendientes = await Usuarios.find({
+            tipo_rol: 'docente',
+            $or: [
+                { estado: 'inactivo' },
+                { estado_usuario: 'inactivo' }
+            ]
+        }).select('nombre cedula correo_electronico createdAt');
+        
+        res.json({
+            count,
+            docentes: docentesPendientes,
+            message: count > 0 ? `Hay ${count} docente(s) pendiente(s) de aprobación` : 'No hay docentes pendientes'
+        });
+        
+    } catch (error) {
+        res.status(500).json({ 
+            message: 'Error al contar docentes pendientes', 
+            error: error.message 
+        });
     }
 };

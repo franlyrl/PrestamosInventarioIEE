@@ -307,14 +307,13 @@
 
       // Función de login
       async function handleLogin(credentials) {
-        const loginBtn = document.getElementById('loginBtn');
-        
         try {
-          // Loading state
+          const loginBtn = document.querySelector('button[type="submit"]');
           loginBtn.disabled = true;
-          loginBtn.textContent = 'Iniciando sesión...';
-          
-          // Convertir cédula a email si es necesario
+          loginBtn.textContent = 'Verificando credenciales...';
+
+          console.log(' Iniciando petición de login...');
+          console.log(' URL:', `${CONFIG.API_BASE_URL}/usuarios/login`);
           let correoElectronico = credentials.correo_electronico;
           if (/^\d{9,12}$/.test(correoElectronico)) {
             correoElectronico = `${correoElectronico}@utn.ac.cr`;
@@ -344,6 +343,49 @@
           if (!response.ok) {
             console.error(' Respuesta no OK:', response.status, response.statusText);
             console.error(' Datos de error:', data);
+            
+            // Verificar si es docente esperando aprobación
+            if (response.status === 403 && data.esperando_aprobacion) {
+              console.log('[Login] Docente esperando aprobación - mostrando modal bloqueante');
+              loginBtn.disabled = false;
+              loginBtn.textContent = 'ACCEDER AL SISTEMA';
+              if (window.Swal) {
+                await Swal.fire({
+                  icon: 'info',
+                  iconColor: '#f59e0b',
+                  title: 'Cuenta en espera de aprobación',
+                  html: `
+                    <div class="py-4 text-left">
+                      <p class="text-sm text-slate-700 mb-3">Tu cuenta de docente está <strong class="text-[#002D62]">pendiente de aprobación</strong> por parte del administrador.</p>
+                      <p class="text-xs text-slate-600 mb-4">No podrás acceder al sistema hasta que el administrador active tu cuenta.</p>
+                      <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-xs font-semibold text-blue-800 uppercase mb-2">Qué debes hacer</p>
+                        <ul class="text-xs text-slate-700 space-y-2">
+                          <li>• Espera a que el administrador revise y apruebe tu cuenta.</li>
+                          <li>• Recibirás una notificación cuando tu cuenta sea activada.</li>
+                          <li>• Si tienes urgencia, contacta al administrador.</li>
+                        </ul>
+                      </div>
+                      <div class="mt-4 text-center">
+                        <a href="mailto:hari@utn.ac.cr?subject=Solicitud%20de%20aprobación%20de%20cuenta%20docente&body=Hola%20Hari,%0A%0ASolicito%20la%20aprobación%20de%20mi%20cuenta%20de%20docente%20para%20acceder%20al%20sistema%20SPIEE.%0A%0AGracias." 
+                           class="inline-block px-4 py-2 bg-[#002D62] text-white text-xs font-bold rounded-lg hover:bg-[#003d82] transition-colors">
+                          Contactar Administrador
+                        </a>
+                      </div>
+                    </div>`,
+                  confirmButtonText: 'Entendido',
+                  confirmButtonColor: '#002D62',
+                  allowOutsideClick: false,
+                  allowEscapeKey: false,
+                  customClass: {
+                    popup: 'rounded-3xl',
+                    confirmButton: 'font-black px-6 py-3 rounded-xl bg-[#002D62] border border-[#002D62] text-white hover:bg-[#003d82]'
+                  }
+                });
+              }
+              return;
+            }
+            
             if (response.status === 403 && data.requiere_boleta) {
               await abrirModalReactivacionBoleta(correoElectronico, data.cuatrimestre || '');
               return;
@@ -359,6 +401,63 @@
           console.log(' Login exitoso:', data);
           console.log(' Token guardado:', data.token);
           console.log(' Usuario guardado:', data.usuario);
+          
+          //  VERIFICAR SI ES DOCENTE PENDIENTE DE APROBACIÓN
+          console.log('[Login] data.usuario completo:', JSON.stringify(data.usuario, null, 2));
+          console.log('[Login] data.usuario.tipo_rol:', data.usuario.tipo_rol);
+          console.log('[Login] data.usuario.estado_usuario:', data.usuario.estado_usuario);
+          console.log('[Login] data.usuario.rol:', data.usuario.rol);
+          console.log('[Login] data.usuario.estado:', data.usuario.estado);
+          
+          const tipoRol = data.usuario.tipo_rol || data.usuario.rol || '';
+          const estadoUsuario = data.usuario.estado_usuario || '';
+          console.log('[Login] Verificando docente pendiente - tipoRol:', tipoRol, 'estadoUsuario:', estadoUsuario);
+          console.log('[Login] Condición tipoRol === docente:', tipoRol === 'docente');
+          console.log('[Login] Condición estadoUsuario === inactivo:', estadoUsuario === 'inactivo');
+          
+          if (tipoRol === 'docente' && estadoUsuario === 'inactivo') {
+              console.log('[Login] Docente pendiente de aprobación - mostrando modal bloqueante');
+              // Mostrar modal bloqueante para docentes no aprobados
+              if (window.Swal) {
+                  await Swal.fire({
+                      icon: 'info',
+                      title: 'Cuenta en espera de aprobación',
+                      html: `
+                          <div class="py-4 text-left">
+                              <p class="text-sm text-slate-700 mb-3">Hola <strong>${data.usuario.nombre_completo || 'Docente'}</strong>,</p>
+                              <p class="text-sm text-slate-700 mb-3">Tu cuenta está <strong class="text-blue-700">pendiente de aprobación</strong> por parte del administrador.</p>
+                              <p class="text-xs text-slate-600 mb-4">Mientras tu cuenta no sea aprobada, no podrás acceder a las funcionalidades del sistema.</p>
+                              <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                  <p class="text-xs font-semibold text-blue-800 uppercase mb-2">Qué debes hacer</p>
+                                  <ul class="text-xs text-slate-700 space-y-2">
+                                      <li>• Espera a que el administrador revise y apruebe tu cuenta.</li>
+                                      <li>• Recibirás una notificación cuando tu cuenta sea activada.</li>
+                                      <li>• Si tienes urgencia, contacta al administrador.</li>
+                                  </ul>
+                              </div>
+                          </div>`,
+                      confirmButtonText: 'Entendido',
+                      confirmButtonColor: '#002D62',
+                      allowOutsideClick: false,
+                      allowEscapeKey: false,
+                      backdrop: true,
+                      customClass: {
+                          popup: 'rounded-3xl',
+                          confirmButton: 'font-black px-6 py-3 rounded-xl bg-[#002D62] border border-[#002D62] text-white'
+                      },
+                      didOpen: () => {
+                          const closeBtn = document.querySelector('.swal2-close');
+                          if (closeBtn) closeBtn.style.display = 'none';
+                      }
+                  });
+                  // Limpiar localStorage y no redirigir
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  // Recargar la página de login
+                  window.location.reload();
+              }
+              return; // NO redirigir - quedarse en login
+          }
           
           //  EXTRAER ROL ANTES DEL TIMEOUT
           const rol = data.usuario.rol ? data.usuario.rol.toLowerCase() : '';

@@ -191,26 +191,33 @@
             <input id="nombreInput" class="f-input" type="text" placeholder="Nombre y apellidos" required>
           </div>
 
+          <!-- Campo oculto para tipo de usuario (detectado automáticamente por dominio de correo) -->
+          <input type="hidden" id="tipoUsuarioInput" value="">
+          
           <div>
-            <label class="f-label">Carrera</label>
+            <label class="f-label">Carrera / Departamento</label>
             <select id="carreraInput" class="f-input" required>
-              <option value="">Seleccione carrera</option>
+              <option value="">Seleccione</option>
               <option>Ingenieria Electronica</option>
               <option>Ingenieria Electrica</option>
               <option>Ingenieria en Tecnologias de Informacion</option>
               <option>Ingenieria en Produccion Industrial</option>
+              <option>Departamento de Electronica</option>
+              <option>Departamento de Electrica</option>
+              <option>Departamento de TI</option>
+              <option>Departamento de PI</option>
               <option>N/A</option>
             </select>
           </div>
-          <div>
-            <label class="f-label">Boleta de matrícula (PDF)</label>
+          <div id="boletaContainer" class="md:col-span-2">
+            <label class="f-label">Boleta de matrícula (PDF) - Solo estudiantes</label>
             <div class="pdf-upload">
               <input id="boletaInput" type="file" accept=".pdf,application/pdf" required hidden>
               <div class="pdf-upload-row">
                 <button type="button" class="pdf-upload-btn" id="boletaPickBtn">Seleccionar PDF</button>
                 <div class="pdf-upload-name" id="boletaFileName">Ningún archivo seleccionado</div>
               </div>
-              <p class="pdf-upload-help">Solo PDF oficial descargado de AVATAR.</p>
+              <p class="pdf-upload-help">Solo PDF oficial descargado de AVATAR. Requerido solo para estudiantes.</p>
             </div>
           </div>
 
@@ -258,6 +265,48 @@ function setupBoletaUploader() {
     });
 }
 
+function setupTipoUsuarioHandler() {
+    const emailInput = document.getElementById('emailInput');
+    const tipoInput = document.getElementById('tipoUsuarioInput');
+    const boletaContainer = document.getElementById('boletaContainer');
+    const boletaInput = document.getElementById('boletaInput');
+    
+    if (!emailInput || !boletaContainer) return;
+    
+    function detectarTipoUsuario() {
+        const correo = emailInput.value.trim().toLowerCase();
+        
+        if (correo.endsWith('@est.utn.ac.cr')) {
+            // Estudiante - requiere PDF
+            tipoInput.value = 'estudiante';
+            boletaContainer.style.display = 'block';
+            boletaInput.required = true;
+            return 'estudiante';
+        } else if (correo.endsWith('@utn.ac.cr')) {
+            // Docente - NO requiere PDF
+            tipoInput.value = 'docente';
+            boletaContainer.style.display = 'none';
+            boletaInput.required = false;
+            boletaInput.value = '';
+            document.getElementById('boletaFileName').textContent = 'Ningún archivo seleccionado';
+            return 'docente';
+        } else {
+            // Por defecto: mostrar PDF pero no requerir hasta que se determine
+            tipoInput.value = '';
+            boletaContainer.style.display = 'block';
+            boletaInput.required = false;
+            return null;
+        }
+    }
+    
+    // Detectar cuando el usuario escribe o cambia el correo
+    emailInput.addEventListener('input', detectarTipoUsuario);
+    emailInput.addEventListener('blur', detectarTipoUsuario);
+    
+    // Verificar al cargar la página (si hay valor prellenado)
+    detectarTipoUsuario();
+}
+
 async function cargarCuatrimestre() {
     try {
         const r = await fetch(`${API}/cuatrimestre/actual`);
@@ -287,18 +336,39 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
     const confirm = document.getElementById('confirmInput').value;
     const boleta = document.getElementById('boletaInput').files[0];
 
-    if (!cedula || !nombre || !correo || !carrera || !pass || !confirm || !boleta) {
-        showBanner('warn', 'Complete todos los campos y adjunte su boleta PDF.');
+    // Detectar tipo de usuario automáticamente por dominio de correo
+    let tipoUsuario = '';
+    if (correo.endsWith('@est.utn.ac.cr')) {
+        tipoUsuario = 'estudiante';
+    } else if (correo.endsWith('@utn.ac.cr')) {
+        tipoUsuario = 'docente';
+    }
+    
+    // Actualizar campo oculto
+    document.getElementById('tipoUsuarioInput').value = tipoUsuario;
+
+    if (!cedula || !nombre || !correo || !carrera || !pass || !confirm) {
+        showBanner('warn', 'Complete todos los campos.');
         return;
     }
-    if (!(boleta.name || '').toLowerCase().endsWith('.pdf')) {
-        showBanner('warn', 'Solo se permite archivo PDF para la boleta.');
+    
+    if (!tipoUsuario) {
+        showBanner('warn', 'Use un correo institucional UTN valido (@est.utn.ac.cr para estudiantes o @utn.ac.cr para docentes).');
         return;
     }
-    if (!correo.endsWith('@est.utn.ac.cr') && !correo.endsWith('@utn.ac.cr')) {
-        showBanner('warn', 'Use un correo institucional UTN valido.');
-        return;
+    
+    // Validar PDF solo para estudiantes
+    if (tipoUsuario === 'estudiante') {
+        if (!boleta) {
+            showBanner('warn', 'Como estudiante, debe adjuntar su boleta PDF.');
+            return;
+        }
+        if (!(boleta.name || '').toLowerCase().endsWith('.pdf')) {
+            showBanner('warn', 'Solo se permite archivo PDF para la boleta.');
+            return;
+        }
     }
+    
     if (pass.length < 8) {
         showBanner('warn', 'La contraseña debe tener al menos 8 caracteres.');
         return;
@@ -314,7 +384,17 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
     fd.append('correo_electronico', correo);
     fd.append('carrera', carrera);
     fd.append('contrasena', pass);
-    fd.append('boleta_pdf', boleta);
+    fd.append('tipo_rol', tipoUsuario);
+    
+    // Para docentes, establecer estado como inactivo (esperando aprobación)
+    if (tipoUsuario === 'docente') {
+        fd.append('estado_usuario', 'inactivo');
+    }
+    
+    // Agregar PDF solo si existe (estudiantes)
+    if (boleta) {
+        fd.append('boleta_pdf', boleta);
+    }
 
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
@@ -326,10 +406,17 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
         const d = await r.json();
         if (!r.ok) throw new Error(d.message || 'No se pudo crear la cuenta.');
 
+        let mensajeExito = '';
+        if (tipoUsuario === 'docente') {
+            mensajeExito = 'Cuenta de docente creada. Tu cuenta está pendiente de aprobación por el administrador. Recibirás una notificación cuando sea activada.';
+        } else {
+            mensajeExito = d.boleta?.validada ? 'Registro completo y boleta validada.' : 'Registro creado. Tu boleta puede quedar pendiente de revisión.';
+        }
+        
         await Swal.fire({
             icon: 'success',
             title: 'Cuenta creada',
-            text: d.boleta?.validada ? 'Registro completo y boleta validada.' : 'Registro creado. Tu boleta puede quedar pendiente de revisión.',
+            text: mensajeExito,
             confirmButtonColor: '#002D62'
         });
         window.location.href = 'login.html';
@@ -344,6 +431,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
 
 cargarCuatrimestre();
 setupBoletaUploader();
+setupTipoUsuarioHandler();
 </script>
 </body>
 </html>

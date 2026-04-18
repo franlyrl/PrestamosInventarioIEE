@@ -9,6 +9,21 @@ const ROLES_AUTORIZADOS = ['admin', 'administrador', 'Administrador', 'administr
 
 const normalizarTexto = (valor = '') => String(valor).trim();
 
+// Helper para corregir codificación de caracteres especiales
+const fixEncoding = (text) => {
+    if (!text || typeof text !== 'string') return text || '';
+    try {
+        // Si el texto no contiene secuencias corruptas comunes, devolverlo
+        if (!text.includes('Ã')) return text;
+        // Decodificar UTF-8 mal interpretado como Latin-1
+        const decoded = Buffer.from(text, 'latin1').toString('utf8');
+        console.log(`[ENCODING] "${text}" -> "${decoded}"`);
+        return decoded;
+    } catch (e) {
+        return text;
+    }
+};
+
 const normalizarEstadoPorCantidad = (cantidad, estadoActual = 'disponible') => {
     const cantidadNumero = Number(cantidad);
     if (!Number.isFinite(cantidadNumero) || cantidadNumero <= 0) {
@@ -42,10 +57,49 @@ const registrarMovimiento = (insumo, payload = {}) => {
     insumo.movimientos.push(payload);
 };
 
+// Helper para corregir codificación de un insumo
+const corregirInsumo = (insumo) => {
+    if (!insumo) return insumo;
+    const insumoObj = insumo.toObject ? insumo.toObject() : insumo;
+    return {
+        ...insumoObj,
+        NombProducto: fixEncoding(insumoObj.NombProducto),
+        categoria: fixEncoding(insumoObj.categoria),
+        caracteristicas: fixEncoding(insumoObj.caracteristicas),
+        descripcion: fixEncoding(insumoObj.descripcion),
+        marca: fixEncoding(insumoObj.marca),
+        modelo: fixEncoding(insumoObj.modelo),
+        ubicacion: fixEncoding(insumoObj.ubicacion),
+        observaciones: fixEncoding(insumoObj.observaciones)
+    };
+};
+
 exports.getInsumos = async (req, res) => {
     try {
         const insumos = await Insumos.find();
-        res.json(insumos);
+        console.log('[DEBUG] Total insumos:', insumos.length);
+        
+        // Corregir codificación de caracteres especiales
+        const insumosCorregidos = insumos.map(insumo => {
+            const insumoObj = insumo.toObject ? insumo.toObject() : insumo;
+            const original = insumoObj.NombProducto;
+            const corregido = fixEncoding(original);
+            if (original !== corregido) {
+                console.log(`[DEBUG] Corregido: "${original}" -> "${corregido}"`);
+            }
+            return {
+                ...insumoObj,
+                NombProducto: fixEncoding(insumoObj.NombProducto),
+                categoria: fixEncoding(insumoObj.categoria),
+                caracteristicas: fixEncoding(insumoObj.caracteristicas),
+                descripcion: fixEncoding(insumoObj.descripcion),
+                marca: fixEncoding(insumoObj.marca),
+                modelo: fixEncoding(insumoObj.modelo),
+                ubicacion: fixEncoding(insumoObj.ubicacion),
+                observaciones: fixEncoding(insumoObj.observaciones)
+            };
+        });
+        res.json(insumosCorregidos);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener los insumos', error: error.message });
     }
@@ -225,7 +279,7 @@ exports.getInsumoById = async (req, res) => {
         if (!insumo) {
             return res.status(404).json({ message: 'Insumo no encontrado' });
         }
-        res.json(insumo);
+        res.json(corregirInsumo(insumo));
     } catch (error) {
         res.status(400).json({ message: 'Error al obtener el insumo', error: error.message });
     }
@@ -293,7 +347,7 @@ exports.getInsumosByCategoria = async (req, res) => {
     try {
         const { cat } = req.params;
         const insumos = await Insumos.find({ categoria: cat });
-        res.json(insumos);
+        res.json(insumos.map(corregirInsumo));
     } catch (error) {
         res.status(500).json({ message: 'Error al filtrar insumos', error: error.message });
     }
@@ -343,7 +397,7 @@ exports.searchInsumos = async (req, res) => {
             $or: [{ NombProducto: regex }, { caracteristicas: regex }, { codigo: regex }]
         });
 
-        res.json(insumos);
+        res.json(insumos.map(corregirInsumo));
     } catch (error) {
         res.status(500).json({
             message: 'Error al buscar insumos',
@@ -499,6 +553,7 @@ exports.getBajoStock = async (req, res) => {
             .sort({ cantidad: 1 });
 
         res.json({
+            insumos: insumosBajos.map(corregirInsumo),
             limite,
             total: insumosBajos.length,
             data: insumosBajos

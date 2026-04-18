@@ -1,4 +1,41 @@
 // Controlador del Dashboard Principal
+
+// Helper para corregir codificación de caracteres especiales
+function fixEncoding(text) {
+    if (!text || typeof text !== 'string') return text || '';
+    // Reemplazar secuencias comunes de codificación incorrecta (UTF-8 mal interpretado como Latin-1)
+    return text
+        .replace(/Ã¡/g, 'á')
+        .replace(/Ã©/g, 'é')
+        .replace(/Ã/g, 'í')
+        .replace(/Ã³/g, 'ó')
+        .replace(/Ãº/g, 'ú')
+        .replace(/Ã/g, 'Á')
+        .replace(/Ã‰/g, 'É')
+        .replace(/Ã/g, 'Í')
+        .replace(/Ã“/g, 'Ó')
+        .replace(/Ãš/g, 'Ú')
+        .replace(/Ã±/g, 'ñ')
+        .replace(/Ã‘/g, 'Ñ')
+        .replace(/Ã¼/g, 'ü')
+        .replace(/Ãœ/g, 'Ü')
+        .replace(/Ã§/g, 'ç')
+        .replace(/Ã‡/g, 'Ç')
+        .replace(/Ã¢/g, 'â')
+        .replace(/Ãª/g, 'ê')
+        .replace(/Ã®/g, 'î')
+        .replace(/Ã´/g, 'ô')
+        .replace(/Ã»/g, 'û')
+        .replace(/Ã€/g, 'À')
+        .replace(/Ãˆ/g, 'È')
+        .replace(/ÃŒ/g, 'Ì')
+        .replace(/Ã’/g, 'Ò')
+        .replace(/Ã™/g, 'Ù')
+        .replace(/Ã£/g, 'ã')
+        .replace(/Ãµ/g, 'õ')
+        .replace(/Ã/g, 'Á');
+}
+
 class DashboardController {
     constructor() {
         this.currentType = 'activos';
@@ -117,8 +154,9 @@ class DashboardController {
 
         const icon = this.getItemIcon(item);
         const code = item.numActivo || item.id_insumo || item.cod || 'N/A';
-        const name = item.NombProducto || item.nombre || item.name || 'Sin nombre';
-        const category = item.categoria || item.cat || 'Sin categoría';
+        const name = fixEncoding(item.NombProducto || item.nombre || item.name || 'Sin nombre');
+        const category = fixEncoding(item.categoria || item.cat || 'Sin categoría');
+        const caracteristicas = fixEncoding(item.caracteristicas || '');
 
         card.innerHTML = `
             <div class="flex justify-between items-start mb-4">
@@ -136,9 +174,9 @@ class DashboardController {
                 <p class="text-xs text-slate-500">${category}</p>
             </div>
             
-            ${item.caracteristicas ? `
+            ${caracteristicas ? `
                 <div class="text-xs text-slate-400 mb-4 line-clamp-2">
-                    ${item.caracteristicas}
+                    ${caracteristicas}
                 </div>
             ` : ''}
             
@@ -226,8 +264,8 @@ class DashboardController {
 
         if (modal && modalIcon && itemName && itemCat) {
             modalIcon.textContent = this.getItemIcon(item);
-            itemName.textContent = item.NombProducto || item.nombre || item.name || 'Sin nombre';
-            itemCat.textContent = item.categoria || item.cat || 'Sin categoría';
+            itemName.textContent = fixEncoding(item.NombProducto || item.nombre || item.name || 'Sin nombre');
+            itemCat.textContent = fixEncoding(item.categoria || item.cat || 'Sin categoría');
 
             modal.classList.remove('opacity-0', 'pointer-events-none');
             modal.classList.add('opacity-100');

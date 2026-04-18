@@ -1,4 +1,40 @@
 // Controlador móvil para administradores
+
+// Helper para corregir codificación de caracteres especiales
+function fixEncoding(text) {
+    if (!text || typeof text !== 'string') return text || '';
+    return text
+        .replace(/Ã¡/g, 'á')
+        .replace(/Ã©/g, 'é')
+        .replace(/Ã­/g, 'í')
+        .replace(/Ã³/g, 'ó')
+        .replace(/Ãº/g, 'ú')
+        .replace(/Ã/g, 'Á')
+        .replace(/Ã‰/g, 'É')
+        .replace(/Ã/g, 'Í')
+        .replace(/Ã“/g, 'Ó')
+        .replace(/Ãš/g, 'Ú')
+        .replace(/Ã±/g, 'ñ')
+        .replace(/Ã‘/g, 'Ñ')
+        .replace(/Ã¼/g, 'ü')
+        .replace(/Ãœ/g, 'Ü')
+        .replace(/Ã§/g, 'ç')
+        .replace(/Ã‡/g, 'Ç')
+        .replace(/Ã¢/g, 'â')
+        .replace(/Ãª/g, 'ê')
+        .replace(/Ã®/g, 'î')
+        .replace(/Ã´/g, 'ô')
+        .replace(/Ã»/g, 'û')
+        .replace(/Ã€/g, 'À')
+        .replace(/Ãˆ/g, 'È')
+        .replace(/ÃŒ/g, 'Ì')
+        .replace(/Ã’/g, 'Ò')
+        .replace(/Ã™/g, 'Ù')
+        .replace(/Ã£/g, 'ã')
+        .replace(/Ãµ/g, 'õ')
+        .replace(/Ã/g, 'Á');
+}
+
 class MobileAdminController {
     constructor() {
         this.solicitudes = [];
@@ -523,7 +559,7 @@ class MobileAdminController {
         
         if (solicitud.insumos && solicitud.insumos.length > 0) {
             solicitud.insumos.forEach(insumo => {
-                const nombre = insumo.id_insumo?.NombProducto || insumo.descripcion || 'Insumo';
+                const nombre = fixEncoding(insumo.id_insumo?.NombProducto || insumo.descripcion || 'Insumo');
                 const cantidad = insumo.cantidad || 1;
                 elementos.push(`${nombre} (${cantidad})`);
                 totalCantidad += cantidad;

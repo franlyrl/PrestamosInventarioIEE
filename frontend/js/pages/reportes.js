@@ -437,7 +437,7 @@ class ReportesController {
                     <div class="progreso-bar">
                         <div class="progreso-fill" style="width: ${dato.utilizacion}%"></div>
                     </div>
-                    <div class="progreso-texto">${dato.utilización}%</div>
+                    <div class="progreso-texto">${dato.utilizacion}%</div>
                 </td>
             </tr>
         `).join('');

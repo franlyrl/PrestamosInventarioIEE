@@ -1,4 +1,40 @@
 // Controlador de Modal y Solicitudes
+
+// Helper para corregir codificación de caracteres especiales
+function fixEncoding(text) {
+    if (!text || typeof text !== 'string') return text || '';
+    return text
+        .replace(/Ã¡/g, 'á')
+        .replace(/Ã©/g, 'é')
+        .replace(/Ã/g, 'í')
+        .replace(/Ã³/g, 'ó')
+        .replace(/Ãº/g, 'ú')
+        .replace(/Ã/g, 'Á')
+        .replace(/Ã‰/g, 'É')
+        .replace(/Ã/g, 'Í')
+        .replace(/Ã“/g, 'Ó')
+        .replace(/Ãš/g, 'Ú')
+        .replace(/Ã±/g, 'ñ')
+        .replace(/Ã‘/g, 'Ñ')
+        .replace(/Ã¼/g, 'ü')
+        .replace(/Ãœ/g, 'Ü')
+        .replace(/Ã§/g, 'ç')
+        .replace(/Ã‡/g, 'Ç')
+        .replace(/Ã¢/g, 'â')
+        .replace(/Ãª/g, 'ê')
+        .replace(/Ã®/g, 'î')
+        .replace(/Ã´/g, 'ô')
+        .replace(/Ã»/g, 'û')
+        .replace(/Ã€/g, 'À')
+        .replace(/Ãˆ/g, 'È')
+        .replace(/ÃŒ/g, 'Ì')
+        .replace(/Ã’/g, 'Ò')
+        .replace(/Ã™/g, 'Ù')
+        .replace(/Ã£/g, 'ã')
+        .replace(/Ãµ/g, 'õ')
+        .replace(/Ã/g, 'Á');
+}
+
 class ModalController {
     constructor() {
         this.initializeEventListeners();
@@ -101,12 +137,13 @@ class ModalController {
         if (currentType === 'activos') {
             solicitudData.activos = [item._id || item.id];
         } else {
+            const nombreProducto = fixEncoding(item.NombProducto || item.nombre || item.name);
             solicitudData.insumos = [{
                 id_insumo: item._id || item.id,
-                cantidad: 1, // Por defecto solicitar 1 unidad
-                nombreProducto: item.NombProducto || item.nombre || item.name,
-                caracteristicas: item.caracteristicas || '',
-                descripcion: `Solicitud de ${item.NombProducto || item.nombre || item.name}`
+                cantidad: 1,
+                nombreProducto: nombreProducto,
+                caracteristicas: fixEncoding(item.caracteristicas || ''),
+                descripcion: `Solicitud de ${nombreProducto}`
             }];
         }
 

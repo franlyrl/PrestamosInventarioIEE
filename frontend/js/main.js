@@ -1129,15 +1129,96 @@ window.verificarBloqueopenalizacion = async function() {
 };
 
 /**
- * Inicializar bloqueo de penalización cuando se cargue CUALQUIER página
- * Muestra el modal de bloqueo si el usuario está penalizado.
+ * Verificar si el usuario es docente esperando aprobación
+ * Muestra modal bloqueante si el docente tiene estado_usuario = 'inactivo'
+ */
+window.verificarDocentePendiente = async function() {
+    try {
+        const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
+        
+        console.log('[Docente Pendiente] Verificando usuario:', user);
+        console.log('[Docente Pendiente] tipo_rol:', user.tipo_rol);
+        console.log('[Docente Pendiente] estado_usuario:', user.estado_usuario);
+        
+        // Verificar si es docente con estado inactivo (esperando aprobación)
+        if (user.tipo_rol === 'docente' && user.estado_usuario === 'inactivo') {
+            console.log('[Docente Pendiente] ¡Usuario es docente inactivo! Mostrando modal...');
+            window._docentePendienteActivo = true;
+            window._enforceDocentePendienteUI();
+            
+            setTimeout(() => {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Cuenta en espera de aprobación',
+                        html: `
+                            <div class="py-4 text-left">
+                                <p class="text-sm text-slate-700 mb-3">Hola <strong>${user.nombre_completo || 'Docente'}</strong>,</p>
+                                <p class="text-sm text-slate-700 mb-3">Tu cuenta está <strong class="text-blue-700">pendiente de aprobación</strong> por parte del administrador.</p>
+                                <p class="text-xs text-slate-600 mb-4">Mientras tu cuenta no sea aprobada, no podrás acceder a las funcionalidades del sistema.</p>
+                                <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <p class="text-xs font-semibold text-blue-800 uppercase mb-2">Qué debes hacer</p>
+                                    <ul class="text-xs text-slate-700 space-y-2">
+                                        <li>• Espera a que el administrador revise y apruebe tu cuenta.</li>
+                                        <li>• Recibirás una notificación cuando tu cuenta sea activada.</li>
+                                        <li>• Si tienes urgencia, contacta al administrador.</li>
+                                    </ul>
+                                </div>
+                            </div>`,
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#002D62',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        backdrop: true,
+                        customClass: {
+                            popup: 'rounded-3xl',
+                            confirmButton: 'font-black px-6 py-3 rounded-xl bg-[#002D62] border border-[#002D62] text-white'
+                        },
+                        didOpen: () => {
+                            const closeBtn = document.querySelector('.swal2-close');
+                            if (closeBtn) closeBtn.style.display = 'none';
+                            window._enforceDocentePendienteUI();
+                        }
+                    }).then(() => {
+                        window._docentePendienteActivo = false;
+                        // Cerrar sesión al cerrar el modal
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        if (window.appState) window.appState.logout();
+                        window.location.replace('../login.html');
+                    });
+                }
+            }, 500);
+            return true; // Hay bloqueo por aprobación pendiente
+        }
+        return false; // No hay bloqueo
+    } catch (e) {
+        console.warn('[Docente Pendiente] Error verificando:', e.message);
+        return false;
+    }
+};
+
+/**
+ * Inicializar bloqueo de penalización y verificación de docente pendiente
+ * Muestra el modal de bloqueo si el usuario está penalizado o es docente pendiente.
  */
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('[Main] DOMContentLoaded - Iniciando verificaciones...');
     const paginaActual = window.location.pathname;
     const esLoginPage = paginaActual.includes('login') || paginaActual.includes('signup');
+    console.log('[Main] Página actual:', paginaActual, '| Es login/signup:', esLoginPage);
 
     if (!esLoginPage) {
-        await window.verificarBloqueopenalizacion();
+        console.log('[Main] No es página de login - verificando docente pendiente...');
+        // Primero verificar si es docente pendiente
+        const esDocentePendiente = await window.verificarDocentePendiente();
+        console.log('[Main] Resultado verificación docente pendiente:', esDocentePendiente);
+        // Si no es docente pendiente, verificar penalización
+        if (!esDocentePendiente) {
+            await window.verificarBloqueopenalizacion();
+        }
+    } else {
+        console.log('[Main] Es página de login/signup - no se verifica docente pendiente');
     }
 });
 
@@ -1757,11 +1838,19 @@ window.sendRequest = async function() {
             cantidad: i.quantity || 1
         }));
 
-        const insumos = window.cart.filter(i => i.type !== 'activo').map(i => ({
-            id_insumo: i.data._id,
-            cantidad: i.quantity,
-            nombre_insumo: i.name
-        }));
+        const insumos = window.cart.filter(i => i.type !== 'activo').map(i => {
+            // Extraer el ID del insumo - puede estar en _id o id_insumo
+            const idInsumo = i.data._id || i.data.id_insumo || i.data.id;
+            if (!idInsumo) {
+                console.error('Insumo sin ID:', i);
+                throw new Error(`El insumo "${i.name}" no tiene un ID válido. Por favor, quítalo del carrito y agrégalo nuevamente.`);
+            }
+            return {
+                id_insumo: idInsumo,
+                cantidad: i.quantity,
+                nombre_insumo: i.name
+            };
+        });
 
         const data = {
             usuario_solicitante: user.nombre_completo || user.nombre || 'Usuario',

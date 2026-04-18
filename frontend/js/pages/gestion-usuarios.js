@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await cargarUsuarios();
     setupFiltros();
+    verificarDocentesPendientes(); // Verificar notificaciones
 });
 
 async function cargarUsuarios() {
@@ -169,6 +170,12 @@ async function abrirModalRoles(id) {
         const rolSelect = document.getElementById('userRol');
         rolSelect.value = userDetalle.tipo_rol || 'estudiante';
         
+        // Cargar estado del usuario
+        const estadoSelect = document.getElementById('userEstado');
+        if (estadoSelect) {
+            estadoSelect.value = userDetalle.estado || userDetalle.estado_usuario || 'activo';
+        }
+        
         // Reset checkboxes
         document.querySelectorAll('input[name="permiso"]').forEach(chk => chk.checked = false);
         
@@ -217,6 +224,7 @@ async function guardarRolesPermisos(event) {
     event.preventDefault();
     const id = document.getElementById('editUserId').value;
     const tipo_rol = document.getElementById('userRol').value;
+    const estado = document.getElementById('userEstado')?.value || 'activo';
     
     // Recolectar permisos
     const permisos = [];
@@ -235,7 +243,7 @@ async function guardarRolesPermisos(event) {
         const res = await fetch(`${API}/usuarios/${id}/permisos`, {
             method: 'PATCH',
             headers: authHeaders(),
-            body: JSON.stringify({ tipo_rol, permisos })
+            body: JSON.stringify({ tipo_rol, permisos, estado })
         });
         
         const data = await res.json();
@@ -252,4 +260,202 @@ async function guardarRolesPermisos(event) {
         btnGuardar.textContent = txtOriginal;
         btnGuardar.disabled = false;
     }
+}
+
+// ----- FUNCIONES CSV DOCENTES -----
+function abrirModalCSV() {
+    document.getElementById('modalCSV').classList.remove('hidden');
+    document.getElementById('modalCSV').classList.add('flex');
+}
+
+function cerrarModalCSV() {
+    document.getElementById('modalCSV').classList.add('hidden');
+    document.getElementById('modalCSV').classList.remove('flex');
+    document.getElementById('csvFile').value = '';
+}
+
+async function procesarCSV() {
+    const fileInput = document.getElementById('csvFile');
+    const btnProcesar = document.getElementById('btnProcesarCSV');
+    
+    if (!fileInput.files || fileInput.files.length === 0) {
+        mostrarToast('Selecciona un archivo CSV', 'error');
+        return;
+    }
+    
+    const file = fileInput.files[0];
+    const txtOriginal = btnProcesar.textContent;
+    btnProcesar.innerHTML = `<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>`;
+    btnProcesar.disabled = true;
+    
+    try {
+        const texto = await file.text();
+        const lineas = texto.split(/\r?\n/).filter(l => l.trim());
+        
+        if (lineas.length < 2) {
+            throw new Error('El archivo CSV debe tener al menos una fila de datos');
+        }
+        
+        // Parsear CSV (formato: Nombre Completo, Cedula, Correo, Estado)
+        const actualizaciones = [];
+        const errores = [];
+        
+        for (let i = 0; i < lineas.length; i++) {
+            const linea = lineas[i].trim();
+            
+            // Saltar líneas vacías
+            if (!linea) continue;
+            
+            // Detectar separador: coma o punto y coma
+            let separador = linea.includes(';') ? ';' : ',';
+            let campos = linea.split(separador).map(c => c.trim()).filter(c => c);
+            
+            // Saltar encabezado (si contiene palabras clave)
+            const lineaLower = linea.toLowerCase();
+            if (lineaLower.includes('nombre') && lineaLower.includes('correo')) {
+                console.log(`Fila ${i + 1}: Saltando encabezado`);
+                continue;
+            }
+            
+            // Detectar automáticamente posición de datos (buscar correo con @)
+            let nombre, cedula, correo, estado;
+            
+            // Encontrar índice del correo (campo con @)
+            let correoIdx = campos.findIndex(c => c.includes('@'));
+            
+            if (correoIdx === -1) {
+                errores.push(`Fila ${i + 1}: no se encontró correo válido`);
+                continue;
+            }
+            
+            // Asignar valores basados en posición del correo
+            correo = campos[correoIdx];
+            cedula = campos[correoIdx - 1] || '';  // Antes del correo
+            nombre = campos[correoIdx - 2] || '';   // Dos antes del correo
+            estado = campos[correoIdx + 1] || 'activo'; // Después del correo (default: activo)
+            
+            // Si no hay nombre, usar campo anterior a cédula si existe
+            if (!nombre && correoIdx >= 3) {
+                nombre = campos.slice(0, correoIdx - 1).join(' ');
+            }
+            
+            // Debug
+            console.log(`Fila ${i + 1}:`, { nombre, cedula, correo, estado });
+            
+            // Validar correo
+            if (!correo || !correo.includes('@')) {
+                errores.push(`Fila ${i + 1}: correo inválido "${correo}"`);
+                continue;
+            }
+            
+            const correoLower = correo.toLowerCase();
+            if (!correoLower.endsWith('@utn.ac.cr') || correoLower.endsWith('@est.utn.ac.cr')) {
+                errores.push(`Fila ${i + 1}: "${correo}" no es correo de docente (debe ser @utn.ac.cr)`);
+                continue;
+            }
+            
+            // Validar estado (si viene en el CSV)
+            const estadoNormalizado = estado ? estado.toLowerCase().trim() : 'activo';
+            if (!['activo', 'inactivo'].includes(estadoNormalizado)) {
+                errores.push(`Fila ${i + 1}: estado "${estado}" no válido (debe ser "activo" o "inactivo")`);
+                continue;
+            }
+            
+            actualizaciones.push({ nombre, cedula, correo: correoLower, estado: estadoNormalizado });
+        }
+        
+        if (actualizaciones.length === 0) {
+            const msgErrores = errores.slice(0, 5).join('\n');
+            throw new Error(`No hay registros válidos para procesar.\n\nErrores encontrados:\n${msgErrores}${errores.length > 5 ? '\n... y ' + (errores.length - 5) + ' errores más' : ''}`);
+        }
+        
+        // Enviar al backend
+        const res = await fetch(`${API}/usuarios/actualizar-csv`, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ actualizaciones })
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error(data.message || 'Error al procesar CSV');
+        
+        let msg = `${data.actualizados || 0} docentes actualizados correctamente`;
+        if (data.noEncontrados > 0) msg += `, ${data.noEncontrados} no encontrados`;
+        if (errores.length > 0) msg += `. ${errores.length} filas con errores.`;
+        
+        mostrarToast(msg, 'success');
+        cerrarModalCSV();
+        await cargarUsuarios(); // Refrescar lista
+        
+        if (errores.length > 0) {
+            console.warn('Errores en filas ignoradas:', errores);
+        }
+        
+    } catch (e) {
+        mostrarToast(e.message, 'error');
+    } finally {
+        btnProcesar.textContent = txtOriginal;
+        btnProcesar.disabled = false;
+    }
+}
+
+// ----- NOTIFICACIONES DE DOCENTES PENDIENTES -----
+
+async function verificarDocentesPendientes() {
+    try {
+        const res = await fetch(`${API}/usuarios/pendientes-aprobacion`, {
+            headers: authHeaders()
+        });
+        
+        if (!res.ok) return; // Silencioso si hay error
+        
+        const data = await res.json();
+        const notificacion = document.getElementById('notificacionPendientes');
+        const contador = document.getElementById('contadorPendientes');
+        const lista = document.getElementById('listaDocentesPendientes');
+        
+        if (data.count > 0) {
+            notificacion.classList.remove('hidden');
+            contador.textContent = data.count;
+            
+            // Mostrar lista de docentes pendientes (máximo 3)
+            const docentesMostrar = data.docentes.slice(0, 3);
+            lista.innerHTML = docentesMostrar.map(d => `
+                <div class="flex items-center justify-between bg-white/50 rounded-lg p-2 text-sm">
+                    <div>
+                        <span class="font-semibold text-slate-700">${d.nombre || 'Sin nombre'}</span>
+                        <span class="text-slate-500">- ${d.correo_electronico}</span>
+                    </div>
+                    <button onclick="abrirModalRoles('${d._id}')" class="text-[#002D62] hover:underline font-medium">Aprobar</button>
+                </div>
+            `).join('');
+            
+            if (data.docentes.length > 3) {
+                lista.innerHTML += `<p class="text-xs text-orange-600 mt-1">Y ${data.docentes.length - 3} más...</p>`;
+            }
+            
+            // Mostrar toast si hay nuevos pendientes (solo una vez por sesión)
+            if (!sessionStorage.getItem('notificacionDocentesMostrada')) {
+                mostrarToast(`${data.count} docente(s) esperando aprobación`, 'warning');
+                sessionStorage.setItem('notificacionDocentesMostrada', 'true');
+            }
+        } else {
+            notificacion.classList.add('hidden');
+        }
+        
+    } catch (e) {
+        console.error('Error verificando docentes pendientes:', e);
+    }
+}
+
+function filtrarDocentesPendientes() {
+    // Limpiar búsqueda actual
+    document.getElementById('busquedaInput').value = '';
+    // Seleccionar filtro de docentes
+    document.getElementById('rolFiltro').value = 'docente';
+    // Aplicar filtros
+    aplicarFiltros();
+    // Mostrar toast
+    mostrarToast('Mostrando docentes. Busca los de estado "Inactivo"', 'info');
 }
