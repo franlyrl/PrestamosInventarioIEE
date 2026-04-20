@@ -157,6 +157,41 @@ class DashboardController {
         const name = fixEncoding(item.NombProducto || item.nombre || item.name || 'Sin nombre');
         const category = fixEncoding(item.categoria || item.cat || 'Sin categoría');
         const caracteristicas = fixEncoding(item.caracteristicas || '');
+        const tipo = this.currentType === 'activos' ? 'activo' : 'insumo';
+
+        // Sistema de auto-asignación de imágenes basado en categoría y tipo
+        const getAutoImageUrl = (item, tipo, categoria, id) => {
+            // Si tiene imagenUrl válida, usarla
+            if (item.imagenUrl && !item.imagenUrl.includes('placeholder')) {
+                return item.imagenUrl;
+            }
+            
+            // Mapeo de categorías a seeds de imágenes para picsum
+            const categoriaSeeds = {
+                'Instrumentos': 'instrumentos-lab',
+                'Herramientas': 'herramientas-taller',
+                'Componentes Digitales': 'componentes-digital',
+                'Componentes Analógicos': 'componentes-analog',
+                'Electrónica': 'electronica-general',
+                'Consumibles': 'consumibles-lab',
+                'Equipos de Medición': 'equipos-medicion',
+                'Prototipado': 'prototipado-arduino',
+                'Cables y Conectores': 'cables-conectores',
+                'Seguridad': 'seguridad-lab',
+                'Almacenamiento': 'almacenamiento-digital'
+            };
+            
+            // Obtener seed basado en categoría o usar default
+            const categoriaKey = categoria || 'General';
+            const baseSeed = categoriaSeeds[categoriaKey] || (tipo === 'activo' ? 'activo-lab' : 'insumo-lab');
+            
+            // Crear seed única basada en tipo, categoría e ID
+            const uniqueSeed = `${baseSeed}-${id}-${tipo}`.replace(/\s+/g, '-').toLowerCase();
+            
+            return `https://picsum.photos/seed/${uniqueSeed}/400/300.jpg`;
+        };
+        
+        const imgUrl = getAutoImageUrl(item, tipo, category, code);
 
         card.innerHTML = `
             <div class="flex justify-between items-start mb-4">
@@ -180,15 +215,13 @@ class DashboardController {
                 </div>
             ` : ''}
             
-            ${item.imagenUrl ? `
-                <div class="mb-4">
-                    <img src="${item.imagenUrl}" alt="${name}" class="w-full h-32 object-cover rounded-lg" 
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="w-full h-32 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400" style="display: none;">
-                        <span class="text-3xl">${icon}</span>
-                    </div>
+            <div class="mb-4 relative h-32 bg-slate-100 rounded-lg overflow-hidden">
+                <img src="${imgUrl}" alt="${name}" class="w-full h-full object-cover rounded-lg" 
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="w-full h-32 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400" style="display: none;">
+                    <span class="text-3xl">${icon}</span>
                 </div>
-            ` : ''}
+            </div>
             
             <button 
                 onclick="dashboardController.selectItem('${item._id || item.id}')"

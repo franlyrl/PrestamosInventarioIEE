@@ -479,18 +479,46 @@ class IndexController {
         // Agregar nombre calculado al item para que esté disponible en el botón
         item.nombre = nombre;
         const itemSafe = JSON.stringify(item).replace(/"/g, '&quot;');
-        const imgUrl = item.imagenUrl || '';
-        const hasImg = imgUrl && !imgUrl.includes('placeholder');
+        
+        // Sistema de auto-asignación de imágenes basado en categoría y tipo
+        const getAutoImageUrl = (item, tipo, categoria, id) => {
+            // Si tiene imagenUrl válida, usarla
+            if (item.imagenUrl && !item.imagenUrl.includes('placeholder')) {
+                return item.imagenUrl;
+            }
+            
+            // Mapeo de categorías a seeds de imágenes para picsum
+            const categoriaSeeds = {
+                'Instrumentos': 'instrumentos-lab',
+                'Herramientas': 'herramientas-taller',
+                'Componentes Digitales': 'componentes-digital',
+                'Componentes Analógicos': 'componentes-analog',
+                'Electrónica': 'electronica-general',
+                'Consumibles': 'consumibles-lab',
+                'Equipos de Medición': 'equipos-medicion',
+                'Prototipado': 'prototipado-arduino',
+                'Cables y Conectores': 'cables-conectores',
+                'Seguridad': 'seguridad-lab',
+                'Almacenamiento': 'almacenamiento-digital'
+            };
+            
+            // Obtener seed basado en categoría o usar default
+            const categoriaKey = categoria || 'General';
+            const baseSeed = categoriaSeeds[categoriaKey] || (tipo === 'activo' ? 'activo-lab' : 'insumo-lab');
+            
+            // Crear seed única basada en tipo, categoría e ID
+            const uniqueSeed = `${baseSeed}-${id}-${tipo}`.replace(/\s+/g, '-').toLowerCase();
+            
+            return `https://picsum.photos/seed/${uniqueSeed}/400/300.jpg`;
+        };
+        
+        const imgUrl = getAutoImageUrl(item, tipo, categoriaOriginal, id);
+        const hasImg = true; // Ahora siempre tenemos una imagen asignada
 
-        const headerHtml = hasImg 
-            ? `<div class="relative h-32 bg-slate-100 overflow-hidden cursor-zoom-in group" onclick="event.stopPropagation(); window.verImagenCompleta('${imgUrl}', '${nombre.replace(/'/g, "\\'")}')" title="Clic para ampliar">
-                <img src="${imgUrl}" alt="${nombre}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        const headerHtml = `<div class="relative h-32 bg-slate-100 overflow-hidden cursor-zoom-in group" onclick="event.stopPropagation(); window.verImagenCompleta('${imgUrl}', '${nombre.replace(/'/g, "\\'")}')" title="Clic para ampliar">
+                <img src="${imgUrl}" alt="${nombre}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center" style="display:none;">
                     <svg class="w-8 h-8 text-white scale-50 group-hover:scale-100 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
-                </div>`
-            : `<div class="relative h-32 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
-                <div class="absolute inset-0 flex items-center justify-center opacity-20">
-                    <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 </div>`;
 
         const btnCarrito = '<button class="flex-1 ' + (cantidad > 0 ? 'bg-utn-blue' : 'bg-amber-500') + ' text-white px-3 py-2 rounded-lg text-xs font-bold hover:' + (cantidad > 0 ? 'bg-utn-dark' : 'bg-amber-600') + ' transition" onclick="event.stopPropagation(); window.handleAddToCartOrEspera && window.handleAddToCartOrEspera({id: \'' + item._id + '\', nombre: \'' + nombre.replace(/'/g, "\\'") + '\', tipo: \'' + tipo + '\', cantidad: ' + cantidad + '})" data-nombre="' + nombre.replace(/"/g, '&quot;') + '">Añadir</button>';

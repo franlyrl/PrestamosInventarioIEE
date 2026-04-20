@@ -251,9 +251,7 @@
                             <button onclick="showHelpTab('reglas')" id="tab-reglas" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">
                                 📋 Reglas
                             </button>
-                            <button onclick="showHelpTab('faq')" id="tab-faq" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">
-                                ❓ FAQ
-                            </button>
+                            <button onclick="showHelpTab('faq')" id="tab-faq" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">Preguntas frecuentes</button>
                             <button onclick="showHelpTab('contacto')" id="tab-contacto" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">
                                 📞 Contacto
                             </button>
@@ -263,97 +261,83 @@
                         <div class="p-5 overflow-y-auto max-h-[50vh]">
                             <!-- Tab: Cómo Usar -->
                             <div id="content-uso" class="space-y-4">
+                                <h4 class="font-black text-[#002D62] text-lg mb-3">Cómo Usar el Sistema</h4>
                                 <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                                     <span class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">1</span>
                                     <div>
-                                        <h4 class="font-bold text-slate-800">Busca equipos</h4>
-                                        <p class="text-sm text-slate-600">Usa el buscador universal para encontrar activos o insumos por nombre, categoría o estado.</p>
+                                        <h4 class="font-bold text-slate-800">Carrito de Compras</h4>
+                                        <p class="text-sm text-slate-600">Añade al carrito los productos que necesites solicitar.</p>
                                     </div>
                                 </div>
                                 <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                                     <span class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">2</span>
                                     <div>
-                                        <h4 class="font-bold text-slate-800">Añade al carrito</h4>
-                                        <p class="text-sm text-slate-600">Haz clic en "+" para agregar hasta 2 artículos (activos o insumos) a tu solicitud.</p>
+                                        <h4 class="font-bold text-slate-800">Lista de Espera</h4>
+                                        <p class="text-sm text-slate-600">Si el equipo no está en stock, pasarás automáticamente a una lista de espera (siempre que el tiempo de espera sea razonable).</p>
                                     </div>
                                 </div>
                                 <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                                     <span class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">3</span>
                                     <div>
-                                        <h4 class="font-bold text-slate-800">Confirma tu solicitud</h4>
-                                        <p class="text-sm text-slate-600">Revisa los artículos, selecciona fecha de devolución y envía tu solicitud.</p>
+                                        <h4 class="font-bold text-slate-800">Cancelaciones</h4>
+                                        <p class="text-sm text-slate-600">Puedes cancelar una solicitud únicamente si aún se encuentra en estado "Pendiente" y no ha sido procesada por el encargado.</p>
                                     </div>
                                 </div>
                                 <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                                     <span class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">4</span>
                                     <div>
-                                        <h4 class="font-bold text-slate-800">Espera aprobación</h4>
-                                        <p class="text-sm text-slate-600">Un administrador revisará tu solicitud y te contactará para la entrega.</p>
+                                        <h4 class="font-bold text-slate-800">Notificaciones</h4>
+                                        <p class="text-sm text-slate-600">Recibirás correos electrónicos de <a href="mailto:hmoram@utn.ac.cr" class="text-blue-600 underline">hmoram@utn.ac.cr</a> (Hary Andrey Mora Mendiola) cuando tu solicitud sea aprobada o cuando el plazo de devolución esté por vencer.</p>
                                     </div>
                                 </div>
-                                <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                                    <p class="text-sm text-amber-800">💡 <strong>Tip:</strong> Puedes combinar activos (equipos) e insumos (componentes) en una misma solicitud.</p>
+                                <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                                    <span class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">5</span>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800">Historial</h4>
+                                        <p class="text-sm text-slate-600">En el apartado de "Préstamos" puedes visualizar el detalle y estado de cada una de tus solicitudes.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                                    <span class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">6</span>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800">Seguridad de Cuenta</h4>
+                                        <p class="text-sm text-slate-600">Por políticas de seguridad, las contraseñas se borrarán al finalizar cada cuatrimestre; deberás realizar el cambio de contraseña correspondiente al iniciar el nuevo periodo.</p>
+                                    </div>
                                 </div>
                             </div>
                             
                             <!-- Tab: Reglas -->
                             <div id="content-reglas" class="space-y-3 hidden">
+                                <h4 class="font-black text-[#002D62] text-lg mb-3">Especificaciones a Considerar</h4>
                                 <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
-                                    <h4 class="font-bold text-red-800 text-sm">Límite de artículos</h4>
-                                    <p class="text-sm text-red-700">Máximo 2 artículos por solicitud. Puedes hacer solicitudes adicionales cuando la primera sea aprobada o rechazada.</p>
+                                    <h4 class="font-bold text-red-800 text-sm">Solicitudes Pendientes</h4>
+                                    <p class="text-sm text-red-700">No se permiten nuevas solicitudes si ya tienes una pendiente de aprobación.</p>
                                 </div>
                                 <div class="p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-lg">
-                                    <h4 class="font-bold text-yellow-800 text-sm">Tiempo de préstamo</h4>
-                                    <p class="text-sm text-yellow-700">Los activos deben devolverse en la fecha acordada. El retraso puede resultar en bloqueo temporal.</p>
+                                    <h4 class="font-bold text-yellow-800 text-sm">Deudas Pendientes</h4>
+                                    <p class="text-sm text-yellow-700">No se permiten nuevos préstamos si tienes deudas pendientes o equipo que no ha sido devuelto a tiempo.</p>
                                 </div>
                                 <div class="p-3 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
-                                    <h4 class="font-bold text-green-800 text-sm">Cuidado de equipos</h4>
-                                    <p class="text-sm text-green-700">Los equipos son propiedad institucional. Cualquier daño por negligencia debe ser reportado.</p>
-                                </div>
-                                <div class="p-3 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
-                                    <h4 class="font-bold text-blue-800 text-sm">Una solicitud a la vez</h4>
-                                    <p class="text-sm text-blue-700">No puedes crear nuevas solicitudes mientras tengas una pendiente de aprobación.</p>
+                                    <h4 class="font-bold text-green-800 text-sm">Fechas de Recogida</h4>
+                                    <p class="text-sm text-green-700">Al ser aprobada la solicitud, el sistema te indicará la fecha de recogida y la fecha máxima de devolución.</p>
                                 </div>
                             </div>
                             
                             <!-- Tab: FAQ -->
                             <div id="content-faq" class="space-y-4 hidden">
-                                <details class="group">
-                                    <summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
-                                        <span class="font-bold text-slate-700 text-sm">¿Cuánto tiempo tarda la aprobación?</span>
-                                        <svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                        </svg>
-                                    </summary>
-                                    <p class="p-3 text-sm text-slate-600">Generalmente 24-48 horas hábiles. Recibirás un correo cuando sea aprobada o rechazada.</p>
-                                </details>
-                                <details class="group">
-                                    <summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
-                                        <span class="font-bold text-slate-700 text-sm">¿Puedo modificar mi solicitud?</span>
-                                        <svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                        </svg>
-                                    </summary>
-                                    <p class="p-3 text-sm text-slate-600">Solo si está en estado "pendiente". Contacta al administrador si necesitas cambios.</p>
-                                </details>
-                                <details class="group">
-                                    <summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
-                                        <span class="font-bold text-slate-700 text-sm">¿Qué pasa si mi solicitud es rechazada?</span>
-                                        <svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                        </svg>
-                                    </summary>
-                                    <p class="p-3 text-sm text-slate-600">Podrás hacer una nueva solicitud. El motivo del rechazo aparecerá en tu historial.</p>
-                                </details>
-                                <details class="group">
-                                    <summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition">
-                                        <span class="font-bold text-slate-700 text-sm">¿Dónde recojo los equipos?</span>
-                                        <svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                        </svg>
-                                    </summary>
-                                    <p class="p-3 text-sm text-slate-600">El lugar de entrega será coordinado por correo cuando tu solicitud sea aprobada.</p>
-                                </details>
+                                <h4 class="font-black text-[#002D62] text-lg mb-3">Información Adicional Importante</h4>
+                                <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                                    <h5 class="font-bold text-slate-800 mb-2">1. Revisión Obligatoria</h5>
+                                    <p class="text-sm text-slate-600">Al recibir el equipo, verifica su estado físico. Cualquier daño no reportado al inicio será responsabilidad del usuario.</p>
+                                </div>
+                                <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                                    <h5 class="font-bold text-slate-800 mb-2">2. Confirmación de Devolución</h5>
+                                    <p class="text-sm text-slate-600">Tras la entrega física, confirma que el encargado actualice tu estado en el sistema para liberar tu perfil de deudas.</p>
+                                </div>
+                                <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                                    <h5 class="font-bold text-slate-800 mb-2">3. Cuidado del Material</h5>
+                                    <p class="text-sm text-slate-600">El usuario es responsable de la integridad de los activos. En caso de pérdida o daño por mal uso, se deberá reponer el equipo según el reglamento del laboratorio.</p>
+                                </div>
                             </div>
                             
                             <!-- Tab: Contacto -->

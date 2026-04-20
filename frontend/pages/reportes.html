@@ -273,6 +273,166 @@
         </div>
     </div>
     
+    <!-- BOTÓN DE AYUDA FLOTANTE -->
+    <div class="fixed bottom-6 right-6 z-[9999]">
+        <button onclick="toggleHelpModal()" class="w-14 h-14 bg-gradient-to-r from-[#002D62] to-[#004a8f] hover:from-[#F2A900] hover:to-[#d4a017] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- MODAL DE AYUDA CON PESTAÑAS -->
+    <div id="helpModal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
+            <div class="bg-gradient-to-r from-[#002D62] to-[#004a8f] p-4 flex items-center justify-between">
+                <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Centro de Ayuda SPIEE
+                </h3>
+                <button onclick="toggleHelpModal()" class="text-white/80 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="flex border-b border-slate-200 bg-slate-50 overflow-x-auto">
+                <button onclick="showHelpTab('insumos')" id="tab-insumos" class="flex-1 py-3 px-3 text-xs font-bold text-[#002D62] border-b-2 border-[#002D62] bg-white transition whitespace-nowrap">Cargar</button>
+                <button onclick="showHelpTab('solicitudes')" id="tab-solicitudes" class="flex-1 py-3 px-3 text-xs font-bold text-slate-500 hover:text-[#002D62] transition whitespace-nowrap">Solicitudes</button>
+                <button onclick="showHelpTab('usuarios')" id="tab-usuarios" class="flex-1 py-3 px-3 text-xs font-bold text-slate-500 hover:text-[#002D62] transition whitespace-nowrap">Usuarios</button>
+                <button onclick="showHelpTab('inventario')" id="tab-inventario" class="flex-1 py-3 px-3 text-xs font-bold text-slate-500 hover:text-[#002D62] transition whitespace-nowrap">Inventario</button>
+                <button onclick="showHelpTab('docentes')" id="tab-docentes" class="flex-1 py-3 px-3 text-xs font-bold text-slate-500 hover:text-[#002D62] transition whitespace-nowrap">Docentes</button>
+            </div>
+            <div class="p-5 overflow-y-auto max-h-[50vh]">
+                <div id="content-insumos" class="space-y-4">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Módulo de Insumos y Activos</h4>
+                    <ul class="list-disc list-inside space-y-2 text-sm text-slate-600">
+                        <li><strong>Gestión de Artículos:</strong> Visualizar, editar, cambiar estados, eliminar y gestionar imágenes.</li>
+                        <li><strong>Carga Masiva:</strong> Subir artículos vía CSV y XLSX.</li>
+                        <li><strong>Registro Individual:</strong> Añadir artículos manualmente con el formato requerido.</li>
+                        <li><strong>Imágenes:</strong> Añadir fotos reales mediante enlaces.</li>
+                        <li><strong>Estadísticas:</strong> Reportes detallados en el apartado correspondiente.</li>
+                    </ul>
+                </div>
+                <div id="content-solicitudes" class="space-y-4 hidden">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Módulo de Solicitudes</h4>
+                    <ul class="list-disc list-inside space-y-2 text-sm text-slate-600">
+                        <li><strong>Integridad:</strong> No se pueden eliminar solicitudes, solo gestionarlas.</li>
+                        <li><strong>Rechazo:</strong> Obligatorio especificar razón válida al rechazar.</li>
+                        <li><strong>Devolución:</strong> Al recibir el equipo físico, marcar como "Devuelta".</li>
+                        <li><strong>Comunicación:</strong> Notificar vía correo al aprobar o enviar recordatorios.</li>
+                        <li><strong>Fechas:</strong> Configurar fecha de recogida y límite de devolución.</li>
+                    </ul>
+                    <div class="p-4 bg-red-50 rounded-lg border border-red-200 mt-4">
+                        <h5 class="font-bold text-slate-800 mb-2">Penalizaciones y Sanciones</h5>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-slate-600">
+                            <li><strong>Retraso:</strong> Aplicar sanción si el usuario no devuelve el equipo a tiempo.</li>
+                            <li><strong>Daños:</strong> Reportar y sancionar por daños causados al equipo.</li>
+                            <li><strong>Pérdida:</strong> El usuario es responsable del costo de reposición.</li>
+                            <li><strong>Suspensión:</strong> Bloquear usuario reincidente temporal o permanentemente.</li>
+                            <li><strong>Notificación:</strong> Informar al usuario sobre la sanción aplicada.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div id="content-usuarios" class="space-y-3 hidden">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Gestión de Usuarios</h4>
+                    <div class="p-3 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                        <h5 class="font-bold text-blue-800 text-sm">Crear Usuario</h5>
+                        <p class="text-sm text-blue-700">Completa el formulario con nombre, correo y rol.</p>
+                    </div>
+                    <div class="p-3 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                        <h5 class="font-bold text-green-800 text-sm">Editar Permisos</h5>
+                        <p class="text-sm text-green-700">Cambia entre estudiante, docente o administrador.</p>
+                    </div>
+                    <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+                        <h5 class="font-bold text-red-800 text-sm">Bloquear Usuario</h5>
+                        <p class="text-sm text-red-700">Desactiva usuarios que incumplan las reglas.</p>
+                    </div>
+                </div>
+                <div id="content-inventario" class="space-y-4 hidden">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Gestión de Inventario</h4>
+                    <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                        <h5 class="font-bold text-slate-800 mb-2">Gestión de Activos</h5>
+                        <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
+                            <li>Agrega nuevos equipos al inventario</li>
+                            <li>Actualiza cantidades disponibles</li>
+                            <li>Desactiva equipos dañados</li>
+                        </ul>
+                    </div>
+                    <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-100">
+                        <h5 class="font-bold text-slate-800 mb-2">Gestión de Insumos</h5>
+                        <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
+                            <li>Registra consumibles</li>
+                            <li>Controla stock mínimo</li>
+                            <li>Genera reportes de uso</li>
+                        </ul>
+                    </div>
+                </div>
+                <div id="content-docentes" class="space-y-4 hidden">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Solicitudes de Docentes</h4>
+                    <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                        <h5 class="font-bold text-slate-800 mb-2">Proceso de Aprobación</h5>
+                        <ul class="list-disc list-inside space-y-2 text-sm text-slate-600">
+                            <li><strong>Prioridad:</strong> Las solicitudes de docentes tienen prioridad de revisión.</li>
+                            <li><strong>Verificación:</strong> Confirmar disponibilidad del equipo solicitado antes de aprobar.</li>
+                            <li><strong>Notificación:</strong> Enviar correo al docente confirmando aprobación y fecha de recogida.</li>
+                            <li><strong>Préstamo extendido:</strong> Los docentes pueden solicitar préstamos por períodos más largos.</li>
+                            <li><strong>Responsabilidad:</strong> El docente asume responsabilidad total del equipo prestado.</li>
+                        </ul>
+                    </div>
+                    <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                        <h5 class="font-bold text-slate-800 mb-2">Carga Masiva de Docentes (CSV)</h5>
+                        <p class="text-sm text-slate-600 mb-2">Para aprobar docentes vía archivo CSV:</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-slate-600">
+                            <li>Formato CSV con columnas: nombre, correo, cédula, departamento</li>
+                            <li>El rol se asigna automáticamente como "docente"</li>
+                            <li>Verificar que los correos sean del dominio @utn.ac.cr</li>
+                            <li>Las contraseñas temporales se envían por correo automáticamente</li>
+                            <li>Revisar el archivo antes de subir para evitar errores de formato</li>
+                        </ul>
+                    </div>
+                    <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                        <h5 class="font-bold text-slate-800 mb-2">Consideraciones Especiales</h5>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-slate-600">
+                            <li>Verificar identidad del docente antes de entregar el equipo</li>
+                            <li>Registrar propósito del préstamo (clase, laboratorio, proyecto)</li>
+                            <li>Ofrecer asistencia técnica si es necesario</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleHelpModal() {
+            const modal = document.getElementById('helpModal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+        function showHelpTab(tabName) {
+            document.querySelectorAll('[id^="content-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            document.querySelectorAll('[id^="tab-"]').forEach(el => {
+                el.classList.remove('text-[#002D62]', 'border-b-2', 'border-[#002D62]', 'bg-white');
+                el.classList.add('text-slate-500');
+            });
+            const activeTab = document.getElementById('tab-' + tabName);
+            activeTab.classList.remove('text-slate-500');
+            activeTab.classList.add('text-[#002D62]', 'border-b-2', 'border-[#002D62]', 'bg-white');
+        }
+        document.getElementById('helpModal').addEventListener('click', function(e) {
+            if (e.target === this) toggleHelpModal();
+        });
+    </script>
+
     <!-- FOOTER COMPONENT -->
     <div id="footer-component"></div>
 

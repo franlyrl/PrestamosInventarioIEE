@@ -101,14 +101,6 @@
                     </div>
                 </div>
                 <div>
-                    <label class="f-label">Tipo</label>
-                    <select id="tipoFiltro" class="f-input">
-                        <option value="">Todos</option>
-                        <option value="insumo">Insumos</option>
-                        <option value="activo">Activos</option>
-                    </select>
-                </div>
-                <div>
                     <label class="f-label">Categoría</label>
                     <select id="categoriaFiltro" class="f-input">
                         <option value="">Todas</option>
@@ -126,7 +118,22 @@
                     </select>
                 </div>
                 <div>
+                    <label class="f-label">Imagen</label>
+                    <select id="imagenFiltro" class="f-input">
+                        <option value="">Todos</option>
+                        <option value="sin-foto">Fotos sin cargar</option>
+                        <option value="con-foto">Con foto</option>
+                    </select>
+                </div>
+                <div>
                     <button onclick="limpiarFiltros()" class="w-full px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Limpiar</button>
+                </div>
+                <div>
+                    <label class="f-label">Acciones</label>
+                    <button onclick="abrirModalBulkImages()" class="w-full px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-bold text-sm hover:from-emerald-600 hover:to-emerald-700 transition flex items-center justify-center gap-2" title="Subir imágenes a items sin foto">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        Subir Fotos
+                    </button>
                 </div>
             </div>
         </div>
@@ -179,7 +186,7 @@
                 <div class="flex gap-4 items-start">
                     <div id="drawerImgWrap" class="w-20 h-20 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center flex-shrink-0 border border-slate-200">
                         <svg id="drawerImgPlaceholder" class="w-9 h-9 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                        <img id="drawerImg" src="" alt="" class="w-full h-full object-cover hidden cursor-zoom-in hover:opacity-90 transition-opacity" onclick="window.verImagenCompleta(this.src, document.getElementById('drawerNombre').textContent)">
+                        <img id="drawerImg" src="" alt="" class="w-full h-full object-cover hidden cursor-zoom-in hover:opacity-90 transition-opacity" onclick="window.verImagenCompleta(this.src, document.getElementById('drawerNombre').textContent)" onerror="this.classList.add('hidden'); document.getElementById('drawerImgPlaceholder').classList.remove('hidden');">
                     </div>
                     <div class="flex-1">
                         <div class="flex flex-wrap gap-2 mb-3">
@@ -539,6 +546,57 @@
         </button>
     </div>
 
+    <!-- MODAL - Subir Imágenes Masivamente -->
+    <div id="modalBulkImages" class="fixed inset-0 z-[200] bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-all duration-300" id="modalBulkImagesBox">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-[#002D62] to-[#004A8C] p-6 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <h3 class="font-black text-lg">Subir Imágenes - Items sin Foto</h3>
+                </div>
+                <button onclick="cerrarModalBulkImages()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            
+            <!-- Contenido -->
+            <div class="p-6 max-h-[70vh] overflow-y-auto">
+                <p class="text-slate-600 text-sm mb-4">Selecciona fotos desde tu dispositivo. El sistema intentará asociarlas automáticamente con items sin foto basándose en el nombre, o puedes asignarlas manualmente.</p>
+                
+                <!-- Lista de items sin foto -->
+                <div id="bulkImagesItemsList" class="mb-4 max-h-40 overflow-y-auto bg-slate-50 rounded-xl p-3">
+                    <p class="text-sm text-slate-400 italic">Cargando items sin foto...</p>
+                </div>
+                
+                <!-- Input de archivos -->
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Seleccionar imágenes</label>
+                    <input type="file" id="bulkImagesInput" multiple accept="image/*" capture="environment" 
+                        class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#002D62] focus:border-transparent"
+                        onchange="previewBulkImages(this)">
+                    <p class="text-xs text-slate-400 mt-1">Puedes usar la cámara desde tu celular o seleccionar archivos</p>
+                </div>
+                
+                <!-- Preview de imágenes seleccionadas -->
+                <div id="bulkImagesPreview" class="grid grid-cols-3 gap-3 mb-4">
+                    <!-- Las imágenes seleccionadas se mostrarán aquí -->
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="p-6 border-t border-slate-100 flex gap-3">
+                <button onclick="cerrarModalBulkImages()" class="flex-1 py-3 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition">Cancelar</button>
+                <button onclick="subirBulkImages()" class="flex-1 py-3 text-sm font-bold text-white bg-gradient-to-r from-[#002D62] to-[#004A8C] rounded-xl hover:from-[#004A8C] hover:to-[#0066CC] transition flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    Subir Imágenes
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DE AYUDA CON PESTAÑAS -->
     <div id="helpModal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
@@ -555,54 +613,117 @@
                     </svg>
                 </button>
             </div>
-            <div class="flex border-b border-slate-200 bg-slate-50">
-                <button onclick="showHelpTab('uso')" id="tab-uso" class="flex-1 py-3 px-4 text-sm font-bold text-[#002D62] border-b-2 border-[#002D62] bg-white transition">📖 Cómo Usar</button>
-                <button onclick="showHelpTab('reglas')" id="tab-reglas" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">📋 Reglas</button>
-                <button onclick="showHelpTab('faq')" id="tab-faq" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">❓ FAQ</button>
-                <button onclick="showHelpTab('contacto')" id="tab-contacto" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">📞 Contacto</button>
+            <div class="flex border-b border-slate-200 bg-slate-50 overflow-x-auto">
+                <button onclick="showHelpTab('insumos')" id="tab-insumos" class="flex-1 py-3 px-3 text-xs font-bold text-[#002D62] border-b-2 border-[#002D62] bg-white transition whitespace-nowrap">Cargar</button>
+                <button onclick="showHelpTab('solicitudes')" id="tab-solicitudes" class="flex-1 py-3 px-3 text-xs font-bold text-slate-500 hover:text-[#002D62] transition whitespace-nowrap">Solicitudes</button>
+                <button onclick="showHelpTab('usuarios')" id="tab-usuarios" class="flex-1 py-3 px-3 text-xs font-bold text-slate-500 hover:text-[#002D62] transition whitespace-nowrap">Usuarios</button>
+                <button onclick="showHelpTab('inventario')" id="tab-inventario" class="flex-1 py-3 px-3 text-xs font-bold text-slate-500 hover:text-[#002D62] transition whitespace-nowrap">Inventario</button>
+                <button onclick="showHelpTab('docentes')" id="tab-docentes" class="flex-1 py-3 px-3 text-xs font-bold text-slate-500 hover:text-[#002D62] transition whitespace-nowrap">Docentes</button>
             </div>
             <div class="p-5 overflow-y-auto max-h-[50vh]">
-                <div id="content-uso" class="space-y-4">
-                    <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                        <span class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">1</span>
-                        <div>
-                            <h4 class="font-bold text-slate-800">Busca equipos</h4>
-                            <p class="text-sm text-slate-600">Usa el buscador o navega por categorías.</p>
-                        </div>
+                <!-- PESTAÑA INSUMOS -->
+                <div id="content-insumos" class="space-y-4">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Módulo de Insumos y Activos</h4>
+                    <ul class="list-disc list-inside space-y-2 text-sm text-slate-600">
+                        <li><strong>Gestión de Artículos:</strong> Visualizar, editar, cambiar estados, eliminar y gestionar imágenes.</li>
+                        <li><strong>Carga Masiva:</strong> Subir artículos vía CSV y XLSX.</li>
+                        <li><strong>Registro Individual:</strong> Añadir artículos manualmente con el formato requerido.</li>
+                        <li><strong>Imágenes:</strong> Añadir fotos reales mediante enlaces.</li>
+                        <li><strong>Estadísticas:</strong> Reportes detallados en el apartado correspondiente.</li>
+                    </ul>
+                </div>
+                <!-- PESTAÑA SOLICITUDES -->
+                <div id="content-solicitudes" class="space-y-4 hidden">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Módulo de Solicitudes</h4>
+                    <ul class="list-disc list-inside space-y-2 text-sm text-slate-600">
+                        <li><strong>Integridad:</strong> No se pueden eliminar solicitudes, solo gestionarlas.</li>
+                        <li><strong>Rechazo:</strong> Obligatorio especificar razón válida al rechazar.</li>
+                        <li><strong>Devolución:</strong> Al recibir el equipo físico, marcar como "Devuelta".</li>
+                        <li><strong>Comunicación:</strong> Notificar vía correo al aprobar o enviar recordatorios.</li>
+                        <li><strong>Fechas:</strong> Configurar fecha de recogida y límite de devolución.</li>
+                    </ul>
+                    <div class="p-4 bg-red-50 rounded-lg border border-red-200 mt-4">
+                        <h5 class="font-bold text-slate-800 mb-2">Penalizaciones y Sanciones</h5>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-slate-600">
+                            <li><strong>Retraso:</strong> Aplicar sanción si el usuario no devuelve el equipo a tiempo.</li>
+                            <li><strong>Daños:</strong> Reportar y sancionar por daños causados al equipo.</li>
+                            <li><strong>Pérdida:</strong> El usuario es responsable del costo de reposición.</li>
+                            <li><strong>Suspensión:</strong> Bloquear usuario reincidente temporal o permanentemente.</li>
+                            <li><strong>Notificación:</strong> Informar al usuario sobre la sanción aplicada.</li>
+                        </ul>
                     </div>
-                    <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                        <span class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">2</span>
-                        <div>
-                            <h4 class="font-bold text-slate-800">Añade al carrito</h4>
-                            <p class="text-sm text-slate-600">Haz clic en "+" para agregar hasta 2 artículos.</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                        <span class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">3</span>
-                        <div>
-                            <h4 class="font-bold text-slate-800">Confirma solicitud</h4>
-                            <p class="text-sm text-slate-600">Revisa y envía tu solicitud.</p>
-                        </div>
+                    <div class="mt-4 space-y-2">
+                        <details class="group"><summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer"><span class="font-bold text-slate-700 text-sm">¿Cómo aprobar?</span><svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary><p class="p-3 text-sm text-slate-600">Haz clic en "Aprobar" y asigna fecha de entrega.</p></details>
+                        <details class="group"><summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer"><span class="font-bold text-slate-700 text-sm">¿Cómo rechazar?</span><svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary><p class="p-3 text-sm text-slate-600">Selecciona "Rechazar" e indica el motivo.</p></details>
                     </div>
                 </div>
-                <div id="content-reglas" class="space-y-3 hidden">
+                <!-- PESTAÑA USUARIOS -->
+                <div id="content-usuarios" class="space-y-3 hidden">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Gestión de Usuarios</h4>
+                    <div class="p-3 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                        <h5 class="font-bold text-blue-800 text-sm">Crear Usuario</h5>
+                        <p class="text-sm text-blue-700">Completa el formulario con nombre, correo y rol.</p>
+                    </div>
+                    <div class="p-3 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                        <h5 class="font-bold text-green-800 text-sm">Editar Permisos</h5>
+                        <p class="text-sm text-green-700">Cambia entre estudiante, docente o administrador.</p>
+                    </div>
                     <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
-                        <h4 class="font-bold text-red-800 text-sm">Máximo 2 artículos</h4>
-                        <p class="text-sm text-red-700">Por solicitud, máximo 2 artículos.</p>
-                    </div>
-                    <div class="p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-lg">
-                        <h4 class="font-bold text-yellow-800 text-sm">Devolución</h4>
-                        <p class="text-sm text-yellow-700">Los equipos deben devolverse a tiempo.</p>
+                        <h5 class="font-bold text-red-800 text-sm">Bloquear Usuario</h5>
+                        <p class="text-sm text-red-700">Desactiva usuarios que incumplan las reglas.</p>
                     </div>
                 </div>
-                <div id="content-faq" class="space-y-4 hidden">
-                    <details class="group"><summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer"><span class="font-bold text-slate-700 text-sm">¿Tiempo de aprobación?</span><svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary><p class="p-3 text-sm text-slate-600">24-48 horas hábiles.</p></details>
-                    <details class="group"><summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer"><span class="font-bold text-slate-700 text-sm">¿Puedo modificar?</span><svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary><p class="p-3 text-sm text-slate-600">Solo si está pendiente.</p></details>
+                <!-- PESTAÑA INVENTARIO -->
+                <div id="content-inventario" class="space-y-4 hidden">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Gestión de Inventario</h4>
+                    <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                        <h5 class="font-bold text-slate-800 mb-2">Gestión de Activos</h5>
+                        <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
+                            <li>Agrega nuevos equipos al inventario</li>
+                            <li>Actualiza cantidades disponibles</li>
+                            <li>Desactiva equipos dañados</li>
+                        </ul>
+                    </div>
+                    <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-100">
+                        <h5 class="font-bold text-slate-800 mb-2">Gestión de Insumos</h5>
+                        <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
+                            <li>Registra consumibles</li>
+                            <li>Controla stock mínimo</li>
+                            <li>Genera reportes de uso</li>
+                        </ul>
+                    </div>
                 </div>
-                <div id="content-contacto" class="space-y-4 hidden">
-                    <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                        <h4 class="font-bold text-slate-800 mb-2">Administrador</h4>
-                        <a href="mailto:hmoram@utn.ac.cr" class="inline-flex items-center gap-2 px-4 py-2 bg-[#002D62] text-white rounded-lg text-sm font-bold">hmoram@utn.ac.cr</a>
+                <!-- PESTAÑA DOCENTES -->
+                <div id="content-docentes" class="space-y-4 hidden">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Solicitudes de Docentes</h4>
+                    <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                        <h5 class="font-bold text-slate-800 mb-2">Proceso de Aprobación</h5>
+                        <ul class="list-disc list-inside space-y-2 text-sm text-slate-600">
+                            <li><strong>Prioridad:</strong> Las solicitudes de docentes tienen prioridad de revisión.</li>
+                            <li><strong>Verificación:</strong> Confirmar disponibilidad del equipo solicitado antes de aprobar.</li>
+                            <li><strong>Notificación:</strong> Enviar correo al docente confirmando aprobación y fecha de recogida.</li>
+                            <li><strong>Préstamo extendido:</strong> Los docentes pueden solicitar préstamos por períodos más largos.</li>
+                            <li><strong>Responsabilidad:</strong> El docente asume responsabilidad total del equipo prestado.</li>
+                        </ul>
+                    </div>
+                    <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                        <h5 class="font-bold text-slate-800 mb-2">Carga Masiva de Docentes (CSV)</h5>
+                        <p class="text-sm text-slate-600 mb-2">Para aprobar docentes vía archivo CSV:</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-slate-600">
+                            <li>Formato CSV con columnas: nombre, correo, cédula, departamento</li>
+                            <li>El rol se asigna automáticamente como "docente"</li>
+                            <li>Verificar que los correos sean del dominio @utn.ac.cr</li>
+                            <li>Las contraseñas temporales se envían por correo automáticamente</li>
+                            <li>Revisar el archivo antes de subir para evitar errores de formato</li>
+                        </ul>
+                    </div>
+                    <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                        <h5 class="font-bold text-slate-800 mb-2">Consideraciones Especiales</h5>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-slate-600">
+                            <li>Verificar identidad del docente antes de entregar el equipo</li>
+                            <li>Registrar propósito del préstamo (clase, laboratorio, proyecto)</li>
+                            <li>Ofrecer asistencia técnica si es necesario</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -745,6 +866,8 @@
         const paginationContainer = document.getElementById('inPagination');
 
         const filtrados = filtrarInsumos();
+        const imgFiltro = document.getElementById('imagenFiltro')?.value;
+        console.log(`[RENDER] Total filtrados: ${filtrados.length} | Filtro imagen: ${imgFiltro || 'todos'}`);
         count.textContent = filtrados.length;
         loading.classList.add('hidden');
 
@@ -799,8 +922,20 @@
         const badgeClass = estadoClases[estadoKey] || 'badge-elim';
         const stockPct = Math.min(100, ((ins.cantidad || 0) / 50) * 100);
         const stockColor = ins.cantidad <= 0 ? 'bg-red-400' : ins.cantidad <= 5 ? 'bg-amber-400' : 'bg-emerald-400';
-        const img = ins.imagenUrl ? `<img src="${ins.imagenUrl}" alt="${ins.NombProducto}" class="w-full h-full object-cover cursor-zoom-in hover:opacity-90 transition-opacity" onclick="event.stopPropagation(); window.verImagenCompleta(this.src, '${(ins.NombProducto || 'Insumo').replace(/'/g, "\\'")}')" onerror="this.parentNode.innerHTML='<svg class=\'w-7 h-7 text-slate-300\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10\'></path></svg>'">` 
-            : `<svg class="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>`;
+        // Detectar si tiene foto válida para mostrar placeholder o imagen
+        const url = (ins.imagenUrl || '').trim();
+        const isValidUrl = url && url.length > 10 &&
+                           (url.startsWith('http://') || url.startsWith('https://')) &&
+                           !url.includes('placeholder') &&
+                           !url.includes('Sin+Imagen') &&
+                           !url.includes('undefined') &&
+                           !url.includes('null');
+        const hasImgUrl = isValidUrl;
+        // Generar ID único para este item
+        const imgId = `img-${ins._id || Math.random().toString(36).substr(2, 9)}`;
+        const img = hasImgUrl
+            ? `<div class="w-full h-full relative"><img id="${imgId}" src="${ins.imagenUrl}" alt="${ins.NombProducto}" class="absolute inset-0 w-full h-full object-cover cursor-zoom-in hover:opacity-90 transition-opacity" onclick="event.stopPropagation(); window.verImagenCompleta(this.src, '${(ins.NombProducto || 'Insumo').replace(/'/g, "\\'")}')" onerror="window.marcarImagenRota('${imgId}', '${ins._id}')"></div>`
+            : `<div class="w-full h-full flex items-center justify-center relative"><svg class="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg></div>`;
 
         return `
         <div class="item-card p-5 fade-up" style="animation-delay:${i*40}ms" onclick="abrirDrawer('${ins._id}')">
@@ -830,9 +965,32 @@
         </div>`;
     }
 
+    // ----- UTILIDADES -----
+    // Función global para marcar imágenes rotas cuando el onerror se dispara
+    window.marcarImagenRota = function(imgId, itemId) {
+        const img = document.getElementById(imgId);
+        if (!img) return;
+        
+        // Ocultar la imagen rota
+        img.style.display = 'none';
+        
+        // Crear placeholder y agregarlo al padre
+        const placeholder = document.createElement('div');
+        placeholder.className = 'w-full h-full flex items-center justify-center bg-amber-50';
+        placeholder.innerHTML = `<svg class="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
+        img.parentElement?.appendChild(placeholder);
+        
+        // Guardar en el item que la imagen está rota
+        const item = todosLosInsumos.find(i => i._id === itemId);
+        if (item) {
+            item._imagenRota = true;
+            console.log(`[IMAGEN ROTA] ${item.NombProducto} - URL: ${item.imagenUrl?.substring(0, 50)}...`);
+        }
+    };
+
     // ----- FILTROS -----
     function setupFiltros() {
-        ['busquedaInput','tipoFiltro','categoriaFiltro','stockFiltro'].forEach(id => {
+        ['busquedaInput','categoriaFiltro','stockFiltro','imagenFiltro'].forEach(id => {
             document.getElementById(id)?.addEventListener('input', () => renderInsumos(1));
             document.getElementById(id)?.addEventListener('change', () => renderInsumos(1));
         });
@@ -840,27 +998,74 @@
 
     function filtrarInsumos() {
         const q = (document.getElementById('busquedaInput')?.value || '').toLowerCase();
-        const tipo = document.getElementById('tipoFiltro')?.value || '';
         const cat = document.getElementById('categoriaFiltro')?.value || '';
         const stock = document.getElementById('stockFiltro')?.value || '';
+        const img = document.getElementById('imagenFiltro')?.value || '';
+
+        // Auditoría: verificar todos los items cuando se aplica filtro de imagen
+        if (img === 'sin-foto' && todosLosInsumos.length > 0) {
+            console.log('=== AUDITORÍA DE FOTOS ===');
+            const problemas = todosLosInsumos.filter(ins => {
+                const url = String(ins.imagenUrl || '').trim();
+                const dominiosSospechosos = ['vistronica.com', 'cdtechnologia.net', 'placeholder.com', 'example.com'];
+                const hasUrl = url.length > 10;
+                const startsHttp = hasUrl && (url.startsWith('http://') || url.startsWith('https://'));
+                const isValidUrl = hasUrl && startsHttp && !url.includes('placeholder');
+                const esDominioSospechoso = dominiosSospechosos.some(d => url.includes(d));
+                const imagenRota = ins._imagenRota === true;
+                return !isValidUrl || esDominioSospechoso || imagenRota || !hasUrl;
+            });
+            console.log(`Total items: ${todosLosInsumos.length}`);
+            console.log(`Items con problemas: ${problemas.length}`);
+            console.log('Nombres:', problemas.map(i => i.NombProducto).join(', '));
+        }
 
         return todosLosInsumos.filter(ins => {
             if (ins.estado === 'eliminado') return false;
             if (q && ![(ins.NombProducto||''), (ins.codigo||''), (ins.caracteristicas||'')].some(v => v.toLowerCase().includes(q))) return false;
-            if (tipo && (ins.tipo || '').toLowerCase() !== tipo) return false;
             if (cat && ins.categoria !== cat) return false;
             if (stock === 'disponible' && (ins.cantidad||0) <= 0) return false;
             if (stock === 'bajo' && ((ins.cantidad||0) <= 0 || (ins.cantidad||0) > 5)) return false;
             if (stock === 'sin' && (ins.cantidad||0) > 0) return false;
+            if (img) {
+                // Detectar si tiene foto válida - URLs vacías, null, placeholder, muy cortas, o picsum inválido
+                const rawUrl = ins.imagenUrl;
+                const url = String(rawUrl || '').trim();
+                const hasUrl = !!url && url.length > 10;
+                const startsWithHttp = hasUrl && (url.startsWith('http://') || url.startsWith('https://'));
+                const isValidUrl = !!(hasUrl &&
+                                   startsWithHttp &&
+                                   !url.includes('placeholder') &&
+                                   !url.includes('Sin+Imagen') &&
+                                   !url.includes('undefined') &&
+                                   !url.includes('null') &&
+                                   !url.includes('localhost'));
+                // Si es picsum, validar formato correcto
+                const isValidPicsum = !url.includes('picsum.photos') ||
+                                      (url.includes('/seed/') && url.includes('.jpg'));
+                const hasImg = isValidUrl && isValidPicsum;
+                // Dominios conocidos que frecuentemente devuelven 404
+                const dominiosSospechosos = ['vistronica.com', 'cdtechnologia.net', 'placeholder.com', 'example.com', 'via.placeholder.com'];
+                const esDominioSospechoso = dominiosSospechosos.some(d => url.includes(d));
+                // Si el item fue marcado como imagen rota por onerror, también cuenta como "sin foto"
+                const imagenRota = ins._imagenRota === true;
+                const efectivamenteSinFoto = !hasImg || imagenRota || esDominioSospechoso;
+                // DEBUG: Log items filtrados por imagen
+                if (img === 'sin-foto' && efectivamenteSinFoto) {
+                    console.log('[DEBUG] Insumo SIN FOTO:', ins.NombProducto, '| dominioSospechoso:', esDominioSospechoso, '| imagenRota:', imagenRota, '| raw:', String(rawUrl).substring(0, 40));
+                }
+                if (img === 'sin-foto' && !efectivamenteSinFoto) return false;
+                if (img === 'con-foto' && efectivamenteSinFoto) return false;
+            }
             return true;
         });
     }
 
     function limpiarFiltros() {
         document.getElementById('busquedaInput').value = '';
-        document.getElementById('tipoFiltro').value = '';
         document.getElementById('categoriaFiltro').value = '';
         document.getElementById('stockFiltro').value = '';
+        document.getElementById('imagenFiltro').value = '';
         renderInsumos();
     }
 
@@ -904,16 +1109,40 @@
         const fecha = ins.createdAt ? new Date(ins.createdAt).toLocaleDateString('es-CR', {day:'2-digit',month:'short',year:'numeric'}) : '-';
         document.getElementById('drawerFecha').textContent = fecha;
 
-        // Imagen
+        // Imagen con manejo de errores
         const img = document.getElementById('drawerImg');
         const placeholder = document.getElementById('drawerImgPlaceholder');
+        const imgErrorBadge = document.getElementById('drawerImgErrorBadge') || createErrorBadge();
+        
         if (ins.imagenUrl) {
             img.src = ins.imagenUrl;
             img.classList.remove('hidden');
             placeholder.classList.add('hidden');
+            imgErrorBadge?.classList.add('hidden');
+            // Agregar onerror dinámicamente
+            img.onerror = function() {
+                this.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                imgErrorBadge?.classList.remove('hidden');
+                console.log(`[DRAWER IMAGEN ROTA] ${ins.NombProducto}`);
+            };
+            img.onload = function() {
+                // Imagen cargó correctamente
+                imgErrorBadge?.classList.add('hidden');
+            };
         } else {
             img.classList.add('hidden');
             placeholder.classList.remove('hidden');
+            imgErrorBadge?.classList.add('hidden');
+        }
+        
+        function createErrorBadge() {
+            const badge = document.createElement('div');
+            badge.id = 'drawerImgErrorBadge';
+            badge.className = 'absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-lg shadow-lg hidden';
+            badge.innerHTML = '⚠️ Imagen no disponible';
+            img.parentElement?.appendChild(badge);
+            return badge;
         }
 
         // Historial
@@ -1436,6 +1665,157 @@
             Swal.fire({ toast: true, position: 'top-end', icon: tipo, title: msg, showConfirmButton: false, timer: 2800, timerProgressBar: true });
         } else {
             alert(msg);
+        }
+    }
+
+    // ----- MODAL SUBIR IMÁGENES MASIVAMENTE -----
+    let selectedFiles = [];
+    let itemsSinFoto = [];
+
+    function abrirModalBulkImages() {
+        const modal = document.getElementById('modalBulkImages');
+        const box = document.getElementById('modalBulkImagesBox');
+        
+        // Cargar items sin foto
+        cargarItemsSinFoto();
+        
+        modal?.classList.remove('opacity-0', 'pointer-events-none');
+        box?.classList.remove('scale-95');
+        box?.classList.add('scale-100');
+    }
+
+    function cerrarModalBulkImages() {
+        const modal = document.getElementById('modalBulkImages');
+        const box = document.getElementById('modalBulkImagesBox');
+        
+        modal?.classList.add('opacity-0', 'pointer-events-none');
+        box?.classList.add('scale-95');
+        box?.classList.remove('scale-100');
+        
+        // Limpiar
+        selectedFiles = [];
+        document.getElementById('bulkImagesInput').value = '';
+        document.getElementById('bulkImagesPreview').innerHTML = '';
+    }
+
+    function cargarItemsSinFoto() {
+        // Filtrar items sin foto
+        itemsSinFoto = todosLosInsumos.filter(ins => {
+            const url = String(ins.imagenUrl || '').trim();
+            const dominiosSospechosos = ['vistronica.com', 'cdtechnologia.net', 'placeholder.com', 'example.com'];
+            const hasUrl = url.length > 10;
+            const startsHttp = hasUrl && (url.startsWith('http://') || url.startsWith('https://'));
+            const isValidUrl = hasUrl && startsHttp && !url.includes('placeholder');
+            const esDominioSospechoso = dominiosSospechosos.some(d => url.includes(d));
+            const imagenRota = ins._imagenRota === true;
+            return !isValidUrl || esDominioSospechoso || imagenRota || !hasUrl;
+        });
+        
+        const listContainer = document.getElementById('bulkImagesItemsList');
+        if (itemsSinFoto.length === 0) {
+            listContainer.innerHTML = '<p class="text-sm text-slate-400 italic">No hay items sin foto</p>';
+            return;
+        }
+        
+        listContainer.innerHTML = itemsSinFoto.map((item, idx) => `
+            <div class="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-mono text-slate-400">${idx + 1}</span>
+                    <span class="text-sm font-medium text-slate-700">${item.NombProducto || 'Sin nombre'}</span>
+                </div>
+                <span class="text-xs text-slate-400">${item.codigo || '-'}</span>
+            </div>
+        `).join('');
+    }
+
+    function previewBulkImages(input) {
+        const files = Array.from(input.files);
+        selectedFiles = files;
+        const previewContainer = document.getElementById('bulkImagesPreview');
+        
+        previewContainer.innerHTML = files.map((file, idx) => `
+            <div class="relative bg-slate-100 rounded-xl overflow-hidden aspect-square">
+                <img src="${URL.createObjectURL(file)}" class="w-full h-full object-cover" alt="Preview ${idx + 1}">
+                <div class="absolute top-1 right-1 bg-black/50 text-white text-xs px-2 py-1 rounded-full">${idx + 1}</div>
+            </div>
+        `).join('');
+        
+        // Mostrar cuántas imágenes vs items
+        if (files.length > 0 && itemsSinFoto.length > 0) {
+            mostrarToast(`${files.length} imagen(es) seleccionada(s) para ${itemsSinFoto.length} item(s) sin foto`, 'info');
+        }
+    }
+
+    async function subirBulkImages() {
+        if (selectedFiles.length === 0) {
+            mostrarToast('Selecciona al menos una imagen', 'error');
+            return;
+        }
+        
+        if (itemsSinFoto.length === 0) {
+            mostrarToast('No hay items sin foto para asociar', 'error');
+            return;
+        }
+        
+        showLoading(true);
+        
+        try {
+            const formData = new FormData();
+            selectedFiles.forEach((file, idx) => {
+                formData.append(`imagen${idx}`, file);
+            });
+            formData.append('cantidad', selectedFiles.length);
+            
+            // Subir imágenes al servidor
+            const response = await fetch('/api/upload/imagenes', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
+            
+            if (!response.ok) throw new Error('Error al subir imágenes');
+            
+            const result = await response.json();
+            
+            // Asociar URLs con items (primera imagen con primer item, etc.)
+            const actualizaciones = [];
+            for (let i = 0; i < Math.min(result.urls.length, itemsSinFoto.length); i++) {
+                actualizaciones.push({
+                    id: itemsSinFoto[i]._id,
+                    imagenUrl: result.urls[i]
+                });
+            }
+            
+            // Actualizar items en paralelo
+            const updatePromises = actualizaciones.map(async (upd) => {
+                const res = await fetch(`/api/insumos/${upd.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ imagenUrl: upd.imagenUrl })
+                });
+                return res.ok;
+            });
+            
+            const results = await Promise.all(updatePromises);
+            const exitosos = results.filter(r => r).length;
+            
+            mostrarToast(`${exitosos} item(s) actualizado(s) con nuevas imágenes`, 'success');
+            
+            // Recargar datos
+            await cargarInsumos();
+            cerrarModalBulkImages();
+            renderInsumos();
+            
+        } catch (error) {
+            console.error('Error subiendo imágenes:', error);
+            mostrarToast('Error al subir imágenes: ' + error.message, 'error');
+        } finally {
+            showLoading(false);
         }
     }
     </script>

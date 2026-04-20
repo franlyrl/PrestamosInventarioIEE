@@ -122,6 +122,14 @@
                     </select>
                 </div>
                 <div>
+                    <label class="f-label">Imagen</label>
+                    <select id="imagenFiltro" class="f-input">
+                        <option value="">Todos</option>
+                        <option value="sin-foto">Fotos sin cargar</option>
+                        <option value="con-foto">Con foto</option>
+                    </select>
+                </div>
+                <div>
                     <button onclick="limpiarFiltros()" class="w-full px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Limpiar</button>
                 </div>
             </div>
@@ -175,7 +183,7 @@
                 <div class="flex gap-4 items-start">
                     <div class="w-24 h-24 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center flex-shrink-0 border border-slate-200">
                         <svg id="drawerImgPlaceholder" class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
-                        <img id="drawerImg" src="" alt="" class="w-full h-full object-cover hidden cursor-zoom-in hover:opacity-90 transition-opacity" onclick="window.verImagenCompleta(this.src, document.getElementById('drawerNombre').textContent)">
+                        <img id="drawerImg" src="" alt="" class="w-full h-full object-cover hidden cursor-zoom-in hover:opacity-90 transition-opacity" onclick="window.verImagenCompleta(this.src, document.getElementById('drawerNombre').textContent)" onerror="this.classList.add('hidden'); document.getElementById('drawerImgPlaceholder').classList.remove('hidden');">
                     </div>
                     <div class="flex-1">
                         <span id="drawerEstadoBadge" class="badge badge-disp mb-2">Disponible</span>
@@ -479,6 +487,139 @@
         </button>
     </div>
 
+    <!-- MODAL DE AYUDA CON PESTAÑAS -->
+    <div id="helpModal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
+            <div class="bg-gradient-to-r from-[#002D62] to-[#004a8f] p-4 flex items-center justify-between">
+                <h3 class="text-white font-bold text-lg flex items-center gap-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Centro de Ayuda SPIEE
+                </h3>
+                <button onclick="toggleHelpModal()" class="text-white/80 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="flex border-b border-slate-200 bg-slate-50 overflow-x-auto">
+                <button onclick="showHelpTab('insumos')" id="tab-insumos" class="flex-1 py-3 px-3 text-xs font-bold text-[#002D62] border-b-2 border-[#002D62] bg-white transition whitespace-nowrap">Cargar</button>
+                <button onclick="showHelpTab('solicitudes')" id="tab-solicitudes" class="flex-1 py-3 px-3 text-xs font-bold text-slate-500 hover:text-[#002D62] transition whitespace-nowrap">Solicitudes</button>
+                <button onclick="showHelpTab('usuarios')" id="tab-usuarios" class="flex-1 py-3 px-3 text-xs font-bold text-slate-500 hover:text-[#002D62] transition whitespace-nowrap">Usuarios</button>
+                <button onclick="showHelpTab('inventario')" id="tab-inventario" class="flex-1 py-3 px-3 text-xs font-bold text-slate-500 hover:text-[#002D62] transition whitespace-nowrap">Inventario</button>
+                <button onclick="showHelpTab('docentes')" id="tab-docentes" class="flex-1 py-3 px-3 text-xs font-bold text-slate-500 hover:text-[#002D62] transition whitespace-nowrap">Docentes</button>
+            </div>
+            <div class="p-5 overflow-y-auto max-h-[50vh]">
+                <!-- PESTAÑA INSUMOS -->
+                <div id="content-insumos" class="space-y-4">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Módulo de Insumos y Activos</h4>
+                    <ul class="list-disc list-inside space-y-2 text-sm text-slate-600">
+                        <li><strong>Gestión de Artículos:</strong> Visualizar, editar, cambiar estados, eliminar y gestionar imágenes.</li>
+                        <li><strong>Carga Masiva:</strong> Subir artículos vía CSV y XLSX.</li>
+                        <li><strong>Registro Individual:</strong> Añadir artículos manualmente con el formato requerido.</li>
+                        <li><strong>Imágenes:</strong> Añadir fotos reales mediante enlaces.</li>
+                        <li><strong>Estadísticas:</strong> Reportes detallados en el apartado correspondiente.</li>
+                    </ul>
+                </div>
+                <!-- PESTAÑA SOLICITUDES -->
+                <div id="content-solicitudes" class="space-y-4 hidden">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Módulo de Solicitudes</h4>
+                    <ul class="list-disc list-inside space-y-2 text-sm text-slate-600">
+                        <li><strong>Integridad:</strong> No se pueden eliminar solicitudes, solo gestionarlas.</li>
+                        <li><strong>Rechazo:</strong> Obligatorio especificar razón válida al rechazar.</li>
+                        <li><strong>Devolución:</strong> Al recibir el equipo físico, marcar como "Devuelta".</li>
+                        <li><strong>Comunicación:</strong> Notificar vía correo al aprobar o enviar recordatorios.</li>
+                        <li><strong>Fechas:</strong> Configurar fecha de recogida y límite de devolución.</li>
+                    </ul>
+                    <div class="p-4 bg-red-50 rounded-lg border border-red-200 mt-4">
+                        <h5 class="font-bold text-slate-800 mb-2">Penalizaciones y Sanciones</h5>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-slate-600">
+                            <li><strong>Retraso:</strong> Aplicar sanción si el usuario no devuelve el equipo a tiempo.</li>
+                            <li><strong>Daños:</strong> Reportar y sancionar por daños causados al equipo.</li>
+                            <li><strong>Pérdida:</strong> El usuario es responsable del costo de reposición.</li>
+                            <li><strong>Suspensión:</strong> Bloquear usuario reincidente temporal o permanentemente.</li>
+                            <li><strong>Notificación:</strong> Informar al usuario sobre la sanción aplicada.</li>
+                        </ul>
+                    </div>
+                    <div class="mt-4 space-y-2">
+                        <details class="group"><summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer"><span class="font-bold text-slate-700 text-sm">¿Cómo aprobar?</span><svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary><p class="p-3 text-sm text-slate-600">Haz clic en "Aprobar" y asigna fecha de entrega.</p></details>
+                        <details class="group"><summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer"><span class="font-bold text-slate-700 text-sm">¿Cómo rechazar?</span><svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary><p class="p-3 text-sm text-slate-600">Selecciona "Rechazar" e indica el motivo.</p></details>
+                    </div>
+                </div>
+                <!-- PESTAÑA USUARIOS -->
+                <div id="content-usuarios" class="space-y-3 hidden">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Gestión de Usuarios</h4>
+                    <div class="p-3 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                        <h5 class="font-bold text-blue-800 text-sm">Crear Usuario</h5>
+                        <p class="text-sm text-blue-700">Completa el formulario con nombre, correo y rol.</p>
+                    </div>
+                    <div class="p-3 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                        <h5 class="font-bold text-green-800 text-sm">Editar Permisos</h5>
+                        <p class="text-sm text-green-700">Cambia entre estudiante, docente o administrador.</p>
+                    </div>
+                    <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+                        <h5 class="font-bold text-red-800 text-sm">Bloquear Usuario</h5>
+                        <p class="text-sm text-red-700">Desactiva usuarios que incumplan las reglas.</p>
+                    </div>
+                </div>
+                <!-- PESTAÑA INVENTARIO -->
+                <div id="content-inventario" class="space-y-4 hidden">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Gestión de Inventario</h4>
+                    <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                        <h5 class="font-bold text-slate-800 mb-2">Gestión de Activos</h5>
+                        <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
+                            <li>Agrega nuevos equipos al inventario</li>
+                            <li>Actualiza cantidades disponibles</li>
+                            <li>Desactiva equipos dañados</li>
+                        </ul>
+                    </div>
+                    <div class="p-4 bg-emerald-50 rounded-lg border border-emerald-100">
+                        <h5 class="font-bold text-slate-800 mb-2">Gestión de Insumos</h5>
+                        <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
+                            <li>Registra consumibles</li>
+                            <li>Controla stock mínimo</li>
+                            <li>Genera reportes de uso</li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- PESTAÑA DOCENTES -->
+                <div id="content-docentes" class="space-y-4 hidden">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Solicitudes de Docentes</h4>
+                    <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                        <h5 class="font-bold text-slate-800 mb-2">Proceso de Aprobación</h5>
+                        <ul class="list-disc list-inside space-y-2 text-sm text-slate-600">
+                            <li><strong>Prioridad:</strong> Las solicitudes de docentes tienen prioridad de revisión.</li>
+                            <li><strong>Verificación:</strong> Confirmar disponibilidad del equipo solicitado antes de aprobar.</li>
+                            <li><strong>Notificación:</strong> Enviar correo al docente confirmando aprobación y fecha de recogida.</li>
+                            <li><strong>Préstamo extendido:</strong> Los docentes pueden solicitar préstamos por períodos más largos.</li>
+                            <li><strong>Responsabilidad:</strong> El docente asume responsabilidad total del equipo prestado.</li>
+                        </ul>
+                    </div>
+                    <div class="p-4 bg-green-50 rounded-lg border border-green-200">
+                        <h5 class="font-bold text-slate-800 mb-2">Carga Masiva de Docentes (CSV)</h5>
+                        <p class="text-sm text-slate-600 mb-2">Para aprobar docentes vía archivo CSV:</p>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-slate-600">
+                            <li>Formato CSV con columnas: nombre, correo, cédula, departamento</li>
+                            <li>El rol se asigna automáticamente como "docente"</li>
+                            <li>Verificar que los correos sean del dominio @utn.ac.cr</li>
+                            <li>Las contraseñas temporales se envían por correo automáticamente</li>
+                            <li>Revisar el archivo antes de subir para evitar errores de formato</li>
+                        </ul>
+                    </div>
+                    <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                        <h5 class="font-bold text-slate-800 mb-2">Consideraciones Especiales</h5>
+                        <ul class="list-disc list-inside space-y-1 text-sm text-slate-600">
+                            <li>Verificar identidad del docente antes de entregar el equipo</li>
+                            <li>Registrar propósito del préstamo (clase, laboratorio, proyecto)</li>
+                            <li>Ofrecer asistencia técnica si es necesario</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     
 
     <script>
@@ -654,9 +795,19 @@
         const stripClass = stripClases[ac.estadoActivo] || 'strip-elim';
         const badgeClases = { 'disponible':'badge-disp','prestado':'badge-prest','en espera':'badge-mant','fuera de stock':'badge-fuera','fuera de servicio':'badge-fuera','eliminado':'badge-elim' };
         const badgeClass = badgeClases[ac.estadoActivo] || 'badge-elim';
-        const img = ac.imagenUrl && ac.imagenUrl !== 'https://via.placeholder.com/150?text=Sin+Imagen'
-            ? `<img src="${ac.imagenUrl}" alt="${ac.modelo}" class="w-full h-full object-cover cursor-zoom-in hover:opacity-90 transition-opacity" onclick="event.stopPropagation(); window.verImagenCompleta(this.src, '${(ac.marca + ' ' + ac.modelo).replace(/'/g, "\\'")}')" onerror="this.style.display='none'">`
-            : `<svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>`;
+        // Detectar si tiene foto válida para mostrar placeholder o imagen
+        const url = (ac.imagenUrl || '').trim();
+        const isValidUrl = url && url.length > 10 &&
+                           (url.startsWith('http://') || url.startsWith('https://')) &&
+                           !url.includes('placeholder') &&
+                           !url.includes('Sin+Imagen') &&
+                           !url.includes('undefined') &&
+                           !url.includes('null');
+        const hasImgUrl = isValidUrl;
+        const imgId = `img-act-${ac._id || Math.random().toString(36).substr(2, 9)}`;
+        const img = hasImgUrl
+            ? `<div class="w-full h-full relative overflow-hidden"><img id="${imgId}" src="${ac.imagenUrl}" alt="${ac.modelo}" class="absolute inset-0 w-full h-full object-cover cursor-zoom-in hover:opacity-90 transition-opacity" onclick="event.stopPropagation(); window.verImagenCompleta(this.src, '${(ac.marca + ' ' + ac.modelo).replace(/'/g, "\\'")}')" onerror="window.marcarImagenRotaActivo('${imgId}', '${ac._id}')"><div id="fallback-${imgId}" class="absolute inset-0 flex items-center justify-center bg-amber-50 hidden"><svg class="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div></div>`
+            : `<div class="w-full h-full flex items-center justify-center bg-slate-100"><svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg></div>`;
 
         return `
         <div class="item-card overflow-hidden fade-up" style="animation-delay:${i*40}ms" onclick="abrirDrawer('${ac._id}')">
@@ -683,9 +834,27 @@
         </div>`;
     }
 
+    // ----- UTILIDADES -----
+    // Función global para marcar imágenes rotas en activos
+    window.marcarImagenRotaActivo = function(imgId, activoId) {
+        const img = document.getElementById(imgId);
+        const fallback = document.getElementById(`fallback-${imgId}`);
+        
+        // Ocultar imagen y mostrar fallback (ahora son hermanos dentro del mismo contenedor)
+        if (img) img.classList.add('hidden');
+        if (fallback) fallback.classList.remove('hidden');
+        
+        // Guardar en el item que la imagen está rota
+        const item = todosLosActivos.find(a => a._id === activoId);
+        if (item) {
+            item._imagenRota = true;
+            console.log(`[ACTIVO IMAGEN ROTA] ${item.marca} ${item.modelo} - URL: ${item.imagenUrl?.substring(0, 50)}...`);
+        }
+    };
+
     // ----- FILTROS -----
     function setupFiltros() {
-        ['busquedaInput','categoriaFiltro','estadoFiltro'].forEach(id => {
+        ['busquedaInput','categoriaFiltro','estadoFiltro','imagenFiltro'].forEach(id => {
             document.getElementById(id)?.addEventListener('input', () => renderActivos(1));
             document.getElementById(id)?.addEventListener('change', () => renderActivos(1));
         });
@@ -695,19 +864,49 @@
         const q = (document.getElementById('busquedaInput')?.value || '').toLowerCase();
         const cat = document.getElementById('categoriaFiltro')?.value || '';
         const est = document.getElementById('estadoFiltro')?.value || '';
+        const img = document.getElementById('imagenFiltro')?.value || '';
 
         return todosLosActivos.filter(ac => {
             if (ac.estadoActivo === 'eliminado') return false;
-            const texto = [(ac.marca||''),(ac.modelo||''),(ac.numSerie||''),(ac.caracteristicas||''),String(ac.numActivo||'')].join(' ').toLowerCase();
-            if (q && !texto.includes(q)) return false;
+            if (q && !(`${ac.marca} ${ac.modelo} ${ac.numActivo} ${ac.numSerie}`.toLowerCase().includes(q))) return false;
             if (cat && ac.categoria !== cat) return false;
             if (est && ac.estadoActivo !== est) return false;
+            if (img) {
+                // Detectar si tiene foto válida - URLs vacías, null, placeholder, muy cortas, o picsum inválido
+                const rawUrl = ac.imagenUrl;
+                const url = String(rawUrl || '').trim();
+                const hasUrl = !!url && url.length > 10;
+                const startsWithHttp = hasUrl && (url.startsWith('http://') || url.startsWith('https://'));
+                const isValidUrl = !!(hasUrl &&
+                                   startsWithHttp &&
+                                   !url.includes('placeholder') &&
+                                   !url.includes('Sin+Imagen') &&
+                                   !url.includes('undefined') &&
+                                   !url.includes('null') &&
+                                   !url.includes('localhost'));
+                // Si es picsum, validar formato correcto
+                const isValidPicsum = !url.includes('picsum.photos') ||
+                                      (url.includes('/seed/') && url.includes('.jpg'));
+                const hasImg = isValidUrl && isValidPicsum;
+                // Dominios conocidos que frecuentemente devuelven 404
+                const dominiosSospechosos = ['vistronica.com', 'cdtechnologia.net', 'placeholder.com', 'example.com', 'via.placeholder.com'];
+                const esDominioSospechoso = dominiosSospechosos.some(d => url.includes(d));
+                // Si el item fue marcado como imagen rota por onerror, también cuenta como "sin foto"
+                const imagenRota = ac._imagenRota === true;
+                const efectivamenteSinFoto = !hasImg || imagenRota || esDominioSospechoso;
+                // DEBUG: Log items filtrados por imagen
+                if (img === 'sin-foto' && efectivamenteSinFoto) {
+                    console.log('[DEBUG] Activo SIN FOTO:', ac.marca, ac.modelo, '| hasUrl:', hasUrl, '| imagenRota:', imagenRota, '| raw:', String(rawUrl).substring(0, 30));
+                }
+                if (img === 'sin-foto' && !efectivamenteSinFoto) return false;
+                if (img === 'con-foto' && efectivamenteSinFoto) return false;
+            }
             return true;
         });
     }
 
     function limpiarFiltros() {
-        ['busquedaInput','categoriaFiltro','estadoFiltro'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+        ['busquedaInput','categoriaFiltro','estadoFiltro','imagenFiltro'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
         renderActivos();
     }
 
@@ -747,7 +946,11 @@
 
         const img = document.getElementById('drawerImg');
         const ph = document.getElementById('drawerImgPlaceholder');
-        const hasImg = ac.imagenUrl && ac.imagenUrl !== 'https://via.placeholder.com/150?text=Sin+Imagen';
+        const drawerUrl = (ac.imagenUrl || '').trim();
+        const hasImg = drawerUrl &&
+                       drawerUrl.length > 10 &&
+                       drawerUrl !== 'https://via.placeholder.com/150?text=Sin+Imagen' &&
+                       !drawerUrl.includes('placeholder');
         if (hasImg) { img.src = ac.imagenUrl; img.classList.remove('hidden'); ph.classList.add('hidden'); }
         else { img.classList.add('hidden'); ph.classList.remove('hidden'); }
 

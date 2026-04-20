@@ -325,12 +325,46 @@ function abrirDetalleItem(item) {
             ? { cls: 'bg-amber-100 text-amber-700', txt: 'Bajo stock' }
             : { cls: 'bg-emerald-100 text-emerald-700', txt: 'Disponible' };
 
-    const imgUrl = item.imagenUrl || '';
-    const hasImg = imgUrl && !imgUrl.includes('placeholder');
+    // Sistema de auto-asignación de imágenes basado en categoría y tipo
+    const getAutoImageUrl = (item, tipo, categoria, id) => {
+        // Si tiene imagenUrl válida, usarla
+        if (item.imagenUrl && !item.imagenUrl.includes('placeholder')) {
+            return item.imagenUrl;
+        }
+        
+        // Mapeo de categorías a seeds de imágenes para picsum
+        const categoriaSeeds = {
+            'Instrumentos': 'instrumentos-lab',
+            'Herramientas': 'herramientas-taller',
+            'Componentes Digitales': 'componentes-digital',
+            'Componentes Analógicos': 'componentes-analog',
+            'Electrónica': 'electronica-general',
+            'Consumibles': 'consumibles-lab',
+            'Equipos de Medición': 'equipos-medicion',
+            'Prototipado': 'prototipado-arduino',
+            'Cables y Conectores': 'cables-conectores',
+            'Seguridad': 'seguridad-lab',
+            'Almacenamiento': 'almacenamiento-digital'
+        };
+        
+        // Obtener seed basado en categoría o usar default
+        const categoriaKey = categoria || 'General';
+        const baseSeed = categoriaSeeds[categoriaKey] || (tipo === 'activo' ? 'activo-lab' : 'insumo-lab');
+        
+        // Crear seed única basada en tipo, categoría e ID
+        const uniqueSeed = `${baseSeed}-${id}-${tipo}`.replace(/\s+/g, '-').toLowerCase();
+        
+        return `https://picsum.photos/seed/${uniqueSeed}/400/300.jpg`;
+    };
+    
+    const imgUrl = getAutoImageUrl(item, tipo, categoria, codigo);
+    // Verificar si la imagen guardada parece válida (más de 10 chars, no placeholder)
+    const tieneImagenReal = item.imagenUrl && item.imagenUrl.length > 10 && !item.imagenUrl.includes('placeholder');
 
     content.innerHTML = `
         <div class="relative h-48 bg-slate-900 group">
-            ${hasImg ? `<img src="${imgUrl}" class="w-full h-full object-cover opacity-80 cursor-zoom-in transition-opacity hover:opacity-100" onclick="window.verImagenCompleta(this.src, '${nombre}')" title="Hacer clic para ampliar">` : `<div class="w-full h-full bg-gradient-to-br from-[#002D62] to-[#004daa] flex items-center justify-center"><svg class="w-16 h-16 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`}
+            <img id="modalImg" src="${imgUrl}" class="w-full h-full object-cover opacity-80 cursor-zoom-in transition-opacity hover:opacity-100 ${tieneImagenReal ? '' : 'hidden'}" onclick="window.verImagenCompleta(this.src, '${nombre}')" title="Hacer clic para ampliar" onerror="this.onerror=null; this.classList.add('hidden'); document.getElementById('modalImgFallback').classList.remove('hidden');">
+            <div id="modalImgFallback" class="w-full h-full bg-gradient-to-br from-[#002D62] to-[#004daa] flex items-center justify-center ${tieneImagenReal ? 'hidden' : ''}"><svg class="w-16 h-16 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-5 flex flex-col justify-end">
                 <div class="flex justify-between items-start mb-1 absolute top-5 left-5 right-5">
                     <span class="text-[9px] font-black uppercase tracking-widest text-blue-200">${tipo === 'activo' ? '📦 Activo' : '🧪 Consumible'} · ${categoria}</span>
@@ -456,48 +490,87 @@ if (typeof showToast === 'undefined') {
             <div class="flex border-b border-slate-200 bg-slate-50">
                 <button onclick="showHelpTab('uso')" id="tab-uso" class="flex-1 py-3 px-4 text-sm font-bold text-[#002D62] border-b-2 border-[#002D62] bg-white transition">Cómo Usar</button>
                 <button onclick="showHelpTab('reglas')" id="tab-reglas" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">Reglas</button>
-                <button onclick="showHelpTab('faq')" id="tab-faq" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">FAQ</button>
+                <button onclick="showHelpTab('faq')" id="tab-faq" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">Preguntas frecuentes</button>
                 <button onclick="showHelpTab('contacto')" id="tab-contacto" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">Contacto</button>
             </div>
             <div class="p-5 overflow-y-auto max-h-[50vh]">
                 <div id="content-uso" class="space-y-4">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Cómo Usar el Sistema</h4>
                     <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                         <span class="flex-shrink-0 w-8 h-8 text-white rounded-full flex items-center justify-center font-bold text-sm" style="background-color: #f59e0b">1</span>
                         <div>
-                            <h4 class="font-bold text-slate-800">Busca equipos</h4>
-                            <p class="text-sm text-slate-600">Usa el buscador o navega por categorías.</p>
+                            <h4 class="font-bold text-slate-800">Carrito de Compras</h4>
+                            <p class="text-sm text-slate-600">Añade al carrito los productos que necesites solicitar.</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                         <span class="flex-shrink-0 w-8 h-8 text-white rounded-full flex items-center justify-center font-bold text-sm" style="background-color: #f59e0b">2</span>
                         <div>
-                            <h4 class="font-bold text-slate-800">Añade al carrito</h4>
-                            <p class="text-sm text-slate-600">Haz clic en "+" para agregar hasta 2 artículos.</p>
+                            <h4 class="font-bold text-slate-800">Lista de Espera</h4>
+                            <p class="text-sm text-slate-600">Si el equipo no está en stock, pasarás automáticamente a una lista de espera (siempre que el tiempo de espera sea razonable).</p>
                         </div>
                     </div>
                     <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
                         <span class="flex-shrink-0 w-8 h-8 text-white rounded-full flex items-center justify-center font-bold text-sm" style="background-color: #f59e0b">3</span>
                         <div>
-                            <h4 class="font-bold text-slate-800">Confirma solicitud</h4>
-                            <p class="text-sm text-slate-600">Revisa y envía tu solicitud.</p>
+                            <h4 class="font-bold text-slate-800">Cancelaciones</h4>
+                            <p class="text-sm text-slate-600">Puedes cancelar una solicitud únicamente si aún se encuentra en estado "Pendiente" y no ha sido procesada por el encargado.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                        <span class="flex-shrink-0 w-8 h-8 text-white rounded-full flex items-center justify-center font-bold text-sm" style="background-color: #f59e0b">4</span>
+                        <div>
+                            <h4 class="font-bold text-slate-800">Notificaciones</h4>
+                            <p class="text-sm text-slate-600">Recibirás correos electrónicos de <a href="mailto:hmoram@utn.ac.cr" class="text-blue-600 underline">hmoram@utn.ac.cr</a> (Hary Andrey Mora Mendiola) cuando tu solicitud sea aprobada o cuando el plazo de devolución esté por vencer.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                        <span class="flex-shrink-0 w-8 h-8 text-white rounded-full flex items-center justify-center font-bold text-sm" style="background-color: #f59e0b">5</span>
+                        <div>
+                            <h4 class="font-bold text-slate-800">Historial</h4>
+                            <p class="text-sm text-slate-600">En el apartado de "Préstamos" puedes visualizar el detalle y estado de cada una de tus solicitudes.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                        <span class="flex-shrink-0 w-8 h-8 text-white rounded-full flex items-center justify-center font-bold text-sm" style="background-color: #f59e0b">6</span>
+                        <div>
+                            <h4 class="font-bold text-slate-800">Seguridad de Cuenta</h4>
+                            <p class="text-sm text-slate-600">Por políticas de seguridad, las contraseñas se borrarán al finalizar cada cuatrimestre; deberás realizar el cambio de contraseña correspondiente al iniciar el nuevo periodo.</p>
                         </div>
                     </div>
                 </div>
                 <div id="content-reglas" class="space-y-3 hidden">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Especificaciones a Considerar</h4>
                     <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
-                        <h4 class="font-bold text-red-800 text-sm">Máximo 2 artículos</h4>
-                        <p class="text-sm text-red-700">Por solicitud, máximo 2 artículos.</p>
+                        <h4 class="font-bold text-red-800 text-sm">Solicitudes Pendientes</h4>
+                        <p class="text-sm text-red-700">No se permiten nuevas solicitudes si ya tienes una pendiente de aprobación.</p>
                     </div>
                     <div class="p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-lg">
-                        <h4 class="font-bold text-yellow-800 text-sm">Devolución</h4>
-                        <p class="text-sm text-yellow-700">Los equipos deben devolverse a tiempo.</p>
+                        <h4 class="font-bold text-yellow-800 text-sm">Deudas Pendientes</h4>
+                        <p class="text-sm text-yellow-700">No se permiten nuevos préstamos si tienes deudas pendientes o equipo que no ha sido devuelto a tiempo.</p>
+                    </div>
+                    <div class="p-3 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+                        <h4 class="font-bold text-green-800 text-sm">Fechas de Recogida</h4>
+                        <p class="text-sm text-green-700">Al ser aprobada la solicitud, el sistema te indicará la fecha de recogida y la fecha máxima de devolución.</p>
                     </div>
                 </div>
                 <div id="content-faq" class="space-y-4 hidden">
-                    <details class="group"><summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer"><span class="font-bold text-slate-700 text-sm">¿Tiempo de aprobación?</span><svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary><p class="p-3 text-sm text-slate-600">24-48 horas hábiles.</p></details>
-                    <details class="group"><summary class="flex items-center justify-between p-3 bg-slate-50 rounded-lg cursor-pointer"><span class="font-bold text-slate-700 text-sm">¿Puedo modificar?</span><svg class="w-5 h-5 text-slate-400 group-open:rotate-180 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></summary><p class="p-3 text-sm text-slate-600">Solo si está pendiente.</p></details>
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Información Adicional Importante</h4>
+                    <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                        <h5 class="font-bold text-slate-800 mb-2">1. Revisión Obligatoria</h5>
+                        <p class="text-sm text-slate-600">Al recibir el equipo, verifica su estado físico. Cualquier daño no reportado al inicio será responsabilidad del usuario.</p>
+                    </div>
+                    <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                        <h5 class="font-bold text-slate-800 mb-2">2. Confirmación de Devolución</h5>
+                        <p class="text-sm text-slate-600">Tras la entrega física, confirma que el encargado actualice tu estado en el sistema para liberar tu perfil de deudas.</p>
+                    </div>
+                    <div class="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                        <h5 class="font-bold text-slate-800 mb-2">3. Cuidado del Material</h5>
+                        <p class="text-sm text-slate-600">El usuario es responsable de la integridad de los activos. En caso de pérdida o daño por mal uso, se deberá reponer el equipo según el reglamento del laboratorio.</p>
+                    </div>
                 </div>
                 <div id="content-contacto" class="space-y-4 hidden">
+                    <h4 class="font-black text-[#002D62] text-lg mb-3">Contacto de Soporte</h4>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
                             <h4 class="font-bold text-slate-800 mb-2">Administrador</h4>
@@ -510,7 +583,6 @@ if (typeof showToast === 'undefined') {
                             </div>
                         </div>
                     </div>
-                    
                 </div>
             </div>
         </div>

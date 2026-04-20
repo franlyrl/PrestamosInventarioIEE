@@ -72,7 +72,7 @@ class IndexController {
                 let activos = await activosResponse.json();
                 let insumos = await insumosResponse.json();
 
-                const activosArray = Array.isArray(activos?.todosLosActivos) ? activos.todosLosActivos : [];
+                const activosArray = Array.isArray(activos) ? activos : (activos?.todosLosActivos || []);
                 const insumosArray = Array.isArray(insumos) ? insumos : [];
 
                 const todosLosInsumos = insumosArray;
@@ -162,6 +162,11 @@ class IndexController {
                 if (estado === 'sin-stock' && cantidad !== 0) return false;
                 if (estado === 'con-stock' && cantidad <= 0) return false;
                 if (estado === 'bajo-stock' && (cantidad < 1 || cantidad > 5)) return false;
+            }
+
+            // Filtro de tipo (activo/insumo)
+            if (tipo !== 'todos' && item.tipo !== tipo) {
+                return false;
             }
 
             // Filtro de categoría
@@ -309,10 +314,44 @@ class IndexController {
 
         const tipoClass = getTipoClass(tipo);
 
+        // Sistema de auto-asignación de imágenes basado en categoría y tipo
+        const getAutoImageUrl = (item, tipo, categoria, id) => {
+            // Si tiene imagenUrl válida, usarla
+            if (item.imagenUrl && !item.imagenUrl.includes('placeholder')) {
+                return item.imagenUrl;
+            }
+            
+            // Mapeo de categorías a seeds de imágenes para picsum
+            const categoriaSeeds = {
+                'Instrumentos': 'instrumentos-lab',
+                'Herramientas': 'herramientas-taller',
+                'Componentes Digitales': 'componentes-digital',
+                'Componentes Analógicos': 'componentes-analog',
+                'Electrónica': 'electronica-general',
+                'Consumibles': 'consumibles-lab',
+                'Equipos de Medición': 'equipos-medicion',
+                'Prototipado': 'prototipado-arduino',
+                'Cables y Conectores': 'cables-conectores',
+                'Seguridad': 'seguridad-lab',
+                'Almacenamiento': 'almacenamiento-digital'
+            };
+            
+            // Obtener seed basado en categoría o usar default
+            const categoriaKey = categoria || 'General';
+            const baseSeed = categoriaSeeds[categoriaKey] || (tipo === 'activo' ? 'activo-lab' : 'insumo-lab');
+            
+            // Crear seed única basada en tipo, categoría e ID
+            const uniqueSeed = `${baseSeed}-${id}-${tipo}`.replace(/\s+/g, '-').toLowerCase();
+            
+            return `https://picsum.photos/seed/${uniqueSeed}/400/300.jpg`;
+        };
+        
+        const imgUrl = getAutoImageUrl(item, tipo, categoriaOriginal, id);
+
         card.innerHTML = `
-            <div class="relative h-32 bg-slate-100 overflow-hidden cursor-zoom-in group/img" onclick="event.stopPropagation(); window.verImagenCompleta('https://picsum.photos/seed/${tipo}-${id}/800/600.jpg', '${nombre.replace(/'/g, "\\'")}')">
-                <img src="https://picsum.photos/seed/${tipo}-${id}/400/300.jpg" class="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500">
-                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+            <div class="relative h-32 bg-slate-100 overflow-hidden cursor-zoom-in group/img" onclick="event.stopPropagation(); window.verImagenCompleta('${imgUrl}', '${nombre.replace(/'/g, "\\'")}')">
+                <img src="${imgUrl}" alt="${nombre}" class="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center" style="display:none;">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
                 </div>
             </div>
