@@ -161,8 +161,10 @@ class DashboardController {
 
         // Sistema de auto-asignación de imágenes basado en categoría y tipo
         const getAutoImageUrl = (item, tipo, categoria, id) => {
-            // Si tiene imagenUrl válida, usarla
-            if (item.imagenUrl && !item.imagenUrl.includes('placeholder')) {
+            // Si tiene imagenUrl válida (URL externa o local /uploads/), usarla
+            if (item.imagenUrl && 
+                !item.imagenUrl.includes('placeholder') &&
+                (item.imagenUrl.startsWith('http') || item.imagenUrl.startsWith('/uploads/'))) {
                 return item.imagenUrl;
             }
             

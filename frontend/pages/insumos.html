@@ -130,9 +130,9 @@
                 </div>
                 <div>
                     <label class="f-label">Acciones</label>
-                    <button onclick="abrirModalBulkImages()" class="w-full px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl font-bold text-sm hover:from-emerald-600 hover:to-emerald-700 transition flex items-center justify-center gap-2" title="Subir imágenes a items sin foto">
+                    <button onclick="abrirModalBulkImages()" class="w-full px-4 py-2.5 bg-[#002D62] text-white rounded-xl font-bold text-sm hover:bg-[#003d82] transition flex items-center justify-center gap-2" title="Subir fotos masivamente">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        Subir Fotos
+                        Subir fotos
                     </button>
                 </div>
             </div>
@@ -546,6 +546,65 @@
         </button>
     </div>
 
+    <!-- MODAL - Asociar Imagen Manualmente -->
+    <div id="modalAsociarManual" class="fixed inset-0 z-[300] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-all duration-300" id="modalAsociarManualBox">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-[#F2A900] to-[#d4a017] p-6 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                    </svg>
+                    <h3 class="font-black text-lg">Asociar Imagen Manualmente</h3>
+                </div>
+                <button onclick="cerrarModalAsociarManual()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            
+            <!-- Contenido -->
+            <div class="p-6">
+                <p class="text-slate-600 text-sm mb-4">La imagen se subió correctamente pero no se encontró coincidencia automática. Selecciona el ítem al que deseas asociarla:</p>
+                
+                <!-- Preview de imagen -->
+                <div id="asociarManualPreview" class="mb-4 flex justify-center">
+                    <!-- Imagen a asociar -->
+                </div>
+                
+                <!-- URL de la imagen -->
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-slate-700 mb-1">URL de la imagen</label>
+                    <input type="text" id="asociarManualUrl" readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-600">
+                </div>
+                
+                <!-- Selector de ítem -->
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Seleccionar Ítem</label>
+                    <select id="asociarManualSelect" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F2A900] focus:border-transparent bg-white">
+                        <option value="">-- Selecciona un ítem --</option>
+                    </select>
+                </div>
+                
+                <!-- Items sin foto destacados -->
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+                    <p class="text-xs text-amber-700 font-semibold mb-2">Items sin foto (recomendados):</p>
+                    <div id="asociarManualItemsSinFoto" class="flex flex-wrap gap-2">
+                        <!-- Chips de items sin foto -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="p-6 border-t border-slate-100 flex gap-3">
+                <button onclick="cerrarModalAsociarManual()" class="flex-1 py-3 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition">Cancelar</button>
+                <button onclick="confirmarAsociacionManual()" class="flex-1 py-3 text-sm font-bold text-white bg-gradient-to-r from-[#F2A900] to-[#d4a017] rounded-xl hover:from-[#d4a017] hover:to-[#b89416] transition flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Asociar Imagen
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL - Subir Imágenes Masivamente -->
     <div id="modalBulkImages" class="fixed inset-0 z-[200] bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
         <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-all duration-300" id="modalBulkImagesBox">
@@ -924,13 +983,14 @@
         const stockColor = ins.cantidad <= 0 ? 'bg-red-400' : ins.cantidad <= 5 ? 'bg-amber-400' : 'bg-emerald-400';
         // Detectar si tiene foto válida para mostrar placeholder o imagen
         const url = (ins.imagenUrl || '').trim();
-        const isValidUrl = url && url.length > 10 &&
-                           (url.startsWith('http://') || url.startsWith('https://')) &&
-                           !url.includes('placeholder') &&
-                           !url.includes('Sin+Imagen') &&
-                           !url.includes('undefined') &&
-                           !url.includes('null');
-        const hasImgUrl = isValidUrl;
+        const isHttpUrl = url && url.length > 10 &&
+                          (url.startsWith('http://') || url.startsWith('https://')) &&
+                          !url.includes('placeholder') &&
+                          !url.includes('Sin+Imagen') &&
+                          !url.includes('undefined') &&
+                          !url.includes('null');
+        const isLocalUrl = url && url.length > 10 && url.startsWith('/uploads/');
+        const hasImgUrl = isHttpUrl || isLocalUrl;
         // Generar ID único para este item
         const imgId = `img-${ins._id || Math.random().toString(36).substr(2, 9)}`;
         const img = hasImgUrl
@@ -1010,7 +1070,8 @@
                 const dominiosSospechosos = ['vistronica.com', 'cdtechnologia.net', 'placeholder.com', 'example.com'];
                 const hasUrl = url.length > 10;
                 const startsHttp = hasUrl && (url.startsWith('http://') || url.startsWith('https://'));
-                const isValidUrl = hasUrl && startsHttp && !url.includes('placeholder');
+                const startsLocal = hasUrl && url.startsWith('/uploads/');
+                const isValidUrl = hasUrl && (startsHttp || startsLocal) && !url.includes('placeholder');
                 const esDominioSospechoso = dominiosSospechosos.some(d => url.includes(d));
                 const imagenRota = ins._imagenRota === true;
                 return !isValidUrl || esDominioSospechoso || imagenRota || !hasUrl;
@@ -1032,9 +1093,11 @@
                 const rawUrl = ins.imagenUrl;
                 const url = String(rawUrl || '').trim();
                 const hasUrl = !!url && url.length > 10;
+                // URLs válidas: http/https O locales que empiecen con /
                 const startsWithHttp = hasUrl && (url.startsWith('http://') || url.startsWith('https://'));
+                const startsWithLocal = hasUrl && url.startsWith('/uploads/');
                 const isValidUrl = !!(hasUrl &&
-                                   startsWithHttp &&
+                                   (startsWithHttp || startsWithLocal) &&
                                    !url.includes('placeholder') &&
                                    !url.includes('Sin+Imagen') &&
                                    !url.includes('undefined') &&
@@ -1700,15 +1763,15 @@
 
     function cargarItemsSinFoto() {
         // Filtrar items sin foto
+        const dominiosSospechosos = ['vistronica.com', 'cdtechnologia.net', 'placeholder.com', 'example.com'];
         itemsSinFoto = todosLosInsumos.filter(ins => {
             const url = String(ins.imagenUrl || '').trim();
-            const dominiosSospechosos = ['vistronica.com', 'cdtechnologia.net', 'placeholder.com', 'example.com'];
             const hasUrl = url.length > 10;
             const startsHttp = hasUrl && (url.startsWith('http://') || url.startsWith('https://'));
-            const isValidUrl = hasUrl && startsHttp && !url.includes('placeholder');
+            const startsLocal = hasUrl && url.startsWith('/uploads/');
+            const isValidUrl = hasUrl && (startsHttp || startsLocal) && !url.includes('placeholder');
             const esDominioSospechoso = dominiosSospechosos.some(d => url.includes(d));
-            const imagenRota = ins._imagenRota === true;
-            return !isValidUrl || esDominioSospechoso || imagenRota || !hasUrl;
+            return !hasUrl || !isValidUrl || esDominioSospechoso;
         });
         
         const listContainer = document.getElementById('bulkImagesItemsList');
@@ -1761,10 +1824,12 @@
         
         try {
             const formData = new FormData();
-            selectedFiles.forEach((file, idx) => {
-                formData.append(`imagen${idx}`, file);
+            selectedFiles.forEach((file) => {
+                formData.append('imagenes', file); // Mismo nombre para todos los archivos
             });
             formData.append('cantidad', selectedFiles.length);
+            
+            console.log('📤 Enviando', selectedFiles.length, 'imagen(es)...');
             
             // Subir imágenes al servidor
             const response = await fetch('/api/upload/imagenes', {
@@ -1775,45 +1840,224 @@
                 body: formData
             });
             
-            if (!response.ok) throw new Error('Error al subir imágenes');
-            
-            const result = await response.json();
-            
-            // Asociar URLs con items (primera imagen con primer item, etc.)
-            const actualizaciones = [];
-            for (let i = 0; i < Math.min(result.urls.length, itemsSinFoto.length); i++) {
-                actualizaciones.push({
-                    id: itemsSinFoto[i]._id,
-                    imagenUrl: result.urls[i]
-                });
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Error del servidor:', errorText);
+                throw new Error(`Error ${response.status}: ${errorText || 'Error al subir imágenes'}`);
             }
             
-            // Actualizar items en paralelo
-            const updatePromises = actualizaciones.map(async (upd) => {
-                const res = await fetch(`/api/insumos/${upd.id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ imagenUrl: upd.imagenUrl })
-                });
-                return res.ok;
-            });
+            const result = await response.json();
+            console.log('✅ Respuesta del servidor:', result);
             
-            const results = await Promise.all(updatePromises);
-            const exitosos = results.filter(r => r).length;
+            // Procesar sugerencias y asociar imágenes automáticamente
+            const asociacionesExitosas = [];
+            const sugerenciasFallidas = [];
             
-            mostrarToast(`${exitosos} item(s) actualizado(s) con nuevas imágenes`, 'success');
+            for (const sugerencia of result.sugerencias) {
+                if (sugerencia.coincidencias && sugerencia.coincidencias.length > 0) {
+                    // Asociar imagen a TODOS los ítems coincidentes
+                    const asociacionesPromesas = sugerencia.coincidencias.map(async (match) => {
+                        const asociarRes = await fetch('/api/upload/asociar', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                            body: JSON.stringify({
+                                insumoId: match.id,
+                                imageUrl: sugerencia.url
+                            })
+                        });
+                        
+                        return {
+                            ok: asociarRes.ok,
+                            match: match
+                        };
+                    });
+                    
+                    const resultados = await Promise.all(asociacionesPromesas);
+                    const exitosos = resultados.filter(r => r.ok);
+                    
+                    // Registrar todas las asociaciones exitosas
+                    exitosos.forEach(r => {
+                        asociacionesExitosas.push({
+                            imagen: sugerencia.originalname,
+                            insumo: r.match.nombre,
+                            codigo: r.match.codigo
+                        });
+                    });
+                    
+                    // Si ninguna se asoció, marcar como fallida
+                    if (exitosos.length === 0) {
+                        sugerenciasFallidas.push({
+                            imagen: sugerencia.originalname,
+                            razon: 'Error al asociar a todos los ítems'
+                        });
+                    }
+                } else {
+                    sugerenciasFallidas.push({
+                        imagen: sugerencia.originalname,
+                        razon: 'No se encontró coincidencia'
+                    });
+                }
+            }
+            
+            // Guardar imágenes pendientes para asociación manual
+            imagenesPendientes = sugerenciasFallidas.map((fallida, idx) => ({
+                ...fallida,
+                url: result.sugerencias[idx]?.url || '',
+                filename: result.sugerencias[idx]?.filename || ''
+            })).filter(img => img.url); // Solo las que tienen URL
+            
+            // Mostrar resumen
+            let mensaje = `${asociacionesExitosas.length} imagen(es) asociada(s) correctamente.`;
+            if (sugerenciasFallidas.length > 0) {
+                mensaje += ` ${sugerenciasFallidas.length} no pudo(ron) asociarse automáticamente.`;
+            }
+            mostrarToast(mensaje, asociacionesExitosas.length > 0 ? 'success' : 'warning');
+            
+            // Mostrar detalles en consola
+            console.log('✅ Asociaciones exitosas:', asociacionesExitosas);
+            if (sugerenciasFallidas.length > 0) {
+                console.log('⚠️ Sin coincidencia:', sugerenciasFallidas);
+            }
             
             // Recargar datos
             await cargarInsumos();
             cerrarModalBulkImages();
             renderInsumos();
             
+            // Si hay imágenes pendientes, abrir modal de asociación manual
+            if (imagenesPendientes.length > 0) {
+                console.log('📝 Abriendo asociación manual para:', imagenesPendientes);
+                abrirModalAsociarManual(imagenesPendientes[0]);
+            }
+            
         } catch (error) {
             console.error('Error subiendo imágenes:', error);
             mostrarToast('Error al subir imágenes: ' + error.message, 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    // Variable global para imágenes pendientes de asociación manual
+    let imagenesPendientes = [];
+    let imagenActualAsociar = null;
+
+    function abrirModalAsociarManual(imagenData) {
+        imagenActualAsociar = imagenData;
+        
+        const modal = document.getElementById('modalAsociarManual');
+        const box = document.getElementById('modalAsociarManualBox');
+        const preview = document.getElementById('asociarManualPreview');
+        const urlInput = document.getElementById('asociarManualUrl');
+        const select = document.getElementById('asociarManualSelect');
+        const chipsContainer = document.getElementById('asociarManualItemsSinFoto');
+        
+        // Mostrar imagen
+        preview.innerHTML = `<img src="${imagenData.url}" alt="Imagen a asociar" class="w-32 h-32 object-cover rounded-xl border-2 border-[#F2A900] shadow-lg">`;
+        
+        // Mostrar URL
+        urlInput.value = imagenData.url;
+        
+        // Llenar selector con todos los insumos
+        select.innerHTML = '<option value="">-- Selecciona un ítem --</option>';
+        todosLosInsumos.forEach(ins => {
+            const tieneFoto = ins.imagenUrl && 
+                              (ins.imagenUrl.startsWith('http') || ins.imagenUrl.startsWith('/uploads/')) &&
+                              ins.imagenUrl.length > 10;
+            const icono = tieneFoto ? '📷' : '📷❌';
+            select.innerHTML += `<option value="${ins._id}">${icono} ${ins.NombProducto || 'Sin nombre'} (${ins.codigo || 'sin código'})</option>`;
+        });
+        
+        // Crear chips de items sin foto (dominios sospechosos o sin foto)
+        chipsContainer.innerHTML = '';
+        const dominiosSospechosos = ['vistronica.com', 'cdtechnologia.net', 'placeholder.com'];
+        const itemsSinFoto = todosLosInsumos.filter(ins => {
+            const url = String(ins.imagenUrl || '').trim();
+            const esSospechoso = dominiosSospechosos.some(d => url.includes(d));
+            const estaVacio = !url || url.length < 10;
+            return esSospechoso || estaVacio;
+        }).slice(0, 10); // Mostrar máximo 10
+        
+        itemsSinFoto.forEach(ins => {
+            const chip = document.createElement('button');
+            chip.className = 'px-3 py-1 bg-white border border-amber-300 rounded-full text-xs text-amber-700 hover:bg-amber-100 transition';
+            chip.textContent = ins.NombProducto || ins.codigo || 'Item';
+            chip.onclick = () => {
+                select.value = ins._id;
+                // Resaltar visualmente
+                chipsContainer.querySelectorAll('button').forEach(b => b.classList.remove('bg-amber-200', 'font-bold'));
+                chip.classList.add('bg-amber-200', 'font-bold');
+            };
+            chipsContainer.appendChild(chip);
+        });
+        
+        // Mostrar modal
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        box.classList.add('scale-100');
+        box.classList.remove('scale-95');
+    }
+
+    function cerrarModalAsociarManual() {
+        const modal = document.getElementById('modalAsociarManual');
+        const box = document.getElementById('modalAsociarManualBox');
+        
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        box.classList.remove('scale-100');
+        box.classList.add('scale-95');
+        
+        // Si hay más imágenes pendientes, abrir la siguiente
+        imagenesPendientes = imagenesPendientes.filter(img => img.url !== imagenActualAsociar?.url);
+        if (imagenesPendientes.length > 0) {
+            setTimeout(() => abrirModalAsociarManual(imagenesPendientes[0]), 300);
+        }
+    }
+
+    async function confirmarAsociacionManual() {
+        const select = document.getElementById('asociarManualSelect');
+        const insumoId = select.value;
+        
+        if (!insumoId) {
+            mostrarToast('Selecciona un ítem para asociar la imagen', 'error');
+            return;
+        }
+        
+        if (!imagenActualAsociar) {
+            mostrarToast('Error: no hay imagen para asociar', 'error');
+            return;
+        }
+        
+        showLoading(true);
+        
+        try {
+            const response = await fetch('/api/upload/asociar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    insumoId: insumoId,
+                    imageUrl: imagenActualAsociar.url
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Error al asociar imagen');
+            }
+            
+            mostrarToast('Imagen asociada correctamente', 'success');
+            
+            // Recargar datos y cerrar modal
+            await cargarInsumos();
+            renderInsumos();
+            cerrarModalAsociarManual();
+            
+        } catch (error) {
+            console.error('Error asociando imagen:', error);
+            mostrarToast('Error al asociar imagen: ' + error.message, 'error');
         } finally {
             showLoading(false);
         }

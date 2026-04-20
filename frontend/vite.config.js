@@ -11,6 +11,20 @@ export default defineConfig({
     port: 5173, // Puerto específico
     open: true, // Abrir navegador automáticamente
     host: '0.0.0.0', // Escuchar en todas las interfaces
+    // Proxy para redirigir llamadas a /api y /uploads al backend
+    proxy: {
+      '/api': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+        secure: false
+      },
+      '/uploads': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path
+      }
+    },
     //  Configurar MIME types para archivos estáticos
     configureServer(server) {
       server.middlewares.use((req, res, next) => {

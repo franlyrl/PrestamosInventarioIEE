@@ -1,4 +1,6 @@
+console.log(' Cargando server.js...');
 const app = require('./app');
+console.log(' app.js cargado, typeof app:', typeof app);
 const connectDB = require('./config/db');
 const { ensureAdmin } = require('./utils/adminSeeder');
 

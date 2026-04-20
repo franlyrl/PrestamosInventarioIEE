@@ -123,11 +123,17 @@
                 </div>
                 <div>
                     <label class="f-label">Imagen</label>
-                    <select id="imagenFiltro" class="f-input">
-                        <option value="">Todos</option>
-                        <option value="sin-foto">Fotos sin cargar</option>
-                        <option value="con-foto">Con foto</option>
-                    </select>
+                    <div class="flex gap-2">
+                        <select id="imagenFiltro" class="f-input flex-1">
+                            <option value="">Todos</option>
+                            <option value="sin-foto">Fotos sin cargar</option>
+                            <option value="con-foto">Con foto</option>
+                        </select>
+                        <button onclick="abrirModalBulkImagesActivos()" class="px-3 py-2.5 bg-[#002D62] text-white rounded-xl font-bold text-sm hover:bg-[#003d82] transition flex items-center gap-1.5 whitespace-nowrap" title="Subir fotos masivamente">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span class="hidden sm:inline">Subir fotos</span>
+                        </button>
+                    </div>
                 </div>
                 <div>
                     <button onclick="limpiarFiltros()" class="w-full px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Limpiar</button>
@@ -690,11 +696,14 @@
     // ----- API CRUD -----
     async function cargarActivos() {
         showLoading(true);
+        todosLosActivos = []; // Limpiar para forzar UI update
         try {
-            const res = await fetch(`${API}/activos`, { headers: { Authorization: `Bearer ${getToken()}` } });
+            // Agregar timestamp para evitar caché
+            const res = await fetch(`${API}/activos?_t=${Date.now()}`, { headers: { Authorization: `Bearer ${getToken()}` } });
             if (!res.ok) throw new Error(`Error ${res.status}`);
             const data = await res.json();
             todosLosActivos = Array.isArray(data) ? data : (data.todosLosActivos || []);
+            console.log('✅ [DEBUG] Activos recargados:', todosLosActivos.length);
         } catch (e) {
             console.error('Error cargando activos:', e);
             todosLosActivos = [];
@@ -797,13 +806,14 @@
         const badgeClass = badgeClases[ac.estadoActivo] || 'badge-elim';
         // Detectar si tiene foto válida para mostrar placeholder o imagen
         const url = (ac.imagenUrl || '').trim();
-        const isValidUrl = url && url.length > 10 &&
-                           (url.startsWith('http://') || url.startsWith('https://')) &&
-                           !url.includes('placeholder') &&
-                           !url.includes('Sin+Imagen') &&
-                           !url.includes('undefined') &&
-                           !url.includes('null');
-        const hasImgUrl = isValidUrl;
+        const isHttpUrl = url && url.length > 10 &&
+                          (url.startsWith('http://') || url.startsWith('https://')) &&
+                          !url.includes('placeholder') &&
+                          !url.includes('Sin+Imagen') &&
+                          !url.includes('undefined') &&
+                          !url.includes('null');
+        const isLocalUrl = url && url.length > 10 && url.startsWith('/uploads/');
+        const hasImgUrl = isHttpUrl || isLocalUrl;
         const imgId = `img-act-${ac._id || Math.random().toString(36).substr(2, 9)}`;
         const img = hasImgUrl
             ? `<div class="w-full h-full relative overflow-hidden"><img id="${imgId}" src="${ac.imagenUrl}" alt="${ac.modelo}" class="absolute inset-0 w-full h-full object-cover cursor-zoom-in hover:opacity-90 transition-opacity" onclick="event.stopPropagation(); window.verImagenCompleta(this.src, '${(ac.marca + ' ' + ac.modelo).replace(/'/g, "\\'")}')" onerror="window.marcarImagenRotaActivo('${imgId}', '${ac._id}')"><div id="fallback-${imgId}" class="absolute inset-0 flex items-center justify-center bg-amber-50 hidden"><svg class="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div></div>`
@@ -877,8 +887,9 @@
                 const url = String(rawUrl || '').trim();
                 const hasUrl = !!url && url.length > 10;
                 const startsWithHttp = hasUrl && (url.startsWith('http://') || url.startsWith('https://'));
+                const startsWithLocal = hasUrl && url.startsWith('/uploads/');
                 const isValidUrl = !!(hasUrl &&
-                                   startsWithHttp &&
+                                   (startsWithHttp || startsWithLocal) &&
                                    !url.includes('placeholder') &&
                                    !url.includes('Sin+Imagen') &&
                                    !url.includes('undefined') &&
@@ -1368,6 +1379,844 @@
             });
         }
     };
+
+    // ===== MODAL DE SUBIDA MASIVA DE IMÁGENES PARA ACTIVOS =====
+    let selectedFilesActivos = [];
+    let itemsSinFotoActivos = [];
+    let imagenesPendientesActivos = [];
+    let imagenActualAsociarActivos = null;
+    let activosSeleccionadosManual = []; // Array para múltiples selecciones
+
+    function abrirModalBulkImagesActivos() {
+        const modal = document.getElementById('modalBulkImagesActivos');
+        const box = document.getElementById('modalBulkImagesActivosBox');
+        
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        box.classList.add('scale-100');
+        box.classList.remove('scale-95');
+        
+        // Cargar items sin foto
+        cargarItemsSinFotoActivos();
+    }
+
+    function cerrarModalBulkImagesActivos() {
+        const modal = document.getElementById('modalBulkImagesActivos');
+        const box = document.getElementById('modalBulkImagesActivosBox');
+        
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        box.classList.remove('scale-100');
+        box.classList.add('scale-95');
+        
+        // Limpiar
+        selectedFilesActivos = [];
+        document.getElementById('bulkImagesActivosInput').value = '';
+        document.getElementById('bulkImagesActivosPreview').innerHTML = '';
+    }
+
+    function cargarItemsSinFotoActivos() {
+        // Filtrar items sin foto
+        const dominiosSospechosos = ['vistronica.com', 'cdtechnologia.net', 'placeholder.com', 'example.com'];
+        itemsSinFotoActivos = todosLosActivos.filter(act => {
+            const url = String(act.imagenUrl || '').trim();
+            const hasUrl = url.length > 10;
+            const startsHttp = hasUrl && (url.startsWith('http://') || url.startsWith('https://'));
+            const startsLocal = hasUrl && url.startsWith('/uploads/');
+            const isValidUrl = hasUrl && (startsHttp || startsLocal) && !url.includes('placeholder');
+            const esDominioSospechoso = dominiosSospechosos.some(d => url.includes(d));
+            return !hasUrl || !isValidUrl || esDominioSospechoso;
+        });
+
+        const listContainer = document.getElementById('bulkImagesActivosItemsList');
+        if (itemsSinFotoActivos.length === 0) {
+            listContainer.innerHTML = '<p class="text-sm text-slate-400 italic">No hay items sin foto</p>';
+            return;
+        }
+
+        // Agrupar por marca
+        const porMarca = {};
+        itemsSinFotoActivos.forEach(act => {
+            const marca = act.marca || 'Sin Marca';
+            if (!porMarca[marca]) {
+                porMarca[marca] = [];
+            }
+            porMarca[marca].push(act);
+        });
+
+        // Ordenar marcas por cantidad de items (descendente)
+        const marcasOrdenadas = Object.entries(porMarca).sort((a, b) => b[1].length - a[1].length);
+
+        // Total
+        const total = itemsSinFotoActivos.length;
+
+        // Generar HTML
+        let html = `<div class="mb-3 flex items-center justify-between"><span class="text-sm font-bold text-slate-700">${total} activos sin foto</span><span class="text-xs text-slate-400">${marcasOrdenadas.length} familias</span></div>`;
+
+        html += marcasOrdenadas.map(([marca, activos], idx) => `
+            <div class="mb-2 border border-slate-200 rounded-xl overflow-hidden">
+                <button onclick="toggleFamiliaActivos('${marca.replace(/'/g, "\\'")}')" class="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-mono text-slate-400">${idx + 1}</span>
+                        <span class="text-sm font-bold text-slate-700">${marca}</span>
+                        <span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full font-bold">${activos.length}</span>
+                    </div>
+                    <svg id="icon-familia-${marca.replace(/\s+/g, '-')}" class="w-4 h-4 text-slate-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div id="familia-${marca.replace(/\s+/g, '-')}" class="hidden bg-white">
+                    ${activos.map(act => `
+                        <div class="flex items-center justify-between py-2 px-3 border-t border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-slate-400">•</span>
+                                <span class="text-sm text-slate-600">${act.modelo || 'Sin modelo'}</span>
+                            </div>
+                            <span class="text-xs text-slate-400 font-mono">${act.numActivo || act.numSerie || '-'}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+
+        listContainer.innerHTML = html;
+    }
+
+    function toggleFamiliaActivos(marca) {
+        const id = 'familia-' + marca.replace(/\s+/g, '-');
+        const iconId = 'icon-familia-' + marca.replace(/\s+/g, '-');
+        const container = document.getElementById(id);
+        const icon = document.getElementById(iconId);
+
+        if (container.classList.contains('hidden')) {
+            container.classList.remove('hidden');
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            container.classList.add('hidden');
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    function previewBulkImagesActivos(input) {
+        const files = Array.from(input.files);
+        selectedFilesActivos = files;
+        const previewContainer = document.getElementById('bulkImagesActivosPreview');
+        
+        previewContainer.innerHTML = files.map((file, idx) => `
+            <div class="relative aspect-square bg-slate-100 rounded-xl overflow-hidden border border-slate-200">
+                <img src="${URL.createObjectURL(file)}" alt="Preview ${idx + 1}" class="w-full h-full object-cover">
+                <div class="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[10px] py-1 px-2 truncate">
+                    ${file.name}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function subirBulkImagesActivos() {
+        if (selectedFilesActivos.length === 0) {
+            mostrarToast('Selecciona al menos una imagen', 'error');
+            return;
+        }
+        
+        showLoading(true);
+        
+        try {
+            const formData = new FormData();
+            selectedFilesActivos.forEach((file) => {
+                formData.append('imagenes', file);
+            });
+            formData.append('cantidad', selectedFilesActivos.length);
+            
+            // Subir imágenes al servidor
+            const response = await fetch('/api/upload/imagenes', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Error ${response.status}: ${errorText || 'Error al subir imágenes'}`);
+            }
+            
+            const result = await response.json();
+            
+            // Procesar sugerencias y asociar imágenes automáticamente
+            const asociacionesExitosas = [];
+            const sugerenciasFallidas = [];
+            
+            for (const sugerencia of result.sugerencias) {
+                if (sugerencia.coincidencias && sugerencia.coincidencias.length > 0) {
+                    // Asociar imagen a TODOS los ítems coincidentes
+                    const asociacionesPromesas = sugerencia.coincidencias.map(async (match) => {
+                        const asociarRes = await fetch('/api/upload/asociar', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                            body: JSON.stringify({
+                                insumoId: match.id,
+                                imageUrl: sugerencia.url
+                            })
+                        });
+                        
+                        return { ok: asociarRes.ok, match: match };
+                    });
+                    
+                    const resultados = await Promise.all(asociacionesPromesas);
+                    const exitosos = resultados.filter(r => r.ok);
+                    
+                    exitosos.forEach(r => {
+                        asociacionesExitosas.push({
+                            imagen: sugerencia.originalname,
+                            insumo: r.match.nombre,
+                            codigo: r.match.codigo
+                        });
+                    });
+                    
+                    if (exitosos.length === 0) {
+                        sugerenciasFallidas.push({
+                            imagen: sugerencia.originalname,
+                            razon: 'Error al asociar a todos los ítems'
+                        });
+                    }
+                } else {
+                    sugerenciasFallidas.push({
+                        imagen: sugerencia.originalname,
+                        razon: 'No se encontró coincidencia'
+                    });
+                }
+            }
+            
+            // Guardar imágenes pendientes para asociación manual
+            imagenesPendientesActivos = sugerenciasFallidas.map((fallida, idx) => ({
+                ...fallida,
+                url: result.sugerencias[idx]?.url || '',
+                filename: result.sugerencias[idx]?.filename || ''
+            })).filter(img => img.url);
+            
+            let mensaje = `${asociacionesExitosas.length} imagen(es) asociada(s) correctamente.`;
+            if (sugerenciasFallidas.length > 0) {
+                mensaje += ` ${sugerenciasFallidas.length} no pudo(ron) asociarse automáticamente.`;
+            }
+            mostrarToast(mensaje, asociacionesExitosas.length > 0 ? 'success' : 'warning');
+            
+            // Recargar datos
+            await cargarActivos();
+            cerrarModalBulkImagesActivos();
+            renderActivos();
+            
+            // Si hay imágenes pendientes, abrir modal de asociación manual
+            if (imagenesPendientesActivos.length > 0) {
+                console.log('📝 Abriendo asociación manual para:', imagenesPendientesActivos);
+                setTimeout(() => {
+                    abrirModalAsociarManualActivos(imagenesPendientesActivos[0]);
+                }, 300);
+            }
+            
+        } catch (error) {
+            console.error('Error subiendo imágenes:', error);
+            mostrarToast('Error al subir imágenes: ' + error.message, 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    async function abrirModalAsociarManualActivos(imagenData) {
+        imagenActualAsociarActivos = imagenData;
+        
+        const modal = document.getElementById('modalAsociarManualActivos');
+        const box = document.getElementById('modalAsociarManualActivosBox');
+        const preview = document.getElementById('asociarManualActivosPreview');
+        const urlInput = document.getElementById('asociarManualActivosUrl');
+        const listaContainer = document.getElementById('asociarManualActivosLista');
+        const chipsContainer = document.getElementById('asociarManualActivosItemsSinFoto');
+        
+        preview.innerHTML = `<img src="${imagenData.url}" alt="Imagen a asociar" class="w-32 h-32 object-cover rounded-xl border-2 border-[#F2A900] shadow-lg">`;
+        urlInput.value = imagenData.url;
+        
+        // Reset selección múltiple
+        activosSeleccionadosManual = [];
+        
+        // Asegurar que tenemos datos de activos
+        if (todosLosActivos.length === 0) {
+            console.log('🔄 [DEBUG] Cargando activos para modal manual...');
+            await cargarActivos();
+        }
+        
+        // Limpiar búsqueda
+        document.getElementById('asociarManualActivosBuscar').value = '';
+        
+        // Cargar lista inicial (todas las familias)
+        filtrarActivosSelect('');
+        
+        // Agrupar activos sin foto por marca/familia
+        const dominiosSospechosos = ['vistronica.com', 'cdtechnologia.net', 'placeholder.com', 'google.com', 'tiktok.com', 'autodoc.es'];
+        const itemsSinFoto = todosLosActivos.filter(act => {
+            const url = String(act.imagenUrl || '').trim();
+            const esSospechoso = dominiosSospechosos.some(d => url.includes(d));
+            const estaVacio = !url || url.length < 10;
+            const imagenRota = act._imagenRota === true;
+            return esSospechoso || estaVacio || imagenRota;
+        });
+
+        // Agrupar por marca
+        const porMarca = {};
+        itemsSinFoto.forEach(act => {
+            const marca = act.marca || 'Sin Marca';
+            if (!porMarca[marca]) porMarca[marca] = [];
+            porMarca[marca].push(act);
+        });
+
+        // Ordenar por cantidad (mayor a menor)
+        const marcasOrdenadas = Object.entries(porMarca).sort((a, b) => b[1].length - a[1].length);
+
+        // Reset selección múltiple
+        activosSeleccionadosManual = [];
+        
+        // Generar HTML de familias
+        chipsContainer.innerHTML = `
+            <div class="mb-2 flex items-center justify-between">
+                <span class="text-xs text-amber-700 font-semibold">${itemsSinFoto.length} activos sin foto - ${marcasOrdenadas.length} familias</span>
+                <span id="contadorSeleccionados" class="text-xs font-bold text-amber-800">0 seleccionados</span>
+            </div>
+            <div class="mb-2 flex gap-2">
+                <button onclick="seleccionarTodosFamilia()" class="px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded hover:bg-amber-200 transition">Seleccionar todos visibles</button>
+                <button onclick="limpiarSeleccionManual()" class="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded hover:bg-slate-200 transition">Limpiar</button>
+            </div>
+        `;
+
+        marcasOrdenadas.forEach(([marca, activos], idx) => {
+            const familiaDiv = document.createElement('div');
+            familiaDiv.className = 'mb-2 border border-amber-200 rounded-xl overflow-hidden';
+            familiaDiv.innerHTML = `
+                <button onclick="toggleFamiliaManual('${marca.replace(/'/g, "\\'")}')" class="w-full flex items-center justify-between p-2 bg-amber-50 hover:bg-amber-100 transition">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-mono text-amber-600">${idx + 1}</span>
+                        <span class="text-sm font-bold text-amber-800">${marca}</span>
+                        <span class="px-2 py-0.5 bg-amber-200 text-amber-800 text-xs rounded-full font-bold">${activos.length}</span>
+                    </div>
+                    <svg id="icon-familia-manual-${marca.replace(/\s+/g, '-')}" class="w-4 h-4 text-amber-600 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div id="familia-manual-${marca.replace(/\s+/g, '-')}" class="hidden bg-white max-h-40 overflow-y-auto">
+                    ${activos.map(act => `
+                        <div onclick="toggleSeleccionActivoManual('${act._id}')" 
+                             class="flex items-center justify-between py-2 px-3 border-t border-amber-100 hover:bg-amber-50 cursor-pointer transition"
+                             id="activo-row-${act._id}">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="chk-${act._id}" class="w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500" onclick="event.stopPropagation(); toggleSeleccionActivoManual('${act._id}')">
+                                <span class="text-sm text-slate-700">${act.modelo || 'Sin modelo'}</span>
+                            </div>
+                            <span class="text-xs text-slate-500 font-mono">${act.numActivo || act.numSerie || '-'}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            chipsContainer.appendChild(familiaDiv);
+        });
+
+        // Expandir la primera familia por defecto
+        if (marcasOrdenadas.length > 0) {
+            setTimeout(() => toggleFamiliaManual(marcasOrdenadas[0][0]), 100);
+        }
+        
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        box.classList.add('scale-100');
+        box.classList.remove('scale-95');
+    }
+
+    function toggleFamiliaManual(marca) {
+        const id = 'familia-manual-' + marca.replace(/\s+/g, '-');
+        const iconId = 'icon-familia-manual-' + marca.replace(/\s+/g, '-');
+        const container = document.getElementById(id);
+        const icon = document.getElementById(iconId);
+        if (container.classList.contains('hidden')) {
+            container.classList.remove('hidden');
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            container.classList.add('hidden');
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    function toggleSeleccionActivoManual(activoId) {
+        const index = activosSeleccionadosManual.indexOf(activoId);
+        const row = document.getElementById('activo-row-' + activoId);
+        const checkbox = document.getElementById('chk-' + activoId);
+        
+        if (index === -1) {
+            // Agregar a selección
+            activosSeleccionadosManual.push(activoId);
+            if (row) row.classList.add('bg-amber-200');
+            if (checkbox) checkbox.checked = true;
+        } else {
+            // Quitar de selección
+            activosSeleccionadosManual.splice(index, 1);
+            if (row) row.classList.remove('bg-amber-200');
+            if (checkbox) checkbox.checked = false;
+        }
+        
+        // Actualizar contador
+        const contador = document.getElementById('contadorSeleccionados');
+        if (contador) {
+            contador.textContent = `${activosSeleccionadosManual.length} seleccionados`;
+        }
+        
+        // Actualizar select para mostrar el último seleccionado
+        const select = document.getElementById('asociarManualActivosSelect');
+        if (activosSeleccionadosManual.length > 0) {
+            select.value = activosSeleccionadosManual[activosSeleccionadosManual.length - 1];
+        }
+    }
+
+    function seleccionarTodosFamilia() {
+        // Obtener todos los checkboxes visibles (de familias expandidas)
+        const checkboxesVisibles = document.querySelectorAll('[id^="chk-"]:not([id*="undefined"])');
+        checkboxesVisibles.forEach(chk => {
+            const activoId = chk.id.replace('chk-', '');
+            if (activosSeleccionadosManual.indexOf(activoId) === -1) {
+                toggleSeleccionActivoManual(activoId);
+            }
+        });
+    }
+
+    function limpiarSeleccionManual() {
+        activosSeleccionadosManual.forEach(id => {
+            const row = document.getElementById('activo-row-' + id);
+            const checkbox = document.getElementById('chk-' + id);
+            if (row) row.classList.remove('bg-amber-200');
+            if (checkbox) checkbox.checked = false;
+        });
+        activosSeleccionadosManual = [];
+        const contador = document.getElementById('contadorSeleccionados');
+        if (contador) contador.textContent = '0 seleccionados';
+    }
+
+    function cerrarModalAsociarManualActivos() {
+        const modal = document.getElementById('modalAsociarManualActivos');
+        const box = document.getElementById('modalAsociarManualActivosBox');
+        
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        box.classList.remove('scale-100');
+        box.classList.add('scale-95');
+        
+        imagenesPendientesActivos = imagenesPendientesActivos.filter(img => img.url !== imagenActualAsociarActivos?.url);
+        if (imagenesPendientesActivos.length > 0) {
+            setTimeout(() => abrirModalAsociarManualActivos(imagenesPendientesActivos[0]), 300);
+        }
+    }
+
+    function filtrarActivosSelect(texto) {
+        const listaContainer = document.getElementById('asociarManualActivosLista');
+        const termino = texto.toLowerCase().trim();
+        
+        // Función para verificar si tiene foto válida
+        function tieneFotoValida(act) {
+            const dominiosSospechosos = ['vistronica.com', 'cdtechnologia.net', 'placeholder.com', 'google.com', 'tiktok.com', 'autodoc.es'];
+            const url = String(act.imagenUrl || '').trim();
+            const esSospechoso = dominiosSospechosos.some(d => url.includes(d));
+            const estaVacio = !url || url.length < 10;
+            const imagenRota = act._imagenRota === true;
+            const tieneFoto = !esSospechoso && !estaVacio && !imagenRota;
+            // Debug para KI
+            if (act.marca && act.marca.includes('KI')) {
+                console.log('🔍 [DEBUG KI]', act.modelo, '| URL:', url.substring(0, 50), '| tieneFoto:', tieneFoto, '| esSospechoso:', esSospechoso, '| estaVacio:', estaVacio, '| imagenRota:', imagenRota);
+            }
+            return tieneFoto;
+        }
+        
+        // Si no hay texto, mostrar solo activos sin foto
+        // Si hay texto, buscar en todos pero priorizar sin foto
+        const activosFiltrados = todosLosActivos.filter(act => {
+            const nombre = `${act.marca || ''} ${act.modelo || ''}`.trim().toLowerCase();
+            const codigo = (act.numActivo || act.numSerie || '').toLowerCase();
+            const coincideBusqueda = nombre.includes(termino) || codigo.includes(termino);
+            
+            if (!termino) {
+                // Sin texto: solo mostrar los que necesitan foto (sin foto)
+                const sinFoto = !tieneFotoValida(act);
+                if (act.marca && act.marca.includes('KI')) {
+                    console.log('🔍 [DEBUG FILTRO] KI:', act.modelo, 'sinFoto:', sinFoto);
+                }
+                return sinFoto;
+            }
+            // Con texto: mostrar coincidencias
+            return coincideBusqueda;
+        });
+        
+        console.log('📊 [DEBUG] Total activos:', todosLosActivos.length, '| Filtrados (sin foto):', activosFiltrados.length, '| Termino:', termino);
+        
+        // Agrupar por marca
+        const porMarca = {};
+        activosFiltrados.forEach(act => {
+            const marca = act.marca || 'Sin Marca';
+            if (!porMarca[marca]) porMarca[marca] = [];
+            porMarca[marca].push(act);
+        });
+        
+        // Ordenar marcas por cantidad
+        const marcasOrdenadas = Object.entries(porMarca).sort((a, b) => b[1].length - a[1].length);
+        
+        // Generar HTML de familias
+        let html = '';
+        if (marcasOrdenadas.length === 0) {
+            html = '<div class="p-4 text-center text-slate-400 text-sm">No se encontraron activos</div>';
+        } else {
+            marcasOrdenadas.forEach(([marca, activos], idx) => {
+                const estaExpandido = idx === 0 || marcasOrdenadas.length <= 3; // Expandir primera o si son pocas
+                html += `
+                    <div class="border-b border-slate-100 last:border-0">
+                        <button type="button" onclick="toggleFamiliaFiltro('${marca.replace(/'/g, "\\'")}')" 
+                                class="w-full flex items-center justify-between p-2 bg-slate-50 hover:bg-slate-100 transition">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-mono text-slate-400">${idx + 1}</span>
+                                <span class="text-sm font-bold text-slate-700">${marca}</span>
+                                <span class="px-1.5 py-0.5 bg-slate-200 text-slate-600 text-xs rounded font-bold">${activos.length}</span>
+                            </div>
+                            <svg id="icon-filtro-${marca.replace(/\s+/g, '-')}" class="w-4 h-4 text-slate-400 transition-transform ${estaExpandido ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div id="filtro-familia-${marca.replace(/\s+/g, '-')}" class="${estaExpandido ? '' : 'hidden'}">
+                            ${activos.map(act => {
+                                const estaSeleccionado = activosSeleccionadosManual.includes(act._id);
+                                const flecha = estaSeleccionado ? '▶' : '•';
+                                return `
+                                <div onclick="toggleSeleccionFiltro('${act._id}')" 
+                                     id="filtro-row-${act._id}"
+                                     class="flex items-center justify-between py-1.5 px-3 pl-8 border-t border-slate-50 hover:bg-amber-50 cursor-pointer transition ${estaSeleccionado ? 'bg-amber-100' : ''}">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs ${estaSeleccionado ? 'text-amber-600 font-bold' : 'text-slate-400'}">${flecha}</span>
+                                        <input type="checkbox" id="filtro-chk-${act._id}" 
+                                               ${estaSeleccionado ? 'checked' : ''} 
+                                               onclick="event.stopPropagation(); toggleSeleccionFiltro('${act._id}')"
+                                               class="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500">
+                                        <span class="text-sm ${estaSeleccionado ? 'text-amber-800 font-semibold' : 'text-slate-600'}">${act.modelo || 'Sin modelo'}</span>
+                                    </div>
+                                    <span class="text-xs text-slate-400 font-mono">${act.numActivo || act.numSerie || '-'}</span>
+                                </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        listaContainer.innerHTML = html;
+        
+        // Si solo hay una coincidencia, seleccionarla automáticamente
+        if (activosFiltrados.length === 1) {
+            toggleSeleccionFiltro(activosFiltrados[0]._id);
+        }
+    }
+
+    function toggleFamiliaFiltro(marca) {
+        const id = 'filtro-familia-' + marca.replace(/\s+/g, '-');
+        const iconId = 'icon-filtro-' + marca.replace(/\s+/g, '-');
+        const container = document.getElementById(id);
+        const icon = document.getElementById(iconId);
+        if (container.classList.contains('hidden')) {
+            container.classList.remove('hidden');
+            icon.classList.add('rotate-180');
+        } else {
+            container.classList.add('hidden');
+            icon.classList.remove('rotate-180');
+        }
+    }
+
+    function toggleSeleccionFiltro(activoId) {
+        const index = activosSeleccionadosManual.indexOf(activoId);
+        const row = document.getElementById('filtro-row-' + activoId);
+        const checkbox = document.getElementById('filtro-chk-' + activoId);
+        
+        if (index === -1) {
+            // Agregar
+            activosSeleccionadosManual.push(activoId);
+            if (row) {
+                row.classList.add('bg-amber-100');
+                row.querySelector('span:first-child').textContent = '▶';
+                row.querySelector('span:first-child').classList.remove('text-slate-400');
+                row.querySelector('span:first-child').classList.add('text-amber-600', 'font-bold');
+                row.querySelector('span:last-child').classList.remove('text-slate-600');
+                row.querySelector('span:last-child').classList.add('text-amber-800', 'font-semibold');
+            }
+            if (checkbox) checkbox.checked = true;
+        } else {
+            // Quitar
+            activosSeleccionadosManual.splice(index, 1);
+            if (row) {
+                row.classList.remove('bg-amber-100');
+                row.querySelector('span:first-child').textContent = '•';
+                row.querySelector('span:first-child').classList.add('text-slate-400');
+                row.querySelector('span:first-child').classList.remove('text-amber-600', 'font-bold');
+                row.querySelector('span:last-child').classList.add('text-slate-600');
+                row.querySelector('span:last-child').classList.remove('text-amber-800', 'font-semibold');
+            }
+            if (checkbox) checkbox.checked = false;
+        }
+        
+        // Actualizar contador si existe
+        const contador = document.getElementById('contadorSeleccionados');
+        if (contador) {
+            contador.textContent = `${activosSeleccionadosManual.length} seleccionados`;
+        }
+    }
+
+    function seleccionarTodosVisibles() {
+        // Obtener todos los checkboxes visibles en el modal
+        const checkboxes = document.querySelectorAll('#asociarManualActivosLista input[type="checkbox"]');
+        let seleccionados = 0;
+        
+        checkboxes.forEach(chk => {
+            const activoId = chk.id.replace('filtro-chk-', '');
+            if (!activosSeleccionadosManual.includes(activoId)) {
+                activosSeleccionadosManual.push(activoId);
+                seleccionados++;
+            }
+            // Actualizar UI
+            const row = document.getElementById('filtro-row-' + activoId);
+            if (row) {
+                row.classList.add('bg-amber-100');
+                row.querySelector('span:first-child').textContent = '▶';
+                row.querySelector('span:first-child').classList.remove('text-slate-400');
+                row.querySelector('span:first-child').classList.add('text-amber-600', 'font-bold');
+                const spanTexto = row.querySelector('span.text-slate-600, span.text-amber-800');
+                if (spanTexto) {
+                    spanTexto.classList.remove('text-slate-600');
+                    spanTexto.classList.add('text-amber-800', 'font-semibold');
+                }
+            }
+            chk.checked = true;
+        });
+        
+        // Actualizar contador
+        const contador = document.getElementById('contadorSeleccionados');
+        if (contador) {
+            contador.textContent = `${activosSeleccionadosManual.length} seleccionados`;
+        }
+        
+        mostrarToast(`${seleccionados} activos seleccionados`, 'success');
+    }
+
+    function limpiarSeleccion() {
+        // Limpiar array de selecciones
+        const checkboxes = document.querySelectorAll('#asociarManualActivosLista input[type="checkbox"]');
+        
+        checkboxes.forEach(chk => {
+            const activoId = chk.id.replace('filtro-chk-', '');
+            const index = activosSeleccionadosManual.indexOf(activoId);
+            if (index > -1) {
+                activosSeleccionadosManual.splice(index, 1);
+            }
+            // Actualizar UI
+            const row = document.getElementById('filtro-row-' + activoId);
+            if (row) {
+                row.classList.remove('bg-amber-100');
+                row.querySelector('span:first-child').textContent = '•';
+                row.querySelector('span:first-child').classList.add('text-slate-400');
+                row.querySelector('span:first-child').classList.remove('text-amber-600', 'font-bold');
+                const spanTexto = row.querySelector('span.text-amber-800, span.text-slate-600');
+                if (spanTexto) {
+                    spanTexto.classList.remove('text-amber-800', 'font-semibold');
+                    spanTexto.classList.add('text-slate-600');
+                }
+            }
+            chk.checked = false;
+        });
+        
+        // Actualizar contador
+        const contador = document.getElementById('contadorSeleccionados');
+        if (contador) {
+            contador.textContent = '0 seleccionados';
+        }
+        
+        mostrarToast('Selección limpiada', 'info');
+    }
+
+    async function confirmarAsociacionManualActivos() {
+        // Usar solo las selecciones del array (ya incluye checkboxes y filtros)
+        const idsAsociar = [...new Set(activosSeleccionadosManual)];
+        
+        console.log('🔍 [DEBUG] Activos seleccionados:', activosSeleccionadosManual);
+        console.log('🔍 [DEBUG] IDs a asociar:', idsAsociar);
+        console.log('🔍 [DEBUG] Imagen actual:', imagenActualAsociarActivos);
+        
+        if (idsAsociar.length === 0) {
+            mostrarToast('Selecciona al menos un activo para asociar la imagen', 'error');
+            return;
+        }
+
+        if (!imagenActualAsociarActivos) {
+            mostrarToast('Error: no hay imagen para asociar', 'error');
+            return;
+        }
+
+        showLoading(true);
+
+        try {
+            // Asociar a todos los seleccionados
+            const asociacionesPromesas = idsAsociar.map(async (activoId) => {
+                console.log('🔄 [DEBUG] Asociando activo:', activoId, 'con imagen:', imagenActualAsociarActivos.url);
+                const response = await fetch('/api/upload/asociar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        activoId: activoId,
+                        imageUrl: imagenActualAsociarActivos.url,
+                        tipo: 'activo'
+                    })
+                });
+                const responseData = await response.json().catch(() => null);
+                console.log('📥 [DEBUG] Respuesta para', activoId, ':', response.status, responseData);
+                return { ok: response.ok, id: activoId, status: response.status, data: responseData };
+            });
+
+            const resultados = await Promise.all(asociacionesPromesas);
+            console.log('✅ [DEBUG] Resultados completos:', resultados);
+            const exitosos = resultados.filter(r => r.ok).length;
+            const fallidos = resultados.filter(r => !r.ok).length;
+
+            if (exitosos > 0) {
+                mostrarToast(`${exitosos} imagen(es) asociada(s) correctamente`, 'success');
+            }
+            if (fallidos > 0) {
+                mostrarToast(`${fallidos} no pudieron asociarse`, 'warning');
+            }
+
+            // Forzar recarga completa de datos
+            console.log('🔄 [DEBUG] Recargando activos después de asociación...');
+            todosLosActivos = []; // Limpiar array
+            await cargarActivos();
+            console.log('✅ [DEBUG] Activos recargados:', todosLosActivos.length);
+            
+            // Verificar que los activos actualizados tienen la nueva imagen
+            idsAsociar.forEach(id => {
+                const act = todosLosActivos.find(a => a._id === id);
+                if (act) {
+                    console.log('📸 [DEBUG] Activo después de recarga:', act.modelo, '| imagenUrl:', act.imagenUrl?.substring(0, 50));
+                }
+            });
+            
+            renderActivos();
+            cerrarModalAsociarManualActivos();
+
+        } catch (error) {
+            console.error('Error asociando imagen:', error);
+            mostrarToast('Error al asociar imagen: ' + error.message, 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
     </script>
+
+    <!-- MODAL - Subir Imágenes Masivamente para Activos -->
+    <div id="modalBulkImagesActivos" class="fixed inset-0 z-[200] bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-all duration-300" id="modalBulkImagesActivosBox">
+            <div class="bg-gradient-to-r from-[#002D62] to-[#004A8C] p-6 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <h3 class="font-black text-lg">Subir Imágenes - Activos sin Foto</h3>
+                </div>
+                <button onclick="cerrarModalBulkImagesActivos()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            
+            <div class="p-6 max-h-[70vh] overflow-y-auto">
+                <p class="text-slate-600 text-sm mb-4">Selecciona fotos desde tu dispositivo. El sistema intentará asociarlas automáticamente con activos sin foto basándose en el nombre, o puedes asignarlas manualmente.</p>
+                
+                <div id="bulkImagesActivosItemsList" class="mb-4 max-h-40 overflow-y-auto bg-slate-50 rounded-xl p-3">
+                    <p class="text-sm text-slate-400 italic">Cargando activos sin foto...</p>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Seleccionar imágenes (JPG/JPEG)</label>
+                    <input type="file" id="bulkImagesActivosInput" multiple accept="image/jpeg,image/jpg" capture="environment" 
+                        class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#002D62] focus:border-transparent"
+                        onchange="previewBulkImagesActivos(this)">
+                    <p class="text-xs text-slate-400 mt-1">Puedes usar la cámara desde tu celular o seleccionar archivos</p>
+                </div>
+                
+                <div id="bulkImagesActivosPreview" class="grid grid-cols-3 gap-3 mb-4"></div>
+            </div>
+            
+            <div class="p-6 border-t border-slate-100 flex gap-3">
+                <button onclick="cerrarModalBulkImagesActivos()" class="flex-1 py-3 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition">Cancelar</button>
+                <button onclick="subirBulkImagesActivos()" class="flex-1 py-3 text-sm font-bold text-white bg-gradient-to-r from-[#002D62] to-[#004A8C] rounded-xl hover:from-[#004A8C] hover:to-[#0066CC] transition flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    Subir Imágenes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL - Asociar Imagen Manualmente para Activos -->
+    <div id="modalAsociarManualActivos" class="fixed inset-0 z-[300] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="w-full max-w-lg max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col transform scale-95 transition-all duration-300" id="modalAsociarManualActivosBox">
+            <div class="bg-gradient-to-r from-[#F2A900] to-[#d4a017] p-6 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                    </svg>
+                    <h3 class="font-black text-lg">Asociar Imagen Manualmente</h3>
+                </div>
+                <button onclick="cerrarModalAsociarManualActivos()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1">
+                <p class="text-slate-600 text-sm mb-4">La imagen se subió correctamente pero no se encontró coincidencia automática. Selecciona el activo al que deseas asociarla:</p>
+                
+                <div id="asociarManualActivosPreview" class="mb-4 flex justify-center"></div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-slate-700 mb-1">URL de la imagen</label>
+                    <input type="text" id="asociarManualActivosUrl" readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-600">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Seleccionar Activo</label>
+                    <div class="relative mb-2">
+                        <input type="text" id="asociarManualActivosBuscar" placeholder="Buscar activo..." 
+                            class="w-full px-4 py-2 pl-10 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F2A900] focus:border-transparent bg-white text-sm"
+                            oninput="filtrarActivosSelect(this.value)">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                        </svg>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span id="contadorSeleccionados" class="text-xs font-bold text-amber-600">0 seleccionados</span>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="seleccionarTodosVisibles()" class="px-2 py-1 text-xs bg-amber-100 hover:bg-amber-200 text-amber-700 rounded font-medium transition">Seleccionar todos visibles</button>
+                            <button type="button" onclick="limpiarSeleccion()" class="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded font-medium transition">Limpiar</button>
+                        </div>
+                    </div>
+                    <div id="asociarManualActivosLista" class="w-full border border-slate-200 rounded-xl bg-white h-48 overflow-y-auto">
+                        <!-- Lista de familias se renderiza aquí -->
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">💡 Clic en el checkbox o fila para seleccionar</p>
+                </div>
+                
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+                    <p class="text-xs text-amber-700 font-semibold mb-2">Activos sin foto (recomendados):</p>
+                    <div id="asociarManualActivosItemsSinFoto" class="flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+            
+            <div class="p-6 border-t border-slate-100 flex gap-3">
+                <button onclick="cerrarModalAsociarManualActivos()" class="flex-1 py-3 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition">Cancelar</button>
+                <button onclick="confirmarAsociacionManualActivos()" class="flex-1 py-3 text-sm font-bold text-white bg-gradient-to-r from-[#F2A900] to-[#d4a017] rounded-xl hover:from-[#d4a017] hover:to-[#b89416] transition flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Asociar Imagen
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
