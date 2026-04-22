@@ -1,0 +1,13 @@
+:80 {
+    handle /api/* {
+        reverse_proxy localhost:4000
+    }
+    
+    handle /portainer/* {
+        reverse_proxy localhost:9000
+    }
+    
+    handle {
+        reverse_proxy localhost:5173
+    }
+}

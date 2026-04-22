@@ -11,7 +11,7 @@ class SolicitudesController {
         this.filtros = { busqueda: '', estado: 'todos', desde: '', cedula: '' };
         this.currentUser = JSON.parse(localStorage.getItem('utn_user')) || {};
         this.token = localStorage.getItem('utn_token') || '';
-        this.apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+        this.apiBase = window.CONFIG?.API_BASE_URL || '/api';
         this.isAdmin = ['admin', 'administrador', 'administrativo'].some(r =>
             (this.currentUser.rol || '').toLowerCase().includes(r)
         );

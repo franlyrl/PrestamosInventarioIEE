@@ -36,7 +36,7 @@ class ActivosController {
     async cargarActivos() {
         try {
             const token = localStorage.getItem('utn_token');
-            const response = await fetch(`${window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api'}/activos`, {
+            const response = await fetch(`${window.CONFIG?.API_BASE_URL || '/api'}/activos`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -450,7 +450,7 @@ class ActivosController {
         
         try {
             const token = localStorage.getItem('utn_token');
-            const response = await fetch(`${window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api'}/activos/${id}`, {
+            const response = await fetch(`${window.CONFIG?.API_BASE_URL || '/api'}/activos/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

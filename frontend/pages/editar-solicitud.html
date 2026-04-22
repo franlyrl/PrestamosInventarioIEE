@@ -149,7 +149,7 @@
 
         try {
           const token = localStorage.getItem('utn_token');
-          const response = await fetch(`http://localhost:4000/api/solicitudes/${solicitudId}`, {
+          const response = await fetch(`/api/solicitudes/${solicitudId}`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
@@ -260,14 +260,14 @@
           const token = localStorage.getItem('utn_token');
           
           // Cargar activos
-          const responseActivos = await fetch('http://localhost:4000/api/activos', {
+          const responseActivos = await fetch('/api/activos', {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const activos = await responseActivos.json();
           mostrarActivosDisponibles(activos);
 
           // Cargar insumos
-          const responseInsumos = await fetch('http://localhost:4000/api/insumos', {
+          const responseInsumos = await fetch('/api/insumos', {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const insumos = await responseInsumos.json();
@@ -375,7 +375,7 @@
         try {
           const token = localStorage.getItem('utn_token');
           
-          const response = await fetch(`http://localhost:4000/api/solicitudes/${solicitudActual._id}`, {
+          const response = await fetch(`/api/solicitudes/${solicitudActual._id}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',

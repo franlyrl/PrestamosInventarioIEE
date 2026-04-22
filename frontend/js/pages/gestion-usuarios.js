@@ -1,4 +1,4 @@
-const API = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+const API = window.CONFIG?.API_BASE_URL || '/api';
 let todosLosUsuarios = [];
 
 function getToken() { return localStorage.getItem('utn_token'); }

@@ -154,7 +154,7 @@ class MobileUserController {
 
             // Si hay token, usar la API real
             try {
-                const apiUrl = 'http://localhost:4000/api/solicitudes';
+                const apiUrl = '/api/solicitudes';
                 console.log('** URL API:', apiUrl);
                 
                 const response = await fetch(apiUrl, {

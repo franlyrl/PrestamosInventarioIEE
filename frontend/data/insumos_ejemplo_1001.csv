@@ -1,0 +1,101 @@
+Nombre,Codigo,Categoria,Cantidad,Ubicacion,Caracteristicas
+Resistencia 10k Ohm 1/4W,INS-001,Componentes Analógicos,500,Laboratorio de Electrónica,Resistencia de carbón 5% tolerancia 1/4 de vatios
+Resistencia 1k Ohm 1/4W,INS-002,Componentes Analógicos,300,Laboratorio de Electrónica,Resistencia de carbón 5% tolerancia
+Resistencia 100 Ohm 1/4W,INS-003,Componentes Analógicos,250,Laboratorio de Electrónica,Resistencia de carbón 5% tolerancia
+Resistencia 4.7k Ohm 1/4W,INS-004,Componentes Analógicos,200,Laboratorio de Electrónica,Resistencia de carbón 5% tolerancia
+Resistencia 220 Ohm 1/4W,INS-005,Componentes Analógicos,350,Laboratorio de Electrónica,Resistencia de carbón 5% tolerancia
+Resistencia 47k Ohm 1/4W,INS-006,Componentes Analógicos,180,Laboratorio de Electrónica,Resistencia de carbón 5% tolerancia
+Resistencia 330 Ohm 1/4W,INS-007,Componentes Analógicos,400,Laboratorio de Electrónica,Resistencia de carbón 5% tolerancia
+Resistencia 1M Ohm 1/4W,INS-008,Componentes Analógicos,150,Laboratorio de Electrónica,Resistencia de carbón 5% tolerancia
+Capacitor Cerámico 100nF,INS-009,Componentes Analógicos,400,Laboratorio de Electrónica,Capacitor cerámico 100nF 50V
+Capacitor Cerámico 10nF,INS-010,Componentes Analógicos,350,Laboratorio de Electrónica,Capacitor cerámico 10nF 50V
+Capacitor Cerámico 1nF,INS-011,Componentes Analógicos,300,Laboratorio de Electrónica,Capacitor cerámico 1nF 50V
+Capacitor Electrolítico 100uF,INS-012,Componentes Analógicos,200,Laboratorio de Electrónica,Capacitor electrolítico 100uF 25V
+Capacitor Electrolítico 10uF,INS-013,Componentes Analógicos,250,Laboratorio de Electrónica,Capacitor electrolítico 10uF 25V
+Capacitor Electrolítico 1000uF,INS-014,Componentes Analógicos,150,Laboratorio de Electrónica,Capacitor electrolítico 1000uF 16V
+Capacitor Electrolítico 47uF,INS-015,Componentes Analógicos,180,Laboratorio de Electrónica,Capacitor electrolítico 47uF 25V
+Diodo 1N4007,INS-016,Componentes Analógicos,300,Laboratorio de Electrónica,Diodo rectificador 1A 1000V
+Diodo 1N4148,INS-017,Componentes Analógicos,400,Laboratorio de Electrónica,Diodo de conmutación rápida
+LED Rojo 5mm,INS-018,Componentes Analógicos,500,Laboratorio de Electrónica,LED rojo 5mm 20mA
+LED Verde 5mm,INS-019,Componentes Analógicos,450,Laboratorio de Electrónica,LED verde 5mm 20mA
+LED Azul 5mm,INS-020,Componentes Analógicos,400,Laboratorio de Electrónica,LED azul 5mm 20mA
+LED Amarillo 5mm,INS-021,Componentes Analógicos,380,Laboratorio de Electrónica,LED amarillo 5mm 20mA
+Transistor NPN 2N2222,INS-022,Componentes Analógicos,200,Laboratorio de Electrónica,Transistor NPN 40V 800mA
+Transistor NPN BC547,INS-023,Componentes Analógicos,250,Laboratorio de Electrónica,Transistor NPN 45V 100mA
+Transistor PNP 2N3906,INS-024,Componentes Analógicos,180,Laboratorio de Electrónica,Transistor PNP 40V 200mA
+Potenciómetro 10k Ohm,INS-025,Componentes Analógicos,120,Laboratorio de Electrónica,Potenciómetro lineal 10k Ohm
+Potenciómetro 100k Ohm,INS-026,Componentes Analógicos,100,Laboratorio de Electrónica,Potenciómetro lineal 100k Ohm
+Potenciómetro 1M Ohm,INS-027,Componentes Analógicos,80,Laboratorio de Electrónica,Potenciómetro lineal 1M Ohm
+Circuito Integrado 555,INS-028,Componentes Analógicos,150,Laboratorio de Electrónica,Timer 555 DIP-8
+Circuito Integrado LM358,INS-029,Componentes Analógicos,120,Laboratorio de Electrónica,Amplificador operacional dual
+Circuito Integrado LM741,INS-030,Componentes Analógicos,140,Laboratorio de Electrónica,Amplificador operacional
+Circuito Integrado LM7805,INS-031,Componentes Analógicos,160,Laboratorio de Electrónica,Regulador de voltaje 5V
+Circuito Integrado LM7812,INS-032,Componentes Analógicos,100,Laboratorio de Electrónica,Regulador de voltaje 12V
+Cristal de Cuarzo 16MHz,INS-033,Componentes Digitales,80,Laboratorio de Electrónica,Cristal oscilador 16MHz
+Cristal de Cuarzo 8MHz,INS-034,Componentes Digitales,90,Laboratorio de Electrónica,Cristal oscilador 8MHz
+Cristal de Cuarzo 4MHz,INS-035,Componentes Digitales,70,Laboratorio de Electrónica,Cristal oscilador 4MHz
+Conector USB Tipo A,INS-036,Componentes Digitales,200,Laboratorio de Electrónica,Conector USB hembra tipo A
+Conector USB Tipo B,INS-037,Componentes Digitales,180,Laboratorio de Electrónica,Conector USB hembra tipo B
+Conector Jack DC 2.1mm,INS-038,Componentes Analógicos,220,Laboratorio de Electrónica,Jack de alimentación DC 2.1mm
+Conector Terminal Block 2P,INS-039,Componentes Analógicos,150,Laboratorio de Electrónica,Bloque terminal 2 pines
+Conector Terminal Block 3P,INS-040,Componentes Analógicos,130,Laboratorio de Electrónica,Bloque terminal 3 pines
+Conector Pin Header 40P,INS-041,Componentes Digitales,100,Laboratorio de Electrónica,Header macho 40 pines
+Conector Pin Socket 40P,INS-042,Componentes Digitales,90,Laboratorio de Electrónica,Socket hembra 40 pines
+Cable UTP Cat5e,INS-043,Componentes Digitales,50,Laboratorio de Electrónica,Cable de red UTP categoría 5e por metro
+Cable UTP Cat6,INS-044,Componentes Digitales,40,Laboratorio de Electrónica,Cable de red UTP categoría 6 por metro
+Cable Protoboard Macho-Macho,INS-045,Componentes Digitales,300,Laboratorio de Electrónica,Cable jumper macho-macho 20cm
+Cable Protoboard Macho-Hembra,INS-046,Componentes Digitales,280,Laboratorio de Electrónica,Cable jumper macho-hembra 20cm
+Cable Protoboard Hembra-Hembra,INS-047,Componentes Digitales,260,Laboratorio de Electrónica,Cable jumper hembra-hembra 20cm
+Pulsador Táctil 4P,INS-048,Componentes Digitales,200,Laboratorio de Electrónica,Pulsador táctil momentáneo 4 pines
+Switch Deslizante SPDT,INS-049,Componentes Analógicos,180,Laboratorio de Electrónica,Switch deslizante 3 posiciones
+Switch Toggle ON-ON,INS-050,Componentes Analógicos,120,Laboratorio de Electrónica,Switch toggle 2 posiciones
+Zócalo IC DIP-8,INS-051,Componentes Digitales,200,Laboratorio de Electrónica,Zócalo para circuito integrado DIP-8
+Zócalo IC DIP-14,INS-052,Componentes Digitales,180,Laboratorio de Electrónica,Zócalo para circuito integrado DIP-14
+Zócalo IC DIP-16,INS-053,Componentes Digitales,160,Laboratorio de Electrónica,Zócalo para circuito integrado DIP-16
+Microcontrolador ATmega328P,INS-054,Componentes Digitales,80,Laboratorio de Electrónica,Microcontrolador AVR 8-bit DIP-28
+Microcontrolador PIC16F877A,INS-055,Componentes Digitales,60,Laboratorio de Electrónica,Microcontrolador PIC 8-bit DIP-40
+Sensor de Temperatura LM35,INS-056,Componentes Analógicos,90,Laboratorio de Electrónica,Sensor de temperatura -55°C a 150°C
+Sensor de Humedad DHT11,INS-057,Componentes Digitales,70,Laboratorio de Electrónica,Sensor de humedad y temperatura
+Sensor de Humedad DHT22,INS-058,Componentes Digitales,50,Laboratorio de Electrónica,Sensor de humedad y temperatura precisión alta
+Sensor Ultrasónico HC-SR04,INS-059,Componentes Digitales,60,Laboratorio de Electrónica,Sensor de distancia ultrasónico 2cm-400cm
+Módulo Bluetooth HC-05,INS-060,Componentes Digitales,40,Laboratorio de Electrónica,Módulo Bluetooth serial SPP
+Módulo WiFi ESP8266,INS-061,Componentes Digitales,30,Laboratorio de Electrónica,Módulo WiFi ESP8266-01
+Módulo Relay 5V 1 Canal,INS-062,Componentes Digitales,80,Laboratorio de Electrónica,Módulo relay 10A 250VAC
+Módulo Relay 5V 2 Canales,INS-063,Componentes Digitales,60,Laboratorio de Electrónica,Módulo relay 2 canales 10A
+Módulo Display LCD 16x2,INS-064,Componentes Digitales,50,Laboratorio de Electrónica,Display LCD 16x2 con backlight
+Módulo Display LCD 20x4,INS-065,Componentes Digitales,35,Laboratorio de Electrónica,Display LCD 20x4 con backlight
+Módulo Matriz LED 8x8,INS-066,Componentes Digitales,40,Laboratorio de Electrónica,Matriz LED 8x8 con MAX7219
+Módulo RTC DS3231,INS-067,Componentes Digitales,45,Laboratorio de Electrónica,Reloj de tiempo real con batería
+Módulo SD Card,INS-068,Componentes Digitales,35,Laboratorio de Electrónica,Lector de tarjetas SD SPI
+Módulo Joystick PS2,INS-069,Componentes Analógicos,55,Laboratorio de Electrónica,Módulo joystick con pulsador
+Módulo Sensor de Gas MQ-2,INS-070,Componentes Analógicos,40,Laboratorio de Electrónica,Sensor de gas inflamable y humo
+Módulo Sensor de Gas MQ-135,INS-071,Componentes Analógicos,35,Laboratorio de Electrónica,Sensor de calidad de aire
+Módulo Sensor de Luz LDR,INS-072,Componentes Analógicos,70,Laboratorio de Electrónica,Sensor de luz con LDR
+Módulo Encoder Rotativo,INS-073,Componentes Digitales,45,Laboratorio de Electrónica,Encoder rotativo con pulsador
+Módulo Driver Motor L298N,INS-074,Componentes Digitales,30,Laboratorio de Electrónica,Driver puente H dual 2A
+Módulo Servomotor SG90,INS-075,Componentes Digitales,50,Laboratorio de Electrónica,Servomotor 9g 180 grados
+Módulo Servomotor MG995,INS-076,Componentes Digitales,25,Laboratorio de Electrónica,Servomotor metálico alto torque
+Módulo Motor Paso a Paso 28BYJ-48,INS-077,Componentes Digitales,20,Laboratorio de Electrónica,Motor paso a paso con driver ULN2003
+Módulo Driver LED WS2812B,INS-078,Componentes Digitales,60,Laboratorio de Electrónica,Tira LED RGB direccionable
+Módulo Sensor de Corriente ACS712,INS-079,Componentes Analógicos,35,Laboratorio de Electrónica,Sensor de corriente 5A Hall effect
+Módulo Sensor de Voltaje,INS-080,Componentes Analógicos,40,Laboratorio de Electrónica,Divisor de voltaje DC 0-25V
+Transformador 12V 1A,INS-081,Componentes Analógicos,30,Laboratorio de Electrónica,Transformador AC-DC 12V 1A
+Fuente Regulada 5V 2A,INS-082,Componentes Analógicos,25,Laboratorio de Electrónica,Fuente switching 5V 2A
+Batería Li-Ion 18650,INS-083,Componentes Analógicos,50,Laboratorio de Electrónica,Batería recargable 3.7V 2600mAh
+Portapilas 4xAA,INS-084,Componentes Analógicos,40,Laboratorio de Electrónica,Portapilas 4 pilas AA con tapa
+Adaptador AC-DC 9V 1A,INS-085,Componentes Analógicos,35,Laboratorio de Electrónica,Adaptador de corriente 9V
+Protoboard 830 Puntos,INS-086,Componentes Digitales,40,Laboratorio de Electrónica,Protoboard estándar 830 puntos
+Protoboard 400 Puntos,INS-087,Componentes Digitales,50,Laboratorio de Electrónica,Protoboard pequeña 400 puntos
+Pinza de Corte Diagonal,INS-088,Componentes Analógicos,20,Laboratorio de Electrónica,Pinza de corte electrónica 135mm
+Pinza de Punta,INS-089,Componentes Analógicos,15,Laboratorio de Electrónica,Pinza de punta recta 150mm
+Desarmador Estrella,INS-090,Componentes Analógicos,25,Laboratorio de Electrónica,Desarmador Phillips #2
+Desarmador Plano,INS-091,Componentes Analógicos,25,Laboratorio de Electrónica,Desarmador plano 3mm
+Pelacables Automático,INS-092,Componentes Analógicos,12,Laboratorio de Electrónica,Pelacables automático regulable
+Estación de Soldadura,INS-093,Componentes Analógicos,8,Laboratorio de Electrónica,Estación de soldadura 60W con control de temperatura
+Soldadura en Pasta 50g,INS-094,Componentes Analógicos,30,Laboratorio de Electrónica,Pasta de soldadura SMD 50g
+Flux en Pasta 30cc,INS-095,Componentes Analógicos,25,Laboratorio de Electrónica,Flux para soldadura no limpio
+Desoldador de Succión,INS-096,Componentes Analógicos,15,Laboratorio de Electrónica,Desoldador bomba de succión
+Malla Desoldadora 1.5m,INS-097,Componentes Analógicos,20,Laboratorio de Electrónica,Malla de cobre para desoldar
+Tweezer Anti-estática,INS-098,Componentes Analógicos,18,Laboratorio de Electrónica,Pinza antiestática de precisión
+Pasta Térmica 5g,INS-099,Componentes Analógicos,40,Laboratorio de Electrónica,Pasta térmica para disipadores
+Limpiador de PCB 200ml,INS-100,Componentes Analógicos,35,Laboratorio de Electrónica,Isopropanol 99% para limpieza

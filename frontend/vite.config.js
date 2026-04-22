@@ -11,6 +11,7 @@ export default defineConfig({
     port: 5173, // Puerto específico
     open: true, // Abrir navegador automáticamente
     host: '0.0.0.0', // Escuchar en todas las interfaces
+    allowedHosts: ['monsoon-aim-mashed.ngrok-free.dev', '.ngrok-free.dev', 'localhost', '127.0.0.1'],
     // Proxy para redirigir llamadas a /api y /uploads al backend
     proxy: {
       '/api': {

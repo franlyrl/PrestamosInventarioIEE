@@ -8,7 +8,7 @@ class EstudianteDashboard {
     constructor() {
         this.user = JSON.parse(localStorage.getItem('utn_user')) || {};
         this.token = localStorage.getItem('utn_token') || '';
-        this.apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+        this.apiBase = window.CONFIG?.API_BASE_URL || '/api';
         this.notificaciones = [];
         this.solicitudesActivas = [];
         this.listaEspera = [];

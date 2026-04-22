@@ -135,7 +135,7 @@
     <script src="../js/components.js"></script>
     <script>
     (function() {
-        const API = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+        const API = window.CONFIG?.API_BASE_URL || '/api';
         const token = localStorage.getItem('utn_token') || '';
         const user  = JSON.parse(localStorage.getItem('utn_user') || 'null');
 

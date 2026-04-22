@@ -112,9 +112,11 @@ class IndexController {
                 // Botones
                 const buscarBtn = document.getElementById('buscar-btn');
                 const limpiarBtn = document.getElementById('limpiar-busqueda');
+                const familiasBtn = document.getElementById('ver-familias-btn');
 
                 if (buscarBtn) buscarBtn.addEventListener('click', () => this.aplicarFiltros());
                 if (limpiarBtn) limpiarBtn.addEventListener('click', () => this.limpiarFiltros());
+                if (familiasBtn) familiasBtn.addEventListener('click', () => this.mostrarFamilias());
 
                 this.filteredItems = [...this.allItems];
                 this.renderItems();
@@ -147,11 +149,21 @@ class IndexController {
                 return false;
             }
 
-            // Filtro de búsqueda
+            // Filtro de búsqueda más específico - coincidencia al inicio de palabras
             if (busqueda !== '') {
-                const nombre = item.nombre || item.NombProducto || '';
-                const descripcion = item.descripcion || item.caracteristicas || '';
-                if (!nombre.toLowerCase().includes(busqueda) && !descripcion.toLowerCase().includes(busqueda)) {
+                const nombre = (item.nombre || item.NombProducto || '').toLowerCase();
+                const descripcion = (item.descripcion || item.caracteristicas || '').toLowerCase();
+                const busquedaLower = busqueda.toLowerCase();
+                
+                // Crear regex que busca coincidencia al inicio de cualquier palabra
+                const palabrasBusqueda = busquedaLower.split(/\s+/).filter(p => p.length > 0);
+                const coincide = palabrasBusqueda.every(palabra => {
+                    // Busca la palabra al inicio del string o después de un espacio/guión/slash
+                    const regex = new RegExp(`(^|[^a-záéíóúñ0-9])${palabra.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
+                    return regex.test(nombre) || regex.test(descripcion) || nombre.includes(palabra) || descripcion.includes(palabra);
+                });
+                
+                if (!coincide) {
                     return false;
                 }
             }
@@ -388,6 +400,81 @@ class IndexController {
 
         return card;
     }
+
+    mostrarFamilias() {
+        // Obtener todas las familias/categorías únicas de los items
+        const familiasActivos = new Set();
+        const familiasInsumos = new Set();
+
+        this.allItems.forEach(item => {
+            if (item.categoria && item.categoria.trim() !== '') {
+                if (item.tipo === 'activo') {
+                    familiasActivos.add(item.categoria);
+                } else if (item.tipo === 'insumo') {
+                    familiasInsumos.add(item.categoria);
+                }
+            }
+        });
+
+        const activosArray = Array.from(familiasActivos).sort();
+        const insumosArray = Array.from(familiasInsumos).sort();
+
+        // Crear contenido del modal
+        let html = `
+            <div style="text-align: left; max-height: 60vh; overflow-y: auto;">
+                <h3 style="margin-bottom: 15px; color: #002D62; font-weight: bold;">Familias de Activos (${activosArray.length})</h3>
+        `;
+
+        if (activosArray.length > 0) {
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 20px;">';
+            activosArray.forEach(familia => {
+                const count = this.allItems.filter(i => i.tipo === 'activo' && i.categoria === familia).length;
+                html += `
+                    <div style="background: #f0f9ff; padding: 10px; border-radius: 8px; border-left: 4px solid #002D62;">
+                        <strong style="color: #002D62;">${familia}</strong><br>
+                        <span style="font-size: 12px; color: #666;">${count} artículos</span>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        } else {
+            html += '<p style="color: #666; margin-bottom: 20px;">No hay familias de activos disponibles</p>';
+        }
+
+        html += `
+                <h3 style="margin-bottom: 15px; color: #16a34a; font-weight: bold;">Familias de Insumos (${insumosArray.length})</h3>
+        `;
+
+        if (insumosArray.length > 0) {
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">';
+            insumosArray.forEach(familia => {
+                const count = this.allItems.filter(i => i.tipo === 'insumo' && i.categoria === familia).length;
+                html += `
+                    <div style="background: #f0fdf4; padding: 10px; border-radius: 8px; border-left: 4px solid #16a34a;">
+                        <strong style="color: #16a34a;">${familia}</strong><br>
+                        <span style="font-size: 12px; color: #666;">${count} artículos</span>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        } else {
+            html += '<p style="color: #666;">No hay familias de insumos disponibles</p>';
+        }
+
+        html += '</div>';
+
+        // Mostrar con SweetAlert2
+        Swal.fire({
+            title: 'Familias/Categorías Disponibles',
+            html: html,
+            width: '700px',
+            confirmButtonText: 'Cerrar',
+            confirmButtonColor: '#002D62',
+            showCloseButton: true,
+            showCancelButton: false,
+            focusConfirm: false
+        });
+    }
 }
 
 // ====== FUNCIONES DEL CARRITO ======
@@ -598,6 +685,18 @@ async function sendRequest() {
             fecha_solicitud: new Date().toISOString(),
             observaciones: `Solicitud generada desde el carrito con ${cart.length} items`
         };
+
+        // Validar datos antes de enviar
+        console.log(' Validando datos de solicitud:');
+        console.log(' - Usuario:', user.nombre_completo);
+        console.log(' - Activos:', activos.length, activos);
+        console.log(' - Insumos:', insumos.length, insumos);
+        console.log(' - Total items:', cart.length);
+
+        if (activos.length === 0 && insumos.length === 0) {
+            showToast('El carrito está vacío', 'warning');
+            return;
+        }
 
         // Enviar a la API
         console.log(' Enviando solicitud a:', `${window.CONFIG.API_BASE_URL}/solicitudes`);

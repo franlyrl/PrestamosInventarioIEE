@@ -605,17 +605,17 @@ exports.autoAsignarImagenes = async (req, res) => {
         });
 
         if (insumosSnImagen.length === 0) {
-            return res.json({ message: "Todo el catÃ¡logo ya cuenta con imÃ¡genes.", procesados: 0, actualizados: 0 });
+            return res.json({ message: "Todo el catálogo ya cuenta con imágenes.", procesados: 0, actualizados: 0 });
         }
 
         let actualizados = 0;
         
         for (const insumo of insumosSnImagen) {
-            // Busqueda mÃ¡s precisa usando Google Images con googlethis
+            // Busqueda más precisa usando Google Images con googlethis
             const query = insumo.NombProducto;
             
             try {
-                // PequeÃ±o delay de 500-1500ms para evitar bloqueos por rate-limit de Google al procesar cientos masivamente
+                // Pequeño delay de 500-1500ms para evitar bloqueos por rate-limit de Google al procesar cientos masivamente
                 await new Promise(r => setTimeout(r, 500 + Math.random() * 1000));
                 
                 const images = await google.image(query, { safe: false });
@@ -630,12 +630,12 @@ exports.autoAsignarImagenes = async (req, res) => {
         }
 
         res.json({
-            message: "Auto-asignaciÃ³n inteligente completada con Google Images.",
+            message: "Auto-asignación inteligente completada con Google Images.",
             procesados: insumosSnImagen.length,
             actualizados: actualizados
         });
     } catch (error) {
-        res.status(500).json({ message: 'Error interno en auto-asignaciÃ³n', error: error.message });
+        res.status(500).json({ message: 'Error interno en auto-asignación', error: error.message });
     }
 };
 

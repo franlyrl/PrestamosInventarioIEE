@@ -18,6 +18,7 @@ class IndexController {
 
     async init() {
         console.log(' Iniciando IndexController simple...');
+        console.log(' DEBUG: Versión con depuración activada');
 
         // Esperar a que el DOM esté listo antes de configurar filtros y cargar items
         if (document.readyState === 'loading') {
@@ -82,6 +83,7 @@ class IndexController {
                 console.log(' Activos cargados:', activos?.todosLosActivos?.length || activos?.length || 0);
                 console.log(' Insumos cargados:', insumos?.length || 0);
 
+                // Procesar arrays primero
                 let activosArray = [];
                 if (Array.isArray(activos)) {
                     activosArray = activos;
@@ -89,6 +91,17 @@ class IndexController {
                     activosArray = activos.todosLosActivos;
                 }
                 const insumosArray = Array.isArray(insumos) ? insumos : [];
+
+                // Depuración de origen de datos
+                console.log(' === ORIGEN DE DATOS ===');
+                console.log(' Items que vienen de /activos:');
+                activosArray.forEach((item, index) => {
+                    console.log(`  ${index + 1}. ${item.NombProducto || item.nombre || 'SIN NOMBRE'} | Categoría: ${item.categoria || 'undefined'}`);
+                });
+                console.log(' Items que vienen de /insumos:');
+                insumosArray.forEach((item, index) => {
+                    console.log(`  ${index + 1}. ${item.NombProducto || item.nombre || 'SIN NOMBRE'} | Categoría: ${item.categoria || 'undefined'}`);
+                });
 
                 // Debug: mostrar todos los insumos con sus cantidades
                 console.log(' Todos los insumos con sus cantidades:');
@@ -112,12 +125,65 @@ class IndexController {
                     console.log(`- ${item.categoria || 'Sin categoría'} (${item.nombre || item.NombProducto}) - Cantidad: ${item.cantidad || 'undefined'}`);
                 });
 
-                this.allItems = [
+                // Depuración específica para Componentes Analógicos
+                console.log(' === DEPURACIÓN COMPONENTES ANALÓGICOS ===');
+                const analogicos = insumosArray.filter(item => 
+                    item.categoria === 'Componentes Analógicos' || 
+                    item.categoria?.includes('Analógic')
+                );
+                console.log(' Insumos analógicos encontrados:', analogicos.length);
+                analogicos.forEach(item => {
+                    console.log(`  - ${item.NombProducto || item.nombre} | Categoría: "${item.categoria}" | Tipo: ${item.tipo || 'undefined'} | Cantidad: ${item.cantidad || 'undefined'}`);
+                });
+
+                // Depuración completa de insumos
+                console.log(' === TODOS LOS INSUMOS CARGADOS ===');
+                console.log(' Total insumos desde API:', insumosArray.length);
+                insumosArray.forEach((item, index) => {
+                    console.log(` ${index + 1}. ${item.NombProducto || item.nombre || 'SIN NOMBRE'}`);
+                    console.log(`    - Tipo guardado: ${item.tipo || 'undefined'}`);
+                    console.log(`    - Categoría: ${item.categoria || 'undefined'}`);
+                    console.log(`    - Cantidad: ${item.cantidad || 'undefined'}`);
+                    console.log(`    - ID: ${item._id || 'undefined'}`);
+                });
+
+                // Clasificar correctamente por categoría
+                const todosLosItems = [
                     ...activosArray.map(item => ({ ...item, tipo: 'activo' })),
                     ...todosLosInsumosConForzados.map(item => ({ ...item, tipo: item.tipo || 'insumo' }))
                 ];
 
+                // Corregir tipo basado en categoría
+                console.log(' === CORRIGIENDO TIPOS POR CATEGORÍA ===');
+                this.allItems = todosLosItems.map(item => {
+                    const tipoOriginal = item.tipo;
+                    let tipoCorregido = item.tipo;
+                    
+                    if (item.categoria === 'Componentes Analógicos' || item.categoria === 'Componentes Digitales') {
+                        tipoCorregido = 'insumo';
+                        console.log(` CORREGIDO: ${item.NombProducto || item.nombre} | ${tipoOriginal} -> ${tipoCorregido} | Categoría: ${item.categoria}`);
+                    }
+                    
+                    return { ...item, tipo: tipoCorregido };
+                });
+
                 console.log(' Total items:', this.allItems.length);
+                
+                // Depuración de tipos
+                console.log(' === DEPURACIÓN DE TIPOS ===');
+                const tipos = {};
+                this.allItems.forEach(item => {
+                    const tipo = item.tipo || 'undefined';
+                    tipos[tipo] = (tipos[tipo] || 0) + 1;
+                });
+                console.log(' Conteo por tipo:', tipos);
+                
+                // Mostrar insumos específicamente
+                const itemsInsumos = this.allItems.filter(item => item.tipo === 'insumo');
+                console.log(' Insumos encontrados:', itemsInsumos.length);
+                itemsInsumos.forEach(item => {
+                    console.log(`  - ${item.NombProducto || item.nombre} | Tipo: ${item.tipo} | Categoría: ${item.categoria || 'undefined'}`);
+                });
 
                 // Forzar valores iniciales
                 const tipoSelect = document.getElementById('tipo-select');
@@ -171,8 +237,10 @@ class IndexController {
                 return false;
             }
 
-            // Para activos, requerir al menos nombre o marca+modelo
-            if (item.tipo === 'activo' && !item.NombProducto && !item.nombre && (!item.marca || !item.modelo)) {
+            // Para activos, requerir al menos nombre, marca+modelo, o un ID válido
+            const tieneIdValido = item.numActivo && item.numActivo !== 'N/A' && item.numActivo.trim() !== '';
+            const tieneCodigoValido = item.codigo && item.codigo !== 'N/A' && item.codigo.trim() !== '';
+            if (item.tipo === 'activo' && !item.NombProducto && !item.nombre && (!item.marca || !item.modelo) && !tieneIdValido && !tieneCodigoValido) {
                 console.log(' RECHAZADO: Activo sin identificación - Tipo:', item.tipo);
                 return false;
             }
@@ -260,6 +328,16 @@ class IndexController {
 
                 console.log(' Item categoría:', itemCategoria, 'buscando:', categoriaBuscada);
 
+                // Depuración especial para Componentes Analógicos
+                if (categoriaBuscada === 'Componentes Analógicos') {
+                    console.log(' DEPURACIÓN COMPONENTES ANALÓGICOS:');
+                    console.log('  - Item:', item.NombProducto || item.nombre);
+                    console.log('  - Tipo:', item.tipo);
+                    console.log('  - Categoría:', itemCategoria);
+                    console.log('  - Cantidad:', item.cantidad);
+                    console.log('  - Estado:', item.estado);
+                }
+
                 if (itemCategoria !== categoriaBuscada) {
                     console.log(' Item rechazado por categoría:', itemCategoria, '!==', categoriaBuscada);
                     return false;
@@ -304,8 +382,13 @@ class IndexController {
             }
 
             // Filtro de tipo (solo si no está ya filtrado por categoría)
-            if (tipo !== 'todos' && item.tipo !== tipo) {
-                return false;
+            if (tipo !== 'todos') {
+                console.log(' FILTRO DE TIPO - Tipo requerido:', tipo, 'Item tipo:', item.tipo, 'Item nombre:', item.NombProducto || item.nombre);
+                if (item.tipo !== tipo) {
+                    console.log(' Item rechazado por tipo:', item.tipo, '!==', tipo);
+                    return false;
+                }
+                console.log(' Item aceptado por tipo:', item.NombProducto || item.nombre);
             }
 
             return true;

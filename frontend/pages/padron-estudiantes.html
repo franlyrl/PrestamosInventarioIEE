@@ -487,7 +487,7 @@
     <script src="../js/auth.js"></script>
 
     <script>
-        const API = `http://${window.location.hostname}:4000/api`;
+        const API = '/api';
         const token = localStorage.getItem('utn_token');
         const H = { Authorization: `Bearer ${token}` };
         const POR_PAG = 20;

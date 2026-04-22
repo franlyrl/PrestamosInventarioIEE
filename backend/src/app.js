@@ -16,12 +16,33 @@ console.log('✅ [DEBUG] app.js cargado - versión con endpoint /api/upload/imag
 
 // --- 1. MIDDLEWARES DE ENTRADA (Configuración inicial) ---
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:4000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:4000', 'http://127.0.0.1:5173', 'http://10.90.29.31:3000', 'http://10.90.29.31:4000', 'http://10.90.29.31:5173', 'http://192.168.0.9:3000', 'http://192.168.0.9:5173', 'https://192.168.0.9:3000', 'https://192.168.0.9:5173', 'https://monsoon-aim-mashed.ngrok-free.dev', 'https://*.ngrok-free.dev'],
+    origin: ['http://localhost:3000', 'http://localhost:4000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:4000', 'http://127.0.0.1:5173', 'http://10.90.29.31:3000', 'http://10.90.29.31:4000', 'http://10.90.29.31:5173', 'http://192.168.0.9:3000', 'http://192.168.0.9:5173', 'https://192.168.0.9:3000', 'https://192.168.0.9:5173', 'https://monsoon-aim-mashed.ngrok-free.dev', 'https://*.ngrok-free.dev', 'https://*.ngrok.io'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With'],
     credentials: true
 }));
 app.use(helmet());
+
+// Middleware para asegurar codificación UTF-8
+app.use((req, res, next) => {
+    // Para respuestas JSON
+    if (req.accepts('json')) {
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    }
+    // Para respuestas HTML
+    else if (req.accepts('html')) {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    }
+    // Para texto plano
+    else if (req.accepts('text')) {
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    }
+    // Por defecto para cualquier otro contenido
+    else {
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    }
+    next();
+});
 
 // Middleware para capturar errores de JSON parsing
 app.use((err, req, res, next) => {
@@ -77,6 +98,24 @@ app.use('/api/estadisticas', require('./routes/estadisticasRoutes'));
 app.use('/api/cuatrimestre', require('./routes/cuatrimestreRoutes'));
 
 // --- 3. RUTAS PÚBLICAS Y PRUEBAS ---
+app.post('/api/test-utf8', (req, res) => {
+    console.log('Datos recibidos:', JSON.stringify(req.body, null, 2));
+    
+    const response = {
+        recibido: req.body,
+        procesado: {
+            nombre: req.body.nombre || '',
+            descripcion: req.body.descripcion || '',
+            observaciones: req.body.observaciones || '',
+            mensaje: req.body.mensaje || ''
+        },
+        mensaje: "Datos procesados correctamente con caracteres UTF-8: ñ, á, é, í, ó, ú, Á, É, Í, Ó, Ú, ¿, ¡",
+        timestamp: new Date().toISOString()
+    };
+    
+    res.status(200).json(response);
+});
+
 app.post('/api/upload', (req, res) => {
     console.log('📤 Petición de subida de archivo recibida');
     

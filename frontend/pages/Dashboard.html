@@ -436,6 +436,9 @@
                             <option value="bajo-stock">Bajo Stock</option>
                             <option value="sin-stock">Sin Stock</option>
                         </select>
+                        <button id="ver-familias-btn" class="btn btn-info" title="Ver familias/categorías disponibles">
+                            Familias
+                        </button>
                         <button id="limpiar-busqueda" class="btn btn-secondary">
                              Limpiar
                         </button>
@@ -1187,7 +1190,8 @@
                 
                 console.log(' Iniciando carga de activos...');
                 console.log(' Token disponible:', token ? 'Sí' : 'No');
-                console.log(' URL:', `${window.CONFIG.API_BASE_URL}/activos`);
+                const API = window.CONFIG?.API_BASE_URL || '/api';
+                console.log(' URL:', API);
                 
                 try {
                     // Ocultar el grid con animación de salida
@@ -1209,7 +1213,7 @@
                     }, 200);
                     
                     // Cargar activos
-                    console.log(' Enviando petición a:', `${window.CONFIG.API_BASE_URL}/activos`);
+                    console.log(' Enviando petición a:', API);
                     
                     const activosResponse = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
                         headers: {
@@ -1387,8 +1391,8 @@
                        * 
                       */
                 else if (type === 'insumos') {
-                    nombre = item.NombProducto || 'Insumo sin nombre';
-                    codigo = item.id_insumo || 'N/A'; // Usamos id_insumo según tu esquema
+                    nombre = item.NombProducto || item.nombre || item.descripcion || 'Insumo sin nombre';
+                    codigo = item.id_insumo || item.codigo || 'N/A'; // Usamos id_insumo según tu esquema
                     caracteristicas = item.caracteristicas || "Sin detalles técnicos";
                     descripcion = item.categoria || caracteristicas || 'Sin descripción';
                     observaciones = "N/A";

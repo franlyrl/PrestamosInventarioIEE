@@ -576,14 +576,15 @@ exports.inactivarUsuario = async (req, res) => {
 exports.loginUsuario = async (req, res) => {
     try {
         // 1. Recibimos los datos
-        const { correo_electronico, contrasena } = req.body;
+        const { correo_electronico, email, contrasena, password } = req.body;
+        const correo = correo_electronico || email;
 
-        console.log('🔍 Login attempt - Email recibido:', correo_electronico);
-        console.log('🔍 Email procesado (lowercase+trim):', correo_electronico.toLowerCase().trim());
+        console.log('?? Login attempt - Email recibido:', correo);
+        console.log('?? Email procesado (lowercase+trim):', correo.toLowerCase().trim());
 
         // 2. Buscamos al usuario
         const usuario = await Usuarios.findOne({
-            correo_electronico: correo_electronico.toLowerCase().trim()
+            correo_electronico: correo.toLowerCase().trim()
         });
 
         console.log('👤 Usuario encontrado:', !!usuario);
@@ -600,7 +601,7 @@ exports.loginUsuario = async (req, res) => {
 
             // Buscar usuarios similares para debug
             const similares = await Usuarios.find({
-                correo_electronico: { $regex: correo_electronico.split('@')[0], $options: 'i' }
+                correo_electronico: { $regex: correo.split('@')[0], $options: 'i' }
             }).limit(3);
             console.log('🔍 Usuarios similares encontrados:', similares.length);
             similares.forEach(u => console.log('   -', `"${u.correo_electronico}"`)); // Entre comillas
@@ -616,7 +617,8 @@ exports.loginUsuario = async (req, res) => {
         }
 
         // 3. COMPARACIÓN DE CONTRASEÑA (Solo una vez)
-        const esValida = await bcrypt.compare(contrasena, usuario.hash_contraseña);
+        const pwd = contrasena || password;
+        const esValida = await bcrypt.compare(pwd, usuario.hash_contraseña);
 
         if (!esValida) {
             return res.status(401).json({ message: 'Credenciales inválidas (Contraseña incorrecta)' });

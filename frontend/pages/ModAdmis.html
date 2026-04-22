@@ -476,7 +476,7 @@
     <script src="../js/components.js"></script>
 
     <script>
-    const API = 'http://localhost:4000/api';
+    const API = window.CONFIG?.API_BASE_URL || '/api';
 
     document.addEventListener('DOMContentLoaded', async () => {
         // 1. Auth check

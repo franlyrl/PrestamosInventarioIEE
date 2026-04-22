@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Base de datos MongoDB
   mongodb:
-    image: mongo:6.0
+    image: docker.io/mongo:6.0
     container_name: prestamos_mongodb
     restart: unless-stopped
     environment:
@@ -14,8 +14,6 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-    networks:
-      - prestamos_network
 
   # Backend
   backend:
@@ -37,8 +35,6 @@ services:
     volumes:
       - ./backend/src:/app/src
       - ./backend/uploads:/app/uploads
-    networks:
-      - prestamos_network
 
   # Frontend
   frontend:
@@ -56,12 +52,6 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    networks:
-      - prestamos_network
 
 volumes:
   mongodb_data:
-
-networks:
-  prestamos_network:
-    driver: bridge

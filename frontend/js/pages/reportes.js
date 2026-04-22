@@ -481,14 +481,47 @@ class ReportesController {
         const topActivos = document.getElementById('top-activos');
         if (!topActivos) return;
 
-        // Simular top activos
-        const topData = [
-            { rank: 1, nombre: 'Multímetro Digital', solicitudes: 45 },
-            { rank: 2, nombre: 'Osciloscopio', solicitudes: 38 },
-            { rank: 3, nombre: 'Generador de Funciones', solicitudes: 32 },
-            { rank: 4, nombre: 'Soldador Estación', solicitudes: 28 },
-            { rank: 5, nombre: 'Fuente de Poder', solicitudes: 25 }
-        ];
+        // Calcular activos más solicitados desde datos reales
+        const contadorActivos = {};
+        
+        // Procesar todas las solicitudes para contar activos
+        this.datos.solicitudes?.forEach(solicitud => {
+            if (solicitud.activos && Array.isArray(solicitud.activos)) {
+                solicitud.activos.forEach(activo => {
+                    const nombreActivo = this.getNombreActivo(activo);
+                    if (nombreActivo && nombreActivo !== 'Sin nombre') {
+                        contadorActivos[nombreActivo] = (contadorActivos[nombreActivo] || 0) + 1;
+                    }
+                });
+            }
+        });
+
+        // Convertir a array y ordenar por solicitudes (descendente)
+        const topData = Object.entries(contadorActivos)
+            .map(([nombre, solicitudes]) => ({ nombre, solicitudes }))
+            .sort((a, b) => b.solicitudes - a.solicitudes)
+            .slice(0, 5) // Top 5
+            .map((item, index) => ({ ...item, rank: index + 1 }));
+
+        // Debug: mostrar datos reales procesados
+        console.log('=== ACTIVOS MÁS SOLICITADOS (DATOS REALES) ===');
+        console.log('Total solicitudes procesadas:', this.datos.solicitudes?.length || 0);
+        console.log('Contador de activos:', contadorActivos);
+        console.log('Top 5 resultante:', topData);
+
+        // Si no hay datos reales, mostrar mensaje
+        if (topData.length === 0) {
+            topActivos.innerHTML = `
+                <div class="text-center py-8 text-slate-500">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <p class="text-sm font-medium">No hay solicitudes registradas</p>
+                    <p class="text-xs mt-1">Los datos aparecerán cuando se realicen préstamos</p>
+                </div>
+            `;
+            return;
+        }
 
         topActivos.innerHTML = topData.map(item => `
             <div class="top-activo-item">
@@ -501,6 +534,25 @@ class ReportesController {
                 </div>
             </div>
         `).join('');
+    }
+
+    // Función auxiliar para obtener nombre estandarizado de activo
+    getNombreActivo(activo) {
+        if (!activo) return 'Sin nombre';
+        
+        // Priorizar marca + modelo si existen
+        if (activo.marca && activo.modelo) {
+            return `${activo.marca} ${activo.modelo}`;
+        }
+        
+        // Usar otros campos disponibles
+        return activo.nombre || 
+               activo.NombProducto || 
+               activo.nombreActivo || 
+               activo.numActivo || 
+               activo.codigo || 
+               activo.descripcion || 
+               'Sin nombre';
     }
 
     async generarReporte() {

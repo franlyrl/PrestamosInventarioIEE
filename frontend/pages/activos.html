@@ -669,7 +669,7 @@
     // CONTROLADOR DE ACTIVOS - Completo y funcional
     // ================================================================
 
-    const API = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+    const API = window.CONFIG?.API_BASE_URL || '/api';
     let todosLosActivos = [];
     let activoActual = null;
 
@@ -1134,7 +1134,7 @@
 
     function descargarPlantilla() {
         const bom = '\uFEFF';
-        const encabezado = 'numActivo,numSerie,marca,modelo,categoria,estadoActivo,caracteristicas,observaciones';
+        const encabezado = 'placa,serie,marca,modelo,categoria,estado,descripcion,observaciones';
         const ejemplo1 = '1234,FL123456,Fluke,87V,Instrumentos,disponible,Multimetro digital True RMS,Calibrado';
         const ejemplo2 = '1235,WEL7890,Weller,WE1010NA,Herramientas,disponible,Estacion de soldadura 70W,Nueva';
         const csv = bom + [encabezado, ejemplo1, ejemplo2].join('\n');
@@ -1270,37 +1270,127 @@
         if (errores.length > 0) mostrarToast(`${errores.length} fila(s) fallaron`, 'error');
     }
 
-    // ========================  EXPORTAR CSV (UTF-8 BOM)  ========================
+    // ========================  EXPORTAR HTML (DISEÑO SPIEE)  ========================
     function exportarCSV() {
         if (!todosLosActivos.length) { mostrarToast('No hay datos para exportar', 'error'); return; }
-        const rows = todosLosActivos.filter(a => a.estadoActivo !== 'eliminado').map(a => ({
-            'N° Activo': a.numActivo || '', 'N° Serie': a.numSerie || '',
-            'Marca': a.marca || '', 'Modelo': a.modelo || '',
-            'Categoría': a.categoria || '', 'Estado': a.estadoActivo || '',
-            'Características': a.caracteristicas || '', 'Observaciones': a.observaciones || ''
-        }));
-        const hdrs = Object.keys(rows[0]);
-        // Escapar comillas dobles y encerrar entre comillas cada campo
-        const csvRows = [hdrs.join(',')];
-        rows.forEach(r => {
-            const rowFields = hdrs.map(h => {
-                let s = String(r[h]);
-                if (s.includes('"') || s.includes(',') || s.includes('\n')) {
-                    s = `"${s.replace(/"/g, '""')}"`;
-                }
-                return s;
-            });
-            csvRows.push(rowFields.join(','));
-        });
         
-        // Agregar \uFEFF BOM para que Excel cargue los caracteres latinos correctamente
-        const csv = '\uFEFF' + csvRows.join('\n');
-        const a = Object.assign(document.createElement('a'), {
-            href: URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'})),
-            download: `activos_UTN_${new Date().toISOString().split('T')[0]}.csv`
-        });
-        a.click();
-        mostrarToast('Exportación generada ✓', 'success');
+        const fecha = new Date().toISOString().split('T')[0];
+        const hora = new Date().toLocaleTimeString('es-ES');
+        const activosFiltrados = todosLosActivos.filter(a => a.estadoActivo !== 'eliminado');
+        
+        // Crear HTML con diseño SPIEE
+        let htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Activos - SPIEE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #f8fafc; padding: 40px; }
+        .header { background: linear-gradient(135deg, #002D62 0%, #004a8f 100%); color: white; padding: 30px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 10px 40px rgba(0,45,98,0.2); }
+        .header h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+        .header .badge { display: inline-block; background: #F2A900; color: #002D62; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-top: 10px; }
+        .kpi-card { background: white; padding: 24px; border-radius: 12px; border-left: 4px solid #002D62; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin-bottom: 30px; }
+        .kpi-label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+        .kpi-value { font-size: 32px; font-weight: 800; color: #002D62; }
+        .section { background: white; border-radius: 16px; padding: 30px; margin-bottom: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .section-title { font-size: 14px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .section-title::before { content: ''; width: 4px; height: 20px; background: #F2A900; border-radius: 2px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        thead { background: #f1f5f9; }
+        th { padding: 14px 16px; text-align: left; font-weight: 700; color: #475569; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+        td { padding: 14px 16px; border-bottom: 1px solid #e2e8f0; color: #334155; }
+        tr:hover { background: #f8fafc; }
+        .estado { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .estado.disponible { background: #d1fae5; color: #065f46; }
+        .estado.prestado { background: #dbeafe; color: #1e40af; }
+        .estado.mantenimiento { background: #fee2e2; color: #991b1b; }
+        .estado.fuera { background: #e2e8f0; color: #475569; }
+        .footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+        .footer strong { color: #002D62; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Reporte de Activos</h1>
+        <p>Generado el ${fecha} a las ${hora}</p>
+        <span class="badge">INVENTARIO COMPLETO</span>
+    </div>
+    
+    <div class="kpi-card">
+        <div class="kpi-label">Total de Activos</div>
+        <div class="kpi-value">${activosFiltrados.length}</div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">Inventario de Activos</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>N° Activo</th>
+                    <th>N° Serie</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Categoría</th>
+                    <th>Estado</th>
+                    <th>Características</th>
+                    <th>Observaciones</th>
+                </tr>
+            </thead>
+            <tbody>`;
+            
+            activosFiltrados.forEach(a => {
+                const estadoClass = getEstadoClass(a.estadoActivo);
+                const nombre = (a.marca && a.modelo) ? `${a.marca} ${a.modelo}` : (a.nombre || 'Sin nombre');
+                htmlContent += `
+                <tr>
+                    <td><strong>${a.numActivo || '-'}</strong></td>
+                    <td>${a.numSerie || '-'}</td>
+                    <td>${a.marca || '-'}</td>
+                    <td>${a.modelo || '-'}</td>
+                    <td>${a.categoria || '-'}</td>
+                    <td><span class="estado ${estadoClass}">${a.estadoActivo || '-'}</span></td>
+                    <td>${a.caracteristicas || '-'}</td>
+                    <td>${a.observaciones || '-'}</td>
+                </tr>`;
+            });
+            
+        htmlContent += `
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="footer">
+        <strong>SPIEE</strong> - Sistema de Préstamos e Inventario de Equipos Electrónicos<br>
+        Universidad Técnica Nacional
+    </div>
+</body>
+</html>`;
+
+        // Descargar como HTML
+        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `activos-spiee-${fecha}.html`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        mostrarToast('Reporte HTML descargado exitosamente', 'success');
+    }
+    
+    // Función auxiliar para clase de estado
+    function getEstadoClass(estado) {
+        if (!estado) return 'fuera';
+        const e = estado.toLowerCase();
+        if (e.includes('disponible')) return 'disponible';
+        if (e.includes('prestado')) return 'prestado';
+        if (e.includes('mantenimiento') || e.includes('danado')) return 'mantenimiento';
+        return 'fuera';
     }
 
     // ----- HELPERS UI -----
@@ -1345,7 +1435,7 @@
 
         try {
             const token = localStorage.getItem('utn_token');
-            const apiBaseUrl = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+            const apiBaseUrl = window.CONFIG?.API_BASE_URL || '/api';
             
             const response = await fetch(`${apiBaseUrl}/${modulo}/auto-imagenes`, {
                 method: 'POST',

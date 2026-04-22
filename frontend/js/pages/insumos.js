@@ -4,8 +4,8 @@ class InsumosController {
         this.insumos = [];
         this.filtros = {
             busqueda: '',
-            categoria: 'todas',
-            stock: 'todos'
+            categoria: '',
+            stock: ''
         };
         this.currentPage = 1;
         this.itemsPerPage = 12;
@@ -19,7 +19,7 @@ class InsumosController {
 
     setupEventListeners() {
         // Búsqueda
-        const busquedaInput = document.getElementById('busqueda-input');
+        const busquedaInput = document.getElementById('busquedaInput');
         if (busquedaInput) {
             busquedaInput.addEventListener('input', (e) => {
                 this.filtros.busqueda = e.target.value;
@@ -28,7 +28,7 @@ class InsumosController {
         }
 
         // Categoría
-        const categoriaSelect = document.getElementById('categoria-select');
+        const categoriaSelect = document.getElementById('categoriaFiltro');
         if (categoriaSelect) {
             categoriaSelect.addEventListener('change', (e) => {
                 this.filtros.categoria = e.target.value;
@@ -37,7 +37,7 @@ class InsumosController {
         }
 
         // Stock
-        const stockSelect = document.getElementById('stock-select');
+        const stockSelect = document.getElementById('stockFiltro');
         if (stockSelect) {
             stockSelect.addEventListener('change', (e) => {
                 this.filtros.stock = e.target.value;
@@ -179,8 +179,23 @@ class InsumosController {
     async cargarInsumos() {
         try {
             Utils.showLoading(true);
-            const response = await ApiService.getInsumos();
-            this.insumos = response.data || response;
+            const API = window.CONFIG?.API_BASE_URL || '/api';
+            const token = localStorage.getItem('utn_token');
+            
+            const response = await fetch(`${API}/insumos`, { 
+                headers: { Authorization: `Bearer ${token}` } 
+            });
+            
+            if (!response.ok) throw new Error(`Error ${response.status}`);
+            
+            this.insumos = await response.json();
+            this.insumos = Array.isArray(this.insumos) ? this.insumos : [];
+            
+            // Sincronizar con variable global para compatibilidad
+            if (typeof window.todosLosInsumos !== 'undefined') {
+                window.todosLosInsumos = this.insumos;
+            }
+            
             Utils.showLoading(false);
         } catch (error) {
             console.error('Error cargando insumos:', error);
@@ -190,9 +205,9 @@ class InsumosController {
     }
 
     renderInsumos() {
-        const grid = document.getElementById('insumos-grid');
-        const emptyState = document.getElementById('empty-state');
-        const resultadosCount = document.getElementById('resultados-count');
+        const grid = document.getElementById('insumosGrid');
+        const emptyState = document.getElementById('emptyState');
+        const resultadosCount = document.getElementById('totalCount');
 
         if (!grid) return;
 
@@ -220,6 +235,9 @@ class InsumosController {
 
     filtrarInsumos() {
         return this.insumos.filter(insumo => {
+            // Excluir insumos eliminados
+            if (insumo.estado === 'eliminado') return false;
+
             // Excluir insumos de prueba
             const nombre = insumo.NombProducto || '';
             if (nombre.includes('Capacitor Electrolítico 47uF')) return false;
@@ -228,7 +246,7 @@ class InsumosController {
                 (insumo.NombProducto && insumo.NombProducto.toLowerCase().includes(this.filtros.busqueda.toLowerCase())) ||
                 (insumo.caracteristicas && insumo.caracteristicas.toLowerCase().includes(this.filtros.busqueda.toLowerCase()));
 
-            const coincideCategoria = this.filtros.categoria === 'todas' ||
+            const coincideCategoria = !this.filtros.categoria ||
                 insumo.categoria === this.filtros.categoria;
 
             const coincideStock = this.checkStockFilter(insumo, this.filtros.stock);
@@ -241,12 +259,12 @@ class InsumosController {
         const cantidad = insumo.cantidad || 0;
 
         switch (stockFilter) {
-            case 'con-stock':
+            case 'disponible':
                 return cantidad > 0;
-            case 'sin-stock':
+            case 'sin':
                 return cantidad === 0;
-            case 'bajo-stock':
-                return cantidad > 0 && cantidad <= 5; // Cambiado de 10 a 5
+            case 'bajo':
+                return cantidad > 0 && cantidad <= 5;
             default:
                 return true;
         }
@@ -395,18 +413,18 @@ class InsumosController {
     limpiarFiltros() {
         this.filtros = {
             busqueda: '',
-            categoria: 'todas',
-            stock: 'todos'
+            categoria: '',
+            stock: ''
         };
 
         // Limpiar inputs
-        const busquedaInput = document.getElementById('busqueda-input');
-        const categoriaSelect = document.getElementById('categoria-select');
-        const stockSelect = document.getElementById('stock-select');
+        const busquedaInput = document.getElementById('busquedaInput');
+        const categoriaSelect = document.getElementById('categoriaFiltro');
+        const stockSelect = document.getElementById('stockFiltro');
 
         if (busquedaInput) busquedaInput.value = '';
-        if (categoriaSelect) categoriaSelect.value = 'todas';
-        if (stockSelect) stockSelect.value = 'todos';
+        if (categoriaSelect) categoriaSelect.value = '';
+        if (stockSelect) stockSelect.value = '';
 
         this.renderInsumos();
     }
@@ -471,7 +489,7 @@ window.autoAsignarImagenesMasivas = async function(modulo) {
 
     try {
         const token = localStorage.getItem('utn_token');
-        const apiBaseUrl = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+        const apiBaseUrl = window.CONFIG?.API_BASE_URL || '/api';
         
         const response = await fetch(`${apiBaseUrl}/${modulo}/auto-imagenes`, {
             method: 'POST',
@@ -490,8 +508,18 @@ window.autoAsignarImagenesMasivas = async function(modulo) {
                 text: `${data.message} Se actualizaron ${data.actualizados} imágenes de ${data.procesados} posibles.`,
                 confirmButtonColor: '#002D62'
             }).then(() => {
-                if (modulo === 'insumos' && window.insumosController) {
-                    window.insumosController.recargarInsumos();
+                if (modulo === 'insumos') {
+                    // Usar el sistema inline para recargar y renderizar
+                    if (typeof cargarInsumos === 'function') {
+                        cargarInsumos().then(() => {
+                            if (typeof renderInsumos === 'function') {
+                                renderInsumos();
+                            }
+                        });
+                    } else {
+                        // Fallback: recargar la página
+                        window.location.reload();
+                    }
                 } else {
                     window.location.reload();
                 }

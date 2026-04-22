@@ -12,7 +12,7 @@ class SolicitudesController {
         this.filtros = { busqueda: '', estado: 'todos', desde: '', hasta: '', cedula: '', usuario: 'todos' };
         this.currentUser = JSON.parse(localStorage.getItem('utn_user')) || {};
         this.token = localStorage.getItem('utn_token') || '';
-        this.apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+        this.apiBase = window.CONFIG?.API_BASE_URL || '/api';
         this.isAdmin = ['admin', 'administrador', 'administrativo'].some(r =>
             (this.currentUser.rol || '').toLowerCase().includes(r)
         );
@@ -1321,7 +1321,7 @@ window.editarEspera = async function(esperaId) {
     const token = localStorage.getItem('utn_token');
     let esperaActual = null;
     try {
-        const resp = await fetch(`${window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api'}/listaEspera/${esperaId}`, {
+        const resp = await fetch(`${window.CONFIG?.API_BASE_URL || '/api'}/listaEspera/${esperaId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (resp.ok) esperaActual = await resp.json();
@@ -1370,7 +1370,7 @@ window.editarEspera = async function(esperaId) {
         if (formValues.fecha_estimada) payload.fecha_estimada = formValues.fecha_estimada;
         if (formValues.tiempo_estimado) payload.tiempo_estimado = formValues.tiempo_estimado;
 
-        await fetch(`${window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api'}/listaEspera/${esperaId}`, {
+        await fetch(`${window.CONFIG?.API_BASE_URL || '/api'}/listaEspera/${esperaId}`, {
             method: 'PATCH',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1391,7 +1391,7 @@ window.marcarProcesando = async function(esperaId) {
 
     try {
         const token = localStorage.getItem('utn_token');
-        await fetch(`${window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api'}/listaEspera/${esperaId}`, {
+        await fetch(`${window.CONFIG?.API_BASE_URL || '/api'}/listaEspera/${esperaId}`, {
             method: 'PATCH',
             headers: {
                 'Authorization': `Bearer ${token}`,

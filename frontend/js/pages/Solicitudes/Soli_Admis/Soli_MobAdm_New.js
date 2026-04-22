@@ -116,7 +116,7 @@ class MobileAdminController {
             }
 
             // Cargar TODAS las solicitudes del sistema (para administradores)
-            const response = await fetch('http://localhost:4000/api/solicitudes', {
+            const response = await fetch('/api/solicitudes', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -639,7 +639,7 @@ class MobileAdminController {
         
         try {
             const token = localStorage.getItem('utn_token');
-            const response = await fetch(`http://localhost:4000/api/solicitudes/admin-gestion/${solicitudId}`, {
+            const response = await fetch(`/api/solicitudes/admin-gestion/${solicitudId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -706,7 +706,7 @@ class MobileAdminController {
                 return;
             }
             
-            const url = `http://localhost:4000/api/solicitudes/admin-gestion/${solicitudId}`;
+            const url = `/api/solicitudes/admin-gestion/${solicitudId}`;
             console.log('** URL de la API:', url);
             
             const requestBody = {
@@ -782,7 +782,7 @@ class MobileAdminController {
         
         try {
             const token = localStorage.getItem('utn_token');
-            const response = await fetch(`http://localhost:4000/api/solicitudes/admin-gestion/${solicitudId}`, {
+            const response = await fetch(`/api/solicitudes/admin-gestion/${solicitudId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -837,7 +837,7 @@ class MobileAdminController {
         
         try {
             const token = localStorage.getItem('utn_token');
-            const response = await fetch(`http://localhost:4000/api/solicitudes/admin-gestion/${solicitudId}`, {
+            const response = await fetch(`/api/solicitudes/admin-gestion/${solicitudId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -892,7 +892,7 @@ class MobileAdminController {
         
         try {
             const token = localStorage.getItem('utn_token');
-            const response = await fetch(`http://localhost:4000/api/solicitudes/${solicitudId}`, {
+            const response = await fetch(`/api/solicitudes/${solicitudId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`

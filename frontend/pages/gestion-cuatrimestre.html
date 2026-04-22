@@ -204,7 +204,7 @@
   <script src="../js/main.js"></script>
   <script src="../js/components.js"></script>
   <script>
-  const API = `http://${window.location.hostname}:4000/api`;
+  const API = '/api';
 
   function getToken() { return localStorage.getItem('utn_token'); }
   function headers() { return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' }; }

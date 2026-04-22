@@ -129,7 +129,7 @@ console.log('Campos disponibles:', Object.keys(currentUser));
 const token = localStorage.getItem('utn_token');
 console.log('Token disponible:', !!token);
 // Usar la misma URL que móvil
-const apiUrl = 'http://localhost:4000/api/solicitudes';
+const apiUrl = '/api/solicitudes';
 console.log('URL completa:', apiUrl);
 const response = await fetch(apiUrl, {
 headers: {
@@ -688,7 +688,7 @@ const esDocente = rolText.includes('docente') || rolText.includes('profesor');
             }
 
             // Usar localhost para consistencia
-            const response = await fetch(`http://localhost:4000/api/solicitudes/${solicitudId}`, {
+            const response = await fetch(`/api/solicitudes/${solicitudId}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,

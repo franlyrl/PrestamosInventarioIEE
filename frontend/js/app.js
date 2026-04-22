@@ -1,6 +1,6 @@
 // Configuración Principal
 const CONFIG = {
-    API_BASE_URL: 'http://localhost:4000/api',
+    API_BASE_URL: '/api',
     ANIMATIONS: {
         FADE_IN: 400,
         MODAL: 300,
@@ -95,9 +95,11 @@ const Utils = {
         
         // Usar SweetAlert2 si está disponible para un look premium
         if (window.Swal) {
+            // Detectar si es móvil para ajustar posición
+            const isMobile = window.innerWidth <= 768;
             const Toast = Swal.mixin({
                 toast: true,
-                position: 'top-end',
+                position: isMobile ? 'top' : 'top-end',
                 showConfirmButton: false,
                 timer: 3000,
                 timerProgressBar: true,
@@ -112,6 +114,20 @@ const Utils = {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toastMsg');
             if (!toast || !toastMsg) return;
+            
+            // Detectar móvil para mejor posicionamiento
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                // En móvil, posicionar arriba en el centro con z-index alto
+                toast.style.position = 'fixed';
+                toast.style.top = '20px';
+                toast.style.left = '50%';
+                toast.style.transform = 'translateX(-50%)';
+                toast.style.zIndex = '9999';
+                toast.style.width = '90%';
+                toast.style.maxWidth = '400px';
+            }
+            
             toastMsg.textContent = message;
             toast.classList.remove('translate-y-20', 'opacity-0');
             toast.classList.add('translate-y-0', 'opacity-100');

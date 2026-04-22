@@ -12,10 +12,10 @@ const connectDB = async (retries = 5, delayMs = 2000) => {
   for (let attempt = 1; attempt <= retries; attempt += 1) {
     try {
       const conn = await mongoose.connect(mongoUri);
-      console.log('✅ Conexión a MongoDB exitosa');
-      console.log('📊 Base de datos conectada:', conn.connection.name);
-      console.log('🌐 Host:', conn.connection.host);
-      console.log('🔌 Puerto:', conn.connection.port);
+      console.log(' Conexión a MongoDB exitosa');
+      console.log(' Base de datos conectada:', conn.connection.name);
+      console.log(' Host:', conn.connection.host);
+      console.log(' Puerto:', conn.connection.port);
 
       // Verificar si podemos escribir en la base de datos
       const testDoc = { test: 'connection', date: new Date() };

@@ -147,7 +147,7 @@
 
         async function cargarMisPrestamos(user) {
             const token = localStorage.getItem('utn_token');
-            const apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+            const apiBase = window.CONFIG?.API_BASE_URL || '/api';
 
             try {
                 const resp = await fetch(`${apiBase}/solicitudes`, {

@@ -33,7 +33,7 @@ class PerfilController {
     async cargarDatosUsuario() {
         try {
             const token = localStorage.getItem('utn_token');
-            const api = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+            const api = window.CONFIG?.API_BASE_URL || '/api';
             const response = await fetch(`${api}/usuarios/perfil`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -200,7 +200,7 @@ class PerfilController {
     async cargarEstadisticasAdmin() {
         try {
             const token = localStorage.getItem('utn_token');
-            const api = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+            const api = window.CONFIG?.API_BASE_URL || '/api';
             
             // Cargar conteo de usuarios pendientes
             const respPendientes = await fetch(`${api}/usuarios/pendientes-aprobacion`, {
@@ -251,7 +251,7 @@ class PerfilController {
     async cargarEstadoBoleta() {
         try {
             const token = localStorage.getItem('utn_token');
-            const api = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+            const api = window.CONFIG?.API_BASE_URL || '/api';
             const response = await fetch(`${api}/usuarios/boleta/estado`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -372,7 +372,7 @@ class PerfilController {
         try {
             Utils.showLoading(true);
             const token = localStorage.getItem('utn_token');
-            const api = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+            const api = window.CONFIG?.API_BASE_URL || '/api';
             const fd = new FormData();
             fd.append('boleta_pdf', result.value);
 
@@ -529,7 +529,7 @@ class PerfilController {
         try {
             Utils.showLoading(true);
             const token = localStorage.getItem('utn_token');
-            const api = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+            const api = window.CONFIG?.API_BASE_URL || '/api';
             const response = await fetch(`${api}/usuarios/update-password`, {
                 method: 'PATCH',
                 headers: {
