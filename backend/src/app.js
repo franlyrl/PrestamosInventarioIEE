@@ -302,8 +302,21 @@ app.post('/api/upload/asociar', async (req, res) => {
     }
 });
 
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
     res.json({ message: 'API del Laboratorio funcionando ' });
+});
+
+// Servir frontend estático desde carpeta frontend
+const frontendPath = path.join(__dirname, '..', '..', 'frontend');
+console.log('📁 [STATIC] Sirviendo frontend desde:', frontendPath);
+app.use(express.static(frontendPath));
+
+// Fallback para rutas del frontend (SPA)
+app.get('*', (req, res) => {
+    if (req.url.startsWith('/api')) {
+        return res.status(404).json({ message: 'API endpoint no encontrado' });
+    }
+    res.sendFile(path.join(frontendPath, 'login.html'));
 });
 
 // --- 4. MIDDLEWARE DE SALIDA (Manejo de errores) ---
