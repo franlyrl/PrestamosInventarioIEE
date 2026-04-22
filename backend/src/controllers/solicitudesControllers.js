@@ -246,13 +246,27 @@ exports.createSolicitud = async (req, res) => {
         }
 
         // 5. CREACIÓN DE LA SOLICITUD (Solo con items disponibles)
-        // Extraer solo los IDs de activos ya que el modelo espera ObjectIds directos
-        const activosIds = activosDisponibles.map(a => a.codigo_activo);
+        // Convertir IDs de activos a ObjectIds explícitamente
+        const activosIds = activosDisponibles.map(a => {
+            const id = a.codigo_activo;
+            return mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : id;
+        });
+        
+        // Convertir IDs de insumos también
+        const insumosProcesadosFinal = insumosDisponibles.map(i => ({
+            ...i,
+            id_insumo: mongoose.Types.ObjectId.isValid(i.id_insumo) 
+                ? new mongoose.Types.ObjectId(i.id_insumo) 
+                : i.id_insumo
+        }));
+        
+        console.log('🔍 [DEBUG] Guardando solicitud con activos:', activosIds);
+        console.log('🔍 [DEBUG] Guardando solicitud con insumos:', insumosProcesadosFinal);
         
         const nuevaSolicitud = new Solicitudes({
             usuario: usuarioId,
             activos: activosIds,
-            insumos: insumosDisponibles,
+            insumos: insumosProcesadosFinal,
             observaciones,
             estado: 'pendiente',
             historico_estados: [{
@@ -263,6 +277,16 @@ exports.createSolicitud = async (req, res) => {
         });
 
         const solicitudGuardada = await nuevaSolicitud.save();
+
+        // Actualizar estado de los activos a "prestado"
+        if (activosDisponibles.length > 0) {
+            for (const activo of activosDisponibles) {
+                await Activos.findByIdAndUpdate(activo.codigo_activo, {
+                    estadoActivo: 'prestado'
+                });
+                console.log(`🔍 [DEBUG] Activo ${activo.codigo_activo} marcado como prestado`);
+            }
+        }
 
         // Preparar mensaje según si hay items en lista de espera
         const itemsEnEspera = (activosProcesados.length - activosDisponibles.length) + (insumosProcesados.length - insumosDisponibles.length);
