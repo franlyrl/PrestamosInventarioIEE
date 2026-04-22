@@ -312,7 +312,7 @@ console.log('📁 [STATIC] Sirviendo frontend desde:', frontendPath);
 app.use(express.static(frontendPath));
 
 // Fallback para rutas del frontend (SPA)
-app.get('*', (req, res) => {
+app.use((req, res) => {
     if (req.url.startsWith('/api')) {
         return res.status(404).json({ message: 'API endpoint no encontrado' });
     }
