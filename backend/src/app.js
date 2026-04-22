@@ -16,15 +16,43 @@ console.log('✅ [DEBUG] app.js cargado - versión con endpoint /api/upload/imag
 
 // --- 1. MIDDLEWARES DE ENTRADA (Configuración inicial) ---
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:4000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:4000', 'http://127.0.0.1:5173', 'http://10.90.29.31:3000', 'http://10.90.29.31:4000', 'http://10.90.29.31:5173', 'http://192.168.0.9:3000', 'http://192.168.0.9:5173', 'https://192.168.0.9:3000', 'https://192.168.0.9:5173'],
+    origin: ['http://localhost:3000', 'http://localhost:4000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:4000', 'http://127.0.0.1:5173', 'http://10.90.29.31:3000', 'http://10.90.29.31:4000', 'http://10.90.29.31:5173', 'http://192.168.0.9:3000', 'http://192.168.0.9:5173', 'https://192.168.0.9:3000', 'https://192.168.0.9:5173', 'https://monsoon-aim-mashed.ngrok-free.dev', 'https://*.ngrok-free.dev'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With'],
     credentials: true
 }));
 app.use(helmet());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // Permite leer formularios
+
+// Middleware para capturar errores de JSON parsing
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        console.error('❌ [JSON ERROR] Error parsing JSON:', err.message);
+        console.error('❌ [JSON ERROR] Body recibido:', err.body);
+        return res.status(400).json({ message: 'JSON inválido', error: err.message });
+    }
+    next();
+});
+
+app.use(express.json({ strict: false, limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' })); // Permite leer formularios
 app.use(morgan('dev'));
+
+// Middleware de debugging DESPUÉS del parsing para ver qué llegó
+app.use((req, res, next) => {
+    if (req.method === 'POST' && req.url.includes('/solicitudes')) {
+        console.log('🔍 [DEBUG] === POST /api/solicitudes ===');
+        console.log('🔍 [DEBUG] Content-Type:', req.headers['content-type']);
+        console.log('🔍 [DEBUG] req.body exists:', !!req.body);
+        console.log('🔍 [DEBUG] req.body type:', typeof req.body);
+        console.log('🔍 [DEBUG] req.body keys:', req.body ? Object.keys(req.body) : 'N/A');
+        if (req.body) {
+            console.log('🔍 [DEBUG] req.body:', JSON.stringify(req.body, null, 2));
+            console.log('🔍 [DEBUG] req.body.activos:', req.body.activos);
+            console.log('🔍 [DEBUG] typeof req.body.activos:', typeof req.body.activos);
+        }
+    }
+    next();
+});
 
 // Middleware para servir archivos estáticos (imágenes subidas)
 const fs = require('fs');

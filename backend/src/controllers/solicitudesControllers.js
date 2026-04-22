@@ -94,6 +94,11 @@ exports.createSolicitud = async (req, res) => {
         const usuarioId = req.user.id;
 
         // --- DATOS DE LA SOLICITUD (Vienen del Formulario/Body) ---
+        console.log('🔍 [DEBUG] req.body completo:', JSON.stringify(req.body, null, 2));
+        console.log('🔍 [DEBUG] Tipo de req.body:', typeof req.body);
+        console.log('🔍 [DEBUG] req.body.activos:', req.body.activos);
+        console.log('🔍 [DEBUG] Tipo de req.body.activos:', typeof req.body.activos);
+        
         const { activos, insumos, observaciones } = req.body;
         // NOTA: fecha_entrega_esperada REMOVIDO — solo el admin puede asignar fecha de entrega (Área F)
 
@@ -144,20 +149,34 @@ exports.createSolicitud = async (req, res) => {
             });
         }
 
-        // Procesar activos de la misma manera
+        // Procesar activos - soportar tanto strings (IDs) como objetos con codigo_activo
         let activosProcesados = [];
+        console.log('🔍 [DEBUG] Raw activos recibidos:', activos);
+        console.log('🔍 [DEBUG] Tipo de activos:', typeof activos);
         if (activos && Array.isArray(activos)) {
-            activosProcesados = activos.map(activo => {
-                let activoProcesado = { ...activo };
-
-                // Convertir referencias de objeto a string si es necesario
-                if (activo.codigo_activo && typeof activo.codigo_activo === 'object') {
-                    activoProcesado.codigo_activo = activo.codigo_activo.$oid || activo.codigo_activo._id || activo.codigo_activo.id;
+            activosProcesados = activos.map((activo, idx) => {
+                console.log(`🔍 [DEBUG] Procesando activo[${idx}]:`, activo, 'tipo:', typeof activo);
+                // Si es string, es el ID directo
+                if (typeof activo === 'string') {
+                    console.log(`🔍 [DEBUG] Activo[${idx}] es string, ID:`, activo);
+                    return { codigo_activo: activo };
                 }
-
-                return activoProcesado;
+                // Si es objeto con codigo_activo
+                if (activo && activo.codigo_activo) {
+                    let codigo = activo.codigo_activo;
+                    console.log(`🔍 [DEBUG] Activo[${idx}] es objeto, codigo_activo:`, codigo);
+                    // Si codigo_activo es objeto con $oid, extraerlo
+                    if (typeof codigo === 'object' && codigo.$oid) {
+                        codigo = codigo.$oid;
+                    }
+                    return { codigo_activo: codigo };
+                }
+                // Fallback: devolver el activo tal cual
+                console.log(`🔍 [DEBUG] Activo[${idx}] fallback, devolviendo:`, activo);
+                return activo;
             });
         }
+        console.log('🔍 [DEBUG] Activos procesados:', activosProcesados);
 
         // 4. VERIFICACIÓN DE DISPONIBILIDAD Y SEPARACIÓN DE ITEMS DISPONIBLES E INDISPONIBLES
         const ListaEspera = require('../models/listaEspera');
@@ -227,9 +246,12 @@ exports.createSolicitud = async (req, res) => {
         }
 
         // 5. CREACIÓN DE LA SOLICITUD (Solo con items disponibles)
+        // Extraer solo los IDs de activos ya que el modelo espera ObjectIds directos
+        const activosIds = activosDisponibles.map(a => a.codigo_activo);
+        
         const nuevaSolicitud = new Solicitudes({
             usuario: usuarioId,
-            activos: activosDisponibles,
+            activos: activosIds,
             insumos: insumosDisponibles,
             observaciones,
             estado: 'pendiente',

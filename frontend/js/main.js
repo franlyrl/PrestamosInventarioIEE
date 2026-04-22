@@ -7,7 +7,7 @@
 // 1. CONFIGURACIÓN GLOBAL
 if (typeof window.CONFIG === 'undefined') {
     window.CONFIG = {
-        API_BASE_URL: 'http://localhost:4000/api',
+        API_BASE_URL: '/api',
         ANIMATIONS: {
             FADE_IN: 400,
             MODAL: 300,
@@ -216,7 +216,7 @@ Object.assign(window.Utils, {
 // detecta cambios de estado importantes y alerta al usuario proactivamente.
 window.UTNNotifs = {
 
-    _apiBase: 'http://localhost:4000/api',
+    _apiBase: '/api',
 
     async cargarYMostrarCampana() {
         const user = JSON.parse(localStorage.getItem('utn_user') || 'null');
@@ -883,7 +883,7 @@ window.agregarAListaEspera = async function(insumoId, nombreProducto) {
     if (!cantidad) return;
 
     try {
-        const resp = await fetch(`${window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api'}/listaEspera`, {
+        const resp = await fetch(`${window.CONFIG?.API_BASE_URL || '/api'}/listaEspera`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -919,7 +919,7 @@ window.cancelarEspera = async function(esperaId) {
 
     try {
         const token = localStorage.getItem('utn_token');
-        const resp = await fetch(`${window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api'}/listaEspera/${esperaId}`, {
+        const resp = await fetch(`${window.CONFIG?.API_BASE_URL || '/api'}/listaEspera/${esperaId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1044,7 +1044,7 @@ window.verificarBloqueopenalizacion = async function() {
     try {
         const token = localStorage.getItem('utn_token');
         const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
-        const apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+        const apiBase = window.CONFIG?.API_BASE_URL || '/api';
         
         if (!token || !user._id) return false;
 
@@ -1508,7 +1508,7 @@ window.addToCart = async function(itemName, itemType, itemData, btn = null) {
 
     // Verificar si el usuario tiene penalización activa
     const token = localStorage.getItem('utn_token');
-    const apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+    const apiBase = window.CONFIG?.API_BASE_URL || '/api';
 
     if (token && user._id) {
         try {
@@ -1794,7 +1794,7 @@ window.sendRequest = async function() {
     // Verificar si el usuario tiene penalización activa
     const token = localStorage.getItem('utn_token');
     const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
-    const apiBase = window.CONFIG?.API_BASE_URL || 'http://localhost:4000/api';
+    const apiBase = window.CONFIG?.API_BASE_URL || '/api';
 
     if (token && user._id) {
         try {
@@ -1830,13 +1830,14 @@ window.sendRequest = async function() {
         const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
         const token = localStorage.getItem('utn_token');
 
-        const activos = window.cart.filter(i => i.type === 'activo').map(i => ({
-            codigo_activo: i.data._id,
-            nombre: i.name,
-            modelo: i.data.modelo || '',
-            numActivo: i.data.numActivo || '',
-            cantidad: i.quantity || 1
-        }));
+        // SOLUCIÓN: Enviar array de IDs simples (strings) que el modelo puede castear a ObjectId
+        const activos = window.cart.filter(i => i.type === 'activo').map(i => {
+            const idActivo = i.data._id || i.data.id || i._id;
+            if (!idActivo) {
+                throw new Error(`El activo "${i.name}" no tiene ID. Recarga la página y agrégalo de nuevo.`);
+            }
+            return idActivo; // Solo el string ID
+        });
 
         const insumos = window.cart.filter(i => i.type !== 'activo').map(i => {
             // Extraer el ID del insumo - puede estar en _id o id_insumo
@@ -1847,20 +1848,42 @@ window.sendRequest = async function() {
             }
             return {
                 id_insumo: idInsumo,
-                cantidad: i.quantity,
+                cantidad: i.quantity || 1,
                 nombre_insumo: i.name
             };
         });
 
+        // Asegurar que activos sea un array limpio
+        const activosArray = Array.isArray(activos) ? activos : [];
+        const insumosArray = Array.isArray(insumos) ? insumos : [];
+        
+        console.log(' Arrays limpios:', {
+            activos: activosArray,
+            activos_type: typeof activosArray,
+            insumos: insumosArray,
+            insumos_type: typeof insumosArray
+        });
+
         const data = {
             usuario_solicitante: user.nombre_completo || user.nombre || 'Usuario',
-            correo_solicitante: user.correo_electronico || user.email,
-            activos,
-            insumos,
+            correo_solicitante: user.correo_electronico || user.email || 'usuario@example.com',
+            activos: activosArray,
+            insumos: insumosArray,
             observaciones: motivo,
             comentario_estudiante: observaciones,
             fecha_prestamo: new Date()
         };
+
+        console.log(' Enviando solicitud a:', `${window.CONFIG?.API_BASE_URL}/solicitudes`);
+        console.log(' Datos enviados:', data);
+        console.log(' Token disponible:', token ? 'Sí' : 'No');
+
+        // Asegurar serialización correcta sin replacer que pueda causar problemas
+        const jsonData = JSON.stringify(data);
+        
+        console.log(' JSON enviado:', jsonData);
+        console.log(' Verificación - activos formato correcto:', jsonData.includes('[{"codigo_activo":'));
+        console.log(' Longitud del JSON:', jsonData.length);
 
         const res = await fetch(`${window.CONFIG?.API_BASE_URL}/solicitudes`, {
             method: 'POST',
@@ -1868,10 +1891,17 @@ window.sendRequest = async function() {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify(data)
+            body: jsonData
+        });
+
+        console.log(' Respuesta del servidor:', {
+            status: res.status,
+            statusText: res.statusText,
+            ok: res.ok
         });
 
         const err = await res.json().catch(() => ({}));
+        console.log(' Error del servidor:', err);
 
         if (res.ok || (res.status === 409 && err.message && err.message.includes('lista de espera'))) {
             window.Utils?.showToast(err.message || '¡Solicitud enviada con éxito!', 'success');
@@ -1881,10 +1911,20 @@ window.sendRequest = async function() {
                 window.location.href = 'solicitudes.html';
             }, 1500);
         } else {
-            throw new Error(err.message || 'Error al enviar solicitud');
+            console.error(' Error detallado:', {
+                status: res.status,
+                statusText: res.statusText,
+                errorData: err,
+                dataSent: data
+            });
+            throw new Error(err.message || `Error ${res.status}: ${res.statusText}`);
         }
     } catch (error) {
         console.error('Error:', error);
         window.Utils?.showToast(error.message, 'error');
     }
 };
+
+// FORZAR OVERRIDE - Asegurar que esta sea la única función sendRequest usada
+console.log(' sendRequest override aplicado - main.js');
+window.sendRequest = window.sendRequest;
