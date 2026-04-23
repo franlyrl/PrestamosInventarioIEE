@@ -47,6 +47,5 @@ for (const file of targetFiles) {
 
     if (original !== replaced) {
         fs.writeFileSync(filePath, replaced, 'utf8');
-        console.log('Fixed footer in:', file);
     }
 }

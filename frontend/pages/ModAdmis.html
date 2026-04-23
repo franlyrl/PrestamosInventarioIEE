@@ -12,7 +12,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background: #f8fafc; }
-        .card-mod { background: white; border-radius: 18px; border: 1px solid #e2e8f0; padding: 24px; transition: all 0.22s cubic-bezier(0.4,0,0.2,1); cursor: pointer; position: relative; overflow: hidden; }
+        .card-mod { background: white; border-radius: 20px; border: 1px solid #e2e8f0; padding: 26px; min-height: 176px; transition: all 0.22s cubic-bezier(0.4,0,0.2,1); cursor: pointer; position: relative; overflow: hidden; }
         .card-mod:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,45,98,0.12); border-color: #cbd5e1; }
         .stat-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 20px; }
         .stat-num { font-size: 2.25rem; font-weight: 900; line-height: 1; }
@@ -73,7 +73,7 @@
             <!-- M-DULOS - Insumos -  Activos -  Masiva -->
             <section class="mb-10 fade-up" style="animation-delay:.08s">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Módulos del Sistema</p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-7">
 
                     <!-- Insumos -->
                     <div class="card-mod group" onclick="location.href='insumos.html'">
@@ -468,8 +468,51 @@
         });
     </script>
 
-    <!-- Footer cargado por components.js -->
-    <div id="footer-component"></div>
+    <!-- Footer institucional ajustado -->
+    <footer id="footer-modadmis" class="bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] text-white mt-10 shadow-[0_-10px_30px_rgba(0,46,110,0.14)]">
+        <div class="container mx-auto max-w-6xl px-6 py-6 md:py-5">
+            <div class="grid grid-cols-1 gap-6 text-center md:grid-cols-[1.25fr_1fr_1.25fr] md:items-center md:gap-8 md:text-left">
+                <div>
+                    <h2 class="text-sm sm:text-base font-black uppercase tracking-wide">Universidad Técnica Nacional</h2>
+                    <div class="mt-3 flex items-center justify-center gap-4 md:justify-start">
+                        <img src="../css/UTN.jpg" alt="Logo institucional" class="w-14 h-14 md:w-12 md:h-12 rounded-full bg-white p-2 shadow-xl">
+                        <p class="text-[10px] sm:text-xs font-black text-[#F2A900] uppercase tracking-[0.35em]">Sede del Pacífico</p>
+                    </div>
+                    <p class="mt-3 text-xs sm:text-sm text-blue-100/60">Sistema de Préstamos e Inventario</p>
+                </div>
+
+                <div class="border-y border-white/10 py-5 md:border-x md:border-y-0 md:px-6 md:py-0 md:text-center">
+                    <p class="text-[10px] sm:text-xs font-black text-[#F2A900] uppercase tracking-[0.3em]">Carrera: Ingeniería Electrónica</p>
+                    <p class="mt-3 text-xs sm:text-sm font-black uppercase tracking-wide">Asistente: Hary Andrey Mora Mendiola</p>
+                </div>
+
+                <div class="flex flex-col items-center gap-3 md:items-end">
+                    <a href="mailto:hmoram@utn.ac.cr" class="inline-flex items-center justify-center gap-3 text-xs sm:text-sm font-bold text-white transition-colors hover:text-[#F2A900]">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F2A900]/20 text-[#F2A900]">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l8.7 5.8a2 2 0 002.2 0L22 8m-17 8h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                        </span>
+                        hmoram@utn.ac.cr
+                    </a>
+                    <a href="tel:+50626601747" class="inline-flex items-center justify-center gap-3 text-xs sm:text-sm font-bold text-white transition-colors hover:text-[#F2A900]">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F2A900]/20 text-[#F2A900]">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h2.3a1 1 0 01.95.68l1.1 3.3a1 1 0 01-.45 1.17l-1.35.78a12 12 0 005.52 5.52l.78-1.35a1 1 0 011.17-.45l3.3 1.1a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C9.16 21 3 14.84 3 7V5z"/></svg>
+                        </span>
+                        2660-1747
+                    </a>
+                    <div class="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-100/45 md:items-end">
+                        <span>Edificio Labs, 2do Piso · Aula 312</span>
+                        <span>Mar-Vie: 8am-9pm</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5 border-t border-white/10 pt-3 text-center">
+                <p class="text-[10px] sm:text-xs font-bold uppercase tracking-[0.35em] text-blue-100/35">
+                    &copy; 2026 Universidad Técnica Nacional · Sede del Pacífico · SPIEE
+                </p>
+            </div>
+        </div>
+    </footer>
 
     <!-- Scripts necesarios -->
     <script src="../js/main.js"></script>
@@ -516,13 +559,13 @@
             const act = Array.isArray(actData) ? actData : (actData?.todosLosActivos || []);
 
             // KPIs
-            const activos_sin_eliminar = ins.filter(i => i.estado !== 'eliminado');
+            const insumos_sin_eliminar = ins.filter(i => i.estado !== 'eliminado');
             const activos_eq = act.filter(a => a.estadoActivo !== 'eliminado');
-            const totalIns = activos_sin_eliminar.length;
+            const totalIns = insumos_sin_eliminar.length;
             const totalAct = activos_eq.length;
             const disponibles = activos_eq.filter(a => a.estadoActivo === 'disponible').length
-                              + activos_sin_eliminar.filter(i => i.estado === 'disponible').length;
-            const bajoStock = activos_sin_eliminar.filter(i => (i.cantidad||0) > 0 && (i.cantidad||0) <= 5).length;
+                              + insumos_sin_eliminar.filter(i => i.estado === 'disponible').length;
+            const bajoStock = insumos_sin_eliminar.filter(i => (i.cantidad||0) > 0 && (i.cantidad||0) <= 5).length;
 
             const statInsumosEl = document.getElementById('statInsumos');
             const statActivosEl = document.getElementById('statActivos');
@@ -546,8 +589,16 @@
                 }
             } catch(ep) {}
 
-            // Inventario reciente (últimos 6 insumos)
-            renderRecientes(activos_sin_eliminar.slice(-6).reverse());
+            // Inventario reciente: combina insumos y activos, ordenado por creación/actualización.
+            const recientes = [
+                ...insumos_sin_eliminar.map(i => ({ ...i, tipoInventario: 'insumo' })),
+                ...activos_eq.map(a => ({ ...a, tipoInventario: 'activo' }))
+            ].sort((a, b) => {
+                const fechaA = new Date(a.createdAt || a.updatedAt || 0).getTime();
+                const fechaB = new Date(b.createdAt || b.updatedAt || 0).getTime();
+                return fechaB - fechaA;
+            }).slice(0, 6);
+            renderRecientes(recientes);
 
             // RESUMEN DE INVENTARIO - Badge y Modal
             const badgeInventarioEl = document.getElementById('badgeInventario');
@@ -579,25 +630,45 @@
 
         if (!items.length) { empty.classList.remove('hidden'); return; }
 
-        const badgeClass = { 'disponible':'badge-disp','prestado':'badge-prest','fuera de stock':'badge-stock','en espera':'badge-espera' };
-        grid.innerHTML = items.map(i => `
-            <a href="insumos.html" class="item-mini group">
+        const badgeClass = { 'disponible':'badge-disp','prestado':'badge-prest','fuera de stock':'badge-stock','en espera':'badge-espera', 'fuera de servicio':'badge-stock' };
+        const iconInsumo = `<svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>`;
+        const iconActivo = `<svg class="w-5 h-5 text-[#002D62]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>`;
+        grid.innerHTML = items.map(i => {
+            const esActivo = i.tipoInventario === 'activo';
+            const nombre = esActivo
+                ? (`${i.marca || ''} ${i.modelo || ''}`.trim() || i.nombre || 'Activo sin nombre')
+                : (i.NombProducto || i.nombre || 'Insumo sin nombre');
+            const codigo = esActivo ? (i.numActivo || i.codigo_activo || i.serie || '-') : (i.codigo || i.codigo_insumo || '-');
+            const estado = esActivo ? (i.estadoActivo || i.estado || '-') : (i.estado || '-');
+            const cantidad = esActivo ? '1 ud' : `${i.cantidad ?? '-'} uds`;
+            const href = esActivo ? 'activos.html' : 'insumos.html';
+            const tipoLabel = esActivo ? 'Activo' : 'Insumo';
+            const tipoClass = esActivo ? 'bg-blue-50 text-[#002D62] border-blue-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100';
+            const imagen = i.imagenUrl;
+            const tituloSeguro = nombre.replace(/'/g, "\\'");
+
+            return `
+            <a href="${href}" class="item-mini group">
                 <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0 border border-slate-200">
-                    ${i.imagenUrl
-                        ? `<img src="${i.imagenUrl}" class="w-full h-full object-cover rounded-xl cursor-zoom-in hover:opacity-80 transition-opacity" 
-                                onclick="event.preventDefault(); event.stopPropagation(); window.verImagenCompleta(this.src, '${(i.NombProducto || 'Insumo').replace(/'/g, "\\'")}')"
-                                onerror="this.parentNode.innerHTML='<svg class=\'w-5 h-5 text-slate-300\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10\'></path></svg>'">`
-                        : `<svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>`}
+                    ${imagen
+                        ? `<img src="${imagen}" class="w-full h-full object-cover rounded-xl cursor-zoom-in hover:opacity-80 transition-opacity" 
+                                onclick="event.preventDefault(); event.stopPropagation(); window.verImagenCompleta(this.src, '${tituloSeguro}')"
+                                onerror="this.parentNode.innerHTML='${esActivo ? iconActivo.replace(/'/g, "\\'") : iconInsumo.replace(/'/g, "\\'")}'">`
+                        : (esActivo ? iconActivo : iconInsumo)}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="font-bold text-sm text-slate-800 truncate">${i.NombProducto || 'Sin nombre'}</p>
-                    <p class="text-xs text-slate-400 font-mono">${i.codigo || '-'}</p>
+                    <div class="flex items-center gap-2 min-w-0">
+                        <p class="font-bold text-sm text-slate-800 truncate">${nombre}</p>
+                        <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full border ${tipoClass}">${tipoLabel}</span>
+                    </div>
+                    <p class="text-xs text-slate-400 font-mono">${codigo}</p>
                 </div>
                 <div class="flex flex-col items-end gap-1 flex-shrink-0">
-                    <span class="badge-s ${badgeClass[i.estado] || 'badge-disp'}">${i.estado || '-'}</span>
-                    <span class="text-xs text-slate-400">${i.cantidad ?? '-'} uds</span>
+                    <span class="badge-s ${badgeClass[estado] || 'badge-disp'}">${estado}</span>
+                    <span class="text-xs text-slate-400">${cantidad}</span>
                 </div>
-            </a>`).join('');
+            </a>`;
+        }).join('');
     }
     </script>
 </body>

@@ -853,26 +853,18 @@
 
         <!-- Inicializar indexController -->
         <script>
-            console.log(' Verificando si indexController existe...');
-            console.log('window.indexController:', !!window.indexController);
             
             document.addEventListener('DOMContentLoaded', () => {
-                console.log(' DOMContentLoaded - Inicializando indexController desde index.html...');
-                console.log('window.indexController disponible:', !!window.indexController);
                 
                 if (window.indexController) {
-                    console.log(' IndexController ya está inicializado');
                     window.indexController.initialized = true;
                 } else {
-                    console.log(' indexController no encontrado en window');
                 }
             });
             
             // También intentar después de un pequeño retraso
             setTimeout(() => {
-                console.log('⏰ Timeout - Verificando indexController...');
                 if (window.indexController && !window.indexController.initialized) {
-                    console.log(' IndexController ya existe y está inicializado');
                     window.indexController.initialized = true;
                 }
             }, 1000);
@@ -882,7 +874,6 @@
         <!-- Script de Verificación y Conexión -->
         <script>
             // Usar CONFIG global ya definido en js/main.js para evitar duplicación
-            console.log(' CONFIG global disponible:', window.CONFIG);
             
             // Estado de la aplicación
             let currentUser = null;
@@ -929,18 +920,12 @@
 
             // Función para verificar autenticación
             async function checkAuthentication() {
-                console.log(' Iniciando checkAuthentication...');
                 
                 const token = localStorage.getItem('utn_token');
                 const userData = localStorage.getItem('utn_user');
                 
-                console.log(' Datos en localStorage:', {
-                    token: token ? 'existe' : 'no existe',
-                    userData: userData ? 'existe' : 'no existe'
-                });
                 
                 if (!token || !userData) {
-                    console.log(' No hay token o usuario, redirigiendo a login...');
                     // Solo redirigir si NO estamos ya en login.html
                     if (!window.location.pathname.includes('login.html')) {
                         window.location.href = 'login.html';
@@ -951,25 +936,18 @@
                 try {
                     // Token válido, cargar datos del usuario (sin verificar en backend por ahora)
                     currentUser = JSON.parse(userData);
-                    console.log(' Usuario cargado:', currentUser);
                     
                     // Ocultar pantalla de verificación
                     const loginPage = document.getElementById('loginPage');
                     const mainApp = document.getElementById('mainApp');
                     
-                    console.log(' Elementos DOM:', {
-                        loginPage: loginPage ? 'encontrado' : 'no encontrado',
-                        mainApp: mainApp ? 'encontrado' : 'no encontrado'
-                    });
                     
                     if (loginPage) {
                         loginPage.classList.add('hidden');
-                        console.log(' loginPage ocultado');
                     }
                     
                     if (mainApp) {
                         mainApp.classList.remove('hidden');
-                        console.log(' mainApp mostrado');
                     }
                     
                     // Actualizar UI
@@ -979,15 +957,12 @@
                     // 5. Inicializar vista según rol del usuario
                     setTimeout(() => {
                         const rol = currentUser.rol.toLowerCase();
-                        console.log(' Rol detectado:', rol);
                         
                         //  REDIRECCI�N POR ROLES
                         if (rol.includes('administrador') || rol.includes('admin')) {
-                            console.log(' Redirigiendo a ModAdmis.html (Administrador)');
                             window.location.href = 'pages/ModAdmis.html';
                             return;
                         } else if (rol.includes('usuario') || rol.includes('estudiante') || rol.includes('docente')) {
-                            console.log(' Redirigiendo a ModUsuarios.html (Usuario)');
                             window.location.href = 'pages/ModUsuarios.html';
                             return;
                         }
@@ -996,33 +971,23 @@
                         const vistaAdmin = document.getElementById('vistaAdmin');
                         const vistaEstudiante = document.getElementById('vistaEstudiante');
                         
-                        console.log(' Elementos encontrados:', {
-                            vistaAdmin: vistaAdmin ? 'encontrado' : 'no encontrado',
-                            vistaEstudiante: vistaEstudiante ? 'encontrado' : 'no encontrado'
-                        });
                         
                         // Ocultar ambas vistas primero
                         if (vistaAdmin) {
                             vistaAdmin.classList.add('hidden');
-                            console.log(' vistaAdmin ocultada');
                         }
                         if (vistaEstudiante) {
                             vistaEstudiante.classList.add('hidden');
-                            console.log(' vistaEstudiante ocultada');
                         }
                         
                         // Mostrar vista según rol
                         if (['administrativo', 'admin'].includes(rol)) {
-                            console.log('️ Mostrando vista para administrativos/admin');
                             if (vistaAdmin) {
                                 vistaAdmin.classList.remove('hidden');
-                                console.log(' vistaAdmin mostrada');
                             }
                         } else {
-                            console.log(' Mostrando vista para estudiantes/docentes');
                             if (vistaEstudiante) {
                                 vistaEstudiante.classList.remove('hidden');
-                                console.log(' vistaEstudiante mostrada');
                             }
                             // Inicializar funcionalidad de estudiantes
                             inicializarFuncionalidadEstudiante();
@@ -1040,7 +1005,6 @@
                     
                     // Limpiar datos inválidos solo si no estamos en login.html
                     if (!window.location.pathname.includes('login.html')) {
-                        console.log(' Limpiando datos inválidos y redirigiendo...');
                         localStorage.removeItem('utn_token');
                         localStorage.removeItem('utn_user');
                         window.location.href = 'login.html';
@@ -1051,7 +1015,6 @@
 
             // Función para actualizar información del usuario
             function updateUserInfo() {
-                console.log(' Actualizando información del usuario:', currentUser);
                 
                 if (currentUser) {
                     const userInfo = document.getElementById('userInfo');
@@ -1066,22 +1029,18 @@
                     const nombreCompletoElement = document.getElementById('nombre_completo');
                     if (nombreCompletoElement) {
                         nombreCompletoElement.textContent = nombreCompleto;
-                        console.log(' Nombre completo actualizado en header:', nombreCompleto);
                     }
                     
                     if (userInfo) {
                         userInfo.textContent = nombreCompleto;
-                        console.log(' userInfo actualizado:', nombreCompleto);
                     }
                     
                     if (userMenuName) {
                         userMenuName.textContent = nombreCompleto;
-                        console.log(' userMenuName actualizado:', nombreCompleto);
                     }
                     
                     if (dropdownUserName) {
                         dropdownUserName.textContent = nombreCompleto;
-                        console.log(' dropdownUserName actualizado:', nombreCompleto);
                     }
                     
                     // Actualizar rol dinámicamente
@@ -1089,10 +1048,8 @@
                     
                     if (dropdownUserRole) {
                         dropdownUserRole.textContent = rol;
-                        console.log(' dropdownUserRole actualizado:', rol);
                     }
                 } else {
-                    console.log(' No hay currentUser para actualizar');
                 }
             }
 
@@ -1119,7 +1076,6 @@
 
             // Función para inicializar funcionalidad de estudiantes
             function inicializarFuncionalidadEstudiante() {
-                console.log(' Inicializando funcionalidad para estudiantes...');
                 
                 // Configurar tabs
                 document.querySelectorAll('.tab-button').forEach(button => {
@@ -1166,11 +1122,9 @@
                 const grid = vistaEstudiante ? vistaEstudiante.querySelector('#itemsGrid') : document.getElementById('itemsGrid');
                 
                 if (!grid) {
-                    console.log('️ itemsGrid no encontrado, omitiendo carga inicial');
                     return;
                 }
                 
-                console.log(' itemsGrid encontrado, mostrando mensaje inicial');
                 
                 grid.innerHTML = `
                     <div class="col-span-full text-center py-12">
@@ -1188,10 +1142,7 @@
                 const vistaEstudiante = document.getElementById('vistaEstudiante');
                 const grid = vistaEstudiante ? vistaEstudiante.querySelector('#itemsGrid') : document.getElementById('itemsGrid');
                 
-                console.log(' Iniciando carga de activos...');
-                console.log(' Token disponible:', token ? 'Sí' : 'No');
                 const API = window.CONFIG?.API_BASE_URL || '/api';
-                console.log(' URL:', API);
                 
                 try {
                     // Ocultar el grid con animación de salida
@@ -1213,7 +1164,6 @@
                     }, 200);
                     
                     // Cargar activos
-                    console.log(' Enviando petición a:', API);
                     
                     const activosResponse = await fetch(`${window.CONFIG.API_BASE_URL}/activos`, {
                         headers: {
@@ -1222,22 +1172,12 @@
                         }
                     });
                     
-                    console.log(' Respuesta recibida:', {
-                        status: activosResponse.status,
-                        statusText: activosResponse.statusText,
-                        ok: activosResponse.ok
-                    });
                     
                     if (activosResponse.ok) {
                         const activos = await activosResponse.json();
-                        console.log(' Datos recibidos:', activos);
-                        console.log(' Total de activos:', activos?.total || 0);
-                        console.log(' Activos disponibles:', activos?.activosDisponibles?.length || 0);
-                        console.log(' Todos los activos:', activos?.todosLosActivos?.length || 0);
                         
                         // Extraer el array correcto de activos
                         const activosArray = activos.todosLosActivos || activos.activosDisponibles || [];
-                        console.log(' Array a renderizar:', activosArray);
                         
                         // Ocultar loading
                         grid.style.opacity = '0';
@@ -1341,10 +1281,6 @@
                 const grid = document.getElementById('itemsGrid');
                 grid.innerHTML = '';
                 
-                console.log(' renderItems llamado con:', { items, type });
-                console.log(' Tipo de items:', typeof items);
-                console.log(' Es array:', Array.isArray(items));
-                console.log(' Items length:', items?.length);
                 
                 // Validar que items sea un array
                 if (!items || !Array.isArray(items)) {
@@ -1363,7 +1299,6 @@
                     return;
                 }
                 
-                console.log(` Renderizando ${items.length} ${type}...`);
                 
                 items.forEach((item, index) => {
                 const card = document.createElement('div');
@@ -1461,7 +1396,6 @@
     grid.appendChild(card);
 });
                 
-                console.log(` Renderizado completado: ${items.length} ${type}`);
             }
 
             // Función para abrir modal
@@ -1600,7 +1534,6 @@
             }
 
             function descargarPlantilla() {
-    console.log(' Iniciando descarga de plantilla...');
     
     const csvContent = `TIPO,NOMBRE,CODIGO,MARCA,MODELO,CARACTERISTICAS,ESTADO,UBICACION,CANTIDAD,UNIDAD_MEDIDA,STOCK_MINIMO,DESCRIPCION,CATEGORÍA
 # === ELECTR�NICA ===
@@ -1625,29 +1558,23 @@ INSUMO,Cable Ethernet Cat6,INS008,TP-Link,,"U/UTP 5m, RJ45, 1Gbps, azul",disponi
 INSUMO,Baterías AA Recargables,INS009,Eneloop,Panasonic,"2400mAh, 4 unidades + cargador",disponible,Bodega General,25,paquete,5,"Baterías recargables de alta capacidad",Electrónica
 INSUMO,Hub USB 3.0 4 Puertos,INS010,Anker,4-Port,"USB 3.0, 5Gbps, LED indicador, compacto",disponible,Bodega General,35,unidad,8,"Hub USB de 4 puertos de alta velocidad",Electrónica`;
 
-    console.log(' Creando blob con contenido CSV...');
     
     try {
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         
-        console.log(' Creando enlace de descarga...');
         
         const link = document.createElement('a');
         link.setAttribute('href', url);
         link.setAttribute('download', 'plantilla_activos_insumos_unificada.csv');
         link.style.visibility = 'hidden';
         
-        console.log(' Agregando link al DOM...');
         document.body.appendChild(link);
         
-        console.log('️ Ejecutando descarga...');
         link.click();
         
-        console.log('️ Limpiando DOM...');
         document.body.removeChild(link);
         
-        console.log(' Descarga completada');
         showToast(' Plantilla unificada descargada - Adaptada a tu formulario', 'success');
         
     } catch (error) {
@@ -1685,7 +1612,6 @@ INSUMO,Hub USB 3.0 4 Puertos,INS010,Anker,4-Port,"USB 3.0, 5Gbps, LED indicador,
             const headersLine = lines[0];
             const headers = parseCSVLine(headersLine).map(h => h.trim().toUpperCase());
             
-            console.log(' Encabezados detectados:', headers);
             
             // Validar encabezados para formato unificado
             const requiredHeaders = ['TIPO', 'NOMBRE', 'CODIGO', 'MARCA', 'MODELO', 'CARACTERISTICAS', 'ESTADO', 'UBICACION', 'CANTIDAD', 'UNIDAD_MEDIDA', 'STOCK_MINIMO', 'DESCRIPCION'];
@@ -1697,7 +1623,6 @@ INSUMO,Hub USB 3.0 4 Puertos,INS010,Anker,4-Port,"USB 3.0, 5Gbps, LED indicador,
                 return;
             }
 
-            console.log(' Formato CSV unificado detectado correctamente');
             
             // Procesar datos para formato unificado
             const items = [];
@@ -1750,13 +1675,10 @@ INSUMO,Hub USB 3.0 4 Puertos,INS010,Anker,4-Port,"USB 3.0, 5Gbps, LED indicador,
                     }
                     
                     items.push(item);
-                    console.log(` Item procesado: ${item.nombre} (${item.tipo}) - Cantidad: ${item.cantidad} - Categoría: ${item.categoria_extra}`);
                 } else {
-                    console.log(` Línea ${i}: Solo ${values.length} valores, se necesitan 12+`);
                 }
             }
             
-            console.log(` Resumen procesamiento: ${items.length} válidos`);
             
             if (items.length === 0) {
                 showToast(' No se encontraron items válidos en el archivo', 'error');
@@ -1793,7 +1715,6 @@ async function enviarDatosMasivos(items) {
         //  OBTENER CATEGORÍAS VÁLIDAS DEL BACKEND
         let categoriasValidas = [];
         try {
-            console.log(' Obteniendo categorías del backend...');
             const categoriasResponse = await fetch(`${window.CONFIG.API_BASE_URL}/insumos/categorias`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -1803,13 +1724,10 @@ async function enviarDatosMasivos(items) {
             if (categoriasResponse.ok) {
                 const categorias = await categoriasResponse.json();
                 categoriasValidas = Array.isArray(categorias) ? categorias : [];
-                console.log(' Categorías disponibles:', categoriasValidas);
             } else {
-                console.log('️ Error obteniendo categorías, usando defaults');
                 categoriasValidas = ['otros', 'consumibles', 'material_laboratorio'];
             }
         } catch (error) {
-            console.log('️ No se pudieron obtener categorías, usando defaults:', error.message);
             categoriasValidas = ['otros', 'consumibles', 'material_laboratorio'];
         }
         
@@ -1873,7 +1791,6 @@ async function enviarDatosMasivos(items) {
                     payload.estado_activo = item.estado;
                 }
                 
-                console.log(` Enviando payload (${i + 1}/${items.length}):`, JSON.stringify(payload, null, 2));
  
                 const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`, {
                     method: 'POST',
@@ -1884,11 +1801,9 @@ async function enviarDatosMasivos(items) {
                     body: JSON.stringify(payload)
                 });
                 
-                console.log(` Status (${i + 1}/${items.length}):`, response.status, response.statusText);
                 
                 if (response.ok) {
                     exitosos++;
-                    console.log(` Item ${i + 1}/${items.length} procesado: ${item.nombre}`);
                     
                     // Mostrar progreso cada 5 items
                     if ((i + 1) % 5 === 0 || i === items.length - 1) {
@@ -1929,7 +1844,6 @@ async function enviarDatosMasivos(items) {
             showToast(` No se pudieron agregar los items. Intenta con el formulario individual.`, 'error');
         }
         
-        console.log(` Resumen final: ${exitosos} exitosos, ${fallidos} fallidos de ${items.length} totales`);
         
     } catch (error) {
         console.error('Error enviando datos:', error);
@@ -2020,59 +1934,45 @@ function parseCSVLine(line) {
 
             // Inicialización
             document.addEventListener('DOMContentLoaded', async () => {
-                console.log(' Iniciando aplicación...');
                 
                 // Evitar múltiples inicializaciones
                 if (isInitialized) {
-                    console.log('️ La aplicación ya fue inicializada, evitando doble inicialización');
                     return;
                 }
                 
                 try {
                     // Verificar autenticación primero
-                    console.log(' Verificando autenticación...');
                     const isAuthenticated = await checkAuthentication();
                     
-                    console.log(' ¿Autenticado?', isAuthenticated);
                     
                     if (isAuthenticated) {
                         // Marcar como inicializado
                         isInitialized = true;
                         
                         // Cargar componentes
-                        console.log(' Cargando componentes...');
                         try {
                             // Cargar header component
                             const headerResponse = await fetch('components/header.html');
                             const headerHtml = await headerResponse.text();
                             document.getElementById('header-component').innerHTML = headerHtml;
-                            console.log(' Header component cargado');
                             
                             // IMPORTANTE: Llamar a updateUserInfo() después de cargar el header
                             if (typeof updateUserInfo === 'function') {
-                                console.log(' Llamando a updateUserInfo() desde index.html...');
                                 updateUserInfo();
                                 
                                 // Configurar eventos del dropdown después de cargar el header
                                 setTimeout(() => {
-                                    console.log(' Configurando eventos del dropdown...');
                                     const userMenuBtn = document.getElementById('user-menu-btn');
                                     const userDropdown = document.getElementById('user-dropdown');
                                     
-                                    console.log(' Elementos encontrados:', {
-                                        userMenuBtn: !!userMenuBtn,
-                                        userDropdown: !!userDropdown
-                                    });
                                     
                                     if (userMenuBtn && userDropdown) {
-                                        console.log(' Botón y dropdown encontrados');
                                         
                                         // Configurar menú según rol
                                         const userData = localStorage.getItem('utn_user');
                                         const currentUser = userData ? JSON.parse(userData) : null;
                                         const userRole = currentUser?.rol || currentUser?.rol_nombre || currentUser?.tipo_rol || 'Estudiante';
                                         
-                                        console.log(' Rol detectado:', userRole);
                                         
                                         const solicitudesMenuText = document.getElementById('solicitudes-menu-text');
                                         const solicitudesMenuDesc = document.getElementById('solicitudes-menu-desc');
@@ -2082,12 +1982,10 @@ function parseCSVLine(line) {
                                             if (solicitudesMenuText) solicitudesMenuText.textContent = 'Solicitudes';
                                             if (solicitudesMenuDesc) solicitudesMenuDesc.textContent = 'Gestionar todas las solicitudes';
                                             if (reportesMenuItem) reportesMenuItem.classList.remove('hidden');
-                                            console.log('⬍ Menú configurado para administrador');
                                         } else {
                                             if (solicitudesMenuText) solicitudesMenuText.textContent = 'Mis Solicitudes';
                                             if (solicitudesMenuDesc) solicitudesMenuDesc.textContent = 'Historial completo';
                                             if (reportesMenuItem) reportesMenuItem.classList.add('hidden');
-                                            console.log('⬍ Menú configurado para estudiante/docente');
                                         }
                                         
                                         // Remover eventos anteriores para evitar conflictos
@@ -2098,21 +1996,14 @@ function parseCSVLine(line) {
                                         newBtn.addEventListener('click', (e) => {
                                             e.preventDefault();
                                             e.stopPropagation();
-                                            console.log('️ Click en botón de usuario - EVENTO DISPARADO');
                                             
-                                            console.log(' Estado actual del dropdown:', {
-                                                hidden: userDropdown.classList.contains('hidden'),
-                                                opacity: userDropdown.classList.contains('opacity-100')
-                                            });
                                             
                                             if (userDropdown.classList.contains('hidden')) {
                                                 userDropdown.classList.remove('hidden');
                                                 userDropdown.classList.add('opacity-100');
-                                                console.log(' Menú abierto - clases:', userDropdown.className);
                                             } else {
                                                 userDropdown.classList.add('hidden');
                                                 userDropdown.classList.remove('opacity-100');
-                                                console.log(' Menú cerrado - clases:', userDropdown.className);
                                             }
                                         });
                                         
@@ -2121,17 +2012,13 @@ function parseCSVLine(line) {
                                             if (!newBtn.contains(e.target) && !userDropdown.contains(e.target)) {
                                                 userDropdown.classList.add('hidden');
                                                 userDropdown.classList.remove('opacity-100');
-                                                console.log(' Menú cerrado por click fuera');
                                             }
                                         });
                                         
-                                        console.log(' Eventos del dropdown configurados correctamente');
                                     } else {
-                                        console.log(' No se encontraron elementos del dropdown');
                                     }
                                 }, 1000); // Aumentado a 1 segundo para asegurar carga completa
                             } else {
-                                console.log(' updateUserInfo() no está disponible');
                             }
                         } catch (error) {
                             console.error(' Error cargando header component:', error);
@@ -2219,18 +2106,12 @@ function parseCSVLine(line) {
 
             // Función para verificar autenticación
             async function checkAuthentication() {
-                console.log(' Iniciando checkAuthentication...');
                 
                 const token = localStorage.getItem('utn_token');
                 const userData = localStorage.getItem('utn_user');
                 
-                console.log(' Datos en localStorage:', {
-                    token: token ? 'existe' : 'no existe',
-                    userData: userData ? 'existe' : 'no existe'
-                });
                 
                 if (!token || !userData) {
-                    console.log(' No hay token o usuario, redirigiendo a login...');
                     if (!window.location.pathname.includes('login.html')) {
                         window.location.href = 'login.html';
                     }
@@ -2239,7 +2120,6 @@ function parseCSVLine(line) {
                 
                 try {
                     currentUser = JSON.parse(userData);
-                    console.log(' Usuario cargado:', currentUser);
                     
                     const loginPage = document.getElementById('loginPage');
                     const mainApp = document.getElementById('mainApp');
@@ -2301,7 +2181,6 @@ function parseCSVLine(line) {
             }
 
             function inicializarFuncionalidadEstudiante() {
-                console.log(' Inicializando funcionalidad para estudiantes...');
                 loadInitialData();
             }
 
@@ -2334,7 +2213,6 @@ function parseCSVLine(line) {
                 const cartTotal = document.getElementById('cartTotal');
                 
                 if (!cartCount || !cartItems || !cartTotal) {
-                    console.log(' Elementos del carrito no encontrados');
                     return;
                 }
                 
@@ -2492,9 +2370,6 @@ function parseCSVLine(line) {
                     };
                     
                  // Enviar a la API
-                    console.log(' Enviando solicitud a:', `${window.CONFIG.API_BASE_URL}/solicitudes`);
-                    console.log(' Datos enviados:', requestData);
-                    console.log(' Token disponible:', localStorage.getItem('utn_token') ? 'Sí' : 'No');
                     
                     const response = await fetch(`${window.CONFIG.API_BASE_URL}/solicitudes`, {
                         method: 'POST',
@@ -2505,11 +2380,9 @@ function parseCSVLine(line) {
                         body: JSON.stringify(requestData)
                     });
                     
-                    console.log(' Respuesta del servidor:', response.status, response.statusText);
                     
                     if (response.ok) {
                         const result = await response.json();
-                        console.log(' Solicitud creada:', result);
                         showToast(` Solicitud enviada con éxito. ID: ${result._id || 'generada'}`, 'success');
                         
                         // Vaciar carrito y cerrar modal
@@ -2534,7 +2407,6 @@ function parseCSVLine(line) {
                         });
                         
                         // Mostrar detalles completos del error
-                        console.log(' Detalles completos del error 403:', JSON.stringify(errorData, null, 2));
                         
                         // Mensaje específico para 403
                         if (response.status === 403) {
@@ -2584,7 +2456,6 @@ function parseCSVLine(line) {
     <script>
         // Función para cargar el footer
         async function loadFooter() {
-            console.log(' Iniciando carga del footer...');
             
             try {
                 const footerElement = document.getElementById('footer-component');
@@ -2593,7 +2464,6 @@ function parseCSVLine(line) {
                     return;
                 }
                 
-                console.log(' Haciendo fetch a components/footer.html...');
                 const footerResponse = await fetch('components/footer.html');
                 
                 if (!footerResponse.ok) {
@@ -2602,16 +2472,12 @@ function parseCSVLine(line) {
                 }
                 
                 const footerHtml = await footerResponse.text();
-                console.log(' Footer HTML recibido, longitud:', footerHtml.length);
-                console.log(' Preview del footer:', footerHtml.substring(0, 200) + '...');
                 
                 footerElement.innerHTML = footerHtml;
-                console.log(' Footer component cargado exitosamente');
                 
                 // Verificar que el footer se haya insertado
                 const footer = footerElement.querySelector('footer');
                 if (footer) {
-                    console.log(' Footer element encontrado en el DOM');
                 } else {
                     console.error(' No se encontró el footer element después de insertar');
                 }
@@ -2624,53 +2490,89 @@ function parseCSVLine(line) {
                 const footerElement = document.getElementById('footer-component');
                 if (footerElement) {
                     footerElement.innerHTML = `
-                        <!-- FOOTER INSTITUCIONAL MEJORADO -->
-<footer class="bg-utn-dark text-slate-300 py-10 mt-12 border-t-4 border-utn-gold">
-    <div class="container mx-auto px-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-            <div class="text-center md:text-left">
-                <h3 class="text-xl font-bold text-white mb-2 flex items-center justify-center md:justify-start gap-2">
-                    <img src="../css/UTN.jpg" class="w-8 h-8 rounded-md bg-white p-1" alt="UTN"> 
-                    SPIEE-SP
-                </h3>
-                <p class="text-sm text-slate-400">Sistema Institucional de Préstamos e Inventario</p>
-                <p class="text-xs text-slate-500 mt-1">Sede Central Universitaria</p>
-            </div>
-            <div class="text-center space-y-2">
-                <p class="text-sm font-medium hover:text-white transition-colors cursor-default">Soporte Técnico: soporte@utn.ac.cr</p>
-                <p class="text-sm font-medium hover:text-white transition-colors cursor-default">Teléfono: +506 2435-5000</p>
-            </div>
-            <div class="text-center md:text-right">
-                <p class="text-sm">
-                    &copy; 2024-2025 <strong>Universidad Técnica Nacional</strong>
+                        <!-- FOOTER COMPONENT - AZUL INSTITUCIONAL UTN -->
+<footer class="bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] text-white mt-4 shadow-[0_-10px_30px_rgba(0,46,110,0.1)]">
+    <div class="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 text-center sm:text-left">
+
+            <!-- Columna 1: Identidad Institucional -->
+            <div class="flex flex-col items-center sm:items-center md:items-start gap-2 sm:gap-3">
+                <!-- Logo centrado en móviles -->
+                <div class="flex flex-col items-center gap-2 sm:hidden">
+                    <img src="../css/UTN.jpg" alt="UTN Logo" class="w-10 h-10 rounded-full bg-white p-2 shadow-lg">
+                    <h2 class="text-xs font-black text-white uppercase tracking-tight leading-none text-center">Universidad Técnica Nacional</h2>
+                    <p class="text-[8px] font-bold text-[#F2A900] uppercase tracking-[0.2em]">Sede del Pacífico</p>
+                </div>
+                
+                <!-- Layout horizontal en tablet/desktop -->
+                <div class="hidden sm:flex items-center gap-3 sm:gap-4">
+                    <img src="../css/UTN.jpg" alt="UTN Logo" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white p-1.5 sm:p-2 shadow-lg">
+                    <div>
+                        <h2 class="text-xs sm:text-sm font-black text-white uppercase tracking-tight leading-none">Universidad Técnica Nacional</h2>
+                        <p class="text-[8px] sm:text-[10px] font-bold text-[#F2A900] uppercase tracking-[0.2em] mt-0.5">Sede del Pacífico</p>
+                    </div>
+                </div>
+                
+                <p class="text-[10px] sm:text-[11px] text-blue-200/50 leading-relaxed text-center sm:text-left">
+                    Sistema de Préstamos e Inventario
                 </p>
-                <p class="text-xs text-slate-500 mt-2">Todos los derechos reservados. Desarrollo Institucional.</p>
+                <p class="text-[8px] sm:text-[10px] text-blue-200/50 leading-relaxed hidden sm:block">
+                    de Equipos Electrónicos
+                </p>
             </div>
+
+            <!-- Columna 2: Personal y Carrera (centrada) -->
+            <div class="flex flex-col items-center gap-1 border-y sm:border-y md:border-y-0 md:border-x border-white/10 py-3 sm:py-4 md:py-0">
+                <p class="text-[8px] sm:text-[9px] font-black text-[#F2A900] uppercase tracking-[0.3em] mb-1 sm:mb-2">Carrera: Ingeniería Electrónica</p>
+                <p class="text-[10px] sm:text-xs font-bold text-white uppercase tracking-wide">Asistente: Hary Andrey Mora Mendiola</p>
+            </div>
+
+            <!-- Columna 3: Contacto y Ubicación -->
+            <div class="flex flex-col items-center sm:items-center md:items-end gap-2 sm:gap-3">
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-[#F2A900]/20 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#F2A900]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 2.22l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 015.508 15.508L21 8M3 8l7.89 5.26a2 2 0 002.22 2.22l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 015.508 15.508L21 8z"></path></svg>
+                    </div>
+                    <a href="mailto:hmoram@utn.ac.cr" class="text-[10px] sm:text-xs font-bold text-white hover:text-[#F2A900] transition-colors">hmoram@utn.ac.cr</a>
+                </div>
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-[#F2A900]/20 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#F2A900]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 015.508 15.508L21 5M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 015.508 15.508L21 5z"></path></svg>
+                    </div>
+                    <a href="tel:+50626601747" class="text-[10px] sm:text-xs font-bold text-white hover:text-[#F2A900] transition-colors">2660-1747</a>
+                </div>
+                <div class="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 mt-0.5 sm:mt-1">
+                    <span class="text-[8px] sm:text-[9px] font-bold text-blue-200/40 uppercase tracking-widest text-center sm:text-left">📍 Edificio Labs, 2do Piso</span>
+                    <span class="text-[8px] sm:text-[9px] font-bold text-blue-200/40 uppercase tracking-widest text-center sm:text-left">Aula 312</span>
+                    <span class="text-[8px] sm:text-[9px] font-bold text-blue-200/40 uppercase tracking-widest text-center sm:text-left block sm:inline">🕐 Mar-Vie: 8am–9pm</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Línea copyright -->
+        <div class="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-white/10 text-center">
+            <p class="text-[9px] sm:text-[10px] font-bold text-blue-200/30 tracking-[0.2em] uppercase">
+                &copy; 2026 Universidad Técnica Nacional · Sede del Pacífico · SPIEE
+            </p>
         </div>
     </div>
 </footer>
                     `;
-                    console.log(' Footer de respaldo cargado');
                 }
             }
         }
         
         // Cargar footer cuando el DOM esté listo
-        console.log(' Configurando carga del footer...');
         document.addEventListener('DOMContentLoaded', () => {
-            console.log(' DOMContentLoaded - Iniciando carga del footer...');
             loadFooter();
         });
         
         // También intentar cargar después de un pequeño retraso por si el DOM ya está cargado
-        console.log('⏰ Configurando carga del footer con retraso...');
         setTimeout(() => {
-            console.log('⏰ Timeout - Iniciando carga del footer...');
             loadFooter();
         }, 500);
         
         // Intentar cargar inmediatamente también
-        console.log(' Intentando carga inmediata del footer...');
         loadFooter();
     </script>
 </html>

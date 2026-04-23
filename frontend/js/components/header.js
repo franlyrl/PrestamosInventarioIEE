@@ -69,7 +69,6 @@ class AuthController {
             };
 
             // DEBUG: Mostrar en consola y en pantalla
-            console.log(' DEBUG - Intentando login con:', credentials);
 
             // Mostrar información de debug en la página
             const debugDiv = document.createElement('div');
@@ -84,11 +83,9 @@ class AuthController {
             document.body.appendChild(debugDiv);
 
             // DEBUG: Probar conexión a la API
-            console.log(' Probando conexión a:', `${CONFIG.API_BASE_URL}/usuarios/login`);
 
             const response = await ApiService.login(credentials);
 
-            console.log(' Login response:', response);
 
             // Eliminar debug div
             debugDiv.remove();

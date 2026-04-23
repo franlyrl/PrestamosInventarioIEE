@@ -17,7 +17,6 @@ const fixEncoding = (text) => {
         if (!text.includes('Ã')) return text;
         // Decodificar UTF-8 mal interpretado como Latin-1
         const decoded = Buffer.from(text, 'latin1').toString('utf8');
-        console.log(`[ENCODING] "${text}" -> "${decoded}"`);
         return decoded;
     } catch (e) {
         return text;
@@ -77,7 +76,6 @@ const corregirInsumo = (insumo) => {
 exports.getInsumos = async (req, res) => {
     try {
         const insumos = await Insumos.find();
-        console.log('[DEBUG] Total insumos:', insumos.length);
         
         // Corregir codificación de caracteres especiales
         const insumosCorregidos = insumos.map(insumo => {
@@ -85,7 +83,6 @@ exports.getInsumos = async (req, res) => {
             const original = insumoObj.NombProducto;
             const corregido = fixEncoding(original);
             if (original !== corregido) {
-                console.log(`[DEBUG] Corregido: "${original}" -> "${corregido}"`);
             }
             return {
                 ...insumoObj,

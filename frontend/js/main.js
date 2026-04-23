@@ -111,7 +111,6 @@ Object.assign(window.Utils, {
 
     // Actualizar Información del Usuario en TODA la página
     updateUserInfo() {
-        console.log('[DEBUG] Sincronizando datos de usuario...');
         if (!window.appState) {
             console.warn('appState no disponible para updateUserInfo');
             return;
@@ -168,7 +167,6 @@ Object.assign(window.Utils, {
             }
         }
         
-        console.log(`[DEBUG] UI Actualizada para: ${nombre} (${rol})`);
     },
 
     updateMenuRoles(user) {
@@ -218,6 +216,44 @@ window.UTNNotifs = {
 
     _apiBase: '/api',
 
+    _escapeHtml(value) {
+        return String(value || '').replace(/[&<>"']/g, char => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[char]));
+    },
+
+    _obtenerObservacionEstado(solicitud, estado) {
+        const historico = Array.isArray(solicitud?.historico_estados) ? solicitud.historico_estados : [];
+        const registro = historico
+            .filter(item => item?.estado === estado && item?.observaciones)
+            .sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0))[0];
+        return registro?.observaciones || '';
+    },
+
+    _nombreArticuloEspera(espera) {
+        const activoNombre = espera?.activo
+            ? `${espera.activo.marca || ''} ${espera.activo.modelo || ''}`.trim()
+            : '';
+        return espera?.nombreProducto || espera?.insumo?.NombProducto || espera?.insumo?.nombre_insumo || activoNombre || 'Artículo en espera';
+    },
+
+    _formatearFechaEspera(fecha) {
+        if (!fecha) return '';
+        const parsed = new Date(fecha);
+        if (Number.isNaN(parsed.getTime())) return '';
+        return parsed.toLocaleString('es-CR', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    },
+
     async cargarYMostrarCampana() {
         const user = JSON.parse(localStorage.getItem('utn_user') || 'null');
         const token = localStorage.getItem('utn_token') || '';
@@ -262,7 +298,8 @@ window.UTNNotifs = {
                     // Agrupar por producto para mostrar detalles
                     const porProducto = {};
                     (esperaData.data || []).forEach(e => {
-                        const producto = e.insumo?.NombProducto || 'Producto desconocido';
+                        const activoNombre = e.activo ? `${e.activo.marca || ''} ${e.activo.modelo || ''}`.trim() : '';
+                        const producto = e.nombreProducto || e.insumo?.NombProducto || activoNombre || 'Producto desconocido';
                         if (!porProducto[producto]) porProducto[producto] = [];
                         porProducto[producto].push(e);
                     });
@@ -302,12 +339,14 @@ window.UTNNotifs = {
                 return;
             }
 
-            const resp = await fetch(`${window.CONFIG?.API_BASE_URL || this._apiBase}/solicitudes`, {
-                headers
-            });
+            const [resp, esperaResp] = await Promise.all([
+                fetch(`${window.CONFIG?.API_BASE_URL || this._apiBase}/solicitudes`, { headers }),
+                fetch(`${window.CONFIG?.API_BASE_URL || this._apiBase}/listaEspera/mis`, { headers })
+            ]);
             if (!resp.ok) return;
 
             const todas = await resp.json();
+            const misEsperas = esperaResp.ok ? await esperaResp.json() : [];
             const uid = user._id || user.id;
             const mis = Array.isArray(todas)
                 ? todas.filter(s => {
@@ -339,6 +378,13 @@ window.UTNNotifs = {
                         extra += ` Devolución antes del: <strong>${fDev}</strong>.`;
                     }
                     alertas.push({ tipo: 'aprobada', folio, extra, solicitud: s });
+                } else if (s.estado === 'rechazada') {
+                    alertas.push({
+                        tipo: 'rechazada',
+                        folio,
+                        motivo: this._obtenerObservacionEstado(s, 'rechazada'),
+                        solicitud: s
+                    });
                 } else if (s.estado === 'entregado' && s.fecha_entrega_esperada) {
                     const fDev = new Date(s.fecha_entrega_esperada);
                     const diasRestantes = Math.ceil((fDev - ahora) / (1000 * 60 * 60 * 24));
@@ -348,6 +394,22 @@ window.UTNNotifs = {
                 } else if (s.estado === 'penalizado') {
                     alertas.push({ tipo: 'penalizado', folio, solicitud: s });
                 }
+            });
+
+            (Array.isArray(misEsperas) ? misEsperas : []).forEach(espera => {
+                if (!espera.fecha_estimada && !espera.tiempo_estimado) return;
+                const fechaEstimada = this._formatearFechaEspera(espera.fecha_estimada);
+                const folio = `LE-${String(espera._id || espera.id || '').slice(-4) || '---'}`;
+                alertas.push({
+                    tipo: 'espera_estimada',
+                    folio,
+                    notifKey: `espera_${espera._id || espera.id || folio}_${espera.fecha_estimada || ''}_${espera.tiempo_estimado || ''}`,
+                    articulo: this._nombreArticuloEspera(espera),
+                    cantidad: espera.cantidad_solicitada || 1,
+                    fechaEstimada,
+                    tiempoEstimado: espera.tiempo_estimado || '',
+                    espera
+                });
             });
 
             const campana = document.getElementById('notifBtn');
@@ -483,16 +545,17 @@ window.UTNNotifs = {
 
     // Calcular posición real en lista de espera comparando con toda la lista del sistema
     calcularPosicionesEspera(misEsperas, listaCompleta) {
-        // Agrupar la lista completa por insumo
-        const porInsumo = {};
+        // Agrupar la lista completa por artículo (insumo o activo)
+        const porArticulo = {};
         listaCompleta.forEach(espera => {
-            const insumoId = espera.insumo?._id || espera.insumo;
-            if (!porInsumo[insumoId]) porInsumo[insumoId] = [];
-            porInsumo[insumoId].push(espera);
+            const articuloId = espera.insumo?._id || espera.insumo || espera.activo?._id || espera.activo;
+            if (!articuloId) return;
+            if (!porArticulo[articuloId]) porArticulo[articuloId] = [];
+            porArticulo[articuloId].push(espera);
         });
 
         // Ordenar cada grupo por prioridad y fecha
-        Object.values(porInsumo).forEach(esperas => {
+        Object.values(porArticulo).forEach(esperas => {
             esperas.sort((a, b) => {
                 if (a.prioridad !== b.prioridad) return b.prioridad - a.prioridad;
                 return new Date(a.createdAt) - new Date(b.createdAt);
@@ -501,17 +564,17 @@ window.UTNNotifs = {
 
         // Encontrar posición de cada espera del usuario
         return misEsperas.map(miEspera => {
-            const insumoId = miEspera.insumo?._id || miEspera.insumo;
-            const esperasDelInsumo = porInsumo[insumoId] || [];
+            const articuloId = miEspera.insumo?._id || miEspera.insumo || miEspera.activo?._id || miEspera.activo;
+            const esperasDelArticulo = porArticulo[articuloId] || [];
 
             // Buscar la posición del usuario en la lista ordenada
-            const posicion = esperasDelInsumo.findIndex(e => {
+            const posicion = esperasDelArticulo.findIndex(e => {
                 const eId = e._id || e.id;
                 const miId = miEspera._id || miEspera.id;
                 return eId === miId || eId?.toString() === miId?.toString();
             }) + 1;
 
-            return { ...miEspera, posicionReal: posicion || 1, totalEnCola: esperasDelInsumo.length };
+            return { ...miEspera, posicionReal: posicion || 1, totalEnCola: esperasDelArticulo.length };
         });
     },
 
@@ -520,25 +583,31 @@ window.UTNNotifs = {
         if (!window.Swal) return;
 
         // Clave de sesión única por conjunto de alertas
-        const claveSession = 'utn_notif_alerted_' + alertas.map(a => a.folio + a.tipo).join('_');
+        const claveSession = 'utn_notif_alerted_' + alertas.map(a => (a.notifKey || a.folio) + a.tipo).join('_');
         if (sessionStorage.getItem(claveSession)) return;
         sessionStorage.setItem(claveSession, '1');
 
         const aprobadas = alertas.filter(a => a.tipo === 'aprobada');
         const vencidas  = alertas.filter(a => a.tipo === 'vencida');
         const porVencer = alertas.filter(a => a.tipo === 'por_vencer');
+        const rechazadas = alertas.filter(a => a.tipo === 'rechazada');
+        const esperasEstimadas = alertas.filter(a => a.tipo === 'espera_estimada');
         const penalizados = alertas.filter(a => a.tipo === 'penalizado');
 
-        // Prioridad: vencida > penalizado > por_vencer > aprobada
+        // Prioridad: vencida > penalizado > rechazada > espera_estimada > por_vencer > aprobada
         let tipoAlerta = 'aprobada';
         if (vencidas.length)    tipoAlerta = 'vencida';
         else if (penalizados.length) tipoAlerta = 'penalizado';
+        else if (rechazadas.length)  tipoAlerta = 'rechazada';
+        else if (esperasEstimadas.length) tipoAlerta = 'espera_estimada';
         else if (porVencer.length)   tipoAlerta = 'por_vencer';
 
         const iconHtml = {
             aprobada:   `<div class="mx-auto w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-3" style="animation: bounceIn 0.6s ease;"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></div>`,
             por_vencer: `<div class="mx-auto w-20 h-20 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-3"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>`,
             vencida:    `<div class="mx-auto w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-3"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg></div>`,
+            rechazada:  `<div class="mx-auto w-20 h-20 bg-rose-100 text-rose-700 rounded-full flex items-center justify-center mb-3"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></div>`,
+            espera_estimada: `<div class="mx-auto w-20 h-20 bg-blue-100 text-[#002D62] rounded-full flex items-center justify-center mb-3"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`,
             penalizado: `<div class="mx-auto w-20 h-20 bg-red-100 text-red-700 rounded-full flex items-center justify-center mb-3"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg></div>`
         };
 
@@ -546,6 +615,8 @@ window.UTNNotifs = {
             aprobada:   '<span class="text-[#002D62] font-black text-xl tracking-tight">¡Tu solicitud fue aprobada!</span>',
             por_vencer: '<span class="text-amber-700 font-black text-xl">Recordatorio de devolución</span>',
             vencida:    '<span class="text-red-700 font-black text-xl">Devolución vencida</span>',
+            rechazada:  '<span class="text-rose-800 font-black text-xl">Solicitud rechazada</span>',
+            espera_estimada: '<span class="text-[#002D62] font-black text-xl">Fecha aproximada asignada</span>',
             penalizado: '<span class="text-red-800 font-black text-xl">Cuenta con restricción activa</span>'
         };
 
@@ -568,6 +639,22 @@ window.UTNNotifs = {
                 texto = `
                     <p class="text-xs font-black text-amber-700 uppercase tracking-widest mb-1">Solicitud #${a.folio} — POR VENCER</p>
                     <p class="text-sm text-slate-700 font-medium">Debe devolver el equipo en <strong>${a.diasRestantes} día(s)</strong>.</p>`;
+            } else if (a.tipo === 'rechazada') {
+                bg = 'bg-rose-50'; borde = 'border-rose-200';
+                const motivo = this._escapeHtml(a.motivo || 'Revise el detalle de la solicitud o comuníquese con el administrador.');
+                texto = `
+                    <p class="text-xs font-black text-rose-700 uppercase tracking-widest mb-1">Solicitud #${a.folio} — RECHAZADA</p>
+                    <p class="text-sm text-slate-700 font-medium leading-relaxed">Motivo: <strong>${motivo}</strong></p>
+                    <a href="../pages/solicitudes.html" class="inline-flex items-center gap-1 mt-2 text-xs font-bold text-[#002D62] underline underline-offset-2 hover:no-underline">Ver mi solicitud &rarr;</a>`;
+            } else if (a.tipo === 'espera_estimada') {
+                bg = 'bg-blue-50'; borde = 'border-blue-200';
+                const articulo = this._escapeHtml(a.articulo);
+                const detalleFecha = a.fechaEstimada ? `Fecha aproximada: <strong>${this._escapeHtml(a.fechaEstimada)}</strong>.` : '';
+                const detalleTiempo = a.tiempoEstimado ? `Nota: <strong>${this._escapeHtml(a.tiempoEstimado)}</strong>.` : '';
+                texto = `
+                    <p class="text-xs font-black text-[#002D62] uppercase tracking-widest mb-1">Lista de espera — ${articulo}</p>
+                    <p class="text-sm text-slate-700 font-medium leading-relaxed">${detalleFecha} ${detalleTiempo}</p>
+                    <a href="../pages/solicitudes.html?tab=lista-espera" class="inline-flex items-center gap-1 mt-2 text-xs font-bold text-[#002D62] underline underline-offset-2 hover:no-underline">Ver lista de espera &rarr;</a>`;
             } else {
                 bg = 'bg-red-50'; borde = 'border-red-200';
                 texto = `
@@ -647,7 +734,7 @@ window.UTNNotifs = {
             allLink.href = '../pages/solicitudes.html';
             allLink.innerHTML = `
                 <svg style="width:10px;height:10px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 10h16M4 14h16M4 18h7"/></svg>
-                ${isAdmin ? 'Ver solicitudes administrativas' : 'Ver Todas'}`;
+                <span>${isAdmin ? 'Ver solicitudes' : 'Ver Todas'}</span>`;
         }
         if (quickLink) {
             quickLink.href = '../pages/solicitudes.html';
@@ -669,6 +756,8 @@ window.UTNNotifs = {
             aprobada:       { bg: 'bg-green-50',  borde: 'border-l-green-500',  icon: 'text-green-600',  path: 'M5 13l4 4L19 7', label: 'Aprobada' },
             por_vencer:     { bg: 'bg-amber-50',  borde: 'border-l-amber-400',  icon: 'text-amber-600',  path: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', label: 'Por Vencer' },
             vencida:        { bg: 'bg-red-50',    borde: 'border-l-red-500',    icon: 'text-red-600',    path: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z', label: 'Vencida' },
+            rechazada:      { bg: 'bg-rose-50',   borde: 'border-l-rose-500',   icon: 'text-rose-700',   path: 'M6 18L18 6M6 6l12 12', label: 'Rechazada' },
+            espera_estimada:{ bg: 'bg-blue-50',   borde: 'border-l-blue-500',   icon: 'text-[#002D62]',   path: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', label: 'Lista de Espera' },
             penalizado:     { bg: 'bg-red-50',    borde: 'border-l-red-700',    icon: 'text-red-700',    path: 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636', label: 'Penalizado' },
             admin_pendientes:{ bg: 'bg-blue-50',   borde: 'border-l-blue-500',   icon: 'text-blue-600',   path: 'M13 10V3L4 14h7v7l9-11h-7z', label: 'Solicitudes Pendientes' },
             admin_espera:   { bg: 'bg-amber-50',  borde: 'border-l-amber-400',  icon: 'text-amber-600',  path: 'M12 4v16m8-8H4', label: 'Lista de Espera' }
@@ -677,6 +766,12 @@ window.UTNNotifs = {
             aprobada:        a => `Solicitud <strong>#${a.folio}</strong> aprobada. ${a.extra || 'Pase a retirar el equipo.'}`,
             por_vencer:      a => `Solicitud <strong>#${a.folio}</strong>. Devolver en <strong>${a.diasRestantes} día(s)</strong>.`,
             vencida:         a => `Devolución de <strong>#${a.folio}</strong> vencida hace <strong>${Math.abs(a.diasRestantes)} día(s)</strong>.`,
+            rechazada:       a => `Solicitud <strong>#${a.folio}</strong> rechazada.${a.motivo ? ` Motivo: <strong>${this._escapeHtml(a.motivo)}</strong>.` : ' Revise el detalle o consulte al administrador.'}`,
+            espera_estimada: a => {
+                const fecha = a.fechaEstimada ? `Fecha aproximada: <strong>${this._escapeHtml(a.fechaEstimada)}</strong>.` : '';
+                const tiempo = a.tiempoEstimado ? `Nota: <strong>${this._escapeHtml(a.tiempoEstimado)}</strong>.` : '';
+                return `<strong>${this._escapeHtml(a.articulo)}</strong> ya tiene aproximado. ${fecha} ${tiempo}`;
+            },
             penalizado:      a => `Restricción activa en solicitud <strong>#${a.folio}</strong>.`,
             admin_pendientes: a => {
                 const detalles = [];
@@ -697,14 +792,16 @@ window.UTNNotifs = {
 
         list.innerHTML = alertas.map(a => {
             const est = estilos[a.tipo] || estilos.aprobada;
-            const targetUrl = '../pages/solicitudes.html';
+            const targetUrl = a.tipo === 'espera_estimada'
+                ? '../pages/solicitudes.html?tab=lista-espera'
+                : '../pages/solicitudes.html';
             return `<a href="${targetUrl}" class="flex items-start gap-3 p-4 ${est.bg} border-l-4 ${est.borde} hover:brightness-95 transition-all" style="text-decoration:none;" onclick="document.getElementById('notif-dropdown').style.display='none'">
                 <div class="flex-shrink-0 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-sm mt-0.5">
                     <svg class="w-3.5 h-3.5 ${est.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="${est.path}"/></svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-0.5">${est.label}</p>
-                    <p class="text-xs text-slate-700 font-medium leading-snug">${mensajeFn[a.tipo]?.(a) || ''}</p>
+                    <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-0.5 break-words">${est.label}</p>
+                    <p class="text-xs text-slate-700 font-medium leading-snug break-words whitespace-normal">${mensajeFn[a.tipo]?.(a) || ''}</p>
                 </div>
             </a>`;
         }).join('');
@@ -724,7 +821,10 @@ window.UTNNotifs = {
         }
 
         list.innerHTML = misEspera.map((espera) => {
-            const insumoNombre = espera.nombreProducto || espera.insumo?.NombProducto || 'Producto desconocido';
+            const activoNombre = espera.activo
+                ? `${espera.activo.marca || ''} ${espera.activo.modelo || ''}`.trim()
+                : '';
+            const insumoNombre = espera.nombreProducto || espera.insumo?.NombProducto || activoNombre || 'Producto desconocido';
             const fechaEntrada = new Date(espera.createdAt).toLocaleString('es-CR', {
                 day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
             });
@@ -843,73 +943,203 @@ window.handleAddToCartOrEspera = async function(item) {
         }
     } else {
         // Sin stock - agregar a lista de espera
-        await window.agregarAListaEspera(item._id || item.id, nombre);
+        await window.agregarAListaEspera(item, nombre, { tipo });
+    }
+};
+
+window.obtenerIdParaListaEspera = async function(itemOrId, tipo = 'insumo') {
+    if (!itemOrId) return null;
+
+    const objectIdRegex = /^[a-f\d]{24}$/i;
+    if (typeof itemOrId === 'string') {
+        return objectIdRegex.test(itemOrId) ? itemOrId : null;
+    }
+
+    const extraerObjectId = (valor) => {
+        if (!valor) return null;
+        if (typeof valor === 'object') {
+            const posible = valor.$oid || valor._id || valor.id;
+            return posible && objectIdRegex.test(String(posible)) ? String(posible) : null;
+        }
+        return objectIdRegex.test(String(valor)) ? String(valor) : null;
+    };
+
+    const directo = extraerObjectId(itemOrId._id)
+        || extraerObjectId(itemOrId.id)
+        || extraerObjectId(itemOrId.id_insumo)
+        || extraerObjectId(itemOrId.id_activo)
+        || extraerObjectId(itemOrId.codigo_activo);
+
+    if (directo) {
+        return directo;
+    }
+
+    const tipoNormalizado = (tipo || '').toLowerCase();
+
+    const endpoint = tipoNormalizado === 'activo' ? 'activos' : 'insumos';
+
+    try {
+        const token = localStorage.getItem('utn_token');
+        const resp = await fetch(`${window.CONFIG?.API_BASE_URL || '/api'}/${endpoint}`, {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!resp.ok) return null;
+
+        const data = await resp.json();
+        const items = Array.isArray(data) ? data : (data.todosLosActivos || data.activos || data.insumos || data.data || []);
+
+        const encontrado = items.find(item => {
+            if (tipoNormalizado === 'activo') {
+                const numActivo = itemOrId.numActivo || itemOrId.numeroActivo || itemOrId.codigo;
+                const marcaModelo = `${itemOrId.marca || ''} ${itemOrId.modelo || ''}`.trim().toLowerCase();
+                const itemMarcaModelo = `${item.marca || ''} ${item.modelo || ''}`.trim().toLowerCase();
+                return (numActivo && String(item.numActivo) === String(numActivo))
+                    || (marcaModelo && itemMarcaModelo === marcaModelo);
+            }
+
+            const codigo = itemOrId.codigo || itemOrId.codigo_insumo;
+            const idInsumo = itemOrId.id_insumo;
+            const nombre = (itemOrId.NombProducto || itemOrId.nombre || itemOrId.nombre_insumo || '').trim().toLowerCase();
+            const itemNombre = (item.NombProducto || item.nombre || item.nombre_insumo || '').trim().toLowerCase();
+
+            return (codigo && String(item.codigo) === String(codigo))
+                || (idInsumo && String(item.id_insumo) === String(idInsumo))
+                || (nombre && itemNombre === nombre);
+        });
+
+        return encontrado?._id || null;
+    } catch (error) {
+        console.warn('[ListaEspera] No se pudo resolver el ID del artículo:', error.message);
+        return null;
     }
 };
 
 // Agregar a lista de espera desde catálogo
-window.agregarAListaEspera = async function(insumoId, nombreProducto) {
+window.agregarAListaEspera = async function(itemId, nombreProducto, options = {}) {
     const token = localStorage.getItem('utn_token');
     const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
     const userId = user._id || user.id;
+    const opts = typeof options === 'string' ? { tipo: options } : (options || {});
+    const tipo = (opts.tipo || 'insumo').toLowerCase();
+    const cantidadFija = parseInt(opts.cantidad, 10);
+    const sinConfirmar = opts.sinConfirmar === true;
     
     if (!token || !userId) {
         window.SwalUTN.error('Error', 'Debes iniciar sesión para agregar a lista de espera');
         return;
     }
 
-    // Confirmar cantidad
-    const { value: cantidad } = await Swal.fire({
-        title: 'Agregar a lista de espera',
-        html: `<p class="text-sm text-slate-600 mb-4">Producto: <strong>${nombreProducto || 'Producto seleccionado'}</strong></p>
-               <p class="text-xs text-slate-500 mb-3">Este producto no tiene stock disponible. ¿Cuántas unidades deseas solicitar?</p>
-               <input type="number" id="swal-cantidad" class="swal2-input max-w-[120px] mx-auto text-center font-black" value="1" min="1" max="10" step="1">`,
-        showCancelButton: true,
-        confirmButtonText: 'Agregar a espera',
-        cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#F2A900',
-        cancelButtonColor: '#64748b',
-        customClass: {
-            popup: 'rounded-2xl',
-            confirmButton: 'font-black px-5 py-2 rounded-xl',
-            cancelButton: 'font-black px-5 py-2 rounded-xl'
-        },
-        preConfirm: () => {
-            const val = document.getElementById('swal-cantidad').value;
-            return parseInt(val) || 1;
-        }
-    });
+    let cantidad = cantidadFija || 1;
+    if (!sinConfirmar) {
+        const result = await Swal.fire({
+            title: 'Agregar a lista de espera',
+            html: `<p class="text-sm text-slate-600 mb-4">Producto: <strong>${nombreProducto || 'Producto seleccionado'}</strong></p>
+                   <p class="text-xs text-slate-500 mb-3">Este producto no tiene stock disponible. ¿Cuántas unidades deseas solicitar?</p>
+                   <input type="number" id="swal-cantidad" class="swal2-input max-w-[120px] mx-auto text-center font-black" value="${cantidad}" min="1" max="10" step="1">`,
+            showCancelButton: true,
+            confirmButtonText: 'Agregar a espera',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#F2A900',
+            cancelButtonColor: '#64748b',
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'font-black px-5 py-2 rounded-xl',
+                cancelButton: 'font-black px-5 py-2 rounded-xl'
+            },
+            preConfirm: () => {
+                const val = document.getElementById('swal-cantidad').value;
+                return parseInt(val, 10) || 1;
+            }
+        });
+        cantidad = result.value;
+    }
 
     if (!cantidad) return;
 
     try {
+        const idResuelto = await window.obtenerIdParaListaEspera(itemId, tipo);
+        if (!idResuelto) {
+            console.warn('[ListaEspera] Item sin identificador resoluble:', { tipo, nombreProducto, itemId });
+            throw new Error('No se pudo identificar el artículo para enviarlo a lista de espera. Recarga la página e inténtalo de nuevo.');
+        }
+
+        const body = {
+            usuario: userId,
+            cantidad_solicitada: cantidad,
+            nombreProducto: nombreProducto
+        };
+
+        if (tipo === 'activo') {
+            body.activo = idResuelto;
+            // Compatibilidad: algunas instancias del backend aun validan `insumo` como requerido.
+            body.insumo = idResuelto;
+        } else {
+            body.insumo = idResuelto;
+        }
+
         const resp = await fetch(`${window.CONFIG?.API_BASE_URL || '/api'}/listaEspera`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                usuario: userId,
-                insumo: insumoId,
-                cantidad_solicitada: cantidad,
-                nombreProducto: nombreProducto
-            })
+            body: JSON.stringify(body)
         });
 
         if (resp.ok) {
-            window.SwalUTN.success('Agregado', `Has sido agregado a la lista de espera para ${cantidad} unidad(es). Te notificaremos cuando esté disponible.`);
+            if (!sinConfirmar) {
+                window.SwalUTN.success('Agregado', `Has sido agregado a la lista de espera para ${cantidad} unidad(es). Te notificaremos cuando esté disponible.`);
+            }
             // Recargar lista de espera si está visible
             if (window.UTNNotifs?.cargarYMostrarEspera) {
                 await window.UTNNotifs.cargarYMostrarEspera();
             }
+            return true;
         } else {
             const err = await resp.json();
+            console.warn('[ListaEspera] Error del backend:', { status: resp.status, body, err });
+            const mensajeDuplicado = [
+                err.message,
+                err.error
+            ].filter(Boolean).join(' ').toLowerCase();
+
+            if (mensajeDuplicado.includes('ya está') || mensajeDuplicado.includes('ya esta') || mensajeDuplicado.includes('duplicate key') || mensajeDuplicado.includes('e11000')) {
+                return true;
+            }
+
             throw new Error(err.message || 'Error al agregar');
         }
     } catch (error) {
-        window.SwalUTN.error('Error', error.message || 'No se pudo agregar a la lista de espera');
+        if (!sinConfirmar) {
+            window.SwalUTN.error('Error', error.message || 'No se pudo agregar a la lista de espera');
+        }
+        throw error;
     }
+};
+
+window.enviarCarritoAListaEspera = async function(items = window.cart) {
+    const resultados = await Promise.allSettled(items.map(item => {
+        const tipo = item.type === 'activo' ? 'activo' : 'insumo';
+        return window.agregarAListaEspera(item.data || item._id, item.name, {
+            tipo,
+            cantidad: item.quantity || 1,
+            sinConfirmar: true
+        });
+    }));
+
+    const agregados = resultados.filter(r => r.status === 'fulfilled').length;
+    const fallidos = resultados.length - agregados;
+
+    if (agregados > 0) {
+        const msg = fallidos > 0
+            ? `${agregados} artículo(s) pasaron a lista de espera. ${fallidos} ya estaban en espera o no se pudieron agregar.`
+            : `${agregados} artículo(s) enviados a lista de espera.`;
+        window.Utils?.showToast(msg, fallidos > 0 ? 'warning' : 'success');
+    } else if (items.length > 0 && fallidos === 0) {
+        window.Utils?.showToast('Los artículos ya estaban en lista de espera.', 'info');
+    }
+
+    return { agregados, fallidos };
 };
 
 // Cancelar solicitud de lista de espera
@@ -1136,13 +1366,9 @@ window.verificarDocentePendiente = async function() {
     try {
         const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
         
-        console.log('[Docente Pendiente] Verificando usuario:', user);
-        console.log('[Docente Pendiente] tipo_rol:', user.tipo_rol);
-        console.log('[Docente Pendiente] estado_usuario:', user.estado_usuario);
         
         // Verificar si es docente con estado inactivo (esperando aprobación)
         if (user.tipo_rol === 'docente' && user.estado_usuario === 'inactivo') {
-            console.log('[Docente Pendiente] ¡Usuario es docente inactivo! Mostrando modal...');
             window._docentePendienteActivo = true;
             window._enforceDocentePendienteUI();
             
@@ -1203,22 +1429,17 @@ window.verificarDocentePendiente = async function() {
  * Muestra el modal de bloqueo si el usuario está penalizado o es docente pendiente.
  */
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('[Main] DOMContentLoaded - Iniciando verificaciones...');
     const paginaActual = window.location.pathname;
     const esLoginPage = paginaActual.includes('login') || paginaActual.includes('signup');
-    console.log('[Main] Página actual:', paginaActual, '| Es login/signup:', esLoginPage);
 
     if (!esLoginPage) {
-        console.log('[Main] No es página de login - verificando docente pendiente...');
         // Primero verificar si es docente pendiente
         const esDocentePendiente = await window.verificarDocentePendiente();
-        console.log('[Main] Resultado verificación docente pendiente:', esDocentePendiente);
         // Si no es docente pendiente, verificar penalización
         if (!esDocentePendiente) {
             await window.verificarBloqueopenalizacion();
         }
     } else {
-        console.log('[Main] Es página de login/signup - no se verifica docente pendiente');
     }
 });
 
@@ -1474,7 +1695,6 @@ const observer = new MutationObserver((mutations) => {
     });
 
     if (shouldUpdate) {
-        console.log('[DEBUG] Componente detectado, sincronizando...');
         isUpdating = true;
         
         // Usar un pequeño delay para asegurar que el DOM se asentó
@@ -1494,6 +1714,29 @@ observer.observe(document.body, { childList: true, subtree: true });
 
 // 6. LÓGICA GLOBAL DEL CARRITO
 window.cart = [];
+
+window.addWaitlistItemToCart = function(itemName, itemType, itemData, quantity = 1, btn = null) {
+    const id = itemData?._id || itemData?.id || itemData?.id_insumo || itemData?.numActivo || itemName;
+    const yaEnCarrito = window.cart.find(c => c.waitlist === true && c.type === itemType && (
+        (c.data?._id || c.data?.id || c.data?.id_insumo || c.data?.numActivo || c.name) === id
+    ));
+
+    if (yaEnCarrito) {
+        yaEnCarrito.quantity += quantity;
+    } else {
+        window.cart.push({
+            name: itemName,
+            type: itemType,
+            data: itemData,
+            quantity,
+            waitlist: true
+        });
+    }
+
+    if (btn) window.animateFlyToCart(btn, itemData?.imagenUrl);
+    window.updateCartUI();
+    window.Utils?.showToast(`"${itemName}" agregado al carrito para lista de espera.`, 'success');
+};
 
 /**
  * Añadir artículo al carrito
@@ -1540,13 +1783,16 @@ window.addToCart = async function(itemName, itemType, itemData, btn = null) {
         const totalActual = window.cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
         
         // Verificar stock disponible del activo (si aplica)
-        const maxDisponible = itemData.cantidad || itemData.stock || 10; // Default 10 si no hay stock definido
-        // Limitar por el máximo de 2 artículos totales
-        const maxPorLimite = 2 - (totalActual - qtyActual);
-        const disponible = Math.min(maxDisponible - qtyActual, maxPorLimite);
+        const cantidadActivos = Number(itemData.cantidad ?? itemData.stock);
+        const estadoActivo = (itemData.estadoActivo || itemData.estado || '').toLowerCase();
+        const estaDisponible = !estadoActivo || estadoActivo === 'disponible';
+        const maxDisponible = estaDisponible
+            ? (Number.isFinite(cantidadActivos) && cantidadActivos > 0 ? cantidadActivos : 1)
+            : 0;
+        const disponible = maxDisponible - qtyActual;
         
         if (disponible <= 0) {
-            window.Utils?.showToast('No hay más unidades disponibles de este activo.', 'warning');
+            window.addWaitlistItemToCart(itemName, itemType, itemData, 1, btn);
             return;
         }
 
@@ -1591,7 +1837,29 @@ window.addToCart = async function(itemName, itemType, itemData, btn = null) {
         const disponible = maxStock - qtyActual;
 
         if (disponible <= 0) {
-            window.Utils?.showToast('Ya has seleccionado todo el stock disponible en tu carrito.', 'warning');
+            const result = await Swal.fire({
+                title: 'Cantidad para lista de espera',
+                html: `<p class="mb-2 text-sm text-slate-600">Insumo: <strong>${itemName}</strong></p>
+                       <p class="mb-4 text-xs text-slate-500">No hay stock disponible. Puedes agregarlo al carrito para lista de espera.</p>
+                       <input type="number" id="swal-input-qty" class="swal2-input max-w-[150px] mx-auto text-center font-black" value="1" min="1" max="10" step="1">`,
+                showCancelButton: true,
+                confirmButtonText: 'Añadir a espera',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#F2A900',
+                cancelButtonColor: '#94a3b8',
+                customClass: { confirmButton: 'text-[#002D62] font-black shadow-lg shadow-[#F2A900]/20', cancelButton: 'font-bold' },
+                preConfirm: () => {
+                    const parseado = parseInt(document.getElementById('swal-input-qty').value, 10);
+                    if (isNaN(parseado) || parseado < 1 || parseado > 10) {
+                        Swal.showValidationMessage('Ingresa un valor entre 1 y 10');
+                    }
+                    return parseado;
+                }
+            });
+
+            if (result.isConfirmed && typeof result.value === 'number') {
+                window.addWaitlistItemToCart(itemName, itemType, itemData, result.value, btn);
+            }
             return;
         }
 
@@ -1640,7 +1908,7 @@ window.animateFlyToCart = function(btn, imgUrl = null) {
     const flyItem = document.createElement('div');
     flyItem.className = 'fly-item';
     
-    const hasImg = imgUrl && !imgUrl.includes('placeholder');
+    const hasImg = window.isValidCatalogImage?.(imgUrl);
     flyItem.innerHTML = hasImg 
         ? `<img src="${imgUrl}" class="w-full h-full object-cover rounded-full border border-white shadow-sm">`
         : `<svg class="w-5 h-5 text-[#002D62]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>`;
@@ -1665,6 +1933,12 @@ window.animateFlyToCart = function(btn, imgUrl = null) {
         cartIcon.classList.add('scale-110', 'bg-white/30');
         setTimeout(() => cartIcon.classList.remove('scale-110', 'bg-white/30'), 300);
     }, 800);
+};
+
+window.isValidCatalogImage = function(url) {
+    if (!url || typeof url !== 'string') return false;
+    const clean = url.trim();
+    return clean.length > 10 && !clean.includes('placeholder') && !clean.includes('undefined') && !clean.includes('null');
 };
 
 /**
@@ -1698,16 +1972,16 @@ window.updateCartUI = function() {
         div.className = 'flex items-center justify-between p-3 bg-white border border-slate-100 rounded-2xl shadow-sm animate-fade-in-up';
         
         const imgUrl = item.data?.imagenUrl || '';
-        const hasImg = imgUrl && !imgUrl.includes('placeholder');
+        const hasImg = window.isValidCatalogImage(imgUrl);
         
         div.innerHTML = `
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 bg-slate-50 rounded-xl overflow-hidden flex items-center justify-center border border-slate-100">
-                    ${hasImg ? `<img src="${imgUrl}" class="w-full h-full object-contain">` : `<svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`}
+                    ${hasImg ? `<img src="${imgUrl.trim()}" class="w-full h-full object-contain" onerror="this.remove()">` : `<svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`}
                 </div>
                 <div>
                     <h4 class="font-bold text-sm text-slate-800 line-clamp-1">${item.name}</h4>
-                    <p class="text-[10px] uppercase font-black tracking-widest text-[#F2A900]">${item.type === 'activo' ? 'Activo' : 'Insumo Digital'}</p>
+                    <p class="text-[10px] uppercase font-black tracking-widest ${item.waitlist ? 'text-amber-600' : 'text-[#F2A900]'}">${item.waitlist ? 'Lista de Espera' : (item.type === 'activo' ? 'Activo' : 'Insumo Digital')}</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -1737,6 +2011,16 @@ window.removeFromCart = function(index) {
 
 window.increaseQuantity = function(index) {
     const item = window.cart[index];
+    if (item.waitlist) {
+        if (item.quantity < 10) {
+            item.quantity++;
+            window.updateCartUI();
+        } else {
+            window.Utils?.showToast('Máximo 10 unidades en lista de espera', 'warning');
+        }
+        return;
+    }
+
     if (item.type !== 'activo') {
         const maxStock = item.data.cantidad !== undefined ? item.data.cantidad : (item.data.stock_actual || 0);
         if (item.quantity < maxStock) {
@@ -1829,9 +2113,24 @@ window.sendRequest = async function() {
     try {
         const user = JSON.parse(localStorage.getItem('utn_user') || '{}');
         const token = localStorage.getItem('utn_token');
+        const waitlistItems = window.cart.filter(i => i.waitlist === true);
+        const requestItems = window.cart.filter(i => i.waitlist !== true);
+
+        if (requestItems.length === 0) {
+            const resultadoEspera = await window.enviarCarritoAListaEspera(waitlistItems);
+            if (resultadoEspera.agregados > 0 || resultadoEspera.fallidos === 0) {
+                window.clearCart();
+                window.closeCartModal();
+                setTimeout(() => {
+                    window.location.href = 'solicitudes.html?tab=lista-espera';
+                }, 1500);
+                return;
+            }
+            throw new Error('No se pudieron enviar los artículos a lista de espera.');
+        }
 
         // SOLUCIÓN: Enviar array de IDs simples (strings) que el modelo puede castear a ObjectId
-        const activos = window.cart.filter(i => i.type === 'activo').map(i => {
+        const activos = requestItems.filter(i => i.type === 'activo').map(i => {
             const idActivo = i.data._id || i.data.id || i._id;
             if (!idActivo) {
                 throw new Error(`El activo "${i.name}" no tiene ID. Recarga la página y agrégalo de nuevo.`);
@@ -1839,7 +2138,7 @@ window.sendRequest = async function() {
             return idActivo; // Solo el string ID
         });
 
-        const insumos = window.cart.filter(i => i.type !== 'activo').map(i => {
+        const insumos = requestItems.filter(i => i.type !== 'activo').map(i => {
             // Extraer el ID del insumo - puede estar en _id o id_insumo
             const idInsumo = i.data._id || i.data.id_insumo || i.data.id;
             if (!idInsumo) {
@@ -1857,12 +2156,6 @@ window.sendRequest = async function() {
         const activosArray = Array.isArray(activos) ? activos : [];
         const insumosArray = Array.isArray(insumos) ? insumos : [];
         
-        console.log(' Arrays limpios:', {
-            activos: activosArray,
-            activos_type: typeof activosArray,
-            insumos: insumosArray,
-            insumos_type: typeof insumosArray
-        });
 
         const data = {
             usuario_solicitante: user.nombre_completo || user.nombre || 'Usuario',
@@ -1874,16 +2167,10 @@ window.sendRequest = async function() {
             fecha_prestamo: new Date()
         };
 
-        console.log(' Enviando solicitud a:', `${window.CONFIG?.API_BASE_URL}/solicitudes`);
-        console.log(' Datos enviados:', data);
-        console.log(' Token disponible:', token ? 'Sí' : 'No');
 
         // Asegurar serialización correcta sin replacer que pueda causar problemas
         const jsonData = JSON.stringify(data);
         
-        console.log(' JSON enviado:', jsonData);
-        console.log(' Verificación - activos formato correcto:', jsonData.includes('[{"codigo_activo":'));
-        console.log(' Longitud del JSON:', jsonData.length);
 
         const res = await fetch(`${window.CONFIG?.API_BASE_URL}/solicitudes`, {
             method: 'POST',
@@ -1894,23 +2181,47 @@ window.sendRequest = async function() {
             body: jsonData
         });
 
-        console.log(' Respuesta del servidor:', {
-            status: res.status,
-            statusText: res.statusText,
-            ok: res.ok
-        });
 
         const err = await res.json().catch(() => ({}));
-        console.log(' Error del servidor:', err);
 
         if (res.ok || (res.status === 409 && err.message && err.message.includes('lista de espera'))) {
+            if (waitlistItems.length > 0 && typeof window.enviarCarritoAListaEspera === 'function') {
+                await window.enviarCarritoAListaEspera(waitlistItems);
+            }
             window.Utils?.showToast(err.message || '¡Solicitud enviada con éxito!', 'success');
             window.clearCart();
             window.closeCartModal();
             setTimeout(() => {
-                window.location.href = 'solicitudes.html';
+                window.location.href = waitlistItems.length > 0 ? 'solicitudes.html?tab=lista-espera' : 'solicitudes.html';
             }, 1500);
         } else {
+            const mensajeError = [
+                err.message,
+                err.detalles,
+                err.error
+            ].filter(Boolean).join(' ').toLowerCase();
+            const debePasarAEspera = [
+                'disponible',
+                'stock',
+                'lista de espera',
+                'insuficiente',
+                'prestado',
+                'duplicate key',
+                'e11000'
+            ].some(texto => mensajeError.includes(texto));
+
+            if (debePasarAEspera && typeof window.enviarCarritoAListaEspera === 'function') {
+                const resultadoEspera = await window.enviarCarritoAListaEspera(window.cart);
+                if (resultadoEspera.agregados > 0) {
+                    window.clearCart();
+                    window.closeCartModal();
+                    setTimeout(() => {
+                        window.location.href = 'solicitudes.html?tab=lista-espera';
+                    }, 1500);
+                    return;
+                }
+            }
+
             console.error(' Error detallado:', {
                 status: res.status,
                 statusText: res.statusText,
@@ -1926,5 +2237,4 @@ window.sendRequest = async function() {
 };
 
 // FORZAR OVERRIDE - Asegurar que esta sea la única función sendRequest usada
-console.log(' sendRequest override aplicado - main.js');
 window.sendRequest = window.sendRequest;

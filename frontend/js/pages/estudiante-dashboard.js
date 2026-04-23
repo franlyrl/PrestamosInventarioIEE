@@ -25,7 +25,6 @@ class EstudianteDashboard {
     // ─── Inicialización ─────────────────────────────────────────────────────────
 
     async inicializar() {
-        console.log('[EstudianteDashboard] Inicializando...');
         try {
             await Promise.all([
                 this.verificarBloqueoEstudiante(),
@@ -219,10 +218,8 @@ class EstudianteDashboard {
                 }
             } else {
                 // Para todas las demás notificaciones, agregar botón de contacto
-                console.log('🔍 Procesando notificación normal:', { tipo: s.estado, notifExiste: !!notif, tieneAcciones: !!(notif && notif.acciones) });
                 if (notif) {
                     if (!notif.acciones) {
-                        console.log('➕ Agregando botón de contacto a notificación normal');
                         notif.acciones = [
                             {
                                 texto: 'Contactar Administrador',
@@ -235,15 +232,11 @@ class EstudianteDashboard {
 
             // Excluir si ya existe en las previas (deduplicación por ID)
             if (notif) {
-                console.log('✅ Notificación creada:', notif);
                 if (!previas.some(p => p.id === notif.id)) {
-                    console.log('➕ Agregando notificación a nuevas:', notif.id);
                     nuevas.push(notif);
                 } else {
-                    console.log('⚠️ Notificación ya existe, omitiendo:', notif.id);
                 }
             } else {
-                console.log('❌ No se creó notificación para solicitud:', s._id, 'estado:', s.estado);
             }
         });
 
@@ -340,11 +333,11 @@ class EstudianteDashboard {
         container.innerHTML = this.notificaciones.map((n, i) => {
             const style = iconos[n.tipo] || iconos.info;
             const fecha = n.fecha ? new Date(n.fecha).toLocaleDateString('es-CR') : '';
-            const accionesHtml = n.acciones ? (console.log('🎨 Renderizando acciones:', n.acciones), n.acciones.map((acc, index) => 
+            const accionesHtml = n.acciones ? n.acciones.map((acc, index) => 
                 `<button onclick="event.stopPropagation(); window.estDash.contactarAdministrador('${s._id}', '${folio}');" class="mt-2 px-3 py-1 bg-utn-blue text-white text-xs font-medium rounded-lg hover:bg-utn-dark transition-colors">
                     Contactar Administrador
                 </button>`
-            ).join(' ')) : '';
+            ).join(' ') : '';
             
             return `
                 <div class="flex items-start gap-3 p-4 ${n.leida ? 'opacity-60' : ''} hover:bg-slate-50 rounded-xl transition-colors cursor-pointer" onclick="window.estDash.marcarLeida(${i})">

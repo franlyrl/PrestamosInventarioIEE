@@ -52,14 +52,11 @@ class MobileAdminController {
     }
 
     init() {
-        console.log('** Inicializando MobileAdminController...');
-        console.log('** Ancho de pantalla:', window.innerWidth);
         
         // Para admin, permitir funcionamiento en desktop también
         // Solo salir si no es admin y no es móvil
         const userData = localStorage.getItem('utn_user');
         if (!userData) {
-            console.log('** No hay datos de usuario');
             return;
         }
 
@@ -69,11 +66,9 @@ class MobileAdminController {
         const esAdmin = rolText.includes('admin') || rolText.includes('administrador') || rolText.includes('estudiante');
         
         if (!esAdmin && window.innerWidth >= 1024) {
-            console.log('** No es administrador y es desktop, saliendo...');
             return;
         }
 
-        console.log('** Usuario administrador válido, tomando control completo del DOM...');
         
         const tableContainer = document.querySelector('.overflow-x-auto');
         const tbody = document.getElementById('solicitudes-tbody');
@@ -81,25 +76,19 @@ class MobileAdminController {
         
         if (window.innerWidth >= 1024) {
             // En desktop: Usar la tabla existente pero con control del admin
-            console.log('** Modo desktop - usando tabla existente');
             if (mobileContainer) {
                 mobileContainer.style.display = 'none';
-                console.log('** Contenedor móvil oculto en desktop');
             }
             if (tableContainer) {
                 tableContainer.style.display = 'block';
-                console.log('** Tabla desktop visible en modo admin');
             }
         } else {
             // En móvil: Usar el contenedor móvil
-            console.log('** Modo móvil - usando contenedor móvil');
             if (tableContainer) {
                 tableContainer.style.display = 'none';
-                console.log('** Tabla desktop oculta en móvil');
             }
             if (mobileContainer) {
                 mobileContainer.style.display = 'block';
-                console.log('** Contenedor móvil visible en modo admin');
             }
         }         
          
@@ -166,7 +155,6 @@ class MobileAdminController {
 
     async loadSolicitudes() {
         try {
-            console.log('** Recargando solicitudes para admin móvil...');
 
             // Obtener token de autenticación
             const token = localStorage.getItem('utn_token');
@@ -185,7 +173,6 @@ class MobileAdminController {
                 }
             });
 
-            console.log('** Response status loadSolicitudes:', response.status);
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -195,22 +182,13 @@ class MobileAdminController {
             }
 
             const data = await response.json();
-            console.log('** Datos recibidos del backend:', data);
-            console.log('** Estructura de datos:', JSON.stringify(data, null, 2));
             
             // Verificar la estructura de los datos
             this.solicitudes = data.data || data;
             this.allSolicitudes = [...this.solicitudes];
             
             // Logging detallado de cada solicitud
-            console.log('** Solicitudes actualizadas:', this.solicitudes.length);
             this.solicitudes.forEach((solicitud, index) => {
-                console.log(`** Solicitud ${index + 1}:`, {
-                    id: solicitud._id,
-                    estado: solicitud.estado,
-                    usuario: solicitud.usuario?.nombre_completo,
-                    objetoCompleto: solicitud
-                });
             });
 
             // Renderizar solicitudes con datos actualizados
@@ -218,7 +196,6 @@ class MobileAdminController {
             this.updateEstadisticas();
             this.populateUsuarioFilter();
 
-            console.log('** Admin mobile controller recargó y renderizó correctamente');
 
         } catch (error) {
             console.error('** Error recargando solicitudes:', error);
@@ -227,10 +204,8 @@ class MobileAdminController {
     }
 
     renderSolicitudes() {
-        console.log('** renderSolicitudes() llamado en admin móvil...');
         
         const isDesktop = window.innerWidth >= 1024;
-        console.log('** Modo de renderización:', isDesktop ? 'desktop' : 'móvil');
         
         if (isDesktop) {
             // En desktop: renderizar en la tabla
@@ -242,7 +217,6 @@ class MobileAdminController {
     }
 
     renderDesktopTable() {
-        console.log('** Renderizando tabla desktop para admin...');
         const tbody = document.getElementById('solicitudes-tbody-desktop');
         
         if (!tbody) {
@@ -251,7 +225,6 @@ class MobileAdminController {
         }
         
         const solicitudesFiltradas = this.getFilteredSolicitudes();
-        console.log('** Solicitudes filtradas para tabla:', solicitudesFiltradas.length);
         
         if (solicitudesFiltradas.length === 0) {
             tbody.innerHTML = `
@@ -267,17 +240,14 @@ class MobileAdminController {
         }
         
         const rowsHTML = solicitudesFiltradas.map((solicitud, index) => {
-            console.log(`** Creando fila ${index + 1}/${solicitudesFiltradas.length} para solicitud:`, solicitud._id);
             return this.createDesktopRow(solicitud);
         }).join('');
         
         tbody.innerHTML = rowsHTML;
-        console.log('** Tabla desktop renderizada:', solicitudesFiltradas.length);
         this.updateEstadisticas();
     }
 
     renderMobileCards() {
-        console.log('** Renderizando tarjetas móviles para admin...');
         const container = document.getElementById('mobile-solicitudes-container');
         
         if (!container) {
@@ -285,12 +255,8 @@ class MobileAdminController {
             return;
         }
         
-        console.log('** Contenedor encontrado:', container);
-        console.log('** Contenedor visible?:', window.getComputedStyle(container).display !== 'none');
-        console.log('** Contenedor HTML antes:', container.innerHTML.substring(0, 200) + '...');
         
         const solicitudesFiltradas = this.getFilteredSolicitudes();
-        console.log('** Solicitudes filtradas para renderizar:', solicitudesFiltradas.length);
         
         if (solicitudesFiltradas.length === 0) {
             container.innerHTML = `
@@ -303,21 +269,15 @@ class MobileAdminController {
             return;
         }
 
-        console.log('** Renderizando solicitudes móviles para admin...');
         
         // Crear tarjetas individuales
         const tarjetasHTML = solicitudesFiltradas.map((solicitud, index) => {
-            console.log(`** Creando tarjeta ${index + 1}/${solicitudesFiltradas.length} para solicitud:`, solicitud._id);
             const tarjetaHTML = this.createSolicitudCardV2(solicitud);
             return tarjetaHTML;
         }).join('');
         
-        console.log('** HTML generado (primeros 200 chars):', tarjetasHTML.substring(0, 200) + '...');
-        console.log('** Longitud total del HTML:', tarjetasHTML.length);
         
         container.innerHTML = tarjetasHTML;
-        console.log('** Tarjetas móviles admin renderizadas:', solicitudesFiltradas.length);
-        console.log('** Contenedor HTML después:', container.innerHTML.substring(0, 200) + '...');
         
         // Actualizar contador de resultados móviles
         const contadorMobile = document.getElementById('resultados-count-mobile');
@@ -407,13 +367,6 @@ class MobileAdminController {
     }
 
     createSolicitudCardV2(solicitud) {
-        console.log('** createSolicitudCardV2 llamado con solicitud:', {
-            id: solicitud._id,
-            estado: solicitud.estado,
-            tipoEstado: typeof solicitud.estado,
-            usuario: solicitud.usuario?.nombre_completo,
-            objetoCompleto: solicitud
-        });
         
         const usuario = solicitud.usuario || {};
         const nombreUsuario = usuario.nombre_completo || usuario.nombre || 'Usuario sin nombre';
@@ -594,11 +547,9 @@ class MobileAdminController {
     }
 
     getEstadoBadge(estado) {
-        console.log('** getEstadoBadge llamado con estado:', estado, 'tipo:', typeof estado);
         
         // Manejar casos específicos del backend
         if (!estado || estado === null || estado === undefined || estado === 'No field') {
-            console.log('** Estado inválido detectado:', estado);
             return '<span class="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">️ Sin Estado</span>';
         }
         
@@ -614,19 +565,16 @@ class MobileAdminController {
         
         // Siempre mostrar el estado real, sin fallback
         const badge = badges[estado] || `<span class="px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">Estado: ${estado}</span>`;
-        console.log('** Badge generado para estado real:', badge);
         
         return badge;
     }
 
     getFilteredSolicitudes() {
-        console.log('** Filtros actuales:', this.filtros);
         
         let filtradas = this.solicitudes;
 
         if (this.filtros.estado !== 'todos') {
             filtradas = filtradas.filter(s => s.estado === this.filtros.estado);
-            console.log(`** Filtrando por estado "${this.filtros.estado}":`, filtradas.length);
         }
 
         if (this.filtros.tipo !== 'todos') {
@@ -638,7 +586,6 @@ class MobileAdminController {
                 }
                 return true;
             });
-            console.log(`** Filtrando por tipo "${this.filtros.tipo}":`, filtradas.length);
         }
 
         // Filtrar por usuario específico
@@ -647,7 +594,6 @@ class MobileAdminController {
                 const usuarioId = s.usuario?._id || s.usuario?.id;
                 return usuarioId === this.filtros.usuario;
             });
-            console.log(`** Filtrando por usuario "${this.filtros.usuario}":`, filtradas.length);
         }
 
         if (this.filtros.busqueda) {
@@ -679,12 +625,10 @@ class MobileAdminController {
             });
         }
 
-        console.log('** Solicitudes finales para mostrar:', filtradas.length);
         return filtradas;
     }
 
     applyFilters() {
-        console.log('** Aplicando filtros en admin móvil...');
         this.renderSolicitudes();
         
         const solicitudesFiltradas = this.getFilteredSolicitudes();
@@ -761,11 +705,9 @@ class MobileAdminController {
         });
 
         usuarioSelect.innerHTML = options.join('');
-        console.log(`** Filtro de usuarios poblado con ${usuariosOrdenados.length} usuarios únicos`);
     }
 
     updateEstadisticas() {
-        console.log('** Actualizando estadísticas admin móvil...');
         
         const stats = {
             pendientes: this.solicitudes.filter(s => s.estado === 'pendiente').length,
@@ -777,7 +719,6 @@ class MobileAdminController {
             canceladas: this.solicitudes.filter(s => s.estado === 'cancelada').length
         };
 
-        console.log('** Estadísticas admin móviles calculadas:', stats);
 
         // Actualizar contadores desktop
         const pendientesCount = document.getElementById('pendientes-count');
@@ -794,14 +735,11 @@ class MobileAdminController {
         if (devueltasCount) devueltasCount.textContent = stats.devueltas;
         if (canceladasCount) canceladasCount.textContent = stats.canceladas;
 
-        console.log('** Estadísticas admin móviles actualizadas correctamente');
     }
 
     toggleMenu(solicitudId) {
-        console.log('** TOGGLE MENU ADMIN INICIADO para solicitud:', solicitudId);
         
         const menu = document.getElementById(`menu-${solicitudId}`);
-        console.log('** Menú admin encontrado:', !!menu, menu?.id);
         
         if (!menu) {
             console.error('** ERROR: No se encontró el menú para la solicitud:', solicitudId);
@@ -809,29 +747,23 @@ class MobileAdminController {
         }
         
         const allMenus = document.querySelectorAll('[id^="menu-"]');
-        console.log('** Total menús encontrados:', allMenus.length);
         
         // Cerrar todos los demás menús primero
         allMenus.forEach(m => {
             if (m.id !== `menu-${solicitudId}`) {
-                console.log('** Cerrando menú:', m.id);
                 m.classList.add('hidden');
             }
         });
 
         const wasHidden = menu.classList.contains('hidden');
-        console.log('** Menú estaba hidden antes?', wasHidden);
         
         menu.classList.toggle('hidden');
         const isHiddenNow = menu.classList.contains('hidden');
-        console.log('** Menú está hidden después?', isHiddenNow);
         
-        console.log('** TOGGLE MENU ADMIN COMPLETADO para solicitud:', solicitudId);
     }
 
     // Acciones administrativas
     verDetalles(solicitudId) {
-        console.log('** Admin ver detalles:', solicitudId);
         
         const solicitud = this.solicitudes.find(s => s._id === solicitudId);
         if (!solicitud) {
@@ -900,12 +832,10 @@ class MobileAdminController {
     }
 
     editarSolicitud(solicitudId) {
-        console.log('** Admin editar solicitud:', solicitudId);
         alert('Función de edición en desarrollo');
     }
 
     async aprobarSolicitud(solicitudId) {
-        console.log('** Admin aprobar solicitud:', solicitudId);
         
         if (!confirm('¿Estás seguro de aprobar esta solicitud?')) {
             return;
@@ -929,7 +859,6 @@ class MobileAdminController {
                 // Actualizar el estado local inmediatamente
                 const solicitudLocal = this.solicitudes.find(s => s._id === solicitudId);
                 if (solicitudLocal) {
-                    console.log('** Actualizando estado local a aprobada:', solicitudId);
                     solicitudLocal.estado = 'aprobada';
                     solicitudLocal.observacion = 'Aprobada por administrador';
                     
@@ -941,7 +870,6 @@ class MobileAdminController {
                     
                     this.renderSolicitudes();
                     this.updateEstadisticas();
-                    console.log('** Interfaz actualizada inmediatamente');
                 }
                 
                 alert('Solicitud aprobada exitosamente');
@@ -960,19 +888,15 @@ class MobileAdminController {
     }
 
     async rechazarSolicitud(solicitudId) {
-        console.log('** Admin rechazar solicitud:', solicitudId);
         
         const motivo = prompt('Motivo del rechazo:');
         if (!motivo) {
-            console.log('** Rechazo cancelado - no se proporcionó motivo');
             return;
         }
         
-        console.log('** Motivo proporcionado:', motivo);
         
         try {
             const token = localStorage.getItem('utn_token');
-            console.log('** Token encontrado:', !!token);
             
             if (!token) {
                 console.error('** No hay token de autenticación');
@@ -981,13 +905,11 @@ class MobileAdminController {
             }
             
             const url = `/api/solicitudes/admin-gestion/${solicitudId}`;
-            console.log('** URL de la API:', url);
             
             const requestBody = {
                 nuevoEstadoAdmin: 'rechazada',
                 observaciones: motivo
             };
-            console.log('** Body de la petición:', requestBody);
             
             const response = await fetch(url, {
                 method: 'PUT',
@@ -998,8 +920,6 @@ class MobileAdminController {
                 body: JSON.stringify(requestBody)
             });
             
-            console.log('** Response status:', response.status);
-            console.log('** Response ok:', response.ok);
             
             if (!response.ok) {
                 const errorText = await response.text();
@@ -1009,16 +929,12 @@ class MobileAdminController {
             }
             
             const responseData = await response.json();
-            console.log('** Respuesta exitosa:', responseData);
             
             // Actualizar el estado local inmediatamente
             const solicitudLocal = this.solicitudes.find(s => s._id === solicitudId);
             if (solicitudLocal) {
-                console.log('** Actualizando estado local de solicitud:', solicitudId);
-                console.log('** Estado anterior:', solicitudLocal.estado);
                 solicitudLocal.estado = 'rechazada';
                 solicitudLocal.observacion = motivo;
-                console.log('** Estado nuevo:', solicitudLocal.estado);
                 
                 // Actualizar también en allSolicitudes
                 const solicitudAll = this.allSolicitudes.find(s => s._id === solicitudId);
@@ -1030,7 +946,6 @@ class MobileAdminController {
                 // Renderizar inmediatamente con los datos actualizados
                 this.renderSolicitudes();
                 this.updateEstadisticas();
-                console.log('** Interfaz actualizada inmediatamente');
             }
             
             alert('Solicitud rechazada exitosamente');
@@ -1048,7 +963,6 @@ class MobileAdminController {
     }
 
     async entregarSolicitud(solicitudId) {
-        console.log('** Admin entregar solicitud:', solicitudId);
         
         if (!confirm('¿Estás seguro de marcar como entregada esta solicitud?')) {
             return;
@@ -1072,7 +986,6 @@ class MobileAdminController {
                 // Actualizar el estado local inmediatamente
                 const solicitudLocal = this.solicitudes.find(s => s._id === solicitudId);
                 if (solicitudLocal) {
-                    console.log('** Actualizando estado local a entregado:', solicitudId);
                     solicitudLocal.estado = 'entregado';
                     solicitudLocal.observacion = 'Entregada por administrador';
                     
@@ -1084,7 +997,6 @@ class MobileAdminController {
                     
                     this.renderSolicitudes();
                     this.updateEstadisticas();
-                    console.log('** Interfaz actualizada inmediatamente');
                 }
                 
                 alert('Solicitud marcada como entregada');
@@ -1103,7 +1015,6 @@ class MobileAdminController {
     }
 
     async devolverSolicitud(solicitudId) {
-        console.log('** Admin devolver solicitud:', solicitudId);
         
         if (!confirm('¿Estás seguro de marcar como devuelta esta solicitud?')) {
             return;
@@ -1127,7 +1038,6 @@ class MobileAdminController {
                 // Actualizar el estado local inmediatamente
                 const solicitudLocal = this.solicitudes.find(s => s._id === solicitudId);
                 if (solicitudLocal) {
-                    console.log('** Actualizando estado local a devuelto:', solicitudId);
                     solicitudLocal.estado = 'devuelto';
                     solicitudLocal.observacion = 'Devuelta por administrador';
                     
@@ -1139,7 +1049,6 @@ class MobileAdminController {
                     
                     this.renderSolicitudes();
                     this.updateEstadisticas();
-                    console.log('** Interfaz actualizada inmediatamente');
                 }
                 
                 alert('Solicitud marcada como devuelta');
@@ -1158,7 +1067,6 @@ class MobileAdminController {
     }
 
     async eliminarSolicitud(solicitudId) {
-        console.log('** Admin eliminar solicitud:', solicitudId);
         
         if (!confirm('¿Estás seguro de eliminar esta solicitud? Esta acción no se puede deshacer.')) {
             return;
@@ -1187,7 +1095,6 @@ class MobileAdminController {
 
     // Funciones para filtros móviles
     filtrarPorEstado(estado) {
-        console.log('** Filtrando por estado móvil:', estado);
         this.filtros.estado = estado;
         this.applyFilters();
         
@@ -1203,7 +1110,6 @@ class MobileAdminController {
     }
 
     limpiarFiltroEstado() {
-        console.log('** Limpiando filtro de estado móvil');
         this.filtros.estado = 'todos';
         this.applyFilters();
         
@@ -1214,7 +1120,6 @@ class MobileAdminController {
     }
 
     limpiarFiltros() {
-        console.log('** Limpiando todos los filtros móviles');
         this.filtros = {
             busqueda: '',
             estado: 'todos',
@@ -1244,13 +1149,10 @@ class MobileAdminController {
 
 // Inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('** DOM listo - Inicializando MobileAdminController...');
     
     const userData = localStorage.getItem('utn_user');
-    console.log('** Datos de usuario encontrados:', !!userData);
     
     if (!userData) {
-        console.log('** No hay datos de usuario, saliendo');
         return;
     }
     
@@ -1259,18 +1161,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const rolText = rol.toLowerCase();
         
     const esAdmin = rolText.includes('admin') || rolText.includes('administrador') || rolText.includes('estudiante');
-    console.log('** Es administrador (temporal incluye estudiantes):', esAdmin);
     
     if (!esAdmin) {
-        console.log('** Usuario no es administrador, no se inicia controlador mobile admin');
         return;
     }
     
-    console.log('** Todas las condiciones cumplidas, creando e iniciando controlador mobile admin...');
     
     // Crear el controlador global PRIMERO
     window.mobileAdminController = new MobileAdminController();
-    console.log('** MobileAdminController creado:', window.mobileAdminController);
     
     // Luego inicializarlo
     window.mobileAdminController.init();

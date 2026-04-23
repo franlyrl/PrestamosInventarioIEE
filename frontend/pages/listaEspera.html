@@ -108,8 +108,11 @@
         </div>
     </main>
 
-    <!-- FOOTER COMPONENT -->
-    <div id="footer-component"></div>
+    <!-- FOOTER -->
+    <div class="footer">
+        <strong>SPIEE</strong> - Sistema de Préstamos e Inventario de Equipos Electrónicos<br>
+        Universidad Técnica Nacional
+    </div>
 
     <!-- JavaScript -->
     <script src="../js/app.js"></script>
@@ -166,15 +169,12 @@
                 }
 
                 // DEBUG: Ver datos recibidos
-                console.log('📊 Lista de espera recibida:', lista);
-                console.log('📦 Primer item - insumo:', lista[0]?.insumo);
 
                 // Agrupar por artículo
                 const grupos = lista.reduce((acc, espera) => {
                     const articuloId = espera.insumo?._id || espera.insumo?.id || espera.insumo || 'desconocido';
                     const articuloNombre = espera.nombreProducto || espera.insumo?.NombProducto || espera.insumo?.nombre_insumo || 'Producto desconocido';
 
-                    console.log(`📝 Procesando: ${articuloNombre} (ID: ${articuloId})`);
 
                     if (!acc[articuloId]) {
                         acc[articuloId] = {
@@ -187,8 +187,6 @@
                 }, {});
 
                 const numGrupos = Object.keys(grupos).length;
-                console.log('📊 Total grupos creados:', numGrupos);
-                console.log('📊 Nombres de grupos:', Object.values(grupos).map(g => g.nombre));
 
                 // Alerta visual si solo hay un grupo
                 if (numGrupos === 1) {

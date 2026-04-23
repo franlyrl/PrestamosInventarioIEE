@@ -14,16 +14,13 @@ class MobileUserController {
     }
 
     init() {
-        console.log('** Inicializando MobileUserController...');
         
         if (window.innerWidth >= 1024) {
-            console.log('** No es mobile/tablet, saliendo...');
             return;
         }
 
         const userData = localStorage.getItem('utn_user');
         if (!userData) {
-            console.log('** No hay datos de usuario');
             return;
         }
 
@@ -32,11 +29,9 @@ class MobileUserController {
         const rolText = rol.toLowerCase();
         
         if (rolText.includes('admin') || rolText.includes('administrador')) {
-            console.log('** Usuario es administrador, no se inicia controlador mobile');
             return;
         }
 
-        console.log('** Usuario válido, tomando control completo del DOM...');
         
         const tableContainer = document.querySelector('.overflow-x-auto');
         const tbody = document.getElementById('solicitudes-tbody');
@@ -44,18 +39,15 @@ class MobileUserController {
         
         if (tableContainer) {
             tableContainer.style.display = 'none';
-            console.log('** Tabla desktop completamente oculta');
         }
         
         if (tbody) {
             tbody.style.display = 'none';
-            console.log('** Tbody desktop oculto');
         }
         
         if (mobileContainer) {
             mobileContainer.style.display = 'block';
             mobileContainer.classList.remove('hidden');
-            console.log('** Contenedor mobile visible y activo');
         }         
          
         this.setupEventListeners();
@@ -87,11 +79,9 @@ class MobileUserController {
 
     async loadUserSolicitudes() {
         try {
-            console.log('** Cargando solicitudes móviles...');
             
             // Verificar si el HTML ya cargó datos
             if (typeof window.solicitudesData !== 'undefined' && window.solicitudesData.length > 0) {
-                console.log('** Usando datos del HTML:', window.solicitudesData.length, 'solicitudes');
                 this.allSolicitudes = window.solicitudesData;
                 this.solicitudes = [...this.allSolicitudes];
                 this.renderSolicitudes();
@@ -99,7 +89,6 @@ class MobileUserController {
             }
             
             // Si no hay datos del HTML, cargar desde API
-            console.log('** No hay datos del HTML, cargando desde API...');
             
             const userData = localStorage.getItem('utn_user');
             let currentUser = null;
@@ -120,7 +109,6 @@ class MobileUserController {
                     localStorage.getItem('jwt') ||
                     localStorage.getItem('access_token');
                     
-            console.log('** Token encontrado:', token ? 'SÍ' : 'NO');
 
             if (!token) {
                 console.error('** No se encontró token, usando datos de prueba');
@@ -155,7 +143,6 @@ class MobileUserController {
             // Si hay token, usar la API real
             try {
                 const apiUrl = '/api/solicitudes';
-                console.log('** URL API:', apiUrl);
                 
                 const response = await fetch(apiUrl, {
                     headers: token ? {
@@ -171,12 +158,10 @@ class MobileUserController {
                 }
 
                 const data = await response.json();
-                console.log('** Datos recibidos de API:', data);
                 
                 this.allSolicitudes = Array.isArray(data) ? data : (data.solicitudes || data.data || []);
                 this.solicitudes = [...this.allSolicitudes];
                 
-                console.log('** Solicitudes cargadas en móvil:', this.solicitudes.length);
                 this.renderSolicitudes();
                 return;
             } catch (apiError) {
@@ -204,7 +189,6 @@ class MobileUserController {
     }
 
     renderSolicitudes() {
-        console.log('** renderSolicitudes() llamado en móvil...');
         const container = document.getElementById('mobile-solicitudes-container');
         if (!container) {
             console.error('** No se encontró contenedor mobile');
@@ -212,7 +196,6 @@ class MobileUserController {
         }
         
         const solicitudesFiltradas = this.getFilteredSolicitudes();
-        console.log('** Solicitudes filtradas para renderizar:', solicitudesFiltradas.length);
         
         if (solicitudesFiltradas.length === 0) {
             container.innerHTML = `
@@ -225,17 +208,14 @@ class MobileUserController {
             return;
         }
 
-        console.log('** Renderizando solicitudes móviles...');
         
         // Crear tarjetas individuales
         const tarjetasHTML = solicitudesFiltradas.map((solicitud, index) => {
-            console.log(`** Creando tarjeta ${index + 1}/${solicitudesFiltradas.length} para solicitud:`, solicitud._id);
             const tarjetaHTML = this.createSolicitudCard(solicitud);
             return tarjetaHTML;
         }).join('');
         
         container.innerHTML = tarjetasHTML;
-        console.log('** Tarjetas móviles renderizadas:', solicitudesFiltradas.length);
         
         // Actualizar contador de resultados móviles
         const contadorMobile = document.getElementById('resultados-count-mobile');
@@ -392,13 +372,11 @@ class MobileUserController {
     }
 
     getFilteredSolicitudes() {
-        console.log('** Filtros actuales:', this.filters);
         
         let filtradas = this.solicitudes;
 
         if (this.filters.estado !== 'todos') {
             filtradas = filtradas.filter(s => s.estado === this.filters.estado);
-            console.log(`** Filtrando por estado "${this.filters.estado}":`, filtradas.length);
         }
 
         if (this.filters.busqueda) {
@@ -408,12 +386,10 @@ class MobileUserController {
             });
         }
 
-        console.log('** Solicitudes finales para mostrar:', filtradas.length);
         return filtradas;
     }
 
     applyFilters() {
-        console.log('** Aplicando filtros en móvil...');
         this.renderSolicitudes();
         
         const solicitudesFiltradas = this.getFilteredSolicitudes();
@@ -445,7 +421,6 @@ class MobileUserController {
     }
 
     actualizarTotalesPorEstado() {
-        console.log('** Actualizando totales por estado...');
         
         const stats = {
             pendientes: this.solicitudes.filter(s => s.estado === 'pendiente').length,
@@ -456,7 +431,6 @@ class MobileUserController {
             canceladas: this.solicitudes.filter(s => s.estado === 'cancelada').length
         };
 
-        console.log('** Estadísticas calculadas:', stats);
 
         // Actualizar contadores desktop
         const pendientesCount = document.getElementById('pendientes-count');
@@ -473,54 +447,35 @@ class MobileUserController {
         if (devueltasCount) devueltasCount.textContent = stats.devueltas;
         if (canceladasCount) canceladasCount.textContent = stats.canceladas;
 
-        console.log('** Estadísticas actualizadas correctamente');
     }
 
     toggleMenu(solicitudId) {
-        console.log('** TOGGLE MENU INICIADO para solicitud:', solicitudId);
         
         const menu = document.getElementById(`menu-${solicitudId}`);
-        console.log('** Menú encontrado:', !!menu, menu?.id);
         
         const allMenus = document.querySelectorAll('[id^="menu-"]');
-        console.log('** Total menús encontrados:', allMenus.length);
         
         // Verificar estado de los botones ANTES de hacer nada
         const allButtonsBefore = document.querySelectorAll('#mobile-solicitudes-container button[id^="menu-btn-"]');
-        console.log('** BOTONES ANTES - Total:', allButtonsBefore.length);
         
         allMenus.forEach(m => {
             if (m.id !== `menu-${solicitudId}`) {
-                console.log('** Cerrando menú:', m.id);
                 m.classList.add('hidden');
             }
         });
 
         const wasHidden = menu.classList.contains('hidden');
-        console.log('** Menú estaba hidden antes?', wasHidden);
         
         menu.classList.toggle('hidden');
         const isHiddenNow = menu.classList.contains('hidden');
-        console.log('** Menú está hidden después?', isHiddenNow);
         
         // Verificar estado de los botones DESPUÉS del toggle
         setTimeout(() => {
             const allButtonsAfter = document.querySelectorAll('#mobile-solicitudes-container button[id^="menu-btn-"]');
-            console.log('** BOTONES DESPUÉS - Total:', allButtonsAfter.length);
             allButtonsAfter.forEach((btn, index) => {
-                console.log(`** Botón ${index + 1} DESPUÉS:`, {
-                    id: btn.id,
-                    visible: window.getComputedStyle(btn).visibility,
-                    opacity: window.getComputedStyle(btn).opacity,
-                    display: window.getComputedStyle(btn).display,
-                    pointerEvents: window.getComputedStyle(btn).pointerEvents,
-                    zIndex: window.getComputedStyle(btn).zIndex,
-                    classes: btn.className
-                });
                 
                 // CORRECCIÓN MEJORADA: Forzar que los botones siempre sean visibles
                 if (btn.classList.contains('hidden')) {
-                    console.log('** REMOVIENDO CLASE HIDDEN DEL BOTÓN:', btn.id);
                     btn.classList.remove('hidden');
                     btn.classList.remove('invisible');
                 }
@@ -531,20 +486,13 @@ class MobileUserController {
                 btn.style.visibility = 'visible';
                 btn.style.setProperty('visibility', 'visible', 'important');
                 
-                console.log('** BOTÓN CORREGIDO -', btn.id, ':', {
-                    display: btn.style.display,
-                    visibility: btn.style.visibility,
-                    classes: btn.className
-                });
             });
         }, 100);
         
-        console.log('** TOGGLE MENU COMPLETADO para solicitud:', solicitudId);
     }
 
     // MODALES - Funciones agregadas del commit
     verDetalles(solicitudId) {
-        console.log('** Ver detalles mobile:', solicitudId);
         
         // Buscar la solicitud completa
         const solicitud = this.solicitudes.find(s => s._id === solicitudId);
@@ -553,7 +501,6 @@ class MobileUserController {
             return;
         }
         
-        console.log('** Solicitud encontrada para detalles:', solicitud);
         
         // Cerrar el menú de acciones
         const menu = document.getElementById(`menu-${solicitudId}`);
@@ -574,7 +521,6 @@ class MobileUserController {
             // Bloquear scroll del body
             document.body.style.overflow = 'hidden';
             
-            console.log('** Modal de detalles abierto exitosamente');
         } else {
             console.error('** No se pudo crear modal de detalles');
             alert('No se pudo mostrar los detalles de la solicitud');
@@ -582,7 +528,6 @@ class MobileUserController {
     }
     
     crearModalDetalles(solicitud) {
-        console.log('** Creando modal de detalles para solicitud:', solicitud._id);
         try {
             // Crear el contenedor principal del modal
             const modalContainer = document.createElement('div');
@@ -670,7 +615,6 @@ class MobileUserController {
             modalContent.appendChild(modalBody);
             modalContainer.appendChild(modalContent);
             
-            console.log('** Modal de detalles creado exitosamente');
             return modalContainer;
             
         } catch (error) {
@@ -733,7 +677,6 @@ class MobileUserController {
     }
 
     gestionarSolicitud(solicitudId) {
-        console.log('** Editar solicitud mobile:', solicitudId);
         
         // Buscar la solicitud completa
         const solicitud = this.solicitudes.find(s => s._id === solicitudId);
@@ -742,7 +685,6 @@ class MobileUserController {
             return;
         }
         
-        console.log('** Solicitud encontrada para editar:', solicitud);
         
         // Cerrar el menú de acciones
         const menu = document.getElementById(`menu-${solicitudId}`);
@@ -763,7 +705,6 @@ class MobileUserController {
             // Bloquear scroll del body
             document.body.style.overflow = 'hidden';
             
-            console.log('** Modal de edición abierto exitosamente');
         } else {
             console.error('** No se pudo crear modal de edición');
             alert('No se pudo mostrar el editor de la solicitud');
@@ -771,7 +712,6 @@ class MobileUserController {
     }
     
     crearModalEdicionDinamico(solicitud) {
-        console.log('** Creando modal de edición para solicitud:', solicitud._id);
         try {
             // Crear el contenedor principal del modal
             const modalContainer = document.createElement('div');
@@ -841,7 +781,6 @@ class MobileUserController {
             modalContent.appendChild(modalBody);
             modalContainer.appendChild(modalContent);
             
-            console.log('** Modal dinámico creado exitosamente');
             return modalContainer;
             
         } catch (error) {
@@ -851,7 +790,6 @@ class MobileUserController {
     }
     
     guardarCambiosSolicitud(solicitudId) {
-        console.log('** Guardando cambios para solicitud:', solicitudId);
         
         // Cerrar el modal
         const modal = document.querySelector(`#modal-edicion-dinamico-${solicitudId}`);
@@ -863,14 +801,12 @@ class MobileUserController {
         document.body.style.overflow = '';
         
         alert('Función de guardar cambios en desarrollo. Los cambios se guardarán en una futura versión.');
-        console.log('** Cambios guardados (simulado)');
         
         // Recargar los datos para reflejar cambios
         this.recargarDatos();
     }
     
     async recargarDatos() {
-        console.log('** Recargando datos para reflejar cambios...');
         
         // Limpiar datos actuales
         this.allSolicitudes = [];
@@ -879,16 +815,13 @@ class MobileUserController {
         // Recargar desde el principio
         await this.loadUserSolicitudes();
         
-        console.log('** Datos recargados exitosamente');
     }
 
     async eliminarSolicitud(solicitudId) {
-        console.log('** Cancelando solicitud:', solicitudId);
         
         // Confirmar con el usuario
         const confirmacion = confirm('¿Estás seguro que deseas cancelar esta solicitud? Esta acción no se puede deshacer.');
         if (!confirmacion) {
-            console.log('** Cancelación cancelada por el usuario');
             return;
         }
         
@@ -901,7 +834,6 @@ class MobileUserController {
                 return;
             }
             
-            console.log('** Solicitud encontrada para cancelar:', solicitud);
             
             // Cambiar el estado a "cancelada" localmente
             solicitud.estado = 'cancelada';
@@ -910,7 +842,6 @@ class MobileUserController {
             this.renderSolicitudes();
             this.actualizarTotalesPorEstado();
             
-            console.log('** Solicitud cancelada exitosamente');
             alert('Solicitud cancelada correctamente');
             
         } catch (error) {
@@ -922,13 +853,10 @@ class MobileUserController {
 
 // Inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('** DOM listo - Inicializando MobileUserController directamente...');
     
     const userData = localStorage.getItem('utn_user');
-    console.log('** Datos de usuario encontrados:', !!userData);
     
     if (!userData) {
-        console.log('** No hay datos de usuario, saliendo');
         return;
     }
     
@@ -937,18 +865,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const rolText = rol.toLowerCase();
         
     const esAdmin = rolText.includes('admin') || rolText.includes('administrador');
-    console.log('** Es administrador:', esAdmin);
     
     if (esAdmin) {
-        console.log('** Usuario es administrador, no se inicia controlador mobile');
         return;
     }
     
-    console.log('** Todas las condiciones cumplidas, creando e iniciando controlador mobile...');
     
     // Crear el controlador global PRIMERO
     window.mobileUserController = new MobileUserController();
-    console.log('** MobileUserController creado:', window.mobileUserController);
     
     // Luego inicializarlo
     window.mobileUserController.init();

@@ -10,7 +10,6 @@ const ListaEspera = require('../models/listaEspera');
  */
 exports.getListaEspera = async (req, res) => {
     try {
-        console.log("🔍 [ListaEspera] Obteniendo lista de espera...");
 
         let query = {};
         if (req.query.insumos) {
@@ -31,17 +30,9 @@ exports.getListaEspera = async (req, res) => {
             // 2. createdAt: 1 (El que llegó primero va arriba)
             .sort({ prioridad: -1, createdAt: 1 });
 
-        console.log(`✅ [ListaEspera] Se encontraron ${lista.length} registros`);
         
         // Debug: mostrar el primer registro para verificar populate
         if (lista.length > 0) {
-            console.log('🔍 [ListaEspera] Primer registro:', {
-                id: lista[0]._id,
-                insumo: lista[0].insumo,
-                insumoId: lista[0].insumo?._id,
-                insumoNombProducto: lista[0].insumo?.NombProducto,
-                nombreProducto: lista[0].nombreProducto
-            });
         }
 
         res.json({
@@ -71,6 +62,7 @@ exports.getMiListaEspera = async (req, res) => {
         const lista = await ListaEspera.find({ usuario: req.user._id })
             .populate('usuario', 'nombre_completo')
             .populate('insumo', 'NombProducto')
+            .populate('activo', 'marca modelo numActivo')
             .sort({ prioridad: -1, createdAt: 1 });
 
         res.json(lista);
@@ -89,23 +81,25 @@ exports.getMiListaEspera = async (req, res) => {
  */
 exports.agregarAListaEspera = async (req, res) => {
     try {
-        console.log("🔄 [ListaEspera] Agregando usuario a lista de espera...");
-        console.log("   - Body recibido:", req.body);
 
-        const nuevoTurno = new ListaEspera(req.body);
+        const body = {
+            ...req.body,
+            usuario: req.body.usuario || req.user?._id || req.user?.id
+        };
+
+        const nuevoTurno = new ListaEspera(body);
 
         // Validar que los campos requeridos existan
-        if (!nuevoTurno.usuario || !nuevoTurno.insumo) {
+        if (!nuevoTurno.usuario || (!nuevoTurno.insumo && !nuevoTurno.activo)) {
             return res.status(400).json({
                 message: 'Faltan campos requeridos',
-                required: ['usuario', 'insumo'],
-                received: req.body
+                required: ['usuario', 'insumo o activo'],
+                received: body
             });
         }
 
         const guardado = await nuevoTurno.save();
 
-        console.log("✅ [ListaEspera] Usuario agregado exitosamente:", guardado._id);
 
         // RESPUESTA EXITOSA: 201 Created con el nuevo turno
         res.status(201).json({
@@ -119,7 +113,7 @@ exports.agregarAListaEspera = async (req, res) => {
         if (error.code === 11000) {
             // Error de duplicado (índice único)
             return res.status(400).json({
-                message: 'El usuario ya está en lista de espera para este insumo',
+                message: 'El usuario ya está en lista de espera para este artículo',
                 error: error.message
             });
         }

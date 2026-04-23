@@ -38,7 +38,6 @@ export function renderLogin(containerId) {
         const pass = document.getElementById('passInput').value;
         
         // Aquí iría tu lógica de validación
-        console.log("Intentando entrar con:", user);
         
         if(user && pass) {
             alert("Validando credenciales...");

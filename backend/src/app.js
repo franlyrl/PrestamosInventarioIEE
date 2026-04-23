@@ -12,7 +12,6 @@ const app = express();
 const Insumo = require('./models/insumos');
 const Activo = require('./models/activos');
 
-console.log('✅ [DEBUG] app.js cargado - versión con endpoint /api/upload/imagenes');
 
 // --- 1. MIDDLEWARES DE ENTRADA (Configuración inicial) ---
 app.use(cors({
@@ -61,15 +60,7 @@ app.use(morgan('dev'));
 // Middleware de debugging DESPUÉS del parsing para ver qué llegó
 app.use((req, res, next) => {
     if (req.method === 'POST' && req.url.includes('/solicitudes')) {
-        console.log('🔍 [DEBUG] === POST /api/solicitudes ===');
-        console.log('🔍 [DEBUG] Content-Type:', req.headers['content-type']);
-        console.log('🔍 [DEBUG] req.body exists:', !!req.body);
-        console.log('🔍 [DEBUG] req.body type:', typeof req.body);
-        console.log('🔍 [DEBUG] req.body keys:', req.body ? Object.keys(req.body) : 'N/A');
         if (req.body) {
-            console.log('🔍 [DEBUG] req.body:', JSON.stringify(req.body, null, 2));
-            console.log('🔍 [DEBUG] req.body.activos:', req.body.activos);
-            console.log('🔍 [DEBUG] typeof req.body.activos:', typeof req.body.activos);
         }
     }
     next();
@@ -99,7 +90,6 @@ app.use('/api/cuatrimestre', require('./routes/cuatrimestreRoutes'));
 
 // --- 3. RUTAS PÚBLICAS Y PRUEBAS ---
 app.post('/api/test-utf8', (req, res) => {
-    console.log('Datos recibidos:', JSON.stringify(req.body, null, 2));
     
     const response = {
         recibido: req.body,
@@ -117,7 +107,6 @@ app.post('/api/test-utf8', (req, res) => {
 });
 
 app.post('/api/upload', (req, res) => {
-    console.log('📤 Petición de subida de archivo recibida');
     
     // Usar multer para manejar la subida de archivos
     const multer = require('multer');
@@ -143,7 +132,6 @@ app.post('/api/upload', (req, res) => {
             });
         }
         
-        console.log('✅ Archivo subido:', req.file);
         
         // Construir URL pública del archivo
         const imageUrl = `/uploads/${req.file.filename}`;
@@ -157,8 +145,6 @@ app.post('/api/upload', (req, res) => {
 });
 
 app.post('/api/upload/imagenes', (req, res) => {
-    console.log('📤 [DEBUG] POST /api/upload/imagenes - Headers:', req.headers['content-type']);
-    console.log('📤 [DEBUG] Body keys:', Object.keys(req.body || {}));
     
     const multer = require('multer');
     const path = require('path');
@@ -188,19 +174,16 @@ app.post('/api/upload/imagenes', (req, res) => {
             fileSize: 10 * 1024 * 1024 // 10MB límite por imagen
         },
         fileFilter: (req, file, cb) => {
-            // Aceptar imágenes JPG/JPEG por MIME o extensión
-            const allowedMimeTypes = ['image/jpeg', 'image/jpg'];
-            const allowedExtensions = ['.jpg', '.jpeg'];
+            // Aceptar formatos comunes de cámara/celular.
+            const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
             const ext = path.extname(file.originalname).toLowerCase();
             
-            console.log(`📁 [UPLOAD] Archivo: ${file.originalname} | MIME: ${file.mimetype} | Ext: ${ext}`);
             
             if (allowedMimeTypes.includes(file.mimetype) || allowedExtensions.includes(ext)) {
-                console.log(`✅ [UPLOAD] Aceptado: ${file.originalname}`);
                 cb(null, true);
             } else {
-                console.log(`❌ [UPLOAD] Rechazado: ${file.originalname} - MIME no permitido: ${file.mimetype}`);
-                cb(new Error(`Solo se permiten imágenes JPG o JPEG. Recibido: ${file.mimetype}`), false);
+                cb(new Error(`Solo se permiten imágenes JPG, PNG o WEBP. Recibido: ${file.mimetype}`), false);
             }
         }
     }).array('imagenes', 50); // Aceptar hasta 50 archivos en el campo 'imagenes'
@@ -220,41 +203,96 @@ app.post('/api/upload/imagenes', (req, res) => {
             });
         }
         
-        console.log('✅ Archivos subidos:', req.files.length);
         
-        // Analizar nombres de archivos y buscar coincidencias con insumos sin foto
+        const tipoCarga = ((req.body?.tipo || req.body?.modulo || 'insumo') + '').toLowerCase();
+        const esActivo = tipoCarga.includes('activo');
+
+
+        // Analizar nombres de archivos y buscar coincidencias con items sin foto
         const sugerencias = [];
         
         for (const file of req.files) {
-            // Extraer nombre sin extensión y normalizar
-            const nombreBase = path.basename(file.originalname, path.extname(file.originalname))
-                .replace(/[-_]/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim()
-                .toLowerCase();
+            // Extraer nombre sin extensión y crear múltiples variantes de búsqueda
+            const nombreOriginal = path.basename(file.originalname, path.extname(file.originalname));
             
-            console.log('🔍 Buscando coincidencias para:', nombreBase);
+            // Variantes de búsqueda para mejorar coincidencias
+            const variantes = [
+                nombreOriginal, // Original exacto
+                nombreOriginal.replace(/[-_]/g, ' '), // Guiones a espacios
+                nombreOriginal.replace(/\s+/g, ' ').trim(), // Múltiples espacios a uno
+                nombreOriginal.toLowerCase(), // Todo minúsculas
+                nombreOriginal.replace(/[-_]/g, ' ').toLowerCase(), // Guiones a espacios + minúsculas
+                nombreOriginal.replace(/\s+/g, ' ').trim().toLowerCase(), // Espacios normalizados + minúsculas
+            ];
             
-            // Buscar TODOS los insumos que coincidan por nombre o código
-            // (incluye los que ya tienen foto para poder actualizarla)
-            const insumosSinFoto = await Insumo.find({
-                $or: [
-                    { NombProducto: { $regex: nombreBase, $options: 'i' } },
-                    { codigo: { $regex: nombreBase, $options: 'i' } }
-                ]
-            }).limit(10);
+            // Eliminar duplicados
+            const variantesUnicas = [...new Set(variantes)];
             
-            console.log(`  → Encontrados ${insumosSinFoto.length} insumos sin foto`);
+            
+            // Primero intentar búsqueda simple con el nombre original
+            const busquedaSimple = esActivo
+                ? await Activo.find({
+                    $or: [
+                        { marca: { $regex: nombreOriginal, $options: 'i' } },
+                        { modelo: { $regex: nombreOriginal, $options: 'i' } },
+                        { numActivo: { $regex: nombreOriginal, $options: 'i' } },
+                        { numSerie: { $regex: nombreOriginal, $options: 'i' } }
+                    ]
+                }).limit(10)
+                : await Insumo.find({
+                    $or: [
+                        { NombProducto: { $regex: nombreOriginal, $options: 'i' } },
+                        { codigo: { $regex: nombreOriginal, $options: 'i' } }
+                    ]
+                }).limit(10);
+            
+            
+            // Si la búsqueda simple no funciona, probar con variantes
+            let coincidencias = busquedaSimple;
+            
+            if (coincidencias.length === 0) {
+                
+                // Crear condiciones de búsqueda más flexibles
+                const crearCondiciones = (variantes, campos) => {
+                    const condiciones = [];
+                    for (const variante of variantesUnicas) {
+                        for (const campo of campos) {
+                            condiciones.push({ [campo]: { $regex: variante, $options: 'i' } });
+                        }
+                    }
+                    return condiciones;
+                };
+                
+                coincidencias = esActivo
+                    ? await Activo.find({
+                        $or: crearCondiciones(variantesUnicas, ['marca', 'modelo', 'numActivo', 'numSerie'])
+                    }).limit(15)
+                    : await Insumo.find({
+                        $or: crearCondiciones(variantesUnicas, ['NombProducto', 'codigo'])
+                    }).limit(15);
+                
+            }
+            
+            
+            // Mostrar detalles de coincidencias encontradas
+            if (coincidencias.length > 0) {
+            } else {
+                // Mostrar una muestra de insumos/activos existentes para debug
+                const muestra = esActivo 
+                    ? await Activo.find().limit(3).select('marca modelo numActivo numSerie')
+                    : await Insumo.find().limit(3).select('NombProducto codigo');
+            }
             
             sugerencias.push({
                 filename: file.filename,
                 originalname: file.originalname,
                 url: `/uploads/items/${file.filename}`,
-                nombreAnalizado: nombreBase,
-                coincidencias: insumosSinFoto.map(i => ({
+                nombreAnalizado: nombreOriginal,
+                tipo: esActivo ? 'activo' : 'insumo',
+                coincidencias: coincidencias.map(i => ({
                     id: i._id,
-                    codigo: i.codigo,
-                    nombre: i.NombProducto,
+                    codigo: esActivo ? (i.numActivo || i.numSerie) : i.codigo,
+                    nombre: esActivo ? `${i.marca || ''} ${i.modelo || ''}`.trim() : i.NombProducto,
                     categoria: i.categoria
                 }))
             });
@@ -270,7 +308,6 @@ app.post('/api/upload/imagenes', (req, res) => {
 
 // Endpoint para asociar imagen a insumo o activo específico
 app.post('/api/upload/asociar', async (req, res) => {
-    console.log('🔗 [DEBUG] POST /api/upload/asociar - Body:', req.body);
 
     try {
         const { insumoId, activoId, imageUrl, tipo } = req.body;
@@ -319,7 +356,6 @@ app.post('/api/upload/asociar', async (req, res) => {
             });
         }
 
-        console.log(`✅ Imagen asociada a ${tipoItem}:`, nombreItem || codigoItem);
 
         res.json({
             success: true,
@@ -347,7 +383,6 @@ app.get('/api', (req, res) => {
 
 // Servir frontend estático desde carpeta frontend
 const frontendPath = path.join(__dirname, '..', '..', 'frontend');
-console.log('📁 [STATIC] Sirviendo frontend desde:', frontendPath);
 app.use(express.static(frontendPath));
 
 // Fallback para rutas del frontend (SPA)
@@ -367,9 +402,6 @@ const PORT = process.env.PORT || 4000;
 // Solo hacemos el listen si este archivo es el principal
 if (require.main === module) {
     app.listen(PORT, '0.0.0.0', () => {
-        console.log(` Servidor corriendo en http://0.0.0.0:${PORT}`);
-        console.log(` Acceso local: http://10.90.29.31:${PORT}`);
-        console.log(' Monitoreando peticiones con Morgan...');
     });
 }
 

@@ -114,16 +114,10 @@ class ReportesController {
 
     renderReportesInventario() {
         // Debug: verificar datos
-        console.log('📊 Datos insumos:', this.datos.insumos?.length || 0, 'items');
-        console.log('📊 Datos activos:', this.datos.activos?.length || 0, 'items');
         
         const primerInsumo = this.datos.insumos?.[0];
         const primerActivo = this.datos.activos?.[0];
         
-        console.log('📊 Primer insumo:', primerInsumo);
-        console.log('📊 Primer activo:', primerActivo);
-        console.log('📊 Campos insumo:', Object.keys(primerInsumo || {}));
-        console.log('📊 Campos activo:', Object.keys(primerActivo || {}));
 
         // Stock Bajo: insumos con cantidad > 0 y <= 5
         const insumosConStock = this.datos.insumos?.filter(i => {
@@ -131,7 +125,6 @@ class ReportesController {
             return cantidad > 0 && cantidad <= 5;
         }) || [];
         const stockBajo = insumosConStock.length;
-        console.log('⚠️ Stock bajo encontrado:', stockBajo, 'insumos');
 
         const alertasStockEl = document.getElementById('alertas-stock');
         if (alertasStockEl) {
@@ -145,15 +138,10 @@ class ReportesController {
         // Movimientos Hoy: solicitudes del día actual
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
-        console.log('📅 Fecha hoy:', hoy);
-        console.log('📋 Total solicitudes:', this.datos.solicitudes?.length || 0);
-        console.log('📋 Primera solicitud:', this.datos.solicitudes?.[0]);
         const movimientosHoy = this.datos.solicitudes?.filter(s => {
             const fecha = new Date(s.createdAt || s.fecha);
-            console.log('🔍 Solicitud fecha:', s.createdAt || s.fecha, '->', fecha, '>= hoy?', fecha >= hoy);
             return fecha >= hoy;
         })?.length || 0;
-        console.log('📊 Movimientos hoy:', movimientosHoy);
         const movimientosEl = document.getElementById('movimientos-hoy');
         if (movimientosEl) movimientosEl.textContent = movimientosHoy;
 
@@ -504,10 +492,6 @@ class ReportesController {
             .map((item, index) => ({ ...item, rank: index + 1 }));
 
         // Debug: mostrar datos reales procesados
-        console.log('=== ACTIVOS MÁS SOLICITADOS (DATOS REALES) ===');
-        console.log('Total solicitudes procesadas:', this.datos.solicitudes?.length || 0);
-        console.log('Contador de activos:', contadorActivos);
-        console.log('Top 5 resultante:', topData);
 
         // Si no hay datos reales, mostrar mensaje
         if (topData.length === 0) {
@@ -659,9 +643,7 @@ class ReportesController {
                 </tr>
             </thead>
             <tbody>`;
-            console.log('📊 Exportando activos:', this.datos.activos.length);
-            this.datos.activos.forEach((a, index) => {
-                if (index < 3) console.log('📊 Activo', index, ':', a);
+            this.datos.activos.forEach((a) => {
                 const estadoClass = this.getEstadoClass(a.estadoActivo);
                 const codigo = a.numActivo || a.codigo || a.placa || '-';
                 const nombre = (a.marca && a.modelo) ? `${a.marca} ${a.modelo}` : (a.nombre || a.NombProducto || 'Sin nombre');
@@ -680,11 +662,7 @@ class ReportesController {
         }
 
         // Insumos
-        console.log('📦 Exportando insumos:', this.datos.insumos?.length || 0);
-        console.log('📦 Tipo reporte:', tipoReporte);
-        console.log('📦 Insumos data:', this.datos.insumos);
         const mostrarInsumos = (tipoReporte === 'general' || tipoReporte === 'insumos') && (this.datos.insumos?.length > 0);
-        console.log('📦 Mostrar insumos?:', mostrarInsumos);
         if (mostrarInsumos) {
             htmlContent += `
     <div class="section">
@@ -700,10 +678,8 @@ class ReportesController {
                 </tr>
             </thead>
             <tbody>`;
-            console.log('📦 Renderizando', this.datos.insumos.length, 'insumos');
             this.datos.insumos.forEach((i, index) => {
-                if (index < 3) console.log('📦 Insumo', index, ':', i);
-                const estadoClass = this.getEstadoClass(i.estado);
+                if (index < 3)                 const estadoClass = this.getEstadoClass(i.estado);
                 const codigo = i.codigo || i.id_insumo || i._id || '-';
                 const nombre = i.NombProducto || i.nombre || i.descripcion || 'Sin nombre';
                 const cantidad = i.cantidad || i.stock || i.stock_actual || 0;
@@ -716,7 +692,6 @@ class ReportesController {
                     <td><span class="estado ${estadoClass}">${i.estado || '-'}</span></td>
                 </tr>`;
             });
-            console.log('📦 HTML insumos generado');
             htmlContent += `
             </tbody>
         </table>

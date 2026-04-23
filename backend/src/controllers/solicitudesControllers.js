@@ -94,10 +94,6 @@ exports.createSolicitud = async (req, res) => {
         const usuarioId = req.user.id;
 
         // --- DATOS DE LA SOLICITUD (Vienen del Formulario/Body) ---
-        console.log('🔍 [DEBUG] req.body completo:', JSON.stringify(req.body, null, 2));
-        console.log('🔍 [DEBUG] Tipo de req.body:', typeof req.body);
-        console.log('🔍 [DEBUG] req.body.activos:', req.body.activos);
-        console.log('🔍 [DEBUG] Tipo de req.body.activos:', typeof req.body.activos);
         
         const { activos, insumos, observaciones } = req.body;
         // NOTA: fecha_entrega_esperada REMOVIDO — solo el admin puede asignar fecha de entrega (Área F)
@@ -151,20 +147,15 @@ exports.createSolicitud = async (req, res) => {
 
         // Procesar activos - soportar tanto strings (IDs) como objetos con codigo_activo
         let activosProcesados = [];
-        console.log('🔍 [DEBUG] Raw activos recibidos:', activos);
-        console.log('🔍 [DEBUG] Tipo de activos:', typeof activos);
         if (activos && Array.isArray(activos)) {
             activosProcesados = activos.map((activo, idx) => {
-                console.log(`🔍 [DEBUG] Procesando activo[${idx}]:`, activo, 'tipo:', typeof activo);
                 // Si es string, es el ID directo
                 if (typeof activo === 'string') {
-                    console.log(`🔍 [DEBUG] Activo[${idx}] es string, ID:`, activo);
                     return { codigo_activo: activo };
                 }
                 // Si es objeto con codigo_activo
                 if (activo && activo.codigo_activo) {
                     let codigo = activo.codigo_activo;
-                    console.log(`🔍 [DEBUG] Activo[${idx}] es objeto, codigo_activo:`, codigo);
                     // Si codigo_activo es objeto con $oid, extraerlo
                     if (typeof codigo === 'object' && codigo.$oid) {
                         codigo = codigo.$oid;
@@ -172,11 +163,9 @@ exports.createSolicitud = async (req, res) => {
                     return { codigo_activo: codigo };
                 }
                 // Fallback: devolver el activo tal cual
-                console.log(`🔍 [DEBUG] Activo[${idx}] fallback, devolviendo:`, activo);
                 return activo;
             });
         }
-        console.log('🔍 [DEBUG] Activos procesados:', activosProcesados);
 
         // 4. VERIFICACIÓN DE DISPONIBILIDAD Y SEPARACIÓN DE ITEMS DISPONIBLES E INDISPONIBLES
         const ListaEspera = require('../models/listaEspera');
@@ -184,6 +173,18 @@ exports.createSolicitud = async (req, res) => {
         // Inicializar arrays para items disponibles
         let activosDisponibles = [];
         let insumosDisponibles = [];
+
+        const agregarAEsperaSinDuplicar = async (payload, filtro) => {
+            try {
+                await ListaEspera.findOneAndUpdate(
+                    filtro,
+                    { $setOnInsert: payload },
+                    { upsert: true, new: true, setDefaultsOnInsert: true }
+                );
+            } catch (error) {
+                if (error.code !== 11000) throw error;
+            }
+        };
 
         // Verificar activos disponibles
         if (activosProcesados && activosProcesados.length > 0) {
@@ -196,17 +197,19 @@ exports.createSolicitud = async (req, res) => {
                     activosDisponibles.push(activo);
                 } else {
                     // Agregar a lista de espera
-                    const yaEnLista = await ListaEspera.findOne({
-                        usuario: usuarioId,
-                        activo: activoDB._id
-                    });
-                    if (!yaEnLista) {
-                        await ListaEspera.create({
+                    await agregarAEsperaSinDuplicar(
+                        {
                             usuario: usuarioId,
                             activo: activoDB._id,
-                            cantidad_solicitada: 1
-                        });
-                    }
+                            cantidad_solicitada: 1,
+                            nombreProducto: `${activoDB.marca || ''} ${activoDB.modelo || ''}`.trim()
+                        },
+                        {
+                            usuario: usuarioId,
+                            activo: activoDB._id,
+                            estado: 'esperando'
+                        }
+                    );
                 }
             }
         }
@@ -222,17 +225,19 @@ exports.createSolicitud = async (req, res) => {
                     insumosDisponibles.push(insumo);
                 } else {
                     // Agregar a lista de espera
-                    const yaEnLista = await ListaEspera.findOne({
-                        usuario: usuarioId,
-                        insumo: insumo.id_insumo
-                    });
-                    if (!yaEnLista) {
-                        await ListaEspera.create({
+                    await agregarAEsperaSinDuplicar(
+                        {
                             usuario: usuarioId,
                             insumo: insumo.id_insumo,
-                            cantidad_solicitada: insumo.cantidad
-                        });
-                    }
+                            cantidad_solicitada: insumo.cantidad,
+                            nombreProducto: insumo.nombre_insumo || insumoDB.NombProducto
+                        },
+                        {
+                            usuario: usuarioId,
+                            insumo: insumo.id_insumo,
+                            estado: 'esperando'
+                        }
+                    );
                 }
             }
         }
@@ -260,8 +265,6 @@ exports.createSolicitud = async (req, res) => {
                 : i.id_insumo
         }));
         
-        console.log('🔍 [DEBUG] Guardando solicitud con activos:', activosIds);
-        console.log('🔍 [DEBUG] Guardando solicitud con insumos:', insumosProcesadosFinal);
         
         const nuevaSolicitud = new Solicitudes({
             usuario: usuarioId,
@@ -284,7 +287,6 @@ exports.createSolicitud = async (req, res) => {
                 await Activos.findByIdAndUpdate(activo.codigo_activo, {
                     estadoActivo: 'prestado'
                 });
-                console.log(`🔍 [DEBUG] Activo ${activo.codigo_activo} marcado como prestado`);
             }
         }
 
@@ -301,6 +303,13 @@ exports.createSolicitud = async (req, res) => {
         });
 
     } catch (error) {
+        if (error.code === 11000 && error.message?.includes('listaesperas')) {
+            return res.status(409).json({
+                message: 'Los items no disponibles ya estaban en lista de espera.',
+                detalle: 'No se duplicaron los registros existentes.'
+            });
+        }
+
         return res.status(500).json({
             message: 'Error interno en la creación de solicitud',
             error: error.message

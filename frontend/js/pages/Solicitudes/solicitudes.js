@@ -13,8 +13,9 @@ class SolicitudesController {
         this.currentUser = JSON.parse(localStorage.getItem('utn_user')) || {};
         this.token = localStorage.getItem('utn_token') || '';
         this.apiBase = window.CONFIG?.API_BASE_URL || '/api';
+        const rolUsuario = ((this.currentUser.tipo_rol || this.currentUser.rol || '') + '').toLowerCase();
         this.isAdmin = ['admin', 'administrador', 'administrativo'].some(r =>
-            (this.currentUser.rol || '').toLowerCase().includes(r)
+            rolUsuario.includes(r)
         );
         this.currentPage = 1;
         this.itemsPerPage = 5;
@@ -33,15 +34,16 @@ class SolicitudesController {
         try {
             this._showLoading(true);
             await this.cargarSolicitudes();
-            if (this.isAdmin) {
-                await this.cargarListaEspera();
-            }
+            await this.cargarListaEspera();
             this.setupEventListeners();
             this.setupRoleBasedVisibility();
             this.setupTabs();
 
-            // Si es admin y hay lista de espera, mostrar esa tab por defecto
-            if (this.isAdmin && this.listaEspera.length > 0) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabSolicitado = urlParams.get('tab');
+
+            // Mostrar la lista de espera si viene en la URL o si el admin tiene pendientes.
+            if ((tabSolicitado === 'lista-espera' && this.listaEspera.length > 0) || (this.isAdmin && this.listaEspera.length > 0)) {
                 this.switchTab('lista-espera');
             } else {
                 this.switchTab('solicitudes');
@@ -81,8 +83,8 @@ class SolicitudesController {
 
     // ─── Carga de Lista de Espera ────────────────────────────────────────────────
     async cargarListaEspera() {
-        if (!this.isAdmin) return;
-        const resp = await fetch(`${this.apiBase}/listaEspera`, { headers: this.headers });
+        const endpoint = this.isAdmin ? `${this.apiBase}/listaEspera` : `${this.apiBase}/listaEspera/mis`;
+        const resp = await fetch(endpoint, { headers: this.headers });
         if (!resp.ok) throw new Error(`API error ${resp.status}`);
         const data = await resp.json();
         this.listaEspera = Array.isArray(data) ? data : (data.data || []);
@@ -158,7 +160,7 @@ class SolicitudesController {
 
     // ─── Configuración de Tabs ──────────────────────────────────────────────────
     setupTabs() {
-        if (!this.isAdmin) {
+        if (!this.isAdmin && this.listaEspera.length === 0) {
             document.getElementById('tabs-container')?.classList.add('hidden');
             return;
         }
@@ -331,23 +333,18 @@ class SolicitudesController {
 
     // ─── Paginación Lista de Espera ────────────────────────────────────────────
     renderPaginacionListaEspera(totalGrupos, totalItems) {
-        console.log('📄 [renderPaginacionListaEspera] Llamada con:', { totalGrupos, totalItems, perPage: this.listaEsperaPerPage });
         const totalPags = Math.ceil(totalGrupos / this.listaEsperaPerPage);
         const contenedor = document.getElementById('paginacion-lista-espera');
-        console.log('📄 [renderPaginacionListaEspera] Contenedor:', contenedor);
         if (!contenedor) {
             console.error('❌ [renderPaginacionListaEspera] No se encontró el contenedor paginacion-lista-espera');
             return;
         }
 
-        console.log('📄 [renderPaginacionListaEspera] totalPags:', totalPags);
         if (totalPags <= 1) {
-            console.log('📄 [renderPaginacionListaEspera] Solo 1 página, mostrando total');
             contenedor.innerHTML = `<p class="text-center text-sm text-slate-500 mt-4">Total: ${totalItems} usuarios en ${totalGrupos} producto(s)</p>`;
             return;
         }
 
-        console.log('📄 [renderPaginacionListaEspera] Renderizando paginación con', totalPags, 'páginas');
         const btnBase = 'w-8 h-8 flex items-center justify-center rounded-lg font-bold text-sm transition';
         const btnNormal = 'text-slate-600 hover:bg-slate-100';
         const btnActive = 'bg-[#002D62] text-white';
@@ -384,7 +381,6 @@ class SolicitudesController {
                     </button>
                 </div>
             </div>`;
-        console.log('✅ [renderPaginacionListaEspera] HTML insertado en contenedor');
     }
 
     irPaginaListaEspera(p) {
@@ -399,8 +395,9 @@ class SolicitudesController {
     // Helper para agrupar lista de espera
     agruparListaEspera() {
         return this.listaEspera.reduce((acc, espera) => {
-            const articuloNombre = espera.nombreProducto || espera.insumo?.NombProducto || espera.insumo?.nombre_insumo || 'Producto desconocido';
-            const numeroSerie = espera.insumo?.numero_serie || espera.insumo?.serie || '';
+            const activoNombre = espera.activo ? `${espera.activo.marca || ''} ${espera.activo.modelo || ''}`.trim() : '';
+            const articuloNombre = espera.nombreProducto || espera.insumo?.NombProducto || espera.insumo?.nombre_insumo || activoNombre || 'Producto desconocido';
+            const numeroSerie = espera.insumo?.numero_serie || espera.insumo?.serie || espera.activo?.numActivo || '';
             const grupoKey = numeroSerie ? `${articuloNombre} (Serie: ${numeroSerie})` : articuloNombre;
 
             if (!acc[grupoKey]) {
@@ -413,33 +410,28 @@ class SolicitudesController {
 
     // ─── Render Lista de Espera ─────────────────────────────────────────────────
     renderListaEspera() {
-        console.log('🔍 [Solicitudes] Lista de espera:', this.listaEspera);
-        console.log('🔍 [Solicitudes] Primer registro:', this.listaEspera[0]);
         
         // Agrupar por nombre de producto + número de serie
         const grupos = this.listaEspera.reduce((acc, espera) => {
             // Obtener nombre del producto
-            const articuloNombre = espera.nombreProducto || espera.insumo?.NombProducto || espera.insumo?.nombre_insumo || 'Producto desconocido';
+            const activoNombre = espera.activo ? `${espera.activo.marca || ''} ${espera.activo.modelo || ''}`.trim() : '';
+            const articuloNombre = espera.nombreProducto || espera.insumo?.NombProducto || espera.insumo?.nombre_insumo || activoNombre || 'Producto desconocido';
             // Obtener número de serie (si existe)
-            const numeroSerie = espera.insumo?.numero_serie || espera.insumo?.serie || '';
+            const numeroSerie = espera.insumo?.numero_serie || espera.insumo?.serie || espera.activo?.numActivo || '';
             // Crear clave única: nombre + número de serie
             const grupoKey = numeroSerie ? `${articuloNombre} (Serie: ${numeroSerie})` : articuloNombre;
 
-            console.log('🔍 [Agrupar] Espera ID:', espera._id, '| Key:', grupoKey, '| nombre:', articuloNombre, '| serie:', numeroSerie);
 
             if (!acc[grupoKey]) {
                 acc[grupoKey] = {
                     nombre: grupoKey,
                     items: []
                 };
-                console.log('🔍 [Agrupar] Nuevo grupo creado para:', grupoKey);
             }
             acc[grupoKey].items.push(espera);
             return acc;
         }, {});
 
-        console.log('🔍 [Grupos] Total grupos:', Object.keys(grupos).length);
-        console.log('🔍 [Grupos] Keys:', Object.keys(grupos));
 
         // Ordenar items dentro de cada grupo por prioridad y fecha
         Object.values(grupos).forEach(grupo => {
@@ -449,8 +441,20 @@ class SolicitudesController {
             });
         });
 
-        // Colores alternados: azul y oro
-        const coloresHeader = ['bg-[#002D62]', 'bg-amber-500'];
+        const estilosGrupo = [
+            {
+                header: 'from-[#001A33] via-[#005A9C] to-[#00A6B2]',
+                ring: 'ring-cyan-500/15',
+                accent: 'bg-[#00A6B2]',
+                soft: 'bg-cyan-50 text-[#005A9C]'
+            },
+            {
+                header: 'from-[#002D62] via-[#0B5F7A] to-[#F2A900]',
+                ring: 'ring-[#F2A900]/20',
+                accent: 'bg-[#F2A900]',
+                soft: 'bg-amber-50 text-amber-700'
+            }
+        ];
 
         // Convertir grupos a array para paginación
         const gruposArray = Object.entries(grupos);
@@ -468,72 +472,139 @@ class SolicitudesController {
         const desktopContainer = document.getElementById('lista-espera-container');
         if (desktopContainer) {
             desktopContainer.innerHTML = gruposPagina.map(([grupoKey, grupo], index) => {
-                const colorHeader = coloresHeader[(inicio + index) % coloresHeader.length];
+                const estilo = estilosGrupo[(inicio + index) % estilosGrupo.length];
                 return `
-                    <div class="card mb-6 overflow-hidden border-l-4 border-${colorHeader.replace('bg-', '')}">
-                        <div class="${colorHeader} text-white px-6 py-4 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold">
-                                    ${grupo.items.length}
+                    <section class="hidden lg:block overflow-hidden rounded-[1.75rem] bg-white shadow-xl shadow-slate-200/70 ring-1 ${estilo.ring} border border-slate-100">
+                        <div class="bg-gradient-to-r ${estilo.header} text-white px-7 py-5">
+                            <div class="flex items-center justify-between gap-6">
+                                <div class="flex min-w-0 items-center gap-4">
+                                    <div class="relative h-12 w-12 flex-shrink-0 rounded-2xl bg-white/15 ring-1 ring-white/25 flex items-center justify-center">
+                                        <span class="text-lg font-black">${grupo.items.length}</span>
+                                        <span class="absolute -bottom-1 -right-1 h-4 w-4 rounded-full ${estilo.accent} ring-2 ring-white"></span>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-[10px] font-black uppercase tracking-[0.24em] text-white/65">Lista de espera</p>
+                                        <h2 class="mt-1 truncate text-xl font-black tracking-tight">${grupo.nombre}</h2>
+                                        <p class="mt-1 text-xs font-semibold text-white/80">${grupo.items.length} usuario(s) ordenados por prioridad y llegada</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h2 class="text-lg font-bold">${grupo.nombre}</h2>
-                                    <p class="text-xs text-white/80">${grupo.items.length} usuario(s) en espera</p>
+                                <div class="rounded-2xl bg-white/12 px-4 py-2 text-right ring-1 ring-white/20">
+                                    <p class="text-[10px] font-black uppercase tracking-widest text-white/65">Primero en cola</p>
+                                    <p class="text-sm font-black">${grupo.items[0]?.usuario?.nombre_completo || 'Pendiente'}</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="p-4">
+                        <div class="p-5">
+                            <div class="overflow-hidden rounded-2xl border border-slate-100 bg-slate-50/60">
                             <table class="w-full text-left text-sm">
-                                <thead class="bg-slate-50 border-b border-slate-200">
+                                <thead class="bg-white border-b border-slate-100">
                                     <tr>
-                                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Pos</th>
-                                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Usuario</th>
-                                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Cantidad</th>
-                                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Fecha Solicitud</th>
-                                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Llegada Estimada</th>
-                                        <th class="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
-                                        <th class="px-4 py-3 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones</th>
+                                        <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Posición</th>
+                                        <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Usuario</th>
+                                        <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Cantidad</th>
+                                        <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Entrada</th>
+                                        <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Aproximado</th>
+                                        <th class="px-5 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Estado</th>
+                                        ${this.isAdmin ? '<th class="px-5 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Acciones</th>' : ''}
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-50">
+                                <tbody class="divide-y divide-slate-100 bg-white">
                                     ${grupo.items.map((espera, idx) => {
                                         const usuario = espera.usuario?.nombre_completo || 'Desconocido';
                                         const fecha = new Date(espera.createdAt).toLocaleString('es-CR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                                         const fechaEstimada = espera.fecha_estimada 
                                             ? new Date(espera.fecha_estimada).toLocaleString('es-CR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                                            : '<span class="text-slate-400 text-xs">Sin definir</span>';
+                                            : '';
                                         const estado = espera.estado || 'esperando';
-                                        const estadoClass = {
-                                            esperando: 'text-amber-600',
-                                            notificado: 'text-blue-600',
-                                            entregado: 'text-green-600',
-                                            cancelado: 'text-red-600'
-                                        }[estado] || 'text-slate-600';
+                                        const estadoStyle = {
+                                            esperando: 'bg-amber-50 text-amber-700 ring-amber-200',
+                                            notificado: 'bg-blue-50 text-blue-700 ring-blue-200',
+                                            entregado: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+                                            cancelado: 'bg-red-50 text-red-700 ring-red-200'
+                                        }[estado] || 'bg-slate-50 text-slate-700 ring-slate-200';
+                                        const iniciales = usuario.split(' ').filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase() || 'U';
 
                                         return `
-                                            <tr class="hover:bg-slate-50">
-                                                <td class="px-4 py-3 text-sm font-bold text-[#002D62]">${idx + 1}</td>
-                                                <td class="px-4 py-3 text-sm text-slate-700">${usuario}</td>
-                                                <td class="px-4 py-3 text-sm text-slate-700">${espera.cantidad_solicitada || 1}</td>
-                                                <td class="px-4 py-3 text-sm text-slate-700">${fecha}</td>
-                                                <td class="px-4 py-3 text-sm font-bold text-green-600">${fechaEstimada}</td>
-                                                <td class="px-4 py-3 text-sm ${estadoClass} font-medium">${estado.charAt(0).toUpperCase() + estado.slice(1)}</td>
-                                                <td class="px-4 py-3 text-sm text-center">
-                                                    <button onclick="window.editarEspera('${espera._id}')" class="text-blue-600 hover:text-blue-800 mr-2">Asignar fecha</button>
-                                                    <button onclick="window.marcarProcesando('${espera._id}')" class="text-green-600 hover:text-green-800">Procesar</button>
+                                            <tr class="transition hover:bg-slate-50/80">
+                                                <td class="px-5 py-4">
+                                                    <div class="h-9 w-9 rounded-xl ${idx === 0 ? 'bg-[#F2A900] text-[#002D62]' : estilo.soft} flex items-center justify-center text-sm font-black shadow-sm">
+                                                        ${idx + 1}
+                                                    </div>
                                                 </td>
+                                                <td class="px-5 py-4">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="h-10 w-10 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-black">
+                                                            ${iniciales}
+                                                        </div>
+                                                        <div>
+                                                            <p class="font-black text-slate-800">${usuario}</p>
+                                                            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Turno ${idx + 1} de ${grupo.items.length}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-5 py-4">
+                                                    <span class="inline-flex min-w-9 items-center justify-center rounded-xl bg-slate-100 px-3 py-1.5 text-sm font-black text-slate-700">${espera.cantidad_solicitada || 1}</span>
+                                                </td>
+                                                <td class="px-5 py-4 text-xs font-semibold leading-relaxed text-slate-500">${fecha}</td>
+                                                <td class="px-5 py-4">
+                                                    ${fechaEstimada
+                                                        ? `<div class="inline-flex flex-col rounded-2xl bg-emerald-50 px-3 py-2 ring-1 ring-emerald-100">
+                                                            <span class="text-[10px] font-black uppercase tracking-widest text-emerald-500">Asignado</span>
+                                                            <span class="text-xs font-black text-emerald-700">${fechaEstimada}</span>
+                                                            ${espera.tiempo_estimado ? `<span class="mt-0.5 text-[10px] font-semibold text-emerald-600">${espera.tiempo_estimado}</span>` : ''}
+                                                        </div>`
+                                                        : `<span class="inline-flex rounded-2xl bg-slate-100 px-3 py-2 text-xs font-black text-slate-400 ring-1 ring-slate-200">Sin definir</span>`}
+                                                </td>
+                                                <td class="px-5 py-4">
+                                                    <span class="inline-flex rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest ring-1 ${estadoStyle}">${estado.charAt(0).toUpperCase() + estado.slice(1)}</span>
+                                                </td>
+                                                ${this.isAdmin ? `<td class="px-5 py-4 text-right">
+                                                    <div class="flex justify-end gap-2">
+                                                        <button onclick="window.editarEspera('${espera._id}')" class="rounded-xl bg-[#002D62] px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-blue-900/10 transition hover:-translate-y-0.5 hover:bg-[#001A33]">Asignar fecha</button>
+                                                        <button onclick="window.marcarProcesando('${espera._id}')" class="rounded-xl bg-emerald-50 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-700 ring-1 ring-emerald-100 transition hover:-translate-y-0.5 hover:bg-emerald-100">Procesar</button>
+                                                    </div>
+                                                </td>` : ''}
                                             </tr>`;
                                     }).join('')}
                                 </tbody>
                             </table>
+                            </div>
                         </div>
-                    </div>`;
+                    </section>`;
             }).join('');
+        }
+
+        const mobileContainer = document.getElementById('mobile-lista-espera-container');
+        if (mobileContainer) {
+            mobileContainer.innerHTML = gruposPagina.map(([grupoKey, grupo]) => `
+                <article class="card p-4 border-l-4 border-amber-400">
+                    <div class="mb-3">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-amber-600">Lista de Espera</p>
+                        <h3 class="font-black text-slate-800 text-sm leading-snug">${grupo.nombre}</h3>
+                    </div>
+                    <div class="space-y-2">
+                        ${grupo.items.map((espera, idx) => {
+                            const usuario = espera.usuario?.nombre_completo || 'Tu solicitud';
+                            const fecha = new Date(espera.createdAt).toLocaleString('es-CR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                            const estado = espera.estado || 'esperando';
+                            return `
+                                <div class="rounded-xl bg-slate-50 border border-slate-100 p-3">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-xs font-black text-[#002D62]">Posición ${idx + 1}</span>
+                                        <span class="text-[10px] font-black uppercase text-amber-600">${estado}</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 mt-1">${usuario}</p>
+                                    <p class="text-xs text-slate-500 mt-1">Cantidad: <strong>${espera.cantidad_solicitada || 1}</strong></p>
+                                    <p class="text-[10px] text-slate-400 mt-1">Desde: ${fecha}</p>
+                                </div>`;
+                        }).join('')}
+                    </div>
+                </article>
+            `).join('');
         }
 
         // Render paginación
         const total = Object.values(grupos).reduce((sum, g) => sum + g.items.length, 0);
-        console.log('📄 [Paginación] totalGrupos:', totalGrupos, 'totalItems:', total, 'container:', document.getElementById('paginacion-lista-espera'));
         this.renderPaginacionListaEspera(totalGrupos, total);
 
         // Ocultar tabla antigua si existe
@@ -609,8 +680,13 @@ class SolicitudesController {
                         <button title="Ver detalle" onclick="event.stopPropagation(); window.solicitudesController.verDetalles('${s._id}')" class="p-2 hover:bg-slate-100 rounded-lg transition text-slate-500 hover:text-utn-blue">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                         </button>
-                        ${s.estado === 'pendiente' ? `
+                        ${s.estado === 'pendiente' && !this.isAdmin ? `
                         <button title="Cancelar solicitud" onclick="event.stopPropagation(); window.solicitudesController.cancelar('${s._id}')" class="p-2 hover:bg-red-50 rounded-lg transition text-slate-400 hover:text-red-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                        ` : ''}
+                        ${this.isAdmin && s.estado === 'pendiente' ? `
+                        <button title="Rechazar solicitud" onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'rechazada')" class="p-2 hover:bg-red-50 rounded-lg transition text-red-600">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                         ` : ''}
@@ -703,6 +779,7 @@ class SolicitudesController {
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                        Contactar Admin
                     </a>` : ''}
+                    ${this.isAdmin && s.estado === 'pendiente' ? `<button onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'rechazada')" class="px-3 py-2 text-xs font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition">Rechazar</button>` : ''}
                     ${this.isAdmin && s.estado === 'pendiente' ? `<button onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'aprobada')" class="px-3 py-2 text-xs font-bold text-green-600 bg-green-50 rounded-xl hover:bg-green-100 transition">Aprobar</button>` : ''}
                     ${this.isAdmin && s.estado === 'aprobada' ? `<button onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'entregado')" class="px-3 py-2 text-xs font-bold text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition">Entregar</button>` : ''}
                     ${this.isAdmin && s.estado === 'entregado' ? `<button onclick="event.stopPropagation(); window.solicitudesController.cambiarEstado('${s._id}', 'devuelto')" class="px-3 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition">Devuelto</button>` : ''}
@@ -1015,6 +1092,10 @@ class SolicitudesController {
 
     // ─── Cancelar Solicitud ──────────────────────────────────────────────────────
     async cancelar(id) {
+        if (this.isAdmin) {
+            return this.cambiarEstado(id, 'rechazada');
+        }
+
         const s = this.solicitudes.find(x => x._id === id);
         if (!s) { this._toast('Solicitud no encontrada', 'error'); return; }
         if (s.estado !== 'pendiente') {

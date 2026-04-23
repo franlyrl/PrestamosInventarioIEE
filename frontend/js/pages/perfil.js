@@ -129,19 +129,19 @@ class PerfilController {
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div class="bg-slate-50 rounded-xl p-4 text-center">
                         <p class="text-2xl font-black text-[#002D62]" id="admin-total-usuarios">-</p>
-                        <p class="text-[10px] font-black uppercase text-slate-400 mt-1">Usuarios</p>
+                        <p class="text-[10px] font-black uppercase text-slate-400 mt-1">USUARIOS</p>
                     </div>
                     <div class="bg-slate-50 rounded-xl p-4 text-center">
                         <p class="text-2xl font-black text-orange-500" id="admin-pendientes">-</p>
-                        <p class="text-[10px] font-black uppercase text-slate-400 mt-1">Pendientes</p>
+                        <p class="text-[10px] font-black uppercase text-slate-400 mt-1">PENDIENTES</p>
                     </div>
                     <div class="bg-slate-50 rounded-xl p-4 text-center">
                         <p class="text-2xl font-black text-[#002D62]" id="admin-activos">-</p>
-                        <p class="text-[10px] font-black uppercase text-slate-400 mt-1">Préstamos Activos</p>
+                        <p class="text-[10px] font-black uppercase text-slate-400 mt-1">PRÉSTAMOS ACTIVOS</p>
                     </div>
                     <div class="bg-slate-50 rounded-xl p-4 text-center">
                         <p class="text-2xl font-black text-[#002D62]" id="admin-solicitudes">-</p>
-                        <p class="text-[10px] font-black uppercase text-slate-400 mt-1">Solicitudes Hoy</p>
+                        <p class="text-[10px] font-black uppercase text-slate-400 mt-1">SOLICITUDES HOY</p>
                     </div>
                 </div>
                 <div class="mt-4 flex gap-2">

@@ -56,7 +56,6 @@ function fixFile(filePath) {
         
         if (changes > 0) {
             fs.writeFileSync(filePath, fixed, 'utf8');
-            console.log(`  [FIXED] ${filePath} - ${changes} cambios`);
             return changes;
         }
         
@@ -93,8 +92,6 @@ function main() {
     const srcDir = path.join(__dirname, '../src');
     const files = findFilesToFix(srcDir);
     
-    console.log(`\n=== UTF-8 Fix Script ===`);
-    console.log(`Analizando ${files.length} archivos...\n`);
     
     let totalChanges = 0;
     let filesChanged = 0;
@@ -107,10 +104,6 @@ function main() {
         }
     }
     
-    console.log(`\n=== Resumen ===`);
-    console.log(`Archivos modificados: ${filesChanged}`);
-    console.log(`Cambios totales: ${totalChanges}`);
-    console.log(`\n¡Proceso completado!`);
 }
 
 if (require.main === module) {

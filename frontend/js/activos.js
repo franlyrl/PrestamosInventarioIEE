@@ -14,7 +14,6 @@ class ActivosManager {
      */
     async cargarActivos() {
         try {
-            console.log(' Cargando activos...');
             
             const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos`);
             const data = await response.json();
@@ -22,7 +21,6 @@ class ActivosManager {
             if (response.ok) {
                 // Extraer el array de activos de la respuesta
                 this.activos = data.todosLosActivos || data.activos || [];
-                console.log(' Activos cargados:', this.activos);
                 this.mostrarActivos();
             } else {
                 console.error(' Error cargando activos:', data);
@@ -161,7 +159,6 @@ class ActivosManager {
                 observaciones: document.getElementById('ubicacionActivo').value || 'Sin observaciones particulares'
             };
             
-            console.log(' Guardando activo:', formData);
             
             const id = document.getElementById('idActivo').value;
             const url = id ? 
@@ -182,7 +179,6 @@ class ActivosManager {
             const data = await response.json();
             
             if (response.ok) {
-                console.log(' Activo guardado:', data);
                 this.mostrarToast(' Activo guardado exitosamente', 'success');
                 this.cerrarModal();
                 this.cargarActivos();
@@ -201,7 +197,6 @@ class ActivosManager {
      */
     async editarActivo(id) {
         try {
-            console.log(' Editando activo:', id);
             
             const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos/${id}`);
             const activo = await response.json();
@@ -235,7 +230,6 @@ class ActivosManager {
     async eliminarActivo(id) {
         if (confirm('¿Estás seguro de eliminar este activo? Esta acción no se puede deshacer.')) {
             try {
-                console.log('️ Eliminando activo:', id);
                 
                 const response = await fetch(`${window.CONFIG.API_BASE_URL}/activos/${id}`, {
                     method: 'DELETE',
@@ -247,7 +241,6 @@ class ActivosManager {
                 const data = await response.json();
                 
                 if (response.ok) {
-                    console.log(' Activo eliminado:', data);
                     this.mostrarToast(' Activo eliminado exitosamente', 'success');
                     this.cargarActivos();
                 } else {
@@ -303,7 +296,6 @@ class ActivosManager {
      * Inicializar el módulo
      */
     inicializar() {
-        console.log(' Inicializando módulo de Activos');
         this.cargarActivos();
         
         // Configurar eventos

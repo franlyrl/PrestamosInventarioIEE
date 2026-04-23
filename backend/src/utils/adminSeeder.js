@@ -8,7 +8,6 @@ const Usuario = require('../models/usuarios');
  */
 const ensureAdmin = async () => {
     try {
-        console.log('🔍 [SEEDER] Verificando existencia de administrador...');
         
         const emailDefault = 'admin@utn.ac.cr';
         const passwordDefault = 'utn1234567';
@@ -17,11 +16,9 @@ const ensureAdmin = async () => {
         const adminExistente = await Usuario.findOne({ tipo_rol: 'admin' });
 
         if (adminExistente) {
-            console.log(`✅ [SEEDER] Administrador detectado: ${adminExistente.correo_electronico}`);
             return;
         }
 
-        console.log('⚠️ [SEEDER] No se encontró ningún administrador. Creando administrador por defecto...');
 
         const salt = await bcrypt.genSalt(10);
         const hashedPw = await bcrypt.hash(passwordDefault, salt);
@@ -45,9 +42,6 @@ const ensureAdmin = async () => {
         // Lo creamos
         await Usuario.create(nuevoAdmin);
 
-        console.log('✨ [SEEDER] Administrador creado exitosamente.');
-        console.log('📧 Correo:', emailDefault);
-        console.log('🔑 Clave: [PROPORCIONADA POR DEFECTO]');
 
     } catch (error) {
         console.error('❌ [SEEDER] Error al inicializar el administrador:', error);

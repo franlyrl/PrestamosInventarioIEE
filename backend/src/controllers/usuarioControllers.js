@@ -579,38 +579,11 @@ exports.loginUsuario = async (req, res) => {
         const { correo_electronico, email, contrasena, password } = req.body;
         const correo = correo_electronico || email;
 
-        console.log('?? Login attempt - Email recibido:', correo);
-        console.log('?? Email procesado (lowercase+trim):', correo.toLowerCase().trim());
 
         // 2. Buscamos al usuario
         const usuario = await Usuarios.findOne({
             correo_electronico: correo.toLowerCase().trim()
         });
-
-        console.log('👤 Usuario encontrado:', !!usuario);
-        if (usuario) {
-            console.log('📋 Usuario details:', {
-                id: usuario._id,
-                email: `"${usuario.correo_electronico}"`, // Entre comillas para ver espacios
-                nombre: usuario.nombre_completo,
-                estado: usuario.estado,
-                carrera: usuario.carrera
-            });
-        } else {
-            console.log('❌ Usuario NO encontrado en la base de datos');
-
-            // Buscar usuarios similares para debug
-            const similares = await Usuarios.find({
-                correo_electronico: { $regex: correo.split('@')[0], $options: 'i' }
-            }).limit(3);
-            console.log('🔍 Usuarios similares encontrados:', similares.length);
-            similares.forEach(u => console.log('   -', `"${u.correo_electronico}"`)); // Entre comillas
-
-            // Mostrar todos los usuarios para debug
-            const todos = await Usuarios.find({}).limit(5);
-            console.log('📋 Primeros 5 usuarios en BD:');
-            todos.forEach(u => console.log('   -', `"${u.correo_electronico}"`));
-        }
 
         if (!usuario) {
             return res.status(401).json({ message: 'Credenciales inválidas (Usuario no encontrado)' });
@@ -631,13 +604,9 @@ exports.loginUsuario = async (req, res) => {
 
         //  BLOQUEO PARA DOCENTES PENDIENTES DE APROBACIÓN (antes del bloqueo genérico)
         // Verificar tanto estado como estado_usuario - si CUALQUIERA es inactivo, bloquear
-        console.log('[DEBUG] tipo_rol:', usuario.tipo_rol, 'estado:', usuario.estado, 'estado_usuario:', usuario.estado_usuario);
         const estadoEsInactivo = usuario.estado === 'inactivo' || usuario.estado_usuario === 'inactivo';
-        console.log('[DEBUG] estadoEsInactivo:', estadoEsInactivo);
-        console.log('[DEBUG] Condición tipo_rol === docente:', usuario.tipo_rol === 'docente');
         
         if (usuario.tipo_rol === 'docente' && estadoEsInactivo) {
-            console.log('[DEBUG] Bloqueando docente pendiente de aprobación');
             return res.status(403).json({
                 message: 'Tu cuenta está pendiente de aprobación por parte del administrador. No puedes acceder al sistema hasta que sea aprobada.',
                 esperando_aprobacion: true,

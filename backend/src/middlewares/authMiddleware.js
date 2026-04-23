@@ -20,14 +20,11 @@ exports.protect = async (req, res, next) => {
     // 2. Verificar el token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    console.log("------------------------------------------");
-    console.log("🔍 [Middleware] Payload decodificado:", decoded);
 
     // 3. Buscar el usuario en la base de datos
     const usuarioActual = await usuarios.findById(decoded.id);
 
     if (!usuarioActual) {
-      console.log("❌ [Middleware] El ID del token no existe en la DB:", decoded.id);
       return res.status(401).json({ 
         message: 'El usuario asociado a este token ya no existe.' 
       });
@@ -37,12 +34,9 @@ exports.protect = async (req, res, next) => {
     // IMPORTANTE: Usamos req.user (estándar) para que restrictTo lo encuentre
     req.user = usuarioActual;
     
-    console.log("✅ [Middleware] Acceso concedido a:", usuarioActual.correo_electronico);
-    console.log("------------------------------------------");
     
     next();
   } catch (error) {
-    console.log("❌ [Middleware] Error de validación:", error.message);
     
     let mensaje = 'Token inválido';
     if (error.name === 'TokenExpiredError') mensaje = 'El token ha expirado. Inicia sesión de nuevo.';

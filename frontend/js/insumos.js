@@ -14,14 +14,12 @@ class InsumosManager {
      */
     async cargarInsumos() {
         try {
-            console.log(' Cargando insumos...');
             
             const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`);
             const data = await response.json();
             
             if (response.ok) {
                 this.insumos = data;
-                console.log(' Insumos cargados:', this.insumos);
                 this.mostrarInsumos();
             } else {
                 console.error(' Error cargando insumos:', data);
@@ -113,7 +111,6 @@ class InsumosManager {
                 descripcion: document.getElementById('descripcionInsumo').value
             };
             
-            console.log(' Guardando insumo:', formData);
             
             const id = document.getElementById('idInsumo').value;
             const url = id ? 
@@ -133,7 +130,6 @@ class InsumosManager {
             const data = await response.json();
             
             if (response.ok) {
-                console.log(' Insumo guardado:', data);
                 this.mostrarToast(' Insumo guardado exitosamente', 'success');
                 this.cerrarModal();
                 this.cargarInsumos();
@@ -152,7 +148,6 @@ class InsumosManager {
      */
     async editarInsumo(id) {
         try {
-            console.log(' Editando insumo:', id);
             
             const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos/${id}`);
             const insumo = await response.json();
@@ -186,7 +181,6 @@ class InsumosManager {
     async eliminarInsumo(id) {
         if (confirm('¿Estás seguro de eliminar este insumo? Esta acción no se puede deshacer.')) {
             try {
-                console.log('️ Eliminando insumo:', id);
                 
                 const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos/${id}`, {
                     method: 'DELETE'
@@ -195,7 +189,6 @@ class InsumosManager {
                 const data = await response.json();
                 
                 if (response.ok) {
-                    console.log(' Insumo eliminado:', data);
                     this.mostrarToast(' Insumo eliminado exitosamente', 'success');
                     this.cargarInsumos();
                 } else {
@@ -250,7 +243,6 @@ class InsumosManager {
      * Inicializar el módulo
      */
     inicializar() {
-        console.log(' Inicializando módulo de Insumos');
         this.cargarInsumos();
         
         // Configurar eventos

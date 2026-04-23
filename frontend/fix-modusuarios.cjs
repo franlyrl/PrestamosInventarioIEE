@@ -44,4 +44,3 @@ if (insertPos !== -1) {
 }
 
 fs.writeFileSync(file, content, 'utf8');
-console.log('Cleaned ModUsuarios.html footer.');

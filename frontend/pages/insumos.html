@@ -83,6 +83,14 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Nuevo Insumo
                 </button>
+                <button onclick="abrirModalAsociarManualDirecto()" class="px-4 py-2 bg-[#F2A900] text-[#002D62] rounded-xl font-bold text-sm hover:bg-amber-500 transition flex items-center gap-2 shadow-sm shadow-amber-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Cargar Fotos Manualmente
+                </button>
+                <button onclick="abrirModalBulkImages()" class="px-4 py-2 bg-[#002D62] text-white rounded-xl font-bold text-sm hover:bg-[#001A33] transition flex items-center gap-2 shadow-sm shadow-blue-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Subir Fotos Automáticamente
+                </button>
             </div>
         </div>
     </div>
@@ -128,14 +136,7 @@
                 <div>
                     <button onclick="limpiarFiltros()" class="w-full px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition">Limpiar</button>
                 </div>
-                <div>
-                    <label class="f-label">Acciones</label>
-                    <button onclick="abrirModalBulkImages()" class="w-full px-4 py-2.5 bg-[#002D62] text-white rounded-xl font-bold text-sm hover:bg-[#003d82] transition flex items-center justify-center gap-2" title="Subir fotos masivamente">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        Subir fotos
-                    </button>
-                </div>
-            </div>
+                            </div>
         </div>
 
         <!-- Grid de insumos -->
@@ -550,7 +551,7 @@
     <div id="modalAsociarManual" class="fixed inset-0 z-[300] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
         <div class="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden transform scale-95 transition-all duration-300" id="modalAsociarManualBox">
             <!-- Header -->
-            <div class="bg-gradient-to-r from-[#F2A900] to-[#d4a017] p-6 text-white flex items-center justify-between">
+            <div class="bg-gradient-to-r from-[#002D62] to-[#004A8C] p-6 text-white flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
@@ -571,23 +572,29 @@
                     <!-- Imagen a asociar -->
                 </div>
                 
-                <!-- URL de la imagen -->
-                <div class="mb-4">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">URL de la imagen</label>
-                    <input type="text" id="asociarManualUrl" readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-600">
+                <!-- URL de la imagen (se mostrará después de subir) -->
+                <div id="urlContainer" class="mb-4 hidden">
+                    <label class="block text-sm font-bold text-slate-700 mb-1">URL donde se guardará</label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="asociarManualUrl" readonly class="flex-1 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 font-mono">
+                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">La imagen se guardará en esta URL</p>
                 </div>
                 
                 <!-- Selector de ítem -->
                 <div class="mb-4">
                     <label class="block text-sm font-bold text-slate-700 mb-2">Seleccionar Ítem</label>
-                    <select id="asociarManualSelect" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F2A900] focus:border-transparent bg-white">
+                    <select id="asociarManualSelect" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#002D62] focus:border-transparent bg-white">
                         <option value="">-- Selecciona un ítem --</option>
                     </select>
                 </div>
                 
                 <!-- Items sin foto destacados -->
-                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
-                    <p class="text-xs text-amber-700 font-semibold mb-2">Items sin foto (recomendados):</p>
+                <div class="bg-blue-50 border border-[#002D62]/15 rounded-xl p-3 mb-4">
+                    <p class="text-xs text-[#002D62] font-semibold mb-2">Items sin foto (recomendados):</p>
                     <div id="asociarManualItemsSinFoto" class="flex flex-wrap gap-2">
                         <!-- Chips de items sin foto -->
                     </div>
@@ -597,7 +604,7 @@
             <!-- Footer -->
             <div class="p-6 border-t border-slate-100 flex gap-3">
                 <button onclick="cerrarModalAsociarManual()" class="flex-1 py-3 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition">Cancelar</button>
-                <button onclick="confirmarAsociacionManual()" class="flex-1 py-3 text-sm font-bold text-white bg-gradient-to-r from-[#F2A900] to-[#d4a017] rounded-xl hover:from-[#d4a017] hover:to-[#b89416] transition flex items-center justify-center gap-2">
+                <button onclick="confirmarAsociacionManual()" class="flex-1 py-3 text-sm font-bold text-white bg-gradient-to-r from-[#002D62] to-[#004A8C] rounded-xl hover:from-[#004A8C] hover:to-[#0066CC] transition flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                     Asociar Imagen
                 </button>
@@ -926,7 +933,6 @@
 
         const filtrados = filtrarInsumos();
         const imgFiltro = document.getElementById('imagenFiltro')?.value;
-        console.log(`[RENDER] Total filtrados: ${filtrados.length} | Filtro imagen: ${imgFiltro || 'todos'}`);
         count.textContent = filtrados.length;
         loading.classList.add('hidden');
 
@@ -1044,7 +1050,6 @@
         const item = todosLosInsumos.find(i => i._id === itemId);
         if (item) {
             item._imagenRota = true;
-            console.log(`[IMAGEN ROTA] ${item.NombProducto} - URL: ${item.imagenUrl?.substring(0, 50)}...`);
         }
     };
 
@@ -1064,7 +1069,6 @@
 
         // Auditoría: verificar todos los items cuando se aplica filtro de imagen
         if (img === 'sin-foto' && todosLosInsumos.length > 0) {
-            console.log('=== AUDITORÍA DE FOTOS ===');
             const problemas = todosLosInsumos.filter(ins => {
                 const url = String(ins.imagenUrl || '').trim();
                 const dominiosSospechosos = ['vistronica.com', 'cdtechnologia.net', 'placeholder.com', 'example.com'];
@@ -1076,9 +1080,6 @@
                 const imagenRota = ins._imagenRota === true;
                 return !isValidUrl || esDominioSospechoso || imagenRota || !hasUrl;
             });
-            console.log(`Total items: ${todosLosInsumos.length}`);
-            console.log(`Items con problemas: ${problemas.length}`);
-            console.log('Nombres:', problemas.map(i => i.NombProducto).join(', '));
         }
 
         return todosLosInsumos.filter(ins => {
@@ -1115,7 +1116,6 @@
                 const efectivamenteSinFoto = !hasImg || imagenRota || esDominioSospechoso;
                 // DEBUG: Log items filtrados por imagen
                 if (img === 'sin-foto' && efectivamenteSinFoto) {
-                    console.log('[DEBUG] Insumo SIN FOTO:', ins.NombProducto, '| dominioSospechoso:', esDominioSospechoso, '| imagenRota:', imagenRota, '| raw:', String(rawUrl).substring(0, 40));
                 }
                 if (img === 'sin-foto' && !efectivamenteSinFoto) return false;
                 if (img === 'con-foto' && efectivamenteSinFoto) return false;
@@ -1187,7 +1187,6 @@
                 this.classList.add('hidden');
                 placeholder.classList.remove('hidden');
                 imgErrorBadge?.classList.remove('hidden');
-                console.log(`[DRAWER IMAGEN ROTA] ${ins.NombProducto}`);
             };
             img.onload = function() {
                 // Imagen cargó correctamente
@@ -1932,14 +1931,16 @@
                 formData.append('imagenes', file); // Mismo nombre para todos los archivos
             });
             formData.append('cantidad', selectedFiles.length);
+            formData.append('tipo', 'insumo');
             
-            console.log('📤 Enviando', selectedFiles.length, 'imagen(es)...');
             
             // Subir imágenes al servidor
-            const response = await fetch('/api/upload/imagenes', {
+            const apiBaseUrl = window.CONFIG?.API_BASE_URL || '/api';
+            const token = localStorage.getItem('utn_token') || localStorage.getItem('token');
+            const response = await fetch(`${apiBaseUrl}/upload/imagenes`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${token}`
                 },
                 body: formData
             });
@@ -1951,91 +1952,17 @@
             }
             
             const result = await response.json();
-            console.log('✅ Respuesta del servidor:', result);
             
-            // Procesar sugerencias y asociar imágenes automáticamente
-            const asociacionesExitosas = [];
-            const sugerenciasFallidas = [];
-            
-            for (const sugerencia of result.sugerencias) {
-                if (sugerencia.coincidencias && sugerencia.coincidencias.length > 0) {
-                    // Asociar imagen a TODOS los ítems coincidentes
-                    const asociacionesPromesas = sugerencia.coincidencias.map(async (match) => {
-                        const asociarRes = await fetch('/api/upload/asociar', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
-                            },
-                            body: JSON.stringify({
-                                insumoId: match.id,
-                                imageUrl: sugerencia.url
-                            })
-                        });
-                        
-                        return {
-                            ok: asociarRes.ok,
-                            match: match
-                        };
-                    });
-                    
-                    const resultados = await Promise.all(asociacionesPromesas);
-                    const exitosos = resultados.filter(r => r.ok);
-                    
-                    // Registrar todas las asociaciones exitosas
-                    exitosos.forEach(r => {
-                        asociacionesExitosas.push({
-                            imagen: sugerencia.originalname,
-                            insumo: r.match.nombre,
-                            codigo: r.match.codigo
-                        });
-                    });
-                    
-                    // Si ninguna se asoció, marcar como fallida
-                    if (exitosos.length === 0) {
-                        sugerenciasFallidas.push({
-                            imagen: sugerencia.originalname,
-                            razon: 'Error al asociar a todos los ítems'
-                        });
-                    }
-                } else {
-                    sugerenciasFallidas.push({
-                        imagen: sugerencia.originalname,
-                        razon: 'No se encontró coincidencia'
-                    });
-                }
-            }
-            
-            // Guardar imágenes pendientes para asociación manual
-            imagenesPendientes = sugerenciasFallidas.map((fallida, idx) => ({
-                ...fallida,
-                url: result.sugerencias[idx]?.url || '',
-                filename: result.sugerencias[idx]?.filename || ''
-            })).filter(img => img.url); // Solo las que tienen URL
-            
-            // Mostrar resumen
-            let mensaje = `${asociacionesExitosas.length} imagen(es) asociada(s) correctamente.`;
-            if (sugerenciasFallidas.length > 0) {
-                mensaje += ` ${sugerenciasFallidas.length} no pudo(ron) asociarse automáticamente.`;
-            }
-            mostrarToast(mensaje, asociacionesExitosas.length > 0 ? 'success' : 'warning');
+            // Mostrar modal de asignación manual en lugar de automática
+            mostrarModalAsignacionManual(result.sugerencias, 'insumo');
+            mostrarToast('Imágenes subidas correctamente', 'success');
             
             // Mostrar detalles en consola
-            console.log('✅ Asociaciones exitosas:', asociacionesExitosas);
-            if (sugerenciasFallidas.length > 0) {
-                console.log('⚠️ Sin coincidencia:', sugerenciasFallidas);
-            }
             
             // Recargar datos
             await cargarInsumos();
             cerrarModalBulkImages();
             renderInsumos();
-            
-            // Si hay imágenes pendientes, abrir modal de asociación manual
-            if (imagenesPendientes.length > 0) {
-                console.log('📝 Abriendo asociación manual para:', imagenesPendientes);
-                abrirModalAsociarManual(imagenesPendientes[0]);
-            }
             
         } catch (error) {
             console.error('Error subiendo imágenes:', error);
@@ -2049,6 +1976,147 @@
     let imagenesPendientes = [];
     let imagenActualAsociar = null;
 
+    // Función para abrir modal de asignación manual directamente (sin subir imágenes primero)
+    function abrirModalAsociarManualDirecto() {
+        
+        // Crear una imagen dummy para el modal (el usuario seleccionará el archivo)
+        const imagenDummy = {
+            url: '',
+            filename: '',
+            originalname: 'Selecciona una imagen...',
+            coincidencias: []
+        };
+        
+        // Abrir el modal directamente
+        abrirModalAsociarManualDirectoConArchivo(imagenDummy);
+    }
+
+    // Función para manejar el modal de asignación manual directa con selección de archivo
+    function abrirModalAsociarManualDirectoConArchivo(imagenData) {
+        imagenActualAsociar = imagenData;
+        
+        const modal = document.getElementById('modalAsociarManual');
+        const box = document.getElementById('modalAsociarManualBox');
+        const preview = document.getElementById('asociarManualPreview');
+        const urlInput = document.getElementById('asociarManualUrl');
+        const select = document.getElementById('asociarManualSelect');
+        const chipsContainer = document.getElementById('asociarManualItemsSinFoto');
+        
+        // Mostrar área para seleccionar archivo si no hay imagen
+        if (!imagenData.url) {
+            preview.innerHTML = `
+                <div class="rounded-2xl bg-gradient-to-br from-[#002D62] to-[#004A8C] p-2 shadow-xl">
+                    <div class="w-36 h-36 bg-white/20 rounded-xl flex flex-col items-center justify-center border-2 border-dashed border-white/40">
+                        <input type="file" id="archivoDirecto" accept="image/*" class="hidden" onchange="seleccionarArchivoDirecto(event)">
+                        <label for="archivoDirecto" class="cursor-pointer flex flex-col items-center gap-2 text-white/80 hover:text-white transition">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            <span class="text-xs font-medium">Seleccionar Imagen</span>
+                        </label>
+                    </div>
+                </div>
+            `;
+            urlInput.value = '';
+        } else {
+            preview.innerHTML = `<div class="rounded-2xl bg-gradient-to-br from-[#002D62] to-[#004A8C] p-2 shadow-xl"><img src="${imagenData.url}" alt="Imagen a asociar" class="w-36 h-36 object-cover rounded-xl border-2 border-white/40"></div>`;
+            urlInput.value = imagenData.url;
+        }
+        
+        // Llenar selector con todos los insumos
+        select.innerHTML = '<option value="">-- Selecciona un ítem --</option>';
+        todosLosInsumos.forEach(ins => {
+            const tieneFoto = ins.imagenUrl && 
+                              (ins.imagenUrl.startsWith('http') || ins.imagenUrl.startsWith('/uploads/')) &&
+                              ins.imagenUrl.length > 10;
+            const icono = tieneFoto ? '📷' : '📷❌';
+            select.innerHTML += `<option value="${ins._id}">${icono} ${ins.NombProducto || 'Sin nombre'} (${ins.codigo || 'sin código'})</option>`;
+        });
+        
+        // Crear chips de items sin foto
+        chipsContainer.innerHTML = '';
+        const dominiosSospechosos = ['vistronica.com', 'cdtechnologia.net', 'placeholder.com'];
+        const itemsSinFoto = todosLosInsumos.filter(ins => {
+            const url = String(ins.imagenUrl || '').trim();
+            const esSospechoso = dominiosSospechosos.some(d => url.includes(d));
+            const estaVacio = !url || url.length < 10;
+            return esSospechoso || estaVacio;
+        }).slice(0, 10);
+        
+        itemsSinFoto.forEach(ins => {
+            const chip = document.createElement('button');
+            chip.className = 'px-3 py-1 bg-white border border-[#002D62]/25 rounded-full text-xs text-[#002D62] hover:bg-blue-50 transition';
+            chip.textContent = ins.NombProducto || ins.codigo || 'Item';
+            chip.onclick = () => {
+                select.value = ins._id;
+                chipsContainer.querySelectorAll('button').forEach(b => b.classList.remove('bg-blue-100', 'font-bold'));
+                chip.classList.add('bg-blue-100', 'font-bold');
+            };
+            chipsContainer.appendChild(chip);
+        });
+        
+        // Mostrar modal
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        box.classList.add('scale-100');
+        box.classList.remove('scale-95');
+    }
+
+    // Función para manejar la selección de archivo directo
+    function seleccionarArchivoDirecto(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Crear preview de la imagen
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('asociarManualPreview');
+            preview.innerHTML = `
+                <div class="rounded-2xl bg-gradient-to-br from-[#002D62] to-[#004A8C] p-2 shadow-xl">
+                    <img src="${e.target.result}" alt="Imagen seleccionada" class="w-36 h-36 object-cover rounded-xl border-2 border-white/40">
+                </div>
+            `;
+            
+            // Ocultar el contenedor de URL hasta que se suba
+            const urlContainer = document.getElementById('urlContainer');
+            const urlInput = document.getElementById('asociarManualUrl');
+            urlContainer.classList.add('hidden');
+            urlInput.value = '';
+            
+            // Actualizar datos de la imagen actual
+            imagenActualAsociar = {
+                url: e.target.result,
+                filename: file.name,
+                originalname: file.name,
+                coincidencias: [],
+                file: file // Guardar el archivo para subir después
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Función para mostrar modal de asignación manual
+    function mostrarModalAsignacionManual(sugerencias, tipo) {
+        
+        // Filtrar solo las imágenes que tienen coincidencias o mostrar todas para asignación manual
+        const imagenesParaAsignar = sugerencias.filter(s => s.url && s.filename);
+        
+        if (imagenesParaAsignar.length === 0) {
+            mostrarToast('No hay imágenes para asignar', 'warning');
+            return;
+        }
+        
+        // Guardar todas las imágenes como pendientes
+        imagenesPendientes = imagenesParaAsignar.map(s => ({
+            url: s.url,
+            filename: s.filename,
+            originalname: s.originalname,
+            coincidencias: s.coincidencias || []
+        }));
+        
+        // Abrir el modal con la primera imagen
+        abrirModalAsociarManual(imagenesPendientes[0]);
+    }
+
     function abrirModalAsociarManual(imagenData) {
         imagenActualAsociar = imagenData;
         
@@ -2060,7 +2128,7 @@
         const chipsContainer = document.getElementById('asociarManualItemsSinFoto');
         
         // Mostrar imagen
-        preview.innerHTML = `<img src="${imagenData.url}" alt="Imagen a asociar" class="w-32 h-32 object-cover rounded-xl border-2 border-[#F2A900] shadow-lg">`;
+        preview.innerHTML = `<div class="rounded-2xl bg-gradient-to-br from-[#002D62] to-[#004A8C] p-2 shadow-xl"><img src="${imagenData.url}" alt="Imagen a asociar" class="w-36 h-36 object-cover rounded-xl border-2 border-white/40"></div>`;
         
         // Mostrar URL
         urlInput.value = imagenData.url;
@@ -2087,13 +2155,13 @@
         
         itemsSinFoto.forEach(ins => {
             const chip = document.createElement('button');
-            chip.className = 'px-3 py-1 bg-white border border-amber-300 rounded-full text-xs text-amber-700 hover:bg-amber-100 transition';
+            chip.className = 'px-3 py-1 bg-white border border-[#002D62]/25 rounded-full text-xs text-[#002D62] hover:bg-blue-50 transition';
             chip.textContent = ins.NombProducto || ins.codigo || 'Item';
             chip.onclick = () => {
                 select.value = ins._id;
                 // Resaltar visualmente
-                chipsContainer.querySelectorAll('button').forEach(b => b.classList.remove('bg-amber-200', 'font-bold'));
-                chip.classList.add('bg-amber-200', 'font-bold');
+                chipsContainer.querySelectorAll('button').forEach(b => b.classList.remove('bg-blue-100', 'font-bold'));
+                chip.classList.add('bg-blue-100', 'font-bold');
             };
             chipsContainer.appendChild(chip);
         });
@@ -2136,15 +2204,55 @@
         showLoading(true);
         
         try {
-            const response = await fetch('/api/upload/asociar', {
+            const apiBaseUrl = window.CONFIG?.API_BASE_URL || '/api';
+            const token = localStorage.getItem('utn_token') || localStorage.getItem('token');
+            
+            let imageUrl = imagenActualAsociar.url;
+            
+            // Si es un archivo local (modo directo), subirlo primero
+            if (imagenActualAsociar.file) {
+                const formData = new FormData();
+                formData.append('imagenes', imagenActualAsociar.file);
+                formData.append('cantidad', 1);
+                formData.append('tipo', 'insumo');
+                
+                const uploadResponse = await fetch(`${apiBaseUrl}/upload/imagenes`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                if (!uploadResponse.ok) {
+                    throw new Error('Error al subir la imagen');
+                }
+                
+                const uploadResult = await uploadResponse.json();
+                imageUrl = uploadResult.sugerencias[0]?.url;
+                
+                if (!imageUrl) {
+                    throw new Error('No se pudo obtener la URL de la imagen subida');
+                }
+                
+                // Mostrar la URL donde se guardó la imagen
+                const urlContainer = document.getElementById('urlContainer');
+                const urlInput = document.getElementById('asociarManualUrl');
+                urlInput.value = imageUrl;
+                urlContainer.classList.remove('hidden');
+            }
+            
+            // Asociar la imagen al insumo
+            const response = await fetch(`${apiBaseUrl}/upload/asociar`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
                     insumoId: insumoId,
-                    imageUrl: imagenActualAsociar.url
+                    imageUrl: imageUrl,
+                    tipo: 'insumo'
                 })
             });
             

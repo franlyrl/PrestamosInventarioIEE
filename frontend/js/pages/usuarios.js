@@ -2,7 +2,6 @@
 if (typeof showToast === 'undefined') {
     window.showToast = function(msg, type) {
         if (window.Utils?.showToast) { window.Utils.showToast(msg, type); return; }
-        console.log('[Toast]', type, msg);
     };
 }
 
@@ -17,19 +16,15 @@ class IndexController {
     }
 
     async init() {
-        console.log(' Iniciando IndexController simple...');
-        console.log(' DEBUG: Versión con depuración activada');
 
         // Esperar a que el DOM esté listo antes de configurar filtros y cargar items
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-                console.log(' DOM listo - Configurando filtros y cargando items...');
                 this.setupFiltros(() => this.cargarItems());
             });
         } else {
             // DOM ya está listo, configurar filtros y cargar items
             setTimeout(() => {
-                console.log(' DOM ya listo - Configurando filtros y cargando items...');
                 this.setupFiltros(() => this.cargarItems());
             }, 100);
         }
@@ -45,7 +40,6 @@ class IndexController {
             const categoriaSelect = document.getElementById('categoria-select');
             const estadoSelect = document.getElementById('estado-select');
 
-            console.log('[Index] setupFiltros - busquedaInput:', !!busquedaInput, 'tipoSelect:', !!tipoSelect);
 
             // Registrar eventos (solo si el elemento existe)
             buscarBtn?.addEventListener('click', () => this.aplicarFiltros());
@@ -64,7 +58,6 @@ class IndexController {
 
     async cargarItems() {
         try {
-            console.log(' Cargando items desde la API...');
             const token = localStorage.getItem('utn_token');
 
             const [activosResponse, insumosResponse] = await Promise.all([
@@ -80,8 +73,6 @@ class IndexController {
                 let activos = await activosResponse.json();
                 let insumos = await insumosResponse.json();
 
-                console.log(' Activos cargados:', activos?.todosLosActivos?.length || activos?.length || 0);
-                console.log(' Insumos cargados:', insumos?.length || 0);
 
                 // Procesar arrays primero
                 let activosArray = [];
@@ -93,20 +84,13 @@ class IndexController {
                 const insumosArray = Array.isArray(insumos) ? insumos : [];
 
                 // Depuración de origen de datos
-                console.log(' === ORIGEN DE DATOS ===');
-                console.log(' Items que vienen de /activos:');
                 activosArray.forEach((item, index) => {
-                    console.log(`  ${index + 1}. ${item.NombProducto || item.nombre || 'SIN NOMBRE'} | Categoría: ${item.categoria || 'undefined'}`);
                 });
-                console.log(' Items que vienen de /insumos:');
                 insumosArray.forEach((item, index) => {
-                    console.log(`  ${index + 1}. ${item.NombProducto || item.nombre || 'SIN NOMBRE'} | Categoría: ${item.categoria || 'undefined'}`);
                 });
 
                 // Debug: mostrar todos los insumos con sus cantidades
-                console.log(' Todos los insumos con sus cantidades:');
                 insumosArray.forEach(item => {
-                    console.log(`- ${item.NombProducto || item.nombre} | cantidad: ${item.cantidad} | categoría: ${item.categoria}`);
                 });
 
                 const todosLosInsumos = insumosArray;
@@ -115,36 +99,22 @@ class IndexController {
                 const todosLosInsumosConForzados = todosLosInsumos;
 
                 // Debug: mostrar categorías reales
-                console.log(' Categorías de ACTIVOS encontradas:');
                 activosArray.forEach(item => {
-                    console.log(`- ${item.categoria || 'Sin categoría'} (${item.marca} ${item.modelo}) - Cantidad: ${item.cantidad || 'undefined'} - Stock: ${item.stock_actual || 'undefined'}`);
                 });
 
-                console.log(' Categorías de INSUMOS encontradas:');
                 insumosArray.forEach(item => {
-                    console.log(`- ${item.categoria || 'Sin categoría'} (${item.nombre || item.NombProducto}) - Cantidad: ${item.cantidad || 'undefined'}`);
                 });
 
                 // Depuración específica para Componentes Analógicos
-                console.log(' === DEPURACIÓN COMPONENTES ANALÓGICOS ===');
                 const analogicos = insumosArray.filter(item => 
                     item.categoria === 'Componentes Analógicos' || 
                     item.categoria?.includes('Analógic')
                 );
-                console.log(' Insumos analógicos encontrados:', analogicos.length);
                 analogicos.forEach(item => {
-                    console.log(`  - ${item.NombProducto || item.nombre} | Categoría: "${item.categoria}" | Tipo: ${item.tipo || 'undefined'} | Cantidad: ${item.cantidad || 'undefined'}`);
                 });
 
                 // Depuración completa de insumos
-                console.log(' === TODOS LOS INSUMOS CARGADOS ===');
-                console.log(' Total insumos desde API:', insumosArray.length);
                 insumosArray.forEach((item, index) => {
-                    console.log(` ${index + 1}. ${item.NombProducto || item.nombre || 'SIN NOMBRE'}`);
-                    console.log(`    - Tipo guardado: ${item.tipo || 'undefined'}`);
-                    console.log(`    - Categoría: ${item.categoria || 'undefined'}`);
-                    console.log(`    - Cantidad: ${item.cantidad || 'undefined'}`);
-                    console.log(`    - ID: ${item._id || 'undefined'}`);
                 });
 
                 // Clasificar correctamente por categoría
@@ -154,35 +124,28 @@ class IndexController {
                 ];
 
                 // Corregir tipo basado en categoría
-                console.log(' === CORRIGIENDO TIPOS POR CATEGORÍA ===');
                 this.allItems = todosLosItems.map(item => {
                     const tipoOriginal = item.tipo;
                     let tipoCorregido = item.tipo;
                     
                     if (item.categoria === 'Componentes Analógicos' || item.categoria === 'Componentes Digitales') {
                         tipoCorregido = 'insumo';
-                        console.log(` CORREGIDO: ${item.NombProducto || item.nombre} | ${tipoOriginal} -> ${tipoCorregido} | Categoría: ${item.categoria}`);
                     }
                     
                     return { ...item, tipo: tipoCorregido };
                 });
 
-                console.log(' Total items:', this.allItems.length);
                 
                 // Depuración de tipos
-                console.log(' === DEPURACIÓN DE TIPOS ===');
                 const tipos = {};
                 this.allItems.forEach(item => {
                     const tipo = item.tipo || 'undefined';
                     tipos[tipo] = (tipos[tipo] || 0) + 1;
                 });
-                console.log(' Conteo por tipo:', tipos);
                 
                 // Mostrar insumos específicamente
                 const itemsInsumos = this.allItems.filter(item => item.tipo === 'insumo');
-                console.log(' Insumos encontrados:', itemsInsumos.length);
                 itemsInsumos.forEach(item => {
-                    console.log(`  - ${item.NombProducto || item.nombre} | Tipo: ${item.tipo} | Categoría: ${item.categoria || 'undefined'}`);
                 });
 
                 // Forzar valores iniciales
@@ -226,14 +189,12 @@ class IndexController {
         const categoria = document.getElementById('categoria-select')?.value || 'todas';
         const estado = document.getElementById('estado-select')?.value || 'todos';
 
-        console.log(' VALORES DE FILTRO - Búsqueda:', busqueda, 'Tipo:', tipo, 'Categoría:', categoria, 'Estado:', estado);
 
         this.filteredItems = this.allItems.filter(item => {
             if (item.estado === 'eliminado') return false;
 
             // RECHAZAR ITEMS CON DATOS CORRUPTOS O INCOMPLETOS (PRIMERO QUE TODO)
             if (!item.NombProducto && !item.nombre && !item.descripcion && !item.marca && !item.modelo) {
-                console.log(' RECHAZADO: Item completamente sin datos - Tipo:', item.tipo);
                 return false;
             }
 
@@ -241,7 +202,6 @@ class IndexController {
             const tieneIdValido = item.numActivo && item.numActivo !== 'N/A' && item.numActivo.trim() !== '';
             const tieneCodigoValido = item.codigo && item.codigo !== 'N/A' && item.codigo.trim() !== '';
             if (item.tipo === 'activo' && !item.NombProducto && !item.nombre && (!item.marca || !item.modelo) && !tieneIdValido && !tieneCodigoValido) {
-                console.log(' RECHAZADO: Activo sin identificación - Tipo:', item.tipo);
                 return false;
             }
 
@@ -257,52 +217,41 @@ class IndexController {
             // Filtro de estado (ANTES que categoría para que siempre se ejecute)
             if (estado !== 'todos') {
                 const cantidad = item.cantidad !== undefined ? item.cantidad : (item.stock_actual || 0);
-                console.log(' FILTRO ESTADO - Estado:', estado, 'Cantidad:', cantidad, 'Item:', item.NombProducto || item.nombre, 'Tipo:', item.tipo);
 
                 // FORZAR RECHAZO DE ACTIVOS CON CANTIDAD > 0 CUANDO ESTADO ES SIN-STOCK
                 if (estado === 'sin-stock' && item.tipo === 'activo' && cantidad > 0) {
-                    console.log(' ACTIVO RECHAZADO - Cantidad:', cantidad, '> 0 en filtro sin-stock');
                     return false;
                 }
 
                 if (estado === 'sin-stock') {
                     if (cantidad !== 0 || cantidad === undefined || cantidad === null) {
-                        console.log(' Item rechazado por sin-stock: cantidad', cantidad, '!== 0 o es undefined/null (SOLO 0 es sin-stock)');
                         return false;
                     }
-                    console.log(' Item aceptado por sin-stock: cantidad', cantidad, '=== 0 (PERFECTO)');
                 }
                 if (estado === 'con-stock' && cantidad <= 0) {
-                    console.log(' Item rechazado por con-stock: cantidad', cantidad, '<= 0');
                     return false;
                 }
                 if (estado === 'bajo-stock') {
                     if (cantidad < 1 || cantidad > 5 || cantidad === 0) {
-                        console.log(' Item rechazado por bajo-stock: cantidad', cantidad, '(debe ser 1-5, no puede ser 0)');
                         return false;
                     }
-                    console.log(' Item aceptado por bajo-stock: cantidad', cantidad, 'está entre 1 y 5');
                 }
 
                 if (estado === 'sin-stock' && cantidad === 0) {
-                    console.log(' Item aceptado por sin-stock: cantidad 0 === 0');
                 }
             }
 
             // Filtro de categoría con detección automática de tipo (SIEMPRE se ejecuta)
             if (categoria !== 'todas') {
-                console.log(' EJECUTANDO FILTRO DE CATEGORÍA - Categoría:', categoria, 'Estado:', estado);
 
                 // DEBUG: Mostrar todos los activos para depuración
                 if (item.tipo === 'activo') {
-                    console.log(' ACTIVO EVALUADO - Nombre:', item.NombProducto || item.nombre || 'SIN NOMBRE', 'Cantidad:', item.cantidad || 'undefined', 'Categoría:', item.categoria || 'SIN CATEGORÍA');
                 }
 
                 // DEBUG: Mostrar todos los items con bajo stock para depuración
                 if (estado === 'bajo-stock' && item.tipo === 'activo') {
                     const cantidad = item.cantidad !== undefined ? item.cantidad : (item.stock_actual || 0);
                     if (cantidad >= 1 && cantidad <= 5) {
-                        console.log(' ACTIVO CON BAJO STOCK - Nombre:', item.NombProducto || item.nombre || 'SIN NOMBRE', 'Cantidad:', cantidad, 'Categoría:', item.categoria || 'SIN CATEGORÍA');
                     }
                 }
 
@@ -318,7 +267,6 @@ class IndexController {
 
                 // Primero verificar que el tipo coincida si se requiere
                 if (tipoRequerido && item.tipo !== tipoRequerido) {
-                    console.log(' Item rechazado por tipo:', item.tipo, 'requerido:', tipoRequerido);
                     return false;
                 }
 
@@ -326,69 +274,49 @@ class IndexController {
                 const itemCategoria = (item.categoria || '').trim();
                 const categoriaBuscada = categoria.trim();
 
-                console.log(' Item categoría:', itemCategoria, 'buscando:', categoriaBuscada);
 
                 // Depuración especial para Componentes Analógicos
                 if (categoriaBuscada === 'Componentes Analógicos') {
-                    console.log(' DEPURACIÓN COMPONENTES ANALÓGICOS:');
-                    console.log('  - Item:', item.NombProducto || item.nombre);
-                    console.log('  - Tipo:', item.tipo);
-                    console.log('  - Categoría:', itemCategoria);
-                    console.log('  - Cantidad:', item.cantidad);
-                    console.log('  - Estado:', item.estado);
                 }
 
                 if (itemCategoria !== categoriaBuscada) {
-                    console.log(' Item rechazado por categoría:', itemCategoria, '!==', categoriaBuscada);
                     return false;
                 }
 
-                console.log(' Item aceptado por categoría:', item.NombProducto || item.nombre);
             }
 
             // Filtro de estado
             if (estado !== 'todos') {
                 const cantidad = item.cantidad !== undefined ? item.cantidad : (item.stock_actual || 0);
-                console.log(' FILTRO ESTADO - Estado:', estado, 'Cantidad:', cantidad, 'Item:', item.NombProducto || item.nombre, 'Tipo:', item.tipo);
 
                 // FORZAR RECHAZO DE ACTIVOS CON CANTIDAD > 0 CUANDO ESTADO ES SIN-STOCK
                 if (estado === 'sin-stock' && item.tipo === 'activo' && cantidad > 0) {
-                    console.log(' ACTIVO RECHAZADO - Cantidad:', cantidad, '> 0 en filtro sin-stock');
                     return false;
                 }
 
                 if (estado === 'sin-stock') {
                     if (cantidad !== 0 || cantidad === undefined || cantidad === null) {
-                        console.log(' Item rechazado por sin-stock: cantidad', cantidad, '!== 0 o es undefined/null (SOLO 0 es sin-stock)');
                         return false;
                     }
-                    console.log(' Item aceptado por sin-stock: cantidad', cantidad, '=== 0 (PERFECTO)');
                 }
                 if (estado === 'con-stock' && cantidad <= 0) {
-                    console.log(' Item rechazado por con-stock: cantidad', cantidad, '<= 0');
                     return false;
                 }
                 if (estado === 'bajo-stock') {
                     if (cantidad < 1 || cantidad > 5 || cantidad === 0) {
-                        console.log(' Item rechazado por bajo-stock: cantidad', cantidad, '(debe ser 1-5, no puede ser 0)');
                         return false;
                     }
-                    console.log(' Item aceptado por bajo-stock: cantidad', cantidad, 'está entre 1 y 5');
                 }
 
                 if (estado === 'sin-stock' && cantidad === 0) {
-                    console.log(' Item aceptado por sin-stock: cantidad 0 === 0');
                 }
             }
 
             // Filtro de tipo (solo si no está ya filtrado por categoría)
             if (tipo !== 'todos') {
-                console.log(' FILTRO DE TIPO - Tipo requerido:', tipo, 'Item tipo:', item.tipo, 'Item nombre:', item.NombProducto || item.nombre);
                 if (item.tipo !== tipo) {
-                    console.log(' Item rechazado por tipo:', item.tipo, '!==', tipo);
                     return false;
                 }
-                console.log(' Item aceptado por tipo:', item.NombProducto || item.nombre);
             }
 
             return true;
@@ -468,7 +396,6 @@ class IndexController {
             itemsGrid.appendChild(card);
         });
 
-        console.log(` Items renderizados: ${paginatedItems.length} (Página ${this.currentPage} de ${totalPages})`);
         
         this.renderPagination();
     }
@@ -563,48 +490,26 @@ class IndexController {
         item.nombre = nombre;
         const itemSafe = JSON.stringify(item).replace(/"/g, '&quot;');
         
-        // Sistema de auto-asignación de imágenes basado en categoría y tipo
-        const getAutoImageUrl = (item, tipo, categoria, id) => {
-            // Si tiene imagenUrl válida, usarla
-            if (item.imagenUrl && !item.imagenUrl.includes('placeholder')) {
-                return item.imagenUrl;
-            }
-            
-            // Mapeo de categorías a seeds de imágenes para picsum
-            const categoriaSeeds = {
-                'Instrumentos': 'instrumentos-lab',
-                'Herramientas': 'herramientas-taller',
-                'Componentes Digitales': 'componentes-digital',
-                'Componentes Analógicos': 'componentes-analog',
-                'Electrónica': 'electronica-general',
-                'Consumibles': 'consumibles-lab',
-                'Equipos de Medición': 'equipos-medicion',
-                'Prototipado': 'prototipado-arduino',
-                'Cables y Conectores': 'cables-conectores',
-                'Seguridad': 'seguridad-lab',
-                'Almacenamiento': 'almacenamiento-digital'
-            };
-            
-            // Obtener seed basado en categoría o usar default
-            const categoriaKey = categoria || 'General';
-            const baseSeed = categoriaSeeds[categoriaKey] || (tipo === 'activo' ? 'activo-lab' : 'insumo-lab');
-            
-            // Crear seed única basada en tipo, categoría e ID
-            const uniqueSeed = `${baseSeed}-${id}-${tipo}`.replace(/\s+/g, '-').toLowerCase();
-            
-            return `https://picsum.photos/seed/${uniqueSeed}/400/300.jpg`;
+        const isValidImageUrl = (url) => {
+            if (!url || typeof url !== 'string') return false;
+            const clean = url.trim();
+            return clean.length > 10 && !clean.includes('placeholder') && !clean.includes('undefined') && !clean.includes('null');
         };
         
-        const imgUrl = getAutoImageUrl(item, tipo, categoriaOriginal, id);
-        const hasImg = true; // Ahora siempre tenemos una imagen asignada
+        const imgUrl = isValidImageUrl(item.imagenUrl) ? item.imagenUrl.trim() : '';
+        const hasImg = Boolean(imgUrl);
+        const safeImgUrl = imgUrl.replace(/'/g, "\\'");
+        const safeNombre = nombre.replace(/'/g, "\\'");
 
-        const headerHtml = `<div class="relative h-32 bg-slate-100 overflow-hidden cursor-zoom-in group" onclick="event.stopPropagation(); window.verImagenCompleta('${imgUrl}', '${nombre.replace(/'/g, "\\'")}')" title="Clic para ampliar">
-                <img src="${imgUrl}" alt="${nombre}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center" style="display:none;">
+        const headerHtml = `<div class="relative h-32 bg-slate-100 overflow-hidden ${hasImg ? 'cursor-zoom-in' : ''} group" ${hasImg ? `onclick="event.stopPropagation(); window.verImagenCompleta('${safeImgUrl}', '${safeNombre}')"` : ''} title="${hasImg ? 'Clic para ampliar' : 'Sin imagen'}">
+                ${hasImg ? `<img src="${imgUrl}" alt="${nombre}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : ''}
+                <div class="absolute inset-0 ${hasImg ? 'bg-black/20 opacity-0 group-hover:opacity-100' : 'bg-gradient-to-br from-[#002D62] to-[#004daa]'} transition-opacity flex items-center justify-center" style="${hasImg ? 'display:none;' : ''}">
                     <svg class="w-8 h-8 text-white scale-50 group-hover:scale-100 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
                 </div>`;
 
-        const btnCarrito = '<button class="flex-1 ' + (cantidad > 0 ? 'bg-utn-blue' : 'bg-amber-500') + ' text-white px-3 py-2 rounded-lg text-xs font-bold hover:' + (cantidad > 0 ? 'bg-utn-dark' : 'bg-amber-600') + ' transition" onclick="event.stopPropagation(); window.handleAddToCartOrEspera && window.handleAddToCartOrEspera({id: \'' + item._id + '\', nombre: \'' + nombre.replace(/'/g, "\\'") + '\', tipo: \'' + tipo + '\', cantidad: ' + cantidad + '})" data-nombre="' + nombre.replace(/"/g, '&quot;') + '">Añadir</button>';
+        const btnCarrito = cantidad <= 0
+            ? '<button class="flex-1 py-2 border-2 border-utn-blue text-utn-blue rounded-lg text-xs font-black hover:bg-blue-50 transition" onclick="event.stopPropagation(); addToCarritoDesdeDetalle(JSON.parse(this.dataset.item), this)" data-item="' + itemSafe + '" data-nombre="' + nombre.replace(/"/g, '&quot;') + '">Añadir a Espera</button>'
+            : '<button class="flex-1 py-2 bg-utn-blue text-white rounded-lg text-xs font-black hover:bg-utn-dark transition shadow-md" onclick="event.stopPropagation(); addToCarritoDesdeDetalle(JSON.parse(this.dataset.item), this)" data-item="' + itemSafe + '" data-nombre="' + nombre.replace(/"/g, '&quot;') + '">Añadir al Carrito</button>';
 
         card.innerHTML = headerHtml
             + '<div class="absolute top-2 right-2 z-10"><span class="px-2 py-1 text-[9px] font-black uppercase rounded-full ' + stockCls + '">' + stockTxt + '</span></div>'

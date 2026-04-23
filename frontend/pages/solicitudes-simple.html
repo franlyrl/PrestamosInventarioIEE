@@ -42,17 +42,14 @@
     </div>
 
     <script>
-        console.log(' Página de solicitudes simple cargada');
         
         // Verificar autenticación
         const token = localStorage.getItem('utn_token');
         const userData = localStorage.getItem('utn_user');
         
         if (!token || !userData) {
-            console.log(' No hay token o usuario, redirigiendo a login...');
             window.location.href = '../login.html';
         } else {
-            console.log(' Token y usuario encontrados');
             
             // Cargar solicitudes (simulado por ahora)
             setTimeout(() => {

@@ -1,56 +1,56 @@
 <!-- Header Component (Clean & Standardized) -->
 <header class="bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] text-white shadow-xl border-b border-[#004a8c]/20 sticky top-0 z-[100]">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center py-3 md:py-4 gap-4">
+        <div class="flex justify-between items-center py-2 sm:py-3 md:py-4 gap-2 sm:gap-4">
             <!-- Logo y Branding -->
-            <a href="#" onclick="window.redirigirInicio(); return false;" class="flex items-center gap-4 hover:opacity-90 transition-opacity group">
-                <div class="block w-10 h-10 md:w-12 md:h-12 bg-white rounded-full shadow-lg flex items-center justify-center transform group-hover:scale-105 transition-transform overflow-hidden">
-                    <img src="../css/UTN.jpg" alt="UTN Logo" class="w-8 h-8 md:w-10 md:h-10 object-contain">
+            <a href="#" onclick="window.redirigirInicio(); return false;" class="flex items-center gap-2 sm:gap-4 hover:opacity-90 transition-opacity group">
+                <div class="block w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white rounded-full shadow-lg flex items-center justify-center transform group-hover:scale-105 transition-transform overflow-hidden">
+                    <img src="../css/UTN.jpg" alt="UTN Logo" class="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 object-contain">
                 </div>
-                <div class="hidden sm:block">
-                    <h1 class="text-base md:text-xl font-bold tracking-tight">SPIEE-SP </h1>
-                    <p class="text-[0.5px] md:text-sm font-medium text-blue-50/70">Sistema de Préstamos e Inventario</p>
+                <div class="hidden xs:block sm:block">
+                    <h1 class="text-sm sm:text-base md:text-xl font-bold tracking-tight">SPIEE-SP </h1>
+                    <p class="text-[8px] sm:text-[0.5px] md:text-sm font-medium text-blue-50/70 hidden sm:block">Sistema de Préstamos e Inventario</p>
                 </div>
             </a>
             
             <!-- Navegación y Acciones -->
-            <div class="flex items-center gap-2 md:gap-4">
+            <div class="flex items-center gap-0.5 sm:gap-1 md:gap-4">
                 <!-- Carrito (Solo visible para estudiantes y docentes - oculto por defecto) -->
-                <button id="cartBtn" onclick="window.openCartModal()" class="hidden bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-3 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 hover:scale-105">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                    <span id="cartCount" class="bg-[#F2A900] text-[#002D62] text-[10px] font-black min-w-[20px] h-5 rounded-full flex items-center justify-center shadow-sm transition-transform duration-300">0</span>
+                <button id="cartBtn" onclick="window.openCartModal()" class="hidden bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-1.5 py-1.5 sm:px-3 rounded-lg text-[10px] sm:text-xs font-medium transition-all flex items-center gap-1 hover:scale-105">
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <span id="cartCount" class="bg-[#F2A900] text-[#002D62] text-[7px] sm:text-[8px] font-black min-w-[14px] sm:min-w-[16px] h-3.5 sm:h-4 rounded-full flex items-center justify-center shadow-sm transition-transform duration-300">0</span>
                 </button>
                 
                 <!-- Notificaciones (Global) -->
                 <div class="relative" id="notifContainer">
-                    <button id="notifBtn" onclick="window.toggleNotifDropdown(event)" class="hidden bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 p-2 md:px-3 md:py-2 rounded-xl text-sm font-medium transition-all items-center gap-2 hover:scale-105 relative" title="Mis notificaciones">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                        <span id="notifCount" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md hidden">0</span>
+                    <button id="notifBtn" onclick="window.toggleNotifDropdown(event)" class="hidden bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 p-1 sm:p-1.5 md:px-3 md:py-2 rounded-lg text-[10px] sm:text-xs font-medium transition-all items-center gap-0.5 sm:gap-1 hover:scale-105 relative" title="Mis notificaciones">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <span id="notifCount" class="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-red-500 text-white text-[6px] sm:text-[7px] font-black w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex items-center justify-center shadow-md hidden">0</span>
                     </button>
 
                     <!-- Dropdown de Notificaciones -->
-                    <div id="notif-dropdown" class="hidden absolute right-0 mt-3 w-84 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[9999]" style="max-height: 460px; display:none; width: 320px;">
-                        <div class="bg-gradient-to-r from-[#002D62] to-[#0047a3] p-4 flex items-center justify-between">
-                            <div>
-                                <p id="notifDropdownTitle" class="text-white font-black text-sm">Notificaciones</p>
-                                <p id="notifDropdownSubtitle" class="text-blue-200 text-[10px] font-medium">Avisos de tus solicitudes</p>
+                    <div id="notif-dropdown" class="hidden fixed right-2 top-20 bg-white rounded-xl shadow-2xl border border-slate-100 overflow-hidden z-[9999]" style="width:min(92vw, 24rem); max-width:calc(100vw - 1rem); max-height:70vh; display:none;">
+                        <div class="bg-gradient-to-r from-[#002D62] to-[#0047a3] p-2 sm:p-3 md:p-4 flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <p id="notifDropdownTitle" class="text-white font-black text-[10px] sm:text-xs md:text-sm">Notificaciones</p>
+                                <p id="notifDropdownSubtitle" class="text-blue-200 text-[7px] sm:text-[8px] md:text-[10px] font-medium">Avisos de solicitudes</p>
                             </div>
                             <!-- Botón dorado VER TODAS -->
-                            <a id="notifAllLink" href="../pages/notificaciones.html" onclick="document.getElementById('notif-dropdown').style.display='none'" class="flex items-center gap-1.5 bg-[#F2A900] hover:bg-[#d99500] text-[#002D62] text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg transition-all hover:scale-105 shadow-md shadow-[#F2A900]/30" style="text-decoration:none;">
-                                <svg style="width:10px;height:10px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 10h16M4 14h16M4 18h7"/></svg>
-                                Ver Todas
+                            <a id="notifAllLink" href="../pages/notificaciones.html" onclick="document.getElementById('notif-dropdown').style.display='none'" class="flex max-w-[9rem] flex-shrink-0 items-center justify-center gap-1 bg-[#F2A900] hover:bg-[#d99500] text-[#002D62] text-[7px] sm:text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 sm:px-2 sm:py-1 md:px-2.5 md:py-1.5 rounded-md transition-all hover:scale-105 shadow-md shadow-[#F2A900]/30 whitespace-normal text-center leading-tight" style="text-decoration:none;">
+                                <svg style="width:6px;height:6px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 10h16M4 14h16M4 18h7"/></svg>
+                                <span class="hidden sm:inline md:inline">Ver Todas</span>
                             </a>
                         </div>
-                        <div id="notif-dropdown-list" class="overflow-y-auto" style="max-height: 300px;">
-                            <div class="p-8 text-center text-slate-400">
-                                <svg class="w-8 h-8 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                                <p class="text-xs font-medium">Sin notificaciones</p>
+                        <div id="notif-dropdown-list" class="overflow-y-auto" style="max-height: 320px;">
+                            <div class="p-3 sm:p-4 md:p-8 text-center text-slate-400">
+                                <svg class="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 mx-auto mb-1 sm:mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                <p class="text-[9px] sm:text-[10px] md:text-xs font-medium">Sin notificaciones</p>
                             </div>
                         </div>
-                        <div class="border-t border-slate-100 p-3">
-                            <a id="notifQuickLink" href="../pages/solicitudes.html" onclick="document.getElementById('notif-dropdown').style.display='none'" class="flex items-center justify-center gap-2 w-full py-2.5 bg-[#002D62] hover:bg-[#001A33] text-white text-xs font-black rounded-xl transition-colors tracking-wide" style="text-decoration:none;">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                                Ir a Mis Solicitudes
+                        <div class="border-t border-slate-100 p-1.5 sm:p-2 md:p-3">
+                            <a id="notifQuickLink" href="../pages/solicitudes.html" onclick="document.getElementById('notif-dropdown').style.display='none'" class="flex items-center justify-center gap-1 sm:gap-1.5 md:gap-2 w-full py-1.5 sm:py-2 md:py-2.5 bg-[#002D62] hover:bg-[#001A33] text-white text-[9px] sm:text-[10px] md:text-xs font-black rounded-lg transition-colors tracking-wide" style="text-decoration:none;">
+                                <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                <span class="text-[8px] sm:text-[9px] md:text-xs">Ir a Solicitudes</span>
                             </a>
                         </div>
                     </div>
@@ -58,23 +58,23 @@
                 
                 <!-- Lista de Espera (Solo estudiantes) -->
                 <div class="relative" id="esperaContainer">
-                    <button id="esperaBtn" onclick="window.toggleEsperaDropdown(event)" class="hidden bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 p-2 md:px-3 md:py-2 rounded-xl text-sm font-medium transition-all items-center gap-2 hover:scale-105 relative" title="Mi lista de espera">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span id="esperaCount" class="bg-[#F2A900] text-[#002D62] text-[10px] font-black min-w-[20px] h-5 rounded-full flex items-center justify-center shadow-sm transition-transform duration-300 hidden">0</span>
+                    <button id="esperaBtn" onclick="window.toggleEsperaDropdown(event)" class="hidden bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 p-1 sm:p-1.5 md:px-3 md:py-2 rounded-lg text-[10px] sm:text-xs font-medium transition-all items-center gap-0.5 sm:gap-1 hover:scale-105 relative" title="Mi lista de espera">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span id="esperaCount" class="bg-[#F2A900] text-[#002D62] text-[7px] sm:text-[8px] font-black min-w-[14px] sm:min-w-[16px] h-3.5 sm:h-4 rounded-full flex items-center justify-center shadow-sm transition-transform duration-300 hidden">0</span>
                     </button>
 
                     <!-- Dropdown de Lista de Espera -->
-                    <div id="espera-dropdown" class="hidden absolute right-0 mt-3 w-84 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[9999]" style="max-height: 460px; display:none; width: 320px;">
-                        <div class="bg-gradient-to-r from-[#002D62] to-[#0047a3] p-4 flex items-center justify-between">
+                    <div id="espera-dropdown" class="hidden absolute right-0 mt-1.5 sm:mt-2 md:mt-3 w-64 sm:w-72 md:w-84 bg-white rounded-xl shadow-2xl border border-slate-100 overflow-hidden z-[9999]" style="max-height: 350px; max-width: 260px; display:none;">
+                        <div class="bg-gradient-to-r from-[#002D62] to-[#0047a3] p-2 sm:p-3 md:p-4 flex items-center justify-between">
                             <div>
-                                <p class="text-white font-black text-sm">Lista de Espera</p>
-                                <p class="text-blue-200 text-[10px] font-medium">Tus posiciones en cola</p>
+                                <p class="text-white font-black text-[10px] sm:text-xs md:text-sm">Lista de Espera</p>
+                                <p class="text-blue-200 text-[7px] sm:text-[8px] md:text-[10px] font-medium">Tus posiciones en cola</p>
                             </div>
                         </div>
-                        <div id="espera-dropdown-list" class="overflow-y-auto" style="max-height: 300px;">
-                            <div class="p-8 text-center text-slate-400">
-                                <svg class="w-8 h-8 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                <p class="text-xs font-medium">No estás en ninguna lista de espera</p>
+                        <div id="espera-dropdown-list" class="overflow-y-auto" style="max-height: 200px;">
+                            <div class="p-3 sm:p-4 md:p-8 text-center text-slate-400">
+                                <svg class="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 mx-auto mb-1 sm:mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <p class="text-[9px] sm:text-[10px] md:text-xs font-medium">No estás en lista de espera</p>
                             </div>
                         </div>
                     </div>
@@ -82,59 +82,59 @@
                 
                 <!-- Menú Usuario -->
                 <div class="relative">
-                    <button id="user-menu-btn" onclick="window.toggleUserMenu(event)" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-3 hover:scale-105">
-                        <div class="w-8 h-8 bg-[#f2a900] rounded-full flex items-center justify-center border border-white/30 text-[#002d62] shadow-inner font-black text-xs user-initials">
+                    <button id="user-menu-btn" onclick="window.toggleUserMenu(event)" class="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-1.5 sm:px-2 md:px-4 py-1.5 sm:py-2 rounded-lg text-[10px] sm:text-xs font-medium transition-all flex items-center gap-1.5 sm:gap-2 md:gap-3 hover:scale-105">
+                        <div class="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 bg-[#f2a900] rounded-full flex items-center justify-center border border-white/30 text-[#002d62] shadow-inner font-black text-[8px] sm:text-[10px] md:text-xs user-initials">
                             U
                         </div>
-                        <span id="userMenuName" class="hidden sm:inline font-bold">Cargando...</span>
-                        <svg class="w-4 h-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <span id="userMenuName" class="hidden sm:inline font-bold text-[9px] sm:text-xs md:text-sm">Cargando...</span>
+                        <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     
                     <!-- Dropdown Menu -->
-                    <div id="user-dropdown" class="hidden absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[9999] opacity-0 transition-all duration-300">
-                        <div class="bg-slate-50 border-b border-slate-100 p-5">
-                            <p class="text-sm font-bold text-slate-800 truncate" id="dropdownUserName">Nombre Usuario</p>
-                            <p class="text-[10px] font-bold text-utn-blue uppercase tracking-widest mt-1" id="dropdownUserRole">Estudiante</p>
+                    <div id="user-dropdown" class="hidden absolute right-0 mt-2 sm:mt-3 w-56 sm:w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[9999] opacity-0 transition-all duration-300">
+                        <div class="bg-slate-50 border-b border-slate-100 p-3 sm:p-5">
+                            <p class="text-xs sm:text-sm font-bold text-slate-800 truncate" id="dropdownUserName">Nombre Usuario</p>
+                            <p class="text-[8px] sm:text-[10px] font-bold text-utn-blue uppercase tracking-widest mt-1" id="dropdownUserRole">Estudiante</p>
                         </div>
                         
-                        <div class="py-2">
-                            <a href="#" onclick="window.redirigirInicio(); return false;" class="group flex items-center gap-3 px-5 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
-                                <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
-                                    <svg class="w-4 h-4 text-slate-500 group-hover:text-utn-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        <div class="py-1 sm:py-2">
+                            <a href="#" onclick="window.redirigirInicio(); return false;" class="group flex items-center gap-1.5 sm:gap-3 px-2 sm:px-5 py-1.5 sm:py-3 text-[10px] sm:text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                                <div class="w-5 h-5 sm:w-6 sm:h-8 rounded-lg bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                                    <svg class="w-2.5 h-2.5 sm:w-3 sm:h-4 text-slate-500 group-hover:text-utn-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4A1 1 0 001 1m-6 0h6"></path></svg>
                                 </div>
-                                <span class="font-bold">Inicio</span>
+                                <span class="font-bold text-[10px] sm:text-xs">Inicio</span>
                             </a>
-                            <a href="../pages/perfil.html" class="group flex items-center gap-3 px-5 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
-                                <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
-                                    <svg class="w-4 h-4 text-slate-500 group-hover:text-utn-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            <a href="../pages/perfil.html" class="group flex items-center gap-1.5 sm:gap-3 px-2 sm:px-5 py-1.5 sm:py-3 text-[10px] sm:text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                                <div class="w-5 h-5 sm:w-6 sm:h-8 rounded-lg bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                                    <svg class="w-2.5 h-2.5 sm:w-3 sm:h-4 text-slate-500 group-hover:text-utn-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                 </div>
-                                <span class="font-bold">Mi Perfil</span>
+                                <span class="font-bold text-[10px] sm:text-xs">Mi Perfil</span>
                             </a>
                         <!-- Mis Solicitudes (solo para estudiantes) -->
-                            <a href="../pages/solicitudes.html" id="navSolicitudesLink" class="group flex items-center gap-3 px-5 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors hidden">
-                                <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-yellow-100 flex items-center justify-center transition-colors">
-                                    <svg class="w-4 h-4 text-slate-500 group-hover:text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            <a href="../pages/solicitudes.html" id="navSolicitudesLink" class="group flex items-center gap-1.5 sm:gap-3 px-2 sm:px-5 py-1.5 sm:py-3 text-[10px] sm:text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors hidden">
+                                <div class="w-5 h-5 sm:w-6 sm:h-8 rounded-lg bg-slate-100 group-hover:bg-yellow-100 flex items-center justify-center transition-colors">
+                                    <svg class="w-2.5 h-2.5 sm:w-3 sm:h-4 text-slate-500 group-hover:text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                                 </div>
-                                <span class="font-bold">Mis Solicitudes</span>
+                                <span class="font-bold text-[10px] sm:text-xs">Mis Solicitudes</span>
                             </a>
                             <!-- Mis Préstamos (solo para estudiantes) -->
-                            <a href="../pages/mis-prestamos.html" id="navPrestamosLink" class="group flex items-center gap-3 px-5 py-3 text-sm text-slate-600 hover:bg-slate-50 transition-colors hidden">
-                                <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
-                                    <svg class="w-4 h-4 text-slate-500 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <a href="../pages/mis-prestamos.html" id="navPrestamosLink" class="group flex items-center gap-1.5 sm:gap-3 px-2 sm:px-5 py-1.5 sm:py-3 text-[10px] sm:text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors hidden">
+                                <div class="w-5 h-5 sm:w-6 sm:h-8 rounded-lg bg-slate-100 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                                    <svg class="w-2.5 h-2.5 sm:w-3 sm:h-4 text-slate-500 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 </div>
-                                <span class="font-bold">Mis Préstamos</span>
+                                <span class="font-bold text-[10px] sm:text-xs">Mis Préstamos</span>
                             </a>
 
                         </div>
                         
                         <div class="border-t border-slate-100 my-1"></div>
                         
-                        <div class="p-2">
-                            <button onclick="window.cerrarSesion()" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors font-bold">
-                                <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        <div class="p-1.5 sm:p-2">
+                            <button onclick="window.cerrarSesion()" class="w-full flex items-center gap-1.5 sm:gap-3 px-2 sm:px-4 py-1.5 sm:py-3 text-[10px] sm:text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors font-bold">
+                                <div class="w-5 h-5 sm:w-6 sm:h-8 rounded-lg bg-red-100 flex items-center justify-center">
+                                    <svg class="w-2.5 h-2.5 sm:w-3 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3V1"></path></svg>
                                 </div>
-                                Cerrar Sesión
+                                <span class="text-[10px] sm:text-xs">Cerrar Sesión</span>
                             </button>
                         </div>
                     </div>

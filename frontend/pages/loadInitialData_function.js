@@ -1,10 +1,8 @@
 // Función para cargar datos iniciales - AGREGAR ESTA FUNCIÓN A ModAdmis.html
 async function loadInitialData() {
-    console.log(' Cargando datos iniciales...');
     
     const grid = document.getElementById('itemsGrid');
     if (!grid) {
-        console.log('️ itemsGrid no encontrado, omitiendo carga inicial');
         return;
     }
     
@@ -29,5 +27,4 @@ async function loadInitialData() {
         </div>
     `;
     
-    console.log(' Panel de administración inicializado correctamente');
 }

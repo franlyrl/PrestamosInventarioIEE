@@ -13,9 +13,6 @@ const PORT = process.env.HTTPS_PORT || 443;
 
 // Crear servidor HTTPS
 https.createServer(options, app).listen(PORT, '0.0.0.0', () => {
-    console.log(`🔒 Servidor HTTPS corriendo en https://0.0.0.0:${PORT}`);
-    console.log(`🔒 Acceso local: https://192.168.0.9:${PORT}`);
-    console.log('🔒 Monitoreando peticiones con Morgan...');
 });
 
 // Mantener servidor HTTP también para redirección
@@ -26,5 +23,4 @@ http.createServer((req, res) => {
     res.writeHead(301, { Location: `https://${req.headers.host}${req.url}` });
     res.end();
 }).listen(HTTP_PORT, '0.0.0.0', () => {
-    console.log(`🌐 Servidor HTTP redirigiendo a HTTPS en puerto ${HTTP_PORT}`);
 });

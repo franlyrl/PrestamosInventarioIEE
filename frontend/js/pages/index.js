@@ -7,18 +7,15 @@ class IndexController {
     }
 
     async init() {
-        console.log(' Iniciando IndexController simple...');
 
         // Esperar a que el DOM esté listo antes de configurar filtros y cargar items
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-                console.log(' DOM listo - Configurando filtros y cargando items...');
                 this.setupFiltros(() => this.cargarItems());
             });
         } else {
             // DOM ya está listo, configurar filtros y cargar items
             setTimeout(() => {
-                console.log(' DOM ya listo - Configurando filtros y cargando items...');
                 this.setupFiltros(() => this.cargarItems());
             }, 100);
         }
@@ -35,7 +32,6 @@ class IndexController {
             const estadoSelect = document.getElementById('estado-select');
 
             if (buscarBtn && limpiarBtn && busquedaInput && tipoSelect && categoriaSelect && estadoSelect) {
-                console.log(' Elementos de filtros encontrados, configurando eventos...');
 
                 buscarBtn.addEventListener('click', () => this.aplicarFiltros());
                 limpiarBtn.addEventListener('click', () => this.limpiarFiltros());
@@ -49,14 +45,12 @@ class IndexController {
                     callback();
                 }
             } else {
-                console.log(' No se encontraron todos los elementos de filtros');
             }
         }, 100);
     }
 
     async cargarItems() {
         try {
-            console.log(' Cargando items desde la API...');
             const token = localStorage.getItem('utn_token');
 
             const [activosResponse, insumosResponse] = await Promise.all([
@@ -83,7 +77,6 @@ class IndexController {
                     ...todosLosInsumosConForzados.map(item => ({ ...item, tipo: item.tipo || 'insumo' }))
                 ];
 
-                console.log(' Total items:', this.allItems.length);
 
                 // Forzar valores iniciales
                 const tipoSelect = document.getElementById('tipo-select');
@@ -132,9 +125,6 @@ class IndexController {
         const categoria = document.getElementById('categoria-select')?.value || 'todas';
         const estado = document.getElementById('estado-select')?.value || 'todos';
 
-        console.log('🔍 FILTROS - Categoría seleccionada:', categoria);
-        console.log('🔍 Total items antes de filtrar:', this.allItems.length);
-        console.log('🔍 Items de tipo insumo:', this.allItems.filter(i => i.tipo === 'insumo').length);
 
         this.filteredItems = this.allItems.filter(item => {
             if (item.estado === 'eliminado') return false;
@@ -528,7 +518,6 @@ function updateCartUI() {
     const cartTotal = document.getElementById('cartTotal');
 
     if (!cartCount || !cartItems || !cartTotal) {
-        console.log(' Elementos del carrito no encontrados');
         return;
     }
 
@@ -687,11 +676,6 @@ async function sendRequest() {
         };
 
         // Validar datos antes de enviar
-        console.log(' Validando datos de solicitud:');
-        console.log(' - Usuario:', user.nombre_completo);
-        console.log(' - Activos:', activos.length, activos);
-        console.log(' - Insumos:', insumos.length, insumos);
-        console.log(' - Total items:', cart.length);
 
         if (activos.length === 0 && insumos.length === 0) {
             showToast('El carrito está vacío', 'warning');
@@ -699,9 +683,6 @@ async function sendRequest() {
         }
 
         // Enviar a la API
-        console.log(' Enviando solicitud a:', `${window.CONFIG.API_BASE_URL}/solicitudes`);
-        console.log(' Datos enviados:', requestData);
-        console.log(' Token disponible:', localStorage.getItem('utn_token') ? 'Sí' : 'No');
 
         const response = await fetch(`${window.CONFIG.API_BASE_URL}/solicitudes`, {
             method: 'POST',
@@ -712,11 +693,9 @@ async function sendRequest() {
             body: JSON.stringify(requestData)
         });
 
-        console.log(' Respuesta del servidor:', response.status, response.statusText);
 
         if (response.ok) {
             const result = await response.json();
-            console.log(' Solicitud creada:', result);
             showToast(` Solicitud enviada con éxito. ID: ${result._id || 'generada'}`, 'success');
 
             // Vaciar carrito y cerrar modal
@@ -783,7 +762,6 @@ document.addEventListener('click', (e) => {
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    console.log(' DOM listo - Inicializando IndexController simple...');
     window.indexController = new IndexController();
 
     // Crear select personalizado para categorías con estilos funcionales
@@ -879,7 +857,6 @@ function crearSelectPersonalizadoCategorias() {
         // Evento click
         customOption.addEventListener('click', () => {
             // Debug: mostrar qué opción se está seleccionando
-            console.log(' Opción seleccionada:', option.value, option.text, option.tipo);
 
             // Actualizar select original
             categoriaSelect.value = option.value;
@@ -942,7 +919,6 @@ try {
     window.openCartModal = openCartModal;
     window.closeCartModal = closeCartModal;
     window.sendRequest = sendRequest;
-    console.log(' Funciones del carrito disponibles globalmente');
 } catch (error) {
     console.error(' Error al asignar funciones del carrito:', error);
 }

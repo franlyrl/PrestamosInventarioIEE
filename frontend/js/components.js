@@ -89,7 +89,6 @@ window.loadComponents = async function() {
                     const res = await fetch('../components/cart.html');
                     if (res.ok) {
                         cartContainer.innerHTML = await res.text();
-                        console.log('[COMPONENTS] Carrito inyectado con éxito');
                     }
                 } catch (cartErr) {
                     console.warn('[COMPONENTS] No se pudo cargar el carrito:', cartErr);

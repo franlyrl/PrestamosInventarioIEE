@@ -35,7 +35,6 @@ class IndexController {
 
             const headers = { Authorization: `Bearer ${token}` };
 
-            console.log('📦 [Admin] Cargando inventario...');
             
             // Cargar ambos en paralelo
             const [activosResponse, insumosResponse] = await Promise.all([
@@ -81,7 +80,6 @@ class IndexController {
             this.allItems = [...activos, ...insumos];
             this.filteredItems = [...this.allItems];
             this.renderItems();
-            console.log(`✅ [Admin] ${this.allItems.length} articulos cargados.`);
         } catch (error) {
             console.error('❌ [Admin] Error cargando items:', error);
             this.showToast(error.message || 'Error al cargar inventario', 'error');
@@ -256,7 +254,6 @@ class IndexController {
                 data.codigo = `${prefijo}${data.codigo}`;
             }
 
-            console.log('💾 [Admin] Intentando guardar:', data);
 
             // 2. Validación Frontend
             if (!this.validarFormulario(data)) {
@@ -285,7 +282,6 @@ class IndexController {
             });
 
             const result = await response.json().catch(() => ({}));
-            console.log('📡 [Admin] Respuesta del servidor:', result);
 
             if (!response.ok) {
                 throw new Error(result.message || 'No se pudo guardar el articulo.');
@@ -367,7 +363,6 @@ class IndexController {
             window.Utils.showToast(message, type);
             return;
         }
-        console.log(`[${type}] ${message}`);
     }
 }
 window.IndexController = IndexController;

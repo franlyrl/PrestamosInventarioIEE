@@ -105,9 +105,6 @@ const run = async () => {
         }
     }
 
-    console.log(`[migracion] modo=${DRY_RUN ? 'dry-run' : 'write'}`);
-    console.log(`[migracion] insumos actualizados: ${insumosActualizados}`);
-    console.log(`[migracion] activos actualizados: ${activosActualizados}`);
 
     await mongoose.connection.close();
 };

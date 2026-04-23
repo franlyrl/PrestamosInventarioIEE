@@ -9,7 +9,6 @@ async function addToListaEspera() {
         // Find the insumo with 0 stock
         const insumo = await Insumos.findOne({ cantidad: 0 });
         if (!insumo) {
-            console.log('No insumo with 0 stock found');
             return;
         }
 
@@ -21,7 +20,6 @@ async function addToListaEspera() {
         });
 
         await espera.save();
-        console.log('Added to listaEspera:', espera);
     } catch (error) {
         console.error(error);
     } finally {

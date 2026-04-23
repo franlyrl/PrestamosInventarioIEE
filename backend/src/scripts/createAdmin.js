@@ -10,9 +10,7 @@ const Usuario = require('../models/usuarios');
 
 const createAdmin = async () => {
     try {
-        console.log('Conectando a MongoDB...');
         await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/inventarioEE');
-        console.log('Conexión exitosa.');
 
         const email = 'admin@utn.ac.cr';
         const password = 'utn1234567';
@@ -24,7 +22,6 @@ const createAdmin = async () => {
         const hashedPw = await bcrypt.hash(password, salt);
 
         if (admin) {
-            console.log('El usuario ya existe. Actualizando contraseña y rol...');
             await Usuario.updateOne({ correo_electronico: email }, {
                 $set: {
                     hash_contraseña: hashedPw,
@@ -33,9 +30,7 @@ const createAdmin = async () => {
                     estado_usuario: 'activo'
                 }
             });
-            console.log('Usuario admin actualizado exitosamente.');
         } else {
-            console.log('Creando nuevo usuario administrador usando raw collection...');
             await Usuario.collection.insertOne({
                 id_usuario: Date.now(),
                 cedula: '123456789',
@@ -49,7 +44,6 @@ const createAdmin = async () => {
                 createdAt: new Date(),
                 updatedAt: new Date()
             });
-            console.log('Usuario admin creado exitosamente.');
         }
 
         process.exit(0);

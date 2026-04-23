@@ -18,7 +18,6 @@ const Usuario = mongoose.model('Usuario_Verify', usuarioSchema, 'usuarios');
 async function verify() {
     try {
         await mongoose.connect(URI);
-        console.log('Connected to DB');
 
         // Cleanup any old test data
         await Usuario.deleteMany({ correo_electronico: { $in: ['v1@utn.ac.cr', 'v2@utn.ac.cr'] } });
@@ -34,7 +33,6 @@ async function verify() {
             carrera: 'N/A'
         });
         await u1.save();
-        console.log('User 1 created successfully');
 
         const u2 = new Usuario({
             id_usuario: Date.now() + 10,
@@ -47,9 +45,7 @@ async function verify() {
             carrera: 'N/A'
         });
         await u2.save();
-        console.log('User 2 created successfully');
 
-        console.log('✅ Success: Multiple users created without barcodes!');
         
         // Final cleanup
         await Usuario.deleteMany({ correo_electronico: { $in: ['v1@utn.ac.cr', 'v2@utn.ac.cr'] } });

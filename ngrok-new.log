@@ -1,0 +1,23 @@
+t=2026-04-22T15:22:23-0600 lvl=info msg="no configuration paths supplied"
+t=2026-04-22T15:22:23-0600 lvl=info msg="using configuration at default config path" path=/home/spiee/snap/ngrok/375/.config/ngrok/ngrok.yml
+t=2026-04-22T15:22:23-0600 lvl=info msg="open config file" path=/home/spiee/snap/ngrok/375/.config/ngrok/ngrok.yml err=nil
+t=2026-04-22T15:22:23-0600 lvl=info msg="FIPS 140 mode" enabled=false
+t=2026-04-22T15:22:23-0600 lvl=warn msg="can't bind default web address, trying alternatives" obj=web addr=127.0.0.1:4040
+t=2026-04-22T15:22:23-0600 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4041 allow_hosts=[]
+t=2026-04-22T15:22:23-0600 lvl=info msg="client session established" obj=tunnels.session
+t=2026-04-22T15:22:23-0600 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2026-04-22T15:22:24-0600 lvl=info msg="started tunnel" obj=tunnels name=command_line addr=http://localhost:4000 url=https://monsoon-aim-mashed.ngrok-free.dev
+t=2026-04-22T15:22:40-0600 lvl=info msg=start pg=/api/tunnels id=2c22d546a6157d4b
+t=2026-04-22T15:22:40-0600 lvl=info msg=end pg=/api/tunnels id=2c22d546a6157d4b status=200 dur=265.475µs
+t=2026-04-22T15:23:16-0600 lvl=info msg=start pg=/api/tunnels id=101fc30504dfa189
+t=2026-04-22T15:23:16-0600 lvl=info msg=end pg=/api/tunnels id=101fc30504dfa189 status=200 dur=186.733µs
+t=2026-04-22T15:25:38-0600 lvl=info msg="join connections" obj=join id=8a9bef7b1fb4 l=127.0.0.1:4000 r=181.119.188.74:41558
+t=2026-04-22T15:28:38-0600 lvl=info msg="join connections" obj=join id=b422753b127d l=127.0.0.1:4000 r=[2800:860:71bd:71fe:89c0:2f61:ed90:8c7b]:13671
+t=2026-04-22T15:28:51-0600 lvl=info msg="join connections" obj=join id=8ccc9fab5b4e l=127.0.0.1:4000 r=[2800:860:71bd:71fe:89c0:2f61:ed90:8c7b]:13671
+t=2026-04-22T15:29:00-0600 lvl=info msg="join connections" obj=join id=ac7878d7628e l=127.0.0.1:4000 r=[2800:860:71bd:71fe:89c0:2f61:ed90:8c7b]:13671
+t=2026-04-22T15:29:07-0600 lvl=info msg="join connections" obj=join id=0163109d3795 l=127.0.0.1:4000 r=[2800:860:71bd:71fe:89c0:2f61:ed90:8c7b]:13671
+t=2026-04-22T15:29:13-0600 lvl=info msg="join connections" obj=join id=336c29007b77 l=127.0.0.1:4000 r=[2800:860:71bd:71fe:89c0:2f61:ed90:8c7b]:13671
+t=2026-04-22T15:29:35-0600 lvl=info msg="join connections" obj=join id=7736a17b6c34 l=127.0.0.1:4000 r=181.119.188.74:37668
+t=2026-04-22T15:29:46-0600 lvl=info msg="join connections" obj=join id=61e32a63ac4b l=127.0.0.1:4000 r=181.119.188.74:37668
+t=2026-04-22T15:30:24-0600 lvl=info msg="received stop request" obj=app stopReq="{err:<nil> restart:false}"
+t=2026-04-22T15:30:24-0600 lvl=info msg="session closing" obj=tunnels.session err=nil

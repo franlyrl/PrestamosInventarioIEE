@@ -210,7 +210,6 @@
         .then(response => response.text())
         .then(html => {
           document.getElementById('header-component').innerHTML = html;
-          console.log(' Header component cargado en solicitudes.html');
         })
         .catch(error => console.error(' Error cargando header:', error));
 
@@ -219,7 +218,6 @@
         .then(response => response.text())
         .then(html => {
           document.getElementById('footer-component').innerHTML = html;
-          console.log(' Footer component cargado en solicitudes.html');
         })
         .catch(error => console.error(' Error cargando footer:', error));
     </script>

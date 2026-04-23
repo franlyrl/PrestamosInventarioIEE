@@ -17,13 +17,11 @@ class ActivosController {
      * Inicializa la página
      */
     async initialize() {
-        console.log('ActivosController: Inicializando...');
         try {
             await this.cargarActivos();
             this.setupEventListeners();
             this.renderActivos();
             this.isLoaded = true;
-            console.log('ActivosController: Inicialización completada');
         } catch (error) {
             console.error('ActivosController Error:', error);
             window.Utils?.showToast('Error al inicializar la página de activos', 'error');
@@ -46,7 +44,6 @@ class ActivosController {
             
             const data = await response.json();
             this.activos = Array.isArray(data) ? data : (data.todosLosActivos || []);
-            console.log(`ActivosController: ${this.activos.length} activos cargados`);
         } catch (error) {
             console.error('Error cargando activos:', error);
             throw error;
@@ -440,7 +437,6 @@ class ActivosController {
     }
 
     editarActivo(id) {
-        console.log('Editar activo:', id);
         window.Utils?.showToast('Edición en desarrollo', 'info');
     }
 
@@ -473,7 +469,6 @@ window.activosController = new ActivosController();
 // Inicializar cuando el DOM esté listo, pero esperar a main.js
 document.addEventListener('DOMContentLoaded', () => {
     // Si main.js ya cargó, inicializar. Si no, esperar se maneja por el MutationObserver de main.js o carga secuencial.
-    console.log('Activos Page Script Loaded');
     setTimeout(() => {
         if (!window.activosController.isLoaded) {
             window.activosController.initialize();

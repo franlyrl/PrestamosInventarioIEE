@@ -194,7 +194,50 @@
 <!-- -"-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--" -->
 <!-- -"              FOOTER COMPONENT                       -" -->
 <!-- -"a-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"- -->
-<div id="footer-component"></div>
+<footer class="bg-gradient-to-r from-[#002e6e] via-[#004a8c] to-[#0066cc] text-white mt-10 shadow-[0_-10px_30px_rgba(0,46,110,0.14)]">
+    <div class="container mx-auto max-w-6xl px-6 py-6 md:py-5">
+        <div class="grid grid-cols-1 gap-6 text-center md:grid-cols-[1.25fr_1fr_1.25fr] md:items-center md:gap-8 md:text-left">
+            <div>
+                <h2 class="text-sm sm:text-base font-black uppercase tracking-wide">Universidad Técnica Nacional</h2>
+                <div class="mt-3 flex items-center justify-center gap-4 md:justify-start">
+                    <img src="../css/UTN.jpg" alt="Logo institucional" class="w-14 h-14 md:w-12 md:h-12 rounded-full bg-white p-2 shadow-xl">
+                    <p class="text-[10px] sm:text-xs font-black text-[#F2A900] uppercase tracking-[0.35em]">Sede del Pacífico</p>
+                </div>
+                <p class="mt-3 text-xs sm:text-sm text-blue-100/60">Sistema de Préstamos e Inventario</p>
+            </div>
+
+            <div class="border-y border-white/10 py-5 md:border-x md:border-y-0 md:px-6 md:py-0 md:text-center">
+                <p class="text-[10px] sm:text-xs font-black text-[#F2A900] uppercase tracking-[0.3em]">Carrera: Ingeniería Electrónica</p>
+                <p class="mt-3 text-xs sm:text-sm font-black uppercase tracking-wide">Asistente: Hary Andrey Mora Mendiola</p>
+            </div>
+
+            <div class="flex flex-col items-center gap-3 md:items-end">
+                <a href="mailto:hmoram@utn.ac.cr" class="inline-flex items-center justify-center gap-3 text-xs sm:text-sm font-bold text-white transition-colors hover:text-[#F2A900]">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F2A900]/20 text-[#F2A900]">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l8.7 5.8a2 2 0 002.2 0L22 8m-17 8h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                    </span>
+                    hmoram@utn.ac.cr
+                </a>
+                <a href="tel:+50626601747" class="inline-flex items-center justify-center gap-3 text-xs sm:text-sm font-bold text-white transition-colors hover:text-[#F2A900]">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F2A900]/20 text-[#F2A900]">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h2.3a1 1 0 01.95.68l1.1 3.3a1 1 0 01-.45 1.17l-1.35.78a12 12 0 005.52 5.52l.78-1.35a1 1 0 011.17-.45l3.3 1.1a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C9.16 21 3 14.84 3 7V5z"/></svg>
+                    </span>
+                    2660-1747
+                </a>
+                <div class="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-100/45 md:items-end">
+                    <span>Edificio Labs, 2do Piso · Aula 312</span>
+                    <span>Mar-Vie: 8am-9pm</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 border-t border-white/10 pt-3 text-center">
+            <p class="text-[10px] sm:text-xs font-bold uppercase tracking-[0.35em] text-blue-100/35">
+                &copy; 2026 Universidad Técnica Nacional · Sede del Pacífico · SPIEE
+            </p>
+        </div>
+    </div>
+</footer>
 
 <!-- -"-"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--"--" -->
 <!-- -"              MODAL: CARRITO                         -" -->
@@ -325,45 +368,18 @@ function abrirDetalleItem(item) {
             ? { cls: 'bg-amber-100 text-amber-700', txt: 'Bajo stock' }
             : { cls: 'bg-emerald-100 text-emerald-700', txt: 'Disponible' };
 
-    // Sistema de auto-asignación de imágenes basado en categoría y tipo
-    const getAutoImageUrl = (item, tipo, categoria, id) => {
-        // Si tiene imagenUrl válida, usarla
-        if (item.imagenUrl && !item.imagenUrl.includes('placeholder')) {
-            return item.imagenUrl;
-        }
-        
-        // Mapeo de categorías a seeds de imágenes para picsum
-        const categoriaSeeds = {
-            'Instrumentos': 'instrumentos-lab',
-            'Herramientas': 'herramientas-taller',
-            'Componentes Digitales': 'componentes-digital',
-            'Componentes Analógicos': 'componentes-analog',
-            'Electrónica': 'electronica-general',
-            'Consumibles': 'consumibles-lab',
-            'Equipos de Medición': 'equipos-medicion',
-            'Prototipado': 'prototipado-arduino',
-            'Cables y Conectores': 'cables-conectores',
-            'Seguridad': 'seguridad-lab',
-            'Almacenamiento': 'almacenamiento-digital'
-        };
-        
-        // Obtener seed basado en categoría o usar default
-        const categoriaKey = categoria || 'General';
-        const baseSeed = categoriaSeeds[categoriaKey] || (tipo === 'activo' ? 'activo-lab' : 'insumo-lab');
-        
-        // Crear seed única basada en tipo, categoría e ID
-        const uniqueSeed = `${baseSeed}-${id}-${tipo}`.replace(/\s+/g, '-').toLowerCase();
-        
-        return `https://picsum.photos/seed/${uniqueSeed}/400/300.jpg`;
+    const isValidImageUrl = (url) => {
+        if (!url || typeof url !== 'string') return false;
+        const clean = url.trim();
+        return clean.length > 10 && !clean.includes('placeholder') && !clean.includes('undefined') && !clean.includes('null');
     };
-    
-    const imgUrl = getAutoImageUrl(item, tipo, categoria, codigo);
-    // Verificar si la imagen guardada parece válida (más de 10 chars, no placeholder)
-    const tieneImagenReal = item.imagenUrl && item.imagenUrl.length > 10 && !item.imagenUrl.includes('placeholder');
+
+    const imgUrl = isValidImageUrl(item.imagenUrl) ? item.imagenUrl.trim() : '';
+    const tieneImagenReal = Boolean(imgUrl);
 
     content.innerHTML = `
         <div class="relative h-48 bg-slate-900 group">
-            <img id="modalImg" src="${imgUrl}" class="w-full h-full object-cover opacity-80 cursor-zoom-in transition-opacity hover:opacity-100 ${tieneImagenReal ? '' : 'hidden'}" onclick="window.verImagenCompleta(this.src, '${nombre}')" title="Hacer clic para ampliar" onerror="this.onerror=null; this.classList.add('hidden'); document.getElementById('modalImgFallback').classList.remove('hidden');">
+            ${tieneImagenReal ? `<img id="modalImg" src="${imgUrl}" class="w-full h-full object-cover opacity-80 cursor-zoom-in transition-opacity hover:opacity-100" onclick="window.verImagenCompleta(this.src, '${nombre.replace(/'/g, "\\'")}')" title="Hacer clic para ampliar" onerror="this.onerror=null; this.classList.add('hidden'); document.getElementById('modalImgFallback').classList.remove('hidden');">` : ''}
             <div id="modalImgFallback" class="w-full h-full bg-gradient-to-br from-[#002D62] to-[#004daa] flex items-center justify-center ${tieneImagenReal ? 'hidden' : ''}"><svg class="w-16 h-16 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-5 flex flex-col justify-end">
                 <div class="flex justify-between items-start mb-1 absolute top-5 left-5 right-5">
@@ -399,9 +415,9 @@ function abrirDetalleItem(item) {
             </div>
             <div class="flex gap-2 pt-1">
                 ${cantidad <= 0
-                    ? `<button onclick="closeDetalleModal(); window.estDash?.entrarListaEspera('${item._id}')"
+                    ? `<button onclick="closeDetalleModal(); addToCarritoDesdeDetalle(${JSON.stringify(item).replace(/"/g,'&quot;')}, this)"
                             class="flex-1 py-3 border-2 border-utn-blue text-utn-blue font-black text-sm rounded-xl hover:bg-blue-50 transition">
-                            Lista de Espera
+                            Añadir a Espera
                        </button>`
                     : `<button onclick="closeDetalleModal(); addToCarritoDesdeDetalle(${JSON.stringify(item).replace(/"/g,'&quot;')}, this)"
                             class="flex-1 py-3 bg-utn-blue text-white font-black text-sm rounded-xl hover:bg-utn-dark transition shadow-md">
@@ -472,28 +488,28 @@ if (typeof showToast === 'undefined') {
     </button>
 </div>
 <!-- MODAL DE AYUDA CON PESTAÑAS -->
-    <div id="helpModal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
-            <div class="bg-gradient-to-r from-[#002D62] to-[#004a8f] p-4 flex items-center justify-between">
-                <h3 class="text-white font-bold text-lg flex items-center gap-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div id="helpModal" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-2 sm:p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] sm:max-h-[80vh] overflow-hidden">
+            <div class="bg-gradient-to-r from-[#002D62] to-[#004a8f] p-3 sm:p-4 flex items-center justify-between">
+                <h3 class="text-white font-bold text-base sm:text-lg flex items-center gap-2">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     Centro de Ayuda SPIEE
                 </h3>
                 <button onclick="toggleHelpModal()" class="text-white/80 hover:text-white transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
-            <div class="flex border-b border-slate-200 bg-slate-50">
-                <button onclick="showHelpTab('uso')" id="tab-uso" class="flex-1 py-3 px-4 text-sm font-bold text-[#002D62] border-b-2 border-[#002D62] bg-white transition">Cómo Usar</button>
-                <button onclick="showHelpTab('reglas')" id="tab-reglas" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">Reglas</button>
-                <button onclick="showHelpTab('faq')" id="tab-faq" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">Preguntas frecuentes</button>
-                <button onclick="showHelpTab('contacto')" id="tab-contacto" class="flex-1 py-3 px-4 text-sm font-bold text-slate-500 hover:text-[#002D62] transition">Contacto</button>
+            <div class="flex overflow-x-auto border-b border-slate-200 bg-slate-50">
+                <button onclick="showHelpTab('uso')" id="tab-uso" class="min-w-max flex-1 py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold text-[#002D62] border-b-2 border-[#002D62] bg-white transition">Cómo Usar</button>
+                <button onclick="showHelpTab('reglas')" id="tab-reglas" class="min-w-max flex-1 py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold text-slate-500 hover:text-[#002D62] transition">Reglas</button>
+                <button onclick="showHelpTab('faq')" id="tab-faq" class="min-w-max flex-1 py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold text-slate-500 hover:text-[#002D62] transition">Preguntas frecuentes</button>
+                <button onclick="showHelpTab('contacto')" id="tab-contacto" class="min-w-max flex-1 py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-bold text-slate-500 hover:text-[#002D62] transition">Contacto</button>
             </div>
-            <div class="p-5 overflow-y-auto max-h-[50vh]">
+            <div class="p-3 sm:p-5 overflow-y-auto max-h-[65vh] sm:max-h-[50vh]">
                 <div id="content-uso" class="space-y-4">
                     <h4 class="font-black text-[#002D62] text-lg mb-3">Cómo Usar el Sistema</h4>
                     <div class="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
@@ -569,17 +585,17 @@ if (typeof showToast === 'undefined') {
                         <p class="text-sm text-slate-600">El usuario es responsable de la integridad de los activos. En caso de pérdida o daño por mal uso, se deberá reponer el equipo según el reglamento del laboratorio.</p>
                     </div>
                 </div>
-                <div id="content-contacto" class="space-y-4 hidden">
-                    <h4 class="font-black text-[#002D62] text-lg mb-3">Contacto de Soporte</h4>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                            <h4 class="font-bold text-slate-800 mb-2">Administrador</h4>
-                            <a href="mailto:hmoram@utn.ac.cr" class="inline-flex items-center gap-2 px-4 py-2 bg-[#002D62] text-white rounded-lg text-sm font-bold">hmoram@utn.ac.cr</a>
+                <div id="content-contacto" class="space-y-3 sm:space-y-4 hidden">
+                    <h4 class="font-black text-[#002D62] text-base sm:text-lg mb-2 sm:mb-3">Contacto de Soporte</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        <div class="p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-100 min-w-0">
+                            <h4 class="font-bold text-slate-800 mb-2 text-sm sm:text-base">Administrador</h4>
+                            <a href="mailto:hmoram@utn.ac.cr" class="inline-flex max-w-full items-center gap-2 px-3 sm:px-4 py-2 bg-[#002D62] text-white rounded-lg text-xs sm:text-sm font-bold break-all">hmoram@utn.ac.cr</a>
                         </div>
-                        <div class="p-4 rounded-lg border border-amber-100">
-                            <h4 class="font-bold text-slate-800 mb-2">Teléfono</h4>
+                        <div class="p-3 sm:p-4 rounded-lg border border-amber-100 min-w-0">
+                            <h4 class="font-bold text-slate-800 mb-2 text-sm sm:text-base">Teléfono</h4>
                             <div class="flex items-center gap-2">
-                                <a href="tel:+50626601747" class="inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-bold" style="background-color: #f59e0b;">2660-1747</a>
+                                <a href="tel:+50626601747" class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-white rounded-lg text-xs sm:text-sm font-bold" style="background-color: #f59e0b;">2660-1747</a>
                             </div>
                         </div>
                     </div>

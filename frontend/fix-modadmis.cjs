@@ -41,4 +41,3 @@ if (insertPos !== -1) {
 }
 
 fs.writeFileSync(file, content, 'utf8');
-console.log('Cleaned ModAdmis.html footer.');

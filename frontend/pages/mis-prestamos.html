@@ -24,6 +24,8 @@
         .fade-in { animation: fadeInUp .35s ease both; }
         .countdown-urgent { animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.6; } }
+        .footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+        .footer strong { color: #002D62; }
     </style>
 
     <!-- SweetAlert2 --><script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -156,9 +158,7 @@
                 if (!resp.ok) throw new Error('API error');
 
                 const data = await resp.json();
-                console.log('[DEBUG] Solicitudes recibidas:', data.length);
                 const uid = user._id || user.id;
-                console.log('[DEBUG] Mi User ID:', uid);
                 const todas = Array.isArray(data) ? data : [];
 
                 // Activos en préstamo: solicitudes aprobadas (pendientes de recoger) y entregadas (ya las tiene)
@@ -510,7 +510,10 @@
     </script>
 
     <!-- FOOTER -->
-    <div id="footer-component"></div>
+    <div class="footer">
+        <strong>SPIEE</strong> - Sistema de Préstamos e Inventario de Equipos Electrónicos<br>
+        Universidad Técnica Nacional
+    </div>
 
     <!-- SCRIPTS -->
     <script src="../js/app.js"></script>

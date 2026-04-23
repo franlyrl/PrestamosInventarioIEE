@@ -111,7 +111,6 @@ Object.assign(window.Utils, {
 
     // Actualizar Información del Usuario en TODA la página
     updateUserInfo() {
-        console.log('[DEBUG] Sincronizando datos de usuario...');
         if (!window.appState) {
             console.warn('appState no disponible para updateUserInfo');
             return;
@@ -168,7 +167,6 @@ Object.assign(window.Utils, {
             }
         }
         
-        console.log(`[DEBUG] UI Actualizada para: ${nombre} (${rol})`);
     },
 
     updateMenuRoles(user) {
@@ -1184,7 +1182,6 @@ const observer = new MutationObserver((mutations) => {
     });
 
     if (shouldUpdate) {
-        console.log('[DEBUG] Componente detectado, sincronizando...');
         isUpdating = true;
         
         // Usar un pequeño delay para asegurar que el DOM se asentó

@@ -8,17 +8,13 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/prestamos'
 
 async function migrate() {
     try {
-        console.log('🚀 Iniciando migración de folios secuenciales...');
         await mongoose.connect(MONGO_URI);
-        console.log('✅ Conectado a MongoDB:', MONGO_URI);
 
         // 1. Obtener todas las solicitudes ordenadas por fecha de creación (ASC)
         const solicitudes = await Solicitudes.find().sort({ createdAt: 1 });
         
         if (solicitudes.length === 0) {
-            console.log('✨ No hay solicitudes en la base de datos.');
         } else {
-            console.log(`📦 Procesando ${solicitudes.length} solicitudes...`);
             
             let count = 0;
             for (const s of solicitudes) {
@@ -26,7 +22,6 @@ async function migrate() {
                 s.folio = count;
                 // Forzamos el guardado del folio
                 await s.save();
-                console.log(`   [#${String(count).padStart(3, '0')}] ID: ${s._id}`);
             }
 
             // 2. Sincronizar el contador global
@@ -35,7 +30,6 @@ async function migrate() {
                 { seq: count },
                 { upsert: true }
             );
-            console.log(`✅ Migración completada. Último folio asignado: #${count}`);
         }
 
         process.exit(0);

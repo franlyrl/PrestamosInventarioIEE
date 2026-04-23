@@ -19,7 +19,6 @@ const UserHist_Controller = {
      */
     establecerFechasInactividad: async (req, res) => {
         try {
-            console.log("🔧 [Historial] Estableciendo fechas de inactividad...");
 
             // Buscar usuarios inactivos sin fecha de inactividad
             const usuariosSinFecha = await Usuarios.find({
@@ -27,7 +26,6 @@ const UserHist_Controller = {
                 inactivo_desde: { $exists: false }
             });
 
-            console.log(`📋 [Historial] Usuarios encontrados sin fecha: ${usuariosSinFecha.length}`);
 
             if (usuariosSinFecha.length === 0) {
                 return res.json({
@@ -50,7 +48,6 @@ const UserHist_Controller = {
                 }
             );
 
-            console.log(`✅ [Historial] ${resultado.modifiedCount} usuarios actualizados`);
 
             res.json({
                 message: 'Fechas de inactividad establecidas correctamente',
@@ -78,12 +75,10 @@ const UserHist_Controller = {
      */
     ejecutarLimpiezaHistorial: async (req, res) => {
         try {
-            console.log("🔄 [Historial] Iniciando proceso de archivado de usuarios inactivos...");
 
             // 1. Calculamos la fecha límite (Hoy menos 12 meses)
             const fechaLimite = new Date();
             fechaLimite.setFullYear(fechaLimite.getFullYear() - 1);
-            console.log(`📅 [Historial] Fecha límite para archivado: ${fechaLimite.toISOString()}`);
 
             // 2. Buscamos a los que cumplen el tiempo
             const candidatos = await Usuarios.find({
@@ -92,7 +87,6 @@ const UserHist_Controller = {
                 inactivo_desde: { $lt: fechaLimite }
             });
 
-            console.log(`👥 [Historial] Candidatos encontrados: ${candidatos.length}`);
 
             if (candidatos.length === 0) {
                 return res.status(200).json({
@@ -116,7 +110,6 @@ const UserHist_Controller = {
             });
 
             if (prestamosActivos.length > 0) {
-                console.log(`⚠️  [Historial] Se encontraron ${prestamosActivos.length} préstamos activos`);
                 return res.status(400).json({
                     message: 'No se puede archivar. Hay usuarios con préstamos activos.',
                     prestamos_activos: prestamosActivos.length,
@@ -149,14 +142,12 @@ const UserHist_Controller = {
             });
 
             // 4. Mover físicamente los datos entre colecciones
-            console.log(`📦 [Historial] Moviendo ${datosParaMover.length} usuarios al historial...`);
             await UsuariosHistorial.insertMany(datosParaMover);
 
             // 5. Eliminar de la tabla principal
             const idsParaBorrar = candidatos.map(u => u._id);
             const resultado = await Usuarios.deleteMany({ _id: { $in: idsParaBorrar } });
 
-            console.log(`✅ [Historial] Proceso completado. ${resultado.deletedCount} usuarios archivados`);
 
             res.status(200).json({
                 message: 'Proceso de archivado completado.',

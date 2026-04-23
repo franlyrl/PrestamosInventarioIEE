@@ -26,24 +26,18 @@ function App() {
     const token = localStorage.getItem('utn_token');
 
     if (!token) {
-      console.log('⚠️ No hay token. Por favor inicia sesión primero.');
-      console.log('🔗 Puedes probar el login en: login.html');
       return;
     }
 
-    console.log('🔑 Token encontrado:', token.substring(0, 20) + '...');
 
     // Probar conexión con token
     api.get('/insumos')
       .then(res => {
-        console.log("✅ ¡Conexión Exitosa con token!", res.data);
-        console.log(`📊 Total insumos: ${res.data.length || 0}`);
       })
       .catch(err => {
         console.error("❌ Error de conexión:", err.response?.data || err.message);
 
         if (err.response?.status === 401) {
-          console.log('🔑 Token inválido o expirado');
           localStorage.removeItem('utn_token');
           localStorage.removeItem('utn_user');
         }
@@ -52,7 +46,6 @@ function App() {
     // También probar otros endpoints
     api.get('/activos')
       .then(res => {
-        console.log("✅ Activos cargados:", res.data.length || 0);
       })
       .catch(err => {
         console.error("❌ Error cargando activos:", err.response?.data?.message || err.message);

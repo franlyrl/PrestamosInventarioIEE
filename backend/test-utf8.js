@@ -25,8 +25,6 @@ const options = {
 };
 
 const req = http.request(options, (res) => {
-    console.log(`Status: ${res.statusCode}`);
-    console.log(`Headers:`, res.headers);
     
     let data = '';
     res.on('data', (chunk) => {
@@ -34,8 +32,6 @@ const req = http.request(options, (res) => {
     });
     
     res.on('end', () => {
-        console.log('Respuesta del servidor:');
-        console.log(data);
         
         // Verificar que los caracteres UTF-8 estén intactos
         const hasUTF8Chars = data.includes('María') && 
@@ -45,7 +41,6 @@ const req = http.request(options, (res) => {
                            data.includes('completó') && 
                            data.includes('¿Qué');
         
-        console.log(`\nPrueba UTF-8: ${hasUTF8Chars ? 'EXITOSA' : 'FALLIDA'}`);
     });
 });
 
@@ -56,4 +51,3 @@ req.on('error', (error) => {
 req.write(JSON.stringify(testData));
 req.end();
 
-console.log('Enviando datos UTF-8 al servidor...');

@@ -14,7 +14,6 @@ class RolManager {
      * Inicializa el gestor de roles
      */
     inicializar(usuario) {
-        console.log(' Inicializando RolManager para:', usuario);
         
         this.usuarioActual = usuario;
         
@@ -54,7 +53,6 @@ class RolManager {
      * Muestra vista para estudiantes y docentes
      */
     mostrarVistaEstudiante() {
-        console.log(' Mostrando vista para estudiantes/docentes');
         if (this.vistaEstudiante) {
             this.vistaEstudiante.classList.remove('hidden');
         }
@@ -64,7 +62,6 @@ class RolManager {
      * Muestra vista para administrativos y admin
      */
     mostrarVistaAdmin() {
-        console.log('️ Mostrando vista para administrativos/admin');
         if (this.vistaAdmin) {
             this.vistaAdmin.classList.remove('hidden');
         }
@@ -74,7 +71,6 @@ class RolManager {
      * Abre el módulo de gestión de activos
      */
     abrirModuloActivos() {
-        console.log(' Abriendo módulo de Activos');
         this.mostrarToast(' Abriendo gestión de Activos...', 'info');
         
         // Redirigir a la página de gestión de activos
@@ -87,7 +83,6 @@ class RolManager {
      * Abre el modal para añadir artículos
      */
     abrirModalAgregar() {
-        console.log(' Abriendo modal para añadir artículo');
         this.mostrarToast(' Abriendo formulario para añadir artículo...', 'info');
         
         // Crear y mostrar modal de agregar artículo
@@ -232,7 +227,6 @@ class RolManager {
                 descripcion: document.getElementById('descripcionArticulo').value
             };
             
-            console.log(' Guardando artículo:', formData);
             
             const response = await fetch(`${window.CONFIG.API_BASE_URL}/insumos`, {
                 method: 'POST',
@@ -246,7 +240,6 @@ class RolManager {
             const data = await response.json();
             
             if (response.ok) {
-                console.log(' Artículo guardado:', data);
                 this.mostrarToast(' Artículo guardado exitosamente', 'success');
                 this.cerrarModalAgregar();
             } else {
@@ -263,7 +256,6 @@ class RolManager {
      * Abre el módulo de gestión de insumos
      */
     abrirModuloInsumos() {
-        console.log(' Abriendo módulo de Insumos');
         this.mostrarToast(' Abriendo gestión de Insumos...', 'info');
         
         // Redirigir a la página de gestión de insumos
@@ -280,7 +272,6 @@ class RolManager {
         if (typeof showToast === 'function') {
             showToast(mensaje, tipo);
         } else {
-            console.log('Toast:', mensaje);
         }
     }
 }

@@ -10,7 +10,6 @@ const Solicitudes = require('../models/solicitudes');
  */
 router.get('/totales', async (req, res) => {
     try {
-        console.log('📊 Obteniendo estadísticas totales...');
         
         // Contar documentos en cada colección
         const [totalActivos, totalInsumos, totalSolicitudes] = await Promise.all([
@@ -19,11 +18,6 @@ router.get('/totales', async (req, res) => {
             Solicitudes.countDocuments({ estado: { $in: ['aprobada', 'entregado'] } })
         ]);
 
-        console.log('📊 Estadísticas calculadas:', {
-            totalActivos,
-            totalInsumos,
-            totalSolicitudes
-        });
 
         res.json({
             success: true,
@@ -48,7 +42,6 @@ router.get('/totales', async (req, res) => {
  */
 router.get('/detalladas', async (req, res) => {
     try {
-        console.log('📊 Obteniendo estadísticas detalladas...');
         
         // Estadísticas de activos por categoría
         const activosPorCategoria = await Activos.aggregate([
@@ -90,7 +83,6 @@ router.get('/detalladas', async (req, res) => {
             }
         ]);
 
-        console.log('📊 Estadísticas detalladas calculadas');
 
         res.json({
             success: true,

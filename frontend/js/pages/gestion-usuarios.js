@@ -313,7 +313,6 @@ async function procesarCSV() {
             // Saltar encabezado (si contiene palabras clave)
             const lineaLower = linea.toLowerCase();
             if (lineaLower.includes('nombre') && lineaLower.includes('correo')) {
-                console.log(`Fila ${i + 1}: Saltando encabezado`);
                 continue;
             }
             
@@ -340,7 +339,6 @@ async function procesarCSV() {
             }
             
             // Debug
-            console.log(`Fila ${i + 1}:`, { nombre, cedula, correo, estado });
             
             // Validar correo
             if (!correo || !correo.includes('@')) {

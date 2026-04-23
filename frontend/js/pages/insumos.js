@@ -406,7 +406,6 @@ class InsumosController {
         if (!insumo) return;
 
         // Lógica para editar insumo
-        console.log('Editar insumo:', insumo);
         Utils.showToast('Función de edición en desarrollo', 'info');
     }
 
