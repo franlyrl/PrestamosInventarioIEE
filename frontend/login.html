@@ -11,6 +11,11 @@
     <!-- Favicon -->
     <link rel="icon" type="image/jpeg" href="css/UTN.jpg" />
     
+    <!--
+      Esta página es la entrada autónoma del sistema.
+      Su lógica principal vive en el script inline del final del archivo, por lo
+      que quien mantenga el login debe revisar este mismo HTML.
+    -->
     <!-- CSS -->
     <link rel="stylesheet" href="css/styles.css" />
     <script>
@@ -217,6 +222,9 @@
                             <span>Acceder al Sistema</span>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                         </button>
+                        <button type="button" onclick="abrirModalCambiarPassword()" class="mt-4 w-full text-utn-blue hover:text-utn-gold text-xs font-black uppercase tracking-[0.18em] transition-colors">
+                            Cambiar contraseña
+                        </button>
                     </div>
                     
                     <div class="pt-8 mt-8 border-t border-slate-100 flex flex-col items-center">
@@ -235,7 +243,12 @@
 
     </div>
 
-    <!-- INDICADOR DE CONEXI-N -->
+    <!--
+      Los IDs del login (`loginForm`, `userInput`, `passInput`,
+      `connectionStatus`, `toast`, etc.) son manipulados por el script inline
+      al final de la página.
+    -->
+    <!-- Indicador de conexión -->
     <div
       id="connectionStatus"
       class="fixed top-4 right-4 z-[300] flex items-center gap-2 bg-white px-3 py-2 rounded-full shadow-md border border-slate-200 text-xs">
@@ -255,6 +268,16 @@
       </div>
     </div>
 
+    <!--
+      Script principal del login:
+      - autenticación,
+      - registro,
+      - cambio de contraseña,
+      - reactivación por boleta.
+
+      En esta vista, la relación HTML -> JS es directa porque el comportamiento
+      está escrito en el mismo archivo.
+    -->
     <!-- JavaScript -->
     <script>
       // Configuración global - usa ruta relativa para funcionar con Caddy/ngrok
@@ -568,6 +591,124 @@
       // Función para ir a la página de registro
       function goToSignUp() {
         window.location.href = 'signup.html';
+      }
+
+      async function abrirModalCambiarPassword() {
+        const correoActual = document.getElementById('userInput')?.value?.trim() || '';
+        const { value: formValues } = await Swal.fire({
+          title: '<span class="text-[#002D62] font-black">Cambiar contraseña</span>',
+          html: `
+            <div class="text-left space-y-3">
+              <p class="text-xs text-slate-500 font-semibold leading-relaxed">Ingresa tu correo institucional, tu contraseña actual y la nueva contraseña.</p>
+              <div>
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Correo institucional</label>
+                <input id="swal-cambio-correo" class="swal2-input" placeholder="usuario@utn.ac.cr" value="${correoActual}" style="width:100%;margin:0">
+              </div>
+              <div>
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Contraseña actual</label>
+                <input id="swal-cambio-actual" type="password" class="swal2-input" placeholder="Contraseña actual" style="width:100%;margin:0">
+              </div>
+              <div>
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nueva contraseña</label>
+                <input id="swal-cambio-nueva" type="password" class="swal2-input" placeholder="Mínimo 8 caracteres" style="width:100%;margin:0">
+              </div>
+              <div>
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Confirmar nueva contraseña</label>
+                <input id="swal-cambio-confirmar" type="password" class="swal2-input" placeholder="Repite la nueva contraseña" style="width:100%;margin:0">
+              </div>
+            </div>
+          `,
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: 'Actualizar contraseña',
+          cancelButtonText: 'Cancelar',
+          confirmButtonColor: '#002D62',
+          cancelButtonColor: '#94a3b8',
+          customClass: {
+            popup: 'rounded-3xl',
+            confirmButton: 'font-black px-5 py-3 rounded-xl',
+            cancelButton: 'font-black px-5 py-3 rounded-xl'
+          },
+          preConfirm: () => {
+            const correo = (document.getElementById('swal-cambio-correo').value || '').trim().toLowerCase();
+            const actual = document.getElementById('swal-cambio-actual').value || '';
+            const nueva = document.getElementById('swal-cambio-nueva').value || '';
+            const confirmar = document.getElementById('swal-cambio-confirmar').value || '';
+
+            if (!correo || !actual || !nueva || !confirmar) {
+              Swal.showValidationMessage('Completa todos los campos.');
+              return false;
+            }
+            if (!/^[\w.-]+@(est\.utn\.ac\.cr|utn\.ac\.cr)$/.test(correo)) {
+              Swal.showValidationMessage('Usa un correo institucional UTN válido.');
+              return false;
+            }
+            if (nueva.length < 8) {
+              Swal.showValidationMessage('La nueva contraseña debe tener al menos 8 caracteres.');
+              return false;
+            }
+            if (nueva !== confirmar) {
+              Swal.showValidationMessage('La confirmación no coincide con la nueva contraseña.');
+              return false;
+            }
+            if (actual === nueva) {
+              Swal.showValidationMessage('La nueva contraseña debe ser diferente a la actual.');
+              return false;
+            }
+
+            return { correo, actual, nueva };
+          }
+        });
+
+        if (!formValues) return;
+
+        try {
+          const apiBase = window.CONFIG?.API_BASE_URL || '/api';
+          const payloadCambio = {
+            correo_electronico: formValues.correo,
+            currentPassword: formValues.actual,
+            newPassword: formValues.nueva
+          };
+          const endpointsCambio = [
+            `${apiBase}/usuarios/cambiar-password-login`,
+            `${apiBase}/usuarios/cambiar-password`,
+            `${apiBase}/cambiar-password-login`
+          ];
+          let response = null;
+          let data = {};
+
+          for (const endpoint of endpointsCambio) {
+            response = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payloadCambio)
+            });
+            data = await response.json().catch(() => ({}));
+            if (response.status !== 404 || data.message !== 'API endpoint no encontrado') break;
+          }
+
+          if (response?.status === 404 && data.message === 'API endpoint no encontrado') {
+            throw new Error('El servidor aún no tiene cargado el endpoint para cambiar contraseña. Reinicia el backend e inténtalo de nuevo.');
+          }
+          if (!response.ok) throw new Error(data.message || 'No se pudo cambiar la contraseña.');
+
+          document.getElementById('userInput').value = formValues.correo;
+          document.getElementById('passInput').value = '';
+          await Swal.fire({
+            icon: 'success',
+            title: 'Contraseña actualizada',
+            text: data.message || 'Ya puedes iniciar sesión con tu nueva contraseña.',
+            confirmButtonColor: '#002D62'
+          });
+          document.getElementById('passInput')?.focus();
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'No se pudo actualizar',
+            text: error.message || 'Verifica los datos e inténtalo de nuevo.',
+            confirmButtonColor: '#002D62'
+          });
+        }
       }
 
       async function abrirModalReactivacionBoleta(correoSugerido, cuatrimestre) {

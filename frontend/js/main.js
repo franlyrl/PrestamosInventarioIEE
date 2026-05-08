@@ -2,9 +2,18 @@
  * UTN - Sistema de Préstamos e Inventario
  * Script Principal (Mejorado)
  * Centraliza la lógica de UI y servicios API
+ *
+ * Referencia para mantenimiento:
+ * - Este archivo no se importa como módulo moderno; expone objetos en `window`
+ *   para que los distintos HTML del proyecto puedan reutilizar lógica común.
+ * - Si alguien necesita entender "qué JS controla una pantalla", normalmente
+ *   debe revisar primero el HTML de la vista, ubicar sus `<script>` y luego
+ *   seguir la lógica global definida aquí y en `components.js`.
  */
 
 // 1. CONFIGURACIÓN GLOBAL
+// Se centraliza aquí para que todas las vistas reutilicen la misma base de API
+// y las mismas claves de sesión sin duplicar constantes.
 if (typeof window.CONFIG === 'undefined') {
     window.CONFIG = {
         API_BASE_URL: '/api',
@@ -54,6 +63,8 @@ window.SwalUTN = {
 };
 
 // 2. UTILIDADES GLOBALES
+// Se dejan en `window` porque el frontend funciona como múltiples HTML
+// tradicionales y no como una SPA con imports por vista.
 if (typeof window.Utils === 'undefined') window.Utils = {};
 Object.assign(window.Utils, {
     // Obtener iniciales del nombre
@@ -210,8 +221,8 @@ Object.assign(window.Utils, {
 });
 
 // ─── SISTEMA GLOBAL DE NOTIFICACIONES UTN ─────────────────────────────────────
-// Funciona en TODAS las páginas. Consulta las solicitudes del estudiante,
-// detecta cambios de estado importantes y alerta al usuario proactivamente.
+// Se consume desde varias vistas y también desde `components.js` una vez que el
+// header compartido ya fue inyectado en el DOM.
 window.UTNNotifs = {
 
     _apiBase: '/api',

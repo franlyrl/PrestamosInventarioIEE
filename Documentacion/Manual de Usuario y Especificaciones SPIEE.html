@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual de Usuario y Especificaciones - SPIEE</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #1f2937;
+      line-height: 1.55;
+      margin: 2.2cm 2cm;
+      background: #ffffff;
+      font-size: 11pt;
+    }
+    h1, h2, h3, h4 {
+      color: #002d62;
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 22pt;
+      text-align: center;
+      margin-top: 0;
+    }
+    h2 {
+      font-size: 16pt;
+      border-bottom: 2px solid #dbe5f1;
+      padding-bottom: 4px;
+    }
+    h3 {
+      font-size: 13pt;
+    }
+    h4 {
+      font-size: 11.5pt;
+    }
+    p {
+      margin: 8px 0;
+      text-align: justify;
+    }
+    ul, ol {
+      margin: 8px 0 8px 22px;
+    }
+    li {
+      margin: 4px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 18px;
+      font-size: 10.5pt;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 8px 10px;
+      vertical-align: top;
+    }
+    th {
+      background: #eaf1fb;
+      color: #002d62;
+      text-align: left;
+    }
+    .cover {
+      padding: 8px 0 18px;
+      margin-bottom: 28px;
+    }
+    .doc-header {
+      display: table;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+    .doc-header-left,
+    .doc-header-right {
+      display: table-cell;
+      vertical-align: middle;
+    }
+    .doc-header-left {
+      width: 90px;
+    }
+    .doc-header-left img {
+      width: 68px;
+      height: auto;
+    }
+    .doc-header-right {
+      text-align: right;
+    }
+    .doc-header-title {
+      font-size: 11pt;
+      font-weight: bold;
+      color: #002d62;
+      margin: 0;
+    }
+    .doc-header-subtitle {
+      font-size: 9pt;
+      color: #64748b;
+      margin: 2px 0 0;
+    }
+    .cover-subtitle {
+      text-align: center;
+      font-size: 11pt;
+      color: #475569;
+      margin-top: 8px;
+    }
+    .meta {
+      width: 100%;
+      margin-top: 20px;
+      border: none;
+      font-size: 10pt;
+    }
+    .meta td {
+      border: none;
+      padding: 4px 0;
+    }
+    .note {
+      background: #f8fafc;
+      border-left: 4px solid #002d62;
+      padding: 8px 10px;
+      margin: 10px 0;
+      font-size: 10pt;
+    }
+    .warning {
+      background: #fff8e8;
+      border-left: 4px solid #f2a900;
+      padding: 10px 12px;
+      margin: 12px 0;
+    }
+    .small {
+      font-size: 10pt;
+      color: #475569;
+    }
+    .page-break {
+      page-break-before: always;
+    }
+    .executive-box {
+      background: #f4f8fd;
+      border: 1px solid #d6e3f3;
+      padding: 9px 11px;
+      margin: 10px 0 14px;
+      font-size: 10pt;
+    }
+  </style>
+</head>
+<body>
+  <div class="cover">
+    <div class="doc-header">
+      <div class="doc-header-left">
+        <img src="../frontend/css/UTN.jpg" alt="Logo UTN">
+      </div>
+      <div class="doc-header-right">
+        <p class="doc-header-title">Universidad Técnica Nacional</p>
+        <p class="doc-header-subtitle">Escuela de Ingeniería Electrónica</p>
+      </div>
+    </div>
+    <h1>Manual Ejecutivo de Uso y Especificaciones del Sistema SPIEE</h1>
+    <p class="cover-subtitle">Sistema de Préstamos e Inventario para la Escuela de Ingeniería Electrónica</p>
+    <p class="cover-subtitle">Documento ejecutivo de referencia para encargados administrativos, operativos y de supervisión</p>
+    <table class="meta">
+      <tr>
+        <td><strong>Institución:</strong> Universidad Técnica Nacional</td>
+      </tr>
+      <tr>
+        <td><strong>Sistema:</strong> PrestamosInventarioIEE / SPIEE</td>
+      </tr>
+      <tr>
+        <td><strong>Fecha del documento:</strong> 8 de mayo de 2026</td>
+      </tr>
+      <tr>
+        <td><strong>Propósito:</strong> Presentar de forma clara, formal y ejecutiva el funcionamiento del sistema, sus módulos, reglas de operación y especificaciones clave.</td>
+      </tr>
+    </table>
+  </div>
+
+  <h2>1. Resumen Ejecutivo</h2>
+  <div class="executive-box">
+    <p>SPIEE es la plataforma institucional utilizada para controlar activos, insumos, solicitudes de préstamo, validación documental y gestión de usuarios dentro del entorno de la Escuela de Ingeniería Electrónica. Su aporte principal es consolidar en un solo sistema los procesos críticos de operación del laboratorio, fortaleciendo el orden administrativo, la trazabilidad y la toma de decisiones.</p>
+    <p>Desde una perspectiva ejecutiva, el sistema permite saber qué recursos existen, quién los solicita, en qué estado se encuentran, qué usuarios están habilitados para operar y qué condiciones académicas o administrativas deben cumplirse antes de aprobar un préstamo. Esto reduce riesgos de pérdida de control, mejora la supervisión y aporta evidencia para auditoría y seguimiento institucional.</p>
+  </div>
+
+  <h2>2. Introducción</h2>
+  <p>El sistema SPIEE fue desarrollado para apoyar la administración integral del inventario, los préstamos y el control de usuarios de la Escuela de Ingeniería Electrónica. Su objetivo principal es centralizar en una sola plataforma los procesos de registro, consulta, solicitud, aprobación, entrega, devolución y seguimiento de activos e insumos, reduciendo la dependencia de controles manuales y mejorando la trazabilidad institucional.</p>
+  <p>Este manual está orientado a encargados administrativos, personal operador, responsables de laboratorio y personas con funciones de supervisión. Por esa razón, el documento no se limita a describir pantallas, sino que también explica la lógica operativa del sistema, los estados válidos de los registros, las reglas de negocio que se aplican de forma automática y las recomendaciones para un uso correcto.</p>
+
+  <h2>3. Objetivo del sistema</h2>
+  <p>SPIEE permite gestionar de manera ordenada los recursos del laboratorio y controlar quién solicita, utiliza y devuelve los bienes institucionales. Además, integra controles sobre periodos académicos, validación de boletas estudiantiles, aprobación de docentes, lista de espera, reportes y permisos diferenciados por rol.</p>
+  <div class="note">
+    <strong>En términos prácticos, el sistema resuelve cinco necesidades clave:</strong>
+    <ol>
+      <li>Controlar el inventario de activos e insumos.</li>
+      <li>Registrar solicitudes y préstamos con trazabilidad.</li>
+      <li>Restringir accesos según el tipo de usuario.</li>
+      <li>Dar seguimiento a boletas, periodos académicos y estados de matrícula.</li>
+      <li>Producir información útil para la toma de decisiones y la supervisión del laboratorio.</li>
+    </ol>
+  </div>
+
+  <h2>4. Alcance funcional</h2>
+  <p>De acuerdo con la estructura actual del proyecto, el sistema cubre los siguientes módulos operativos:</p>
+  <ul>
+    <li>Acceso al sistema e inicio de sesión.</li>
+    <li>Registro de usuarios y carga de boleta PDF.</li>
+    <li>Gestión de usuarios, roles, permisos y estados.</li>
+    <li>Gestión de activos del laboratorio.</li>
+    <li>Gestión de insumos consumibles.</li>
+    <li>Creación y seguimiento de solicitudes de préstamo.</li>
+    <li>Control de lista de espera.</li>
+    <li>Gestión de cuatrimestre y validación documental.</li>
+    <li>Perfil de usuario, notificaciones y seguimiento personal.</li>
+    <li>Reportes e indicadores del inventario y del uso del sistema.</li>
+  </ul>
+
+  <h2>5. Tipos de usuario y responsabilidades</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rol</th>
+        <th>Descripción general</th>
+        <th>Responsabilidades principales</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Estudiante</td>
+        <td>Usuario solicitante de materiales o equipos.</td>
+        <td>Registrarse, iniciar sesión, cargar boleta, solicitar activos o insumos, revisar su historial, controlar sus préstamos y responder a observaciones administrativas.</td>
+      </tr>
+      <tr>
+        <td>Docente</td>
+        <td>Usuario académico con acceso regulado.</td>
+        <td>Utilizar el sistema conforme a la aprobación de su cuenta, gestionar solicitudes según las políticas institucionales y mantener sus datos actualizados.</td>
+      </tr>
+      <tr>
+        <td>Operador</td>
+        <td>Usuario con permisos personalizados.</td>
+        <td>Apoyar procesos específicos según los permisos asignados, por ejemplo inventario, solicitudes, reportes o usuarios.</td>
+      </tr>
+      <tr>
+        <td>Administrativo</td>
+        <td>Usuario de gestión institucional.</td>
+        <td>Registrar inventario, revisar solicitudes, validar documentos, operar reportes y apoyar la administración general del sistema.</td>
+      </tr>
+      <tr>
+        <td>Admin</td>
+        <td>Rol de control total.</td>
+        <td>Configurar cuatrimestres, aprobar docentes, sancionar usuarios, modificar permisos, realizar bajas lógicas, levantar sanciones y ejecutar mantenimiento funcional del sistema.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>6. Flujo general de uso</h2>
+  <ol>
+    <li>El usuario accede al portal mediante correo institucional y contraseña.</li>
+    <li>Si es un usuario nuevo, crea su cuenta y, en caso de estudiante, adjunta su boleta en formato PDF.</li>
+    <li>El personal encargado revisa el estado del usuario y valida la documentación cuando corresponde.</li>
+    <li>Una vez habilitado, el usuario puede consultar inventario y generar solicitudes.</li>
+    <li>La solicitud pasa por estados de control hasta concluir con entrega, devolución, rechazo, cancelación o penalización.</li>
+    <li>El sistema registra cambios, estados y datos necesarios para consulta posterior, estadísticas y auditoría.</li>
+  </ol>
+
+  <div class="page-break"></div>
+
+  <h2>7. Acceso al sistema</h2>
+  <h3>7.1 Inicio de sesión</h3>
+  <p>La pantalla de acceso solicita correo institucional y contraseña. El sistema fue diseñado para usar cuentas vinculadas a dominios institucionales de la UTN. Una vez autenticado, el usuario es redirigido a su panel o módulo correspondiente, según el rol que posea en su registro.</p>
+  <p>Durante el acceso, el sistema también utiliza información guardada en sesión local para mantener el nombre del usuario, el rol, el token de autenticación y su contexto de navegación.</p>
+
+  <h3>7.2 Cambio de contraseña</h3>
+  <p>Desde la pantalla de acceso existe una opción de cambio de contraseña. Esta funcionalidad es importante para la continuidad operativa, ya que reduce dependencia del soporte técnico cuando un usuario olvida o necesita renovar su clave. La contraseña debe respetar la política implementada en el sistema, que exige una longitud mínima de ocho caracteres.</p>
+
+  <h3>7.3 Restricciones de acceso</h3>
+  <p>El sistema no permite el uso libre de cualquier correo. La validación actual acepta correos de la UTN y, en varios procesos, condiciona el acceso al estado del usuario. Por ejemplo, un usuario sancionado, inactivo o pendiente de devolución puede quedar impedido para crear nuevas solicitudes.</p>
+
+  <h2>8. Registro de usuarios y validación documental</h2>
+  <h3>8.1 Información básica del usuario</h3>
+  <p>Cada usuario del sistema maneja, entre otros, los siguientes campos relevantes: cédula, nombre completo, correo electrónico, contraseña cifrada, rol, permisos, estado del usuario y fecha del último acceso. Para estudiantes, también se contemplan datos académicos como código estudiantil, carrera, cuatrimestre, estado de matrícula y referencias asociadas a la boleta.</p>
+
+  <h3>8.2 Reglas de registro</h3>
+  <ul>
+    <li>La cédula debe contener solo dígitos y una longitud compatible con la validación del sistema.</li>
+    <li>El correo debe pertenecer a dominios institucionales permitidos.</li>
+    <li>La contraseña debe tener al menos ocho caracteres.</li>
+    <li>El rol inicial puede variar, pero el sistema distingue entre estudiante, docente, administrativo, operador y admin.</li>
+  </ul>
+
+  <h3>8.3 Gestión de boletas</h3>
+  <p>Para estudiantes, el sistema maneja una lógica formal de boletas PDF. El documento puede estar en los estados <strong>pendiente_boleta</strong>, <strong>pendiente_revision</strong>, <strong>validada</strong> o <strong>rechazada</strong>. Esta funcionalidad se relaciona directamente con la gestión del cuatrimestre activo y con los requisitos institucionales para permitir solicitudes.</p>
+  <p>La boleta queda almacenada como archivo en el servidor y se registran además observaciones, fecha de carga, periodo asociado y validación administrativa.</p>
+
+  <h3>8.4 Revisión administrativa de boletas</h3>
+  <p>Desde el módulo de gestión de cuatrimestre, el personal encargado puede visualizar las boletas pendientes y tomar una decisión. Al aprobar una boleta, el sistema la marca como válida; al rechazarla, conserva el registro y exige la carga de un nuevo documento o la corrección del problema señalado en observaciones.</p>
+
+  <h2>9. Gestión de cuatrimestre</h2>
+  <p>El módulo de cuatrimestre cumple una función crítica en la operación del sistema, porque define el periodo académico activo y determina si se requiere una nueva boleta estudiantil. Cada cuatrimestre se registra con código, fecha de inicio, fecha de fin, indicador de activación y observaciones administrativas.</p>
+  <p>Al activar un nuevo cuatrimestre, el sistema reinicia la necesidad de boleta para estudiantes, dejando sus registros en estado de revisión requerida. Esto garantiza que el control documental permanezca alineado con el ciclo académico vigente.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Elemento</th>
+        <th>Uso</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Código del cuatrimestre</td>
+        <td>Identifica formalmente el periodo activo, por ejemplo un código interno académico.</td>
+      </tr>
+      <tr>
+        <td>Fecha de inicio</td>
+        <td>Marca la apertura del periodo y ayuda a determinar si está vigente, futuro o vencido.</td>
+      </tr>
+      <tr>
+        <td>Fecha de fin</td>
+        <td>Define el cierre del periodo y el límite de su ventana de vigencia.</td>
+      </tr>
+      <tr>
+        <td>Requiere boleta</td>
+        <td>Controla si el sistema exige validación documental al estudiantado.</td>
+      </tr>
+      <tr>
+        <td>Boletas pendientes</td>
+        <td>Permite aprobar o rechazar documentos de manera centralizada.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="warning">
+    <strong>Importancia operativa:</strong> la configuración del cuatrimestre no es un paso decorativo. Afecta directamente la elegibilidad de los estudiantes, el control documental y la consistencia del proceso de préstamo.
+  </div>
+
+  <h2>10. Gestión de activos</h2>
+  <p>Los activos corresponden a bienes identificables individualmente, tales como instrumentos y herramientas. Cada activo posee identidad propia, por lo que se registra con número de activo, número de serie, marca, modelo, categoría, características, observaciones e imagen.</p>
+
+  <h3>10.1 Categorías de activos</h3>
+  <ul>
+    <li>Instrumentos</li>
+    <li>Herramientas</li>
+  </ul>
+
+  <h3>10.2 Estados de activos</h3>
+  <ul>
+    <li>Disponible</li>
+    <li>Prestado</li>
+    <li>En espera</li>
+    <li>Fuera de stock</li>
+    <li>Eliminado</li>
+    <li>Fuera de servicio</li>
+  </ul>
+
+  <h3>10.3 Operaciones disponibles</h3>
+  <ul>
+    <li>Registrar un activo nuevo de forma individual.</li>
+    <li>Registrar activos de forma masiva.</li>
+    <li>Editar la información de un activo existente.</li>
+    <li>Buscar por texto, marca, modelo o características.</li>
+    <li>Filtrar por categoría o por estado.</li>
+    <li>Asociar imágenes de manera manual o masiva.</li>
+    <li>Marcar activos en mal estado o fuera de servicio.</li>
+    <li>Dar de baja lógica, manteniendo la trazabilidad histórica.</li>
+    <li>Exportar información y generar reporte HTML de activos.</li>
+  </ul>
+
+  <h3>10.4 Reglas de control</h3>
+  <p>El sistema exige unicidad para el número de activo y el número de serie, lo que evita duplicidad de registros. La baja de un activo no lo elimina físicamente del historial; más bien cambia su estado a eliminado y registra observación, fecha de baja y usuario responsable. Este enfoque es apropiado para auditoría y control institucional.</p>
+
+  <h3>10.5 Uso recomendado por encargados</h3>
+  <p>El módulo debe ser utilizado como registro maestro de cada equipo del laboratorio. Si un activo sufre daño, sale de uso o entra en proceso de reparación, el cambio debe reflejarse de inmediato en el sistema para evitar solicitudes erróneas y para mantener confiables los reportes de disponibilidad.</p>
+
+  <h2>11. Gestión de insumos</h2>
+  <p>Los insumos son materiales consumibles o unidades que se administran por cantidad. A diferencia de los activos, no se controlan uno a uno por serie, sino por stock disponible, categoría, ubicación y movimientos registrados.</p>
+
+  <h3>11.1 Campos relevantes del insumo</h3>
+  <ul>
+    <li>ID interno del insumo.</li>
+    <li>Código único.</li>
+    <li>Tipo.</li>
+    <li>Nombre del producto.</li>
+    <li>Cantidad.</li>
+    <li>Características.</li>
+    <li>Categoría.</li>
+    <li>Ubicación.</li>
+    <li>Estado.</li>
+    <li>Imagen.</li>
+    <li>Movimientos de trazabilidad.</li>
+  </ul>
+
+  <h3>11.2 Categorías de insumos</h3>
+  <ul>
+    <li>Componentes Analógicos</li>
+    <li>Componentes Digitales</li>
+  </ul>
+
+  <h3>11.3 Estados de insumos</h3>
+  <ul>
+    <li>Disponible</li>
+    <li>Prestado</li>
+    <li>En espera</li>
+    <li>Fuera de stock</li>
+    <li>Eliminado</li>
+    <li>Fuera de servicio</li>
+  </ul>
+
+  <h3>11.4 Trazabilidad de movimientos</h3>
+  <p>Una característica importante del módulo es el historial de movimientos. Cada edición o ajuste relevante puede registrar tipo de movimiento, cantidad anterior, cantidad nueva, estado anterior, estado nuevo, observación, usuario y fecha. Esto facilita control interno y permite explicar por qué cambió la existencia de un producto.</p>
+
+  <h3>11.5 Reglas automáticas de stock</h3>
+  <p>El sistema normaliza de forma automática el estado del insumo según la cantidad disponible. Si la cantidad llega a cero, el estado puede pasar a <strong>fuera de stock</strong>. Si existe disponibilidad y el estado no corresponde a una excepción como eliminado o en espera, el sistema lo considera disponible.</p>
+
+  <h3>11.6 Utilidad para encargados</h3>
+  <p>Este módulo debe reflejar la realidad física del laboratorio. Su valor no está solamente en saber cuántos insumos existen, sino en permitir prevenir quiebres de stock, detectar materiales críticos y respaldar la planificación de reposiciones.</p>
+
+  <div class="page-break"></div>
+
+  <h2>12. Solicitudes de préstamo</h2>
+  <p>El módulo de solicitudes es el centro operativo del sistema. Aquí se enlazan usuarios, activos e insumos en una misma transacción funcional, permitiendo gestionar desde la petición inicial hasta la devolución o cierre del caso.</p>
+
+  <h3>12.1 Qué puede incluir una solicitud</h3>
+  <ul>
+    <li>Uno o varios activos.</li>
+    <li>Uno o varios insumos con cantidad específica.</li>
+    <li>Observaciones del solicitante.</li>
+  </ul>
+
+  <h3>12.2 Reglas de negocio observadas en el sistema</h3>
+  <ol>
+    <li>El usuario que crea la solicitud se obtiene desde la sesión autenticada, no desde un dato libre del formulario.</li>
+    <li>Un usuario en estado inactivo, sancionado o pendiente de devolución no puede crear nuevas solicitudes.</li>
+    <li>Si el usuario ya tiene una solicitud pendiente, el sistema bloquea la creación de otra nueva en ese estado.</li>
+    <li>Los activos solo entran a la solicitud si están disponibles.</li>
+    <li>Los insumos solo entran a la solicitud si existe stock suficiente.</li>
+    <li>Si un recurso no está disponible, el sistema puede mover al usuario a lista de espera en lugar de aprobar automáticamente el requerimiento.</li>
+  </ol>
+
+  <h3>12.3 Estados de una solicitud</h3>
+  <ul>
+    <li>Pendiente</li>
+    <li>Aprobada</li>
+    <li>Rechazada</li>
+    <li>Entregado</li>
+    <li>Penalizado</li>
+    <li>Devuelto</li>
+    <li>Cancelada</li>
+  </ul>
+
+  <h3>12.4 Historial de estados</h3>
+  <p>Cada solicitud conserva un histórico cronológico de cambios de estado. Esto permite saber cuándo fue creada, aprobada, rechazada, devuelta o penalizada, así como las observaciones asociadas a esos cambios. Para estados críticos como rechazo, devolución o penalización, el sistema contempla la necesidad de observaciones, lo cual fortalece la trazabilidad administrativa.</p>
+
+  <h3>12.5 Fechas relevantes en el flujo</h3>
+  <ul>
+    <li>Fecha de préstamo.</li>
+    <li>Fecha de entrega esperada.</li>
+    <li>Fecha de devolución real.</li>
+    <li>Fecha programada de recogida.</li>
+    <li>Hora de recogida.</li>
+  </ul>
+
+  <h3>12.6 Recomendación operativa</h3>
+  <p>Las personas encargadas deben revisar constantemente las solicitudes pendientes y mantener los estados al día. Un estado incorrecto afecta la disponibilidad del inventario, la experiencia del usuario y la veracidad de los reportes.</p>
+
+  <h2>13. Lista de espera</h2>
+  <p>La lista de espera permite atender situaciones en las que un activo o insumo no está disponible al momento de la solicitud. En vez de perder el requerimiento, el sistema conserva la intención de uso y asocia al usuario con el recurso solicitado bajo estado de espera.</p>
+  <p>Esto es especialmente útil para recursos con alta demanda o existencia limitada. Desde el punto de vista institucional, la lista de espera aporta visibilidad sobre necesidades insatisfechas, lo cual puede orientar compras, redistribución de inventario o ajustes operativos.</p>
+
+  <h2>14. Perfil del usuario y seguimiento personal</h2>
+  <p>El sistema cuenta con un módulo de perfil donde el usuario puede consultar sus datos principales, revisar sus préstamos activos y ver el comportamiento de sus solicitudes. Esta vista es importante porque reduce consultas manuales al personal encargado y fomenta el autocontrol del usuario sobre su situación dentro del sistema.</p>
+  <p>El perfil también ayuda a identificar si una persona mantiene préstamos pendientes, si posee restricciones o si necesita completar documentación para operar normalmente.</p>
+
+  <h2>15. Notificaciones</h2>
+  <p>Existe una vista de notificaciones que centraliza eventos relevantes del usuario, como pendientes administrativos, movimientos relacionados con solicitudes o referencias a lista de espera. En términos operativos, este módulo contribuye a reducir la desinformación y favorece que el usuario responda a tiempo ante un requerimiento institucional.</p>
+
+  <h2>16. Gestión de usuarios</h2>
+  <p>El módulo de gestión de usuarios es una herramienta administrativa para control de cuentas, roles y accesos. Su función no se limita a aprobar usuarios, sino que permite aplicar gobernanza sobre quién puede entrar al sistema y qué puede hacer dentro de él.</p>
+
+  <h3>16.1 Funcionalidades principales</h3>
+  <ul>
+    <li>Buscar usuarios por nombre, cédula o correo.</li>
+    <li>Filtrar por rol.</li>
+    <li>Modificar rol y estado de la cuenta.</li>
+    <li>Asignar permisos específicos a operadores.</li>
+    <li>Revisar docentes pendientes de aprobación.</li>
+    <li>Actualizar estado de docentes mediante archivo CSV.</li>
+    <li>Inactivar usuarios.</li>
+    <li>Sancionar y levantar sanciones.</li>
+    <li>Ejecutar acciones de mantenimiento de cierre de cuatrimestre.</li>
+  </ul>
+
+  <h3>16.2 Permisos personalizados para operadores</h3>
+  <p>El sistema contempla permisos específicos para el rol operador. Esto permite crear perfiles intermedios sin necesidad de entregar control total. Los permisos observados incluyen inventario, solicitudes, reportes y usuarios. Este diseño es adecuado para segmentar funciones y reducir riesgo de cambios indebidos.</p>
+
+  <h3>16.3 Control de docentes por CSV</h3>
+  <p>La interfaz administrativa incluye una función de actualización por CSV para docentes. El formato esperado contempla nombre completo, cédula, correo y estado. Esta capacidad es útil cuando la institución maneja listados oficiales externos y necesita reflejar de forma rápida el estado de cuentas docentes en el sistema.</p>
+
+  <h2>17. Reportes y estadísticas</h2>
+  <p>El módulo de reportes presenta un enfoque de análisis que combina indicadores, filtros por periodo, tablas y gráficos. El encargado puede generar vistas generales o enfocadas en activos, insumos, usuarios o movimientos.</p>
+
+  <h3>17.1 Indicadores incluidos</h3>
+  <ul>
+    <li>Total de activos.</li>
+    <li>Total de insumos.</li>
+    <li>Solicitudes del mes.</li>
+    <li>Usuarios activos.</li>
+    <li>Alertas de stock bajo.</li>
+    <li>Movimientos recientes.</li>
+    <li>Items críticos o fuera de servicio.</li>
+  </ul>
+
+  <h3>17.2 Utilidad institucional de los reportes</h3>
+  <p>Los reportes permiten ver tendencias de uso, saturación de inventario, comportamiento por categoría y activos más solicitados. No se trata solo de una visualización gráfica; este módulo puede servir para justificar reposiciones, medir carga operativa y respaldar decisiones sobre mantenimiento o adquisición de recursos.</p>
+
+  <h2>18. Resumen del inventario</h2>
+  <p>El sistema también dispone de un módulo de resumen de inventario con KPIs específicos sobre disponibilidad, préstamos, categorías, stock y activos fuera de servicio. Este módulo funciona como panel ejecutivo para obtener una visión rápida del estado general del laboratorio.</p>
+
+  <h2>19. Reglas institucionales y controles automáticos</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Regla</th>
+        <th>Descripción operativa</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Control por rol</td>
+        <td>El sistema restringe funcionalidades según el tipo de usuario y sus permisos.</td>
+      </tr>
+      <tr>
+        <td>Bloqueo por estado del usuario</td>
+        <td>Usuarios sancionados, inactivos o con pendientes de devolución no pueden operar con normalidad.</td>
+      </tr>
+      <tr>
+        <td>Unicidad de registros clave</td>
+        <td>Evita duplicidad en cédulas, correos, códigos de insumo, números de activo y números de serie.</td>
+      </tr>
+      <tr>
+        <td>Trazabilidad</td>
+        <td>Solicitudes e insumos guardan historial de movimientos y cambios relevantes.</td>
+      </tr>
+      <tr>
+        <td>Validación documental</td>
+        <td>El periodo académico puede exigir boleta estudiantil vigente.</td>
+      </tr>
+      <tr>
+        <td>Baja lógica</td>
+        <td>Los elementos no desaparecen del todo; se conservan para consulta y auditoría.</td>
+      </tr>
+      <tr>
+        <td>Lista de espera</td>
+        <td>Cuando no hay disponibilidad, el requerimiento puede mantenerse como demanda pendiente.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="page-break"></div>
+
+  <h2>20. Especificaciones funcionales del sistema</h2>
+  <h3>20.1 Especificación de usuarios</h3>
+  <p>El sistema almacena la identidad del usuario, su tipo de rol, permisos, estado, datos académicos y datos documentales. La autenticación se basa en credenciales y token de sesión. El modelo contempla control de sanciones, estados de matrícula, historial de boleta y último acceso.</p>
+
+  <h3>20.2 Especificación de activos</h3>
+  <p>Cada activo es una entidad individual con identificación única, categoría predefinida y estado controlado. Puede incluir imagen, observaciones y rastreo de disponibilidad para integrarse con el módulo de solicitudes.</p>
+
+  <h3>20.3 Especificación de insumos</h3>
+  <p>Cada insumo mantiene stock, código único, categoría, ubicación, estado y bitácora de movimientos. La lógica del sistema ajusta su estado según cantidad y según acciones administrativas o de préstamo.</p>
+
+  <h3>20.4 Especificación de solicitudes</h3>
+  <p>La solicitud es una entidad relacional que conecta usuario, activos e insumos con un folio secuencial. Conserva fechas, observaciones, estados, comentarios administrativos e histórico de eventos. El folio se genera automáticamente para facilitar el seguimiento.</p>
+
+  <h3>20.5 Especificación de cuatrimestre</h3>
+  <p>El cuatrimestre activo se maneja como configuración del sistema. Solo uno debe estar activo a la vez. Su registro influye en la validación documental del estudiantado y en el comportamiento de módulos académicos.</p>
+
+  <h2>21. Especificaciones técnicas generales</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Componente</th>
+        <th>Especificación observada</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Frontend</td>
+        <td>Interfaz web compuesta por páginas HTML, CSS y JavaScript, con apoyo de Vite para entorno de desarrollo y recursos adicionales para visualización.</td>
+      </tr>
+      <tr>
+        <td>Backend</td>
+        <td>API en Node.js con Express, encargada de autenticación, validaciones, lógica de negocio, rutas y acceso a datos.</td>
+      </tr>
+      <tr>
+        <td>Base de datos</td>
+        <td>MongoDB, utilizada mediante Mongoose para modelado, validación y persistencia.</td>
+      </tr>
+      <tr>
+        <td>Archivos</td>
+        <td>Se almacenan documentos e imágenes en directorios de carga del backend, incluyendo boletas e imágenes de inventario.</td>
+      </tr>
+      <tr>
+        <td>Seguridad</td>
+        <td>Uso de token para autenticación, middleware de protección de rutas, validaciones por rol, CORS, helmet y control de errores.</td>
+      </tr>
+      <tr>
+        <td>Contenerización</td>
+        <td>El proyecto dispone de archivos Docker Compose para orquestar frontend, backend y base de datos.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>21.1 Estructura técnica resumida</h3>
+  <ul>
+    <li>Frontend principal en la carpeta <strong>frontend</strong>.</li>
+    <li>Backend principal en la carpeta <strong>backend</strong>.</li>
+    <li>Documentación interna en la carpeta <strong>Documentacion</strong>.</li>
+    <li>Archivos de orquestación con Docker Compose en la raíz del proyecto.</li>
+    <li>Directorios de carga de boletas e imágenes dentro del backend.</li>
+  </ul>
+
+  <h3>21.2 Consideraciones de infraestructura</h3>
+  <p>El sistema ha sido preparado para ejecutarse de manera local y también mediante contenedores. En el entorno revisado se utilizan Node.js, npm, MongoDB, Docker Compose, Podman y ngrok como herramientas de soporte. La documentación existente del proyecto también contempla comandos de arranque, reinicio y exposición del frontend cuando se necesita acceso remoto controlado.</p>
+
+  <h3>21.3 Configuración operativa actual del entorno</h3>
+  <p>Para el funcionamiento actual del sistema se ha utilizado un dominio temporal de ngrok con el fin de exponer el servicio de forma controlada durante las pruebas y el acceso remoto. Esta configuración debe entenderse como operativa y temporal, por lo que conviene revisarla periódicamente si el dominio cambia o si se reemplaza por una solución institucional definitiva.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Elemento</th>
+        <th>Configuración actual</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Dominio temporal de acceso</td>
+        <td><strong>https://monsoon-aim-mashed.ngrok-free.dev/</strong></td>
+      </tr>
+      <tr>
+        <td>Cuenta de correo utilizada para operación</td>
+        <td><strong>spieesp.utn@gmail.com</strong></td>
+      </tr>
+      <tr>
+        <td>Contraseña asociada al correo operativo</td>
+        <td><strong>spiee-sp.utn*</strong></td>
+      </tr>
+      <tr>
+        <td>Consola de administración de contenedores</td>
+        <td><strong>http://localhost:9000/</strong> mediante Portainer</td>
+      </tr>
+      <tr>
+        <td>Usuario administrativo de Portainer</td>
+        <td><strong>admin-SPIEE</strong></td>
+      </tr>
+      <tr>
+        <td>Contraseña administrativa de Portainer</td>
+        <td><strong>utn*********</strong></td>
+      </tr>
+      <tr>
+        <td>Environment administrado en Portainer</td>
+        <td><strong>SPIEE</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Dentro de Portainer, el entorno denominado <strong>SPIEE</strong> concentra la administración principal de los contenedores usados por el sistema. Esto permite que el personal encargado revise estados, reinicios, despliegues y disponibilidad de cada componente desde una consola unificada.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Contenedor</th>
+        <th>Función dentro del sistema</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>prestamos_backend</strong></td>
+        <td>Ejecuta la API del sistema, la lógica de negocio, validaciones, autenticación y conexión con la base de datos.</td>
+      </tr>
+      <tr>
+        <td><strong>prestamos_frontend</strong></td>
+        <td>Publica la interfaz visual con la que interactúan usuarios, encargados y administradores.</td>
+      </tr>
+      <tr>
+        <td><strong>prestamos_mongodb</strong></td>
+        <td>Almacena la información persistente del sistema, incluyendo usuarios, solicitudes, inventario, boletas y configuraciones.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="warning">
+    <strong>Observación importante:</strong> como el dominio de ngrok es temporal, este dato debe actualizarse en la documentación cada vez que se regenere el túnel o se cambie el mecanismo de publicación externa. Del mismo modo, cualquier cambio de credenciales administrativas o de correo operativo debe reflejarse en una versión controlada del manual para evitar desactualización.
+  </div>
+
+  <h3>21.4 Ajuste futuro al dominio real</h3>
+  <p>Cuando el sistema deje de utilizar el dominio temporal de ngrok y pase a operar bajo un dominio real o institucional, no basta con anunciar el nuevo enlace de acceso: es necesario guardar el cambio explícitamente en los archivos de configuración que hoy controlan el acceso externo, los hosts permitidos y la política de origen del backend.</p>
+  <p>En otras palabras, el nuevo dominio debe quedar escrito y guardado en los archivos del proyecto, para que el sistema reconozca correctamente desde qué dirección se está accediendo.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Archivo</th>
+        <th>Ruta exacta</th>
+        <th>Qué debe ajustarse</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Configuración CORS del backend</td>
+        <td><strong>backend/src/app.js</strong></td>
+        <td>En la lista <strong>origin</strong> debe reemplazarse o agregarse el nuevo dominio real para permitir peticiones válidas desde ese sitio.</td>
+      </tr>
+      <tr>
+        <td>Hosts permitidos del frontend en Vite</td>
+        <td><strong>frontend/vite.config.js</strong></td>
+        <td>En la propiedad <strong>allowedHosts</strong> debe sustituirse el dominio de ngrok por el dominio definitivo, o agregarse el nuevo host según corresponda.</td>
+      </tr>
+      <tr>
+        <td>Proxy y acceso local del frontend</td>
+        <td><strong>frontend/vite.config.js</strong></td>
+        <td>Debe revisarse también la configuración de <strong>proxy</strong> si la arquitectura de publicación cambia al moverse desde ngrok hacia un dominio propio.</td>
+      </tr>
+      <tr>
+        <td>Variables del contenedor frontend</td>
+        <td><strong>docker-compose.yml</strong> y <strong>docker-compose-portainer.yml</strong></td>
+        <td>Conviene revisar los valores de <strong>VITE_API_URL</strong> y <strong>VITE_API_PROXY_TARGET</strong> para asegurar que sigan apuntando al backend correcto bajo el nuevo escenario.</td>
+      </tr>
+      <tr>
+        <td>Proxy web institucional, si se usa</td>
+        <td><strong>Caddyfile</strong></td>
+        <td>Si el dominio real se atiende mediante Caddy u otro proxy, aquí debe guardarse la nueva relación entre dominio público y servicios internos.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <strong>Resumen práctico:</strong> cuando se ajuste el dominio real, el cambio debe quedar guardado principalmente en <strong>backend/src/app.js</strong> y <strong>frontend/vite.config.js</strong>. Si además el despliegue depende de contenedores o de un proxy web, también debe verificarse y guardarse en <strong>docker-compose.yml</strong>, <strong>docker-compose-portainer.yml</strong> y, si aplica, en el <strong>Caddyfile</strong>.
+  </div>
+
+  <p>Después de guardar estos cambios, se debe reiniciar o reconstruir el entorno para que la modificación tome efecto. En el contexto actual del proyecto, esto normalmente implica levantar nuevamente los contenedores del sistema.</p>
+
+  <h2>22. Recomendaciones de uso para encargados</h2>
+  <ol>
+    <li>Actualizar estados de solicitudes el mismo día en que ocurra la entrega, devolución o rechazo.</li>
+    <li>Registrar daños o salidas de servicio en cuanto se detecten.</li>
+    <li>Revisar periódicamente boletas pendientes y docentes sin aprobar.</li>
+    <li>Usar observaciones claras y completas en sanciones, rechazos y bajas.</li>
+    <li>Respaldar la integridad del inventario verificando que la información del sistema coincida con el inventario físico.</li>
+    <li>Monitorear reportes de stock crítico para anticipar faltantes.</li>
+  </ol>
+
+  <h2>23. Riesgos operativos si no se usa correctamente</h2>
+  <ul>
+    <li>Préstamos registrados con estados incorrectos pueden aparentar disponibilidad falsa.</li>
+    <li>Boletas no revisadas a tiempo pueden bloquear usuarios válidos o habilitar usuarios sin respaldo documental suficiente.</li>
+    <li>Un inventario desactualizado reduce la confiabilidad institucional del sistema.</li>
+    <li>La omisión de observaciones limita la trazabilidad ante incidencias o auditorías.</li>
+    <li>Una mala asignación de permisos puede exponer módulos sensibles a usuarios no autorizados.</li>
+  </ul>
+
+  <h2>24. Procedimientos sugeridos por perfil encargado</h2>
+  <h3>24.1 Encargado de laboratorio</h3>
+  <p>Debe concentrarse en la verificación del inventario físico, la actualización de estados de activos e insumos y el seguimiento de solicitudes activas. También debe utilizar la lista de espera como señal de demanda no cubierta.</p>
+
+  <h3>24.2 Encargado administrativo</h3>
+  <p>Debe velar por la consistencia de usuarios, boletas, solicitudes, reportes y control documental. Este perfil puede usar el sistema para supervisar el orden del proceso y respaldar decisiones operativas.</p>
+
+  <h3>24.3 Administrador del sistema</h3>
+  <p>Debe controlar configuraciones críticas, roles, sanciones, mantenimiento funcional y cambios estructurales del periodo académico. Además, le corresponde corregir situaciones excepcionales que el usuario final no puede resolver por sí mismo.</p>
+
+  <h2>25. Conclusión</h2>
+  <p>SPIEE no es únicamente una interfaz para pedir materiales; es una plataforma de control institucional que integra inventario, préstamos, usuarios, documentación académica y supervisión administrativa. Su utilidad depende directamente de que la información ingresada y los estados mantenidos reflejen la realidad operativa del laboratorio.</p>
+  <p>Si se utiliza de forma disciplinada, el sistema permite mejorar trazabilidad, transparencia, orden documental y capacidad de respuesta. Por ello, se recomienda que este manual sea compartido con las personas encargadas y que sirva como base para capacitaciones, lineamientos internos y futuras mejoras del sistema.</p>
+
+  <h2>26. Anexo resumido de especificaciones clave</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Área</th>
+        <th>Especificación clave</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Usuarios</td>
+        <td>Roles diferenciados, control por estado, correos institucionales, contraseña mínima y manejo de sanciones.</td>
+      </tr>
+      <tr>
+        <td>Activos</td>
+        <td>Registro individual, unicidad por número de activo y serie, categorías definidas y baja lógica.</td>
+      </tr>
+      <tr>
+        <td>Insumos</td>
+        <td>Control por cantidad, estados automáticos según stock, categorías definidas y movimientos de trazabilidad.</td>
+      </tr>
+      <tr>
+        <td>Solicitudes</td>
+        <td>Flujo por estados, folio secuencial, histórico de cambios, validación por disponibilidad y lista de espera.</td>
+      </tr>
+      <tr>
+        <td>Cuatrimestre</td>
+        <td>Configuración de periodo activo y reinicio de validación de boletas para estudiantes.</td>
+      </tr>
+      <tr>
+        <td>Documentos</td>
+        <td>Boletas PDF con estados de revisión y observaciones administrativas.</td>
+      </tr>
+      <tr>
+        <td>Reportes</td>
+        <td>KPIs, filtros por periodo, tablas, gráficos e indicadores de inventario y uso.</td>
+      </tr>
+      <tr>
+        <td>Tecnología</td>
+        <td>Frontend web, backend Express, MongoDB, archivos de subida y soporte por contenedores.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="small">Fin del documento.</p>
+</body>
+</html>

@@ -79,6 +79,9 @@ if (!fs.existsSync(uploadsDir)) {
 
 // --- 2. RUTAS DE LA API ---
 app.use('/api/usuarios', require('./routes/usuariosRoutes'));
+const usuarioControllers = require('./controllers/usuarioControllers');
+app.post('/api/cambiar-password-login', usuarioControllers.cambiarPasswordLogin);
+app.post('/api/cambiar-password', usuarioControllers.cambiarPasswordLogin);
 app.use('/api/activos', require('./routes/activosRoutes'));
 app.use('/api/insumos', require('./routes/insumosRoutes'));
 app.use('/api/solicitudes', require('./routes/solicitudesRoutes'));

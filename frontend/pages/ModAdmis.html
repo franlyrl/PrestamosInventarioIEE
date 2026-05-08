@@ -31,7 +31,11 @@
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen">
 
-    <!-- Header cargado por components.js -->
+    <!--
+      Header compartido:
+      `components.js` detecta este contenedor y le inyecta
+      `frontend/components/header.html`.
+    -->
     <div id="header-component"></div>
 
     <!-- Pantalla de carga mientras se verifica auth -->
@@ -42,7 +46,10 @@
         </div>
     </div>
 
-    <!-- Contenido principal (oculto hasta verificar auth) -->
+    <!--
+      Este panel se mantiene oculto hasta que el script principal de la página
+      valida sesión y rol. Si la vista queda en blanco, revisar el script final.
+    -->
     <main id="mainContent" class="flex-grow" style="display:none">
 
         <!-- Encabezado de página -->
@@ -70,7 +77,7 @@
 
         <div class="container mx-auto max-w-6xl px-6 py-8">
 
-            <!-- M-DULOS - Insumos -  Activos -  Masiva -->
+            <!-- Módulos del sistema -->
             <section class="mb-10 fade-up" style="animation-delay:.08s">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Módulos del Sistema</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-7">
@@ -425,6 +432,10 @@
     </div>
 
     <script>
+        /*
+          Script de apoyo para modales locales de esta vista.
+          Solo gestiona apertura/cierre de ayuda e inventario emergente.
+        */
         function toggleHelpModal() {
             const modal = document.getElementById('helpModal');
             if (modal.classList.contains('hidden')) {
@@ -514,11 +525,27 @@
         </div>
     </footer>
 
+    <!--
+      Scripts compartidos:
+      - `main.js`: utilidades globales, sesión, notificaciones, toasts.
+      - `components.js`: header/footer compartidos.
+    -->
     <!-- Scripts necesarios -->
     <script src="../js/main.js"></script>
     <script src="../js/components.js"></script>
 
     <script>
+    /*
+      Script principal de `ModAdmis.html`.
+      Aquí se conectan los IDs del HTML con la lógica real del panel:
+      `loadScreen`, `mainContent`, `badgeInsumos`, `badgeActivos`, `itemsGrid`, etc.
+
+      Para rastrear comportamiento:
+      1. Revisar el ID del elemento en este HTML.
+      2. Buscar ese ID dentro de este script.
+      3. Si el comportamiento es transversal (header/sesión/notificaciones),
+         revisar `main.js` y `components.js`.
+    */
     const API = window.CONFIG?.API_BASE_URL || '/api';
 
     document.addEventListener('DOMContentLoaded', async () => {

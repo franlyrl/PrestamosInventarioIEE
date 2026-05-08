@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
+const apiProxyTarget = process.env.VITE_API_PROXY_TARGET || 'http://localhost:4000';
+
 export default defineConfig({
   root: '.', // Raíz del proyecto
   publicDir: 'public', // Directorio público
@@ -15,12 +17,12 @@ export default defineConfig({
     // Proxy para redirigir llamadas a /api y /uploads al backend local
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: apiProxyTarget,
         changeOrigin: true,
         secure: false
       },
       '/uploads': {
-        target: 'http://localhost:4000',
+        target: apiProxyTarget,
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path

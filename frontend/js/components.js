@@ -3,6 +3,11 @@
  * - Garantiza que el header y footer carguen en TODAS las páginas.
  * - Inyecta SweetAlert2 automáticamente.
  * - Sincroniza nombre e iniciales del usuario.
+ *
+ * Regla importante de este frontend:
+ * - Cuando una vista trae `header-component` o `footer-component`, este archivo
+ *   es el encargado de rellenarlos.
+ * - El HTML real de esos bloques vive en `frontend/components/`.
  */
 
 // Configuración de SweetAlert movida a main.js para disponibilidad global
@@ -48,6 +53,8 @@ function syncUserInHeader() {
 }
 
 // ── 4. Cargar Header y Footer ───────────────────────────────────────────────
+// Esta función resuelve la relación entre páginas en `frontend/pages/` y los
+// componentes HTML reutilizables del directorio `frontend/components/`.
 window.loadComponents = async function() {
     try {
         const headerEl = document.getElementById('header-component');

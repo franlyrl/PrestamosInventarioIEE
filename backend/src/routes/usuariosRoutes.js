@@ -36,6 +36,8 @@ const boletaUpload = multer({
 // Publicas
 router.post('/registro', boletaUpload.single('boleta_pdf'), usuarioControllers.createUsuario);
 router.post('/login', usuarioControllers.loginUsuario);
+router.post('/cambiar-password-login', usuarioControllers.cambiarPasswordLogin);
+router.post('/cambiar-password', usuarioControllers.cambiarPasswordLogin);
 router.post('/boleta-reactivacion', boletaUpload.single('boleta_pdf'), usuarioControllers.subirBoletaReactivacion);
 router.get('/perfil', protect, usuarioControllers.getPerfil);
 router.patch('/update-password', protect, usuarioControllers.updatePassword);

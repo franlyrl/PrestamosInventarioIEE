@@ -368,6 +368,49 @@ exports.updatePassword = async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
 };
+
+/**
+ * @desc Cambia la contraseña desde la pantalla de login validando la clave actual
+ */
+exports.cambiarPasswordLogin = async (req, res) => {
+    try {
+        const { correo_electronico, email, currentPassword, contrasena_actual, newPassword, nueva_contrasena } = req.body;
+        const correo = String(correo_electronico || email || '').toLowerCase().trim();
+        const actual = currentPassword || contrasena_actual;
+        const nueva = newPassword || nueva_contrasena;
+
+        if (!correo || !actual || !nueva) {
+            return res.status(400).json({ message: 'Debe completar correo, contraseña actual y nueva contraseña.' });
+        }
+
+        if (nueva.length < 8) {
+            return res.status(400).json({ message: 'La nueva contraseña debe tener al menos 8 caracteres.' });
+        }
+
+        if (actual === nueva) {
+            return res.status(400).json({ message: 'La nueva contraseña debe ser diferente a la actual.' });
+        }
+
+        const usuario = await Usuarios.findOne({ correo_electronico: correo }).select('+hash_contraseña');
+        if (!usuario) {
+            return res.status(404).json({ message: 'No se encontró un usuario con ese correo.' });
+        }
+
+        const esValida = await bcrypt.compare(actual, usuario.hash_contraseña);
+        if (!esValida) {
+            return res.status(401).json({ message: 'La contraseña actual es incorrecta.' });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        usuario.hash_contraseña = await bcrypt.hash(nueva, salt);
+        await usuario.save();
+
+        res.json({ ok: true, message: 'Contraseña actualizada correctamente. Ya puedes iniciar sesión.' });
+    } catch (error) {
+        console.error('Error al cambiar contraseña desde login:', error);
+        res.status(500).json({ message: 'Error interno al cambiar contraseña.', error: error.message });
+    }
+};
 /**
  * @desc Sanciona a un usuario y marca la solicitud como penalizada.
  * Bloquea al usuario para que no pida más ni pueda ser inactivado/borrado.

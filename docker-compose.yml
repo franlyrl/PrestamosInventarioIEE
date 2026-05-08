@@ -27,7 +27,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 4000
-      MONGODB_URI: mongodb://admin:password123@mongodb:27017/prestamos_lab?authSource=admin
+      MONGO_URI: mongodb://admin:password123@mongodb:27017/prestamos_lab?authSource=admin
       JWT_SECRET: tu_secreto_jwt_aqui
       DB_NAME: prestamos_lab
     depends_on:
@@ -47,6 +47,7 @@ services:
       - "5173:5173"
     environment:
       VITE_API_URL: http://localhost:4000/api
+      VITE_API_PROXY_TARGET: http://backend:4000
     depends_on:
       - backend
     volumes:
